@@ -19,7 +19,7 @@ spec:
       helm:
         releaseName: whoami
         valueFiles:
-          - $repo/kubernetes/apps/whoami/whoami/values.sops.yaml
+          - $repo/kubernetes/apps/whoami/whoami/values.yaml
   destination:
     name: in-cluster
     namespace: whoami
@@ -29,5 +29,4 @@ spec:
       prune: true
       selfHeal: true
     syncOptions:
-      - PruneLast=true
       - CreateNamespace=true
