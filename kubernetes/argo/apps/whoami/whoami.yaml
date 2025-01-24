@@ -10,7 +10,7 @@ spec:
   project: kubernetes
   sources:
     - repoURL: https://github.com/mebezac/home-cluster.git
-      path: kubernetes/apps/whoami/whoami
+      path: kubernetes/apps/whoami
       targetRevision: main
       ref: repo
     - repoURL: cowboysysop.github.io/charts
@@ -19,7 +19,7 @@ spec:
       helm:
         releaseName: whoami
         valueFiles:
-          - $repo/kubernetes/apps/whoami/whoami/values.yaml
+          - $repo/kubernetes/apps/whoami/values.yaml
   destination:
     name: in-cluster
     namespace: whoami
