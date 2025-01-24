@@ -7,7 +7,7 @@ spec:
     - dnsName: external.laboratory.casa
       recordType: CNAME
       targets:
-        - d91b60da-32b2-45b3-8a53-0cc03683847.cfargotunnel.com
+        - d91b60da-32b2-45b3-8a53-0cc03683847d.cfargotunnel.com
 sops:
   kms: []
   gcp_kms: []
@@ -17,14 +17,14 @@ sops:
     - recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
       enc: |
         -----BEGIN AGE ENCRYPTED FILE-----
-        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSB3RHU3YldLbDN1UXRsOW5E
-        MStWOEJwTWp4My94b1lmZlNqMVJVRkplRG1BCk9lOWU3Ky8zMDJydzA4VTdKZVc2
-        VTV5TFJGektXbWVUaDlaTnJzSjd6QjAKLS0tIDFtSm4xekwxUUxIaTNqbHR1a1VM
-        cHFONGZSUGY3dU1jeE8rdm1CYXNLMWMKsixBKBzyBxqULd6mQh7FtSWUz7GSHUNW
-        xmhn5CNTxp83umDNRlwyXD41SFFs0u8Ns0aZL3DzkI84N8KCOaf4lQ==
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBjSHZhZWRwdVRXQlpCdUc4
+        VjJ4UUVVc1RNOFNkNmRyaUtwVVdFWUJudEVnCklTZm1JakRVQ0cweUhFZTFObnhQ
+        UXMwUkNoZktFdmFGUFdGQlVRYVNEVU0KLS0tIHJUckRacmNCM1VxMGk4SWtlUkJX
+        U1V4OSt2b21DcGVHeU82K3BIV09JblUKvqcfvC1lriyKElrevqP3TLu/pYZ40gYE
+        shGdkpGWTDChTOzybZvPTpHQssLWqjkRbATeetlHCJgRB2Z68Xt9ow==
         -----END AGE ENCRYPTED FILE-----
-  lastmodified: "2025-01-24T15:50:07Z"
-  mac: ENC[AES256_GCM,data:z5ETCi1jELE6R8vGZWNAnuEd7oIwqTDTWxwfSiYSCvuVB6OJ9y/4BJyX8WIQj1kv+vgFhFhhC7TGb7FaORxxe8ZIXrP8e6hr1qCBXSZ39XxP8h7wtHn2O9y/0UhK+au72QJg3hjNgiQP02eY0KoSNgu5dvOWXHzdvohjrV0md+Q=,iv:pl5bgIJWeUqch8+Nh3WR6rnj65GncQK4JnnlgC45JBo=,tag:6LHb2QEs9U5E8sAdqp4hyg==,type:str]
+  lastmodified: "2025-01-24T17:14:26Z"
+  mac: ENC[AES256_GCM,data:hBYm8PKlvDsQF6eU3JCc0KqyAbPcBcJGqom6FheknMFCZNSR2bXd+ugcQDrovY84nj3QgWme2MEOVLZ0nF21uExzXRBDVi9LNj/iv96gzjYkT9DBgY+/d53/ACSwjX5XBfzFGtQ2czTyEzgtF4WFTYW1hmlB/cFcYFgOoVHNTg4=,iv:O55rs0qII9W7vhN7q7zc745uBgf65aYhmzYqieMf/+0=,tag:76POIZVUJeIsF5iWkCvCyg==,type:str]
   pgp: []
   encrypted_regex: ^(data|stringData)$
   mac_only_encrypted: true
