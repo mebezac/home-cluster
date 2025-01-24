@@ -1,0 +1,7 @@
+kubernetes-wyse-5070-04-talos-k3s-main-01.yaml
+kubernetes-wyse-5070-04-talos-k3s-main-02.yaml
+kubernetes-wyse-5070-05-talos-k3s-main-03.yaml
+kubernetes-wyse-5070-04-talos-k3s-worker-01.yaml
+kubernetes-wyse-5070-05-talos-k3s-worker-02.yaml
+kubernetes-wyse-5070-05-talos-k3s-worker-03.yaml
+talosconfig
