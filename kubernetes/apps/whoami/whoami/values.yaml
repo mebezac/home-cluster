@@ -1,7 +1,0 @@
-ingress:
-  enabled: true
-  ingressClassName: "internal"
-  hosts:
-    - host: "{{ .Release.Name }}.laboratory.casa"
-      paths:
-        - "/"
