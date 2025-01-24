@@ -1,0 +1,28 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: repositories
+  namespace: argo-system
+spec:
+  project: default
+  source:
+    repoURL: #{ github.address }#
+    path: kubernetes/argo/repositories
+    targetRevision: #{ github.branch }#
+  destination:
+    name: in-cluster
+    namespace: argo-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+      - RespectIgnoreDifferences=true
+  ignoreDifferences:
+    - group: argoproj.io
+      kind: Application
+      jsonPointers:
+        - /spec/syncPolicy
