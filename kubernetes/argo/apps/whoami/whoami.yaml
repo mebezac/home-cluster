@@ -22,7 +22,7 @@ spec:
           - $repo/kubernetes/apps/whoami/whoami/values.sops.yaml
   destination:
     name: in-cluster
-    namespace: network
+    namespace: whoami
   syncPolicy:
     automated:
       allowEmpty: true
