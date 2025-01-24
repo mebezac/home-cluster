@@ -2,6 +2,6 @@ ingress:
   enabled: true
   ingressClassName: "internal"
   hosts:
-    - host: "{{ .Release.Name }}.laboratory.casa"
+    - host: "whot.laboratory.casa"
       paths:
         - "/"
