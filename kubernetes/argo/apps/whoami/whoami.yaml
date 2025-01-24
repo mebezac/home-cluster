@@ -1,0 +1,32 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: whoami
+  namespace: whoami
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: kubernetes
+  sources:
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/apps/whoami/whoami
+      targetRevision: main
+      ref: repo
+    - repoURL: cowboysysop.github.io/charts
+      chart: cowboysysop/whoami
+      targetRevision: 5.2.0
+      helm:
+        releaseName: whoami
+        valueFiles:
+          - $repo/kubernetes/apps/whoami/whoami/values.yaml
+  destination:
+    name: in-cluster
+    namespace: whoami
+  syncPolicy:
+    automated:
+      allowEmpty: true
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
