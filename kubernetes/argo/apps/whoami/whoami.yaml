@@ -13,8 +13,8 @@ spec:
       path: kubernetes/apps/whoami
       targetRevision: main
       ref: repo
-    - repoURL: cowboysysop.github.io/charts
-      chart: cowboysysop/whoami
+    - repoURL: https://cowboysysop.github.io/charts
+      chart: whoami
       targetRevision: 5.2.0
       helm:
         releaseName: whoami
