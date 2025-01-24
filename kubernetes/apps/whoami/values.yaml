@@ -1,6 +1,6 @@
 ingress:
   enabled: true
-  ingressClassName: "internal"
+  ingressClassName: "external"
   hosts:
     - host: "whot.laboratory.casa"
       paths:
