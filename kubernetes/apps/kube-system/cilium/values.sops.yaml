@@ -1,0 +1,94 @@
+autoDirectNodeRoutes: true
+bpf:
+  masquerade: true
+  # Ref: https://github.com/siderolabs/talos/issues/10002
+  hostLegacyRouting: true
+cni:
+  # Required for pairing with Multus CNI
+  exclusive: false
+cgroup:
+  automount:
+    enabled: false
+  hostRoot: /sys/fs/cgroup
+# NOTE: devices might need to be set if you have more than one active NIC on your hosts
+# devices: eno+ eth+
+endpointRoutes:
+  enabled: true
+envoy:
+  enabled: false
+dashboards:
+  enabled: true
+hubble:
+  enabled: false
+ipam:
+  mode: kubernetes
+ipv4NativeRoutingCIDR: 10.69.0.0/16
+k8sServiceHost: 127.0.0.1
+k8sServicePort: 7445
+kubeProxyReplacement: true
+kubeProxyReplacementHealthzBindAddr: 0.0.0.0:10256
+l2announcements:
+  enabled: true
+loadBalancer:
+  algorithm: maglev
+  mode: dsr
+localRedirectPolicy: true
+operator:
+  replicas: 1
+  rollOutPods: true
+  prometheus:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+  dashboards:
+    enabled: true
+prometheus:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    trustCRDsExist: true
+rollOutCiliumPods: true
+routingMode: native
+securityContext:
+  capabilities:
+    ciliumAgent:
+      - CHOWN
+      - KILL
+      - NET_ADMIN
+      - NET_RAW
+      - IPC_LOCK
+      - SYS_ADMIN
+      - SYS_RESOURCE
+      - PERFMON
+      - BPF
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETGID
+      - SETUID
+    cleanCiliumState:
+      - NET_ADMIN
+      - SYS_ADMIN
+      - SYS_RESOURCE
+socketLB:
+  hostNamespaceOnly: true
+sops:
+  kms: []
+  gcp_kms: []
+  azure_kv: []
+  hc_vault: []
+  age:
+    - recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
+      enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSAzaDZvRk42cDQvNmR6UHND
+        Y0hkS2FpdWpSNVdTSVdHYU9lSk8zL3ZTb21FCkVHM21iaHJSWCs3bmY3QlprYlJL
+        Q01xYXBZVVhIdXRIa0R6U0Y0OVhRUTQKLS0tIDhYLzVJZU82YXlWNC80NkxhVDBF
+        UEp4Yzkzbkw2YXZWNGNiWXF4cTRJdXcKL9KV3BXmMVYWMbyKacvAOwYjbTuZdJlr
+        a6lfnnC4wT8J+BErABLgl9AuuLFKAlLGGGuPpUVgKz7ouZPxK/T8rg==
+        -----END AGE ENCRYPTED FILE-----
+  lastmodified: "2025-01-24T15:50:07Z"
+  mac: ENC[AES256_GCM,data:THjcFwwZcZxe5Md8QvVSCWRcxJKLCIQuw0NNz1IBfQTw2FflyQzi+R6o7GFrQH17AZsjnOpWy+q3KjAsa0UoI1wamjtVFagA3N9iWJRKThKvqwizhmw7W6ksbwahWesUHsifbTNN2zWQYtNP7Dd1t0Y8GxVcCUFp6s/7dvIZTos=,iv:uTXvZh/GSGzfdnuFSNtvJKlgkJ86D12rh74ZacfD3H4=,tag:JBGF6uFTWPxrTI8aDU1PTg==,type:str]
+  pgp: []
+  encrypted_regex: ^(data|stringData)$
+  mac_only_encrypted: true
+  version: 3.9.3

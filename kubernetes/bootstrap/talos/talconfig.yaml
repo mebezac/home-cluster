@@ -1,0 +1,152 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/budimanjojo/talhelper/master/pkg/config/schemas/talconfig.json
+---
+# renovate: datasource=docker depName=ghcr.io/siderolabs/installer
+talosVersion: v1.9.2
+# renovate: datasource=docker depName=ghcr.io/siderolabs/kubelet
+kubernetesVersion: v1.32.1
+
+clusterName: kubernetes
+endpoint: https://10.25.30.116:6443
+
+clusterPodNets:
+  - "10.69.0.0/16"
+clusterSvcNets:
+  - "10.96.0.0/16"
+
+additionalApiServerCertSans: &sans
+  - "10.25.30.116"
+  - "10.25.30.116"
+  - "10.25.30.117"
+  - "10.25.30.118"
+  - "10.25.30.119"
+  - "127.0.0.1"
+additionalMachineCertSans: *sans
+
+# Disable built-in Flannel to use Cilium
+cniConfig:
+  name: none
+
+nodes:
+  - hostname: "wyse-5070-04-talos-k3s-main-01"
+    ipAddress: "10.25.30.124"
+    installDisk: "/dev/sda"
+    machineSpec:
+      secureboot: false
+    talosImageURL: factory.talos.dev/installer/ce4c980550dd2ab1b17bbf2b08801c7eb59418eafe8f279833297925d67c7515
+    controlPlane: true
+    networkInterfaces:
+      - deviceSelector:
+          hardwareAddr: "bc:24:11:8d:0e:e0"
+        dhcp: false
+        addresses:
+          - "10.25.30.124/24"
+        routes:
+          - network: "0.0.0.0/0"
+            gateway: "10.25.30.1"
+        mtu: 1500
+        vip:
+          ip: "10.25.30.116"
+  - hostname: "wyse-5070-04-talos-k3s-main-02"
+    ipAddress: "10.25.30.125"
+    installDisk: "/dev/sda"
+    machineSpec:
+      secureboot: false
+    talosImageURL: factory.talos.dev/installer/ce4c980550dd2ab1b17bbf2b08801c7eb59418eafe8f279833297925d67c7515
+    controlPlane: true
+    networkInterfaces:
+      - deviceSelector:
+          hardwareAddr: "bc:24:11:f0:61:27"
+        dhcp: false
+        addresses:
+          - "10.25.30.125/24"
+        routes:
+          - network: "0.0.0.0/0"
+            gateway: "10.25.30.1"
+        mtu: 1500
+        vip:
+          ip: "10.25.30.116"
+  - hostname: "wyse-5070-05-talos-k3s-main-03"
+    ipAddress: "10.25.30.127"
+    installDisk: "/dev/sda"
+    machineSpec:
+      secureboot: false
+    talosImageURL: factory.talos.dev/installer/ce4c980550dd2ab1b17bbf2b08801c7eb59418eafe8f279833297925d67c7515
+    controlPlane: true
+    networkInterfaces:
+      - deviceSelector:
+          hardwareAddr: "bc:24:11:49:98:e8"
+        dhcp: false
+        addresses:
+          - "10.25.30.127/24"
+        routes:
+          - network: "0.0.0.0/0"
+            gateway: "10.25.30.1"
+        mtu: 1500
+        vip:
+          ip: "10.25.30.116"
+  - hostname: "wyse-5070-04-talos-k3s-worker-01"
+    ipAddress: "10.25.30.126"
+    installDisk: "/dev/sda"
+    machineSpec:
+      secureboot: false
+    talosImageURL: factory.talos.dev/installer/ce4c980550dd2ab1b17bbf2b08801c7eb59418eafe8f279833297925d67c7515
+    controlPlane: false
+    networkInterfaces:
+      - deviceSelector:
+          hardwareAddr: "bc:24:11:0f:78:5e"
+        dhcp: false
+        addresses:
+          - "10.25.30.126/24"
+        routes:
+          - network: "0.0.0.0/0"
+            gateway: "10.25.30.1"
+        mtu: 1500
+  - hostname: "wyse-5070-05-talos-k3s-worker-02"
+    ipAddress: "10.25.30.114"
+    installDisk: "/dev/sda"
+    machineSpec:
+      secureboot: false
+    talosImageURL: factory.talos.dev/installer/ce4c980550dd2ab1b17bbf2b08801c7eb59418eafe8f279833297925d67c7515
+    controlPlane: false
+    networkInterfaces:
+      - deviceSelector:
+          hardwareAddr: "bc:24:11:93:dc:a8"
+        dhcp: false
+        addresses:
+          - "10.25.30.114/24"
+        routes:
+          - network: "0.0.0.0/0"
+            gateway: "10.25.30.1"
+        mtu: 1500
+  - hostname: "wyse-5070-05-talos-k3s-worker-03"
+    ipAddress: "10.25.30.115"
+    installDisk: "/dev/sda"
+    machineSpec:
+      secureboot: false
+    talosImageURL: factory.talos.dev/installer/ce4c980550dd2ab1b17bbf2b08801c7eb59418eafe8f279833297925d67c7515
+    controlPlane: false
+    networkInterfaces:
+      - deviceSelector:
+          hardwareAddr: "bc:24:11:6e:ea:a7"
+        dhcp: false
+        addresses:
+          - "10.25.30.115/24"
+        routes:
+          - network: "0.0.0.0/0"
+            gateway: "10.25.30.1"
+        mtu: 1500
+
+# Global patches
+patches:
+  - "@./patches/global/machine-files.yaml"
+  - "@./patches/global/machine-kubelet.yaml"
+  - "@./patches/global/machine-network.yaml"
+  - "@./patches/global/machine-sysctls.yaml"
+  - "@./patches/global/machine-time.yaml"
+
+# Controller patches
+controlPlane:
+  patches:
+    - "@./patches/controller/admission-controller-patch.yaml"
+    - "@./patches/controller/cluster.yaml"
+

@@ -1,0 +1,34 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: laboratory-casa-production
+spec:
+  secretName: laboratory-casa-production-tls
+  issuerRef:
+    name: letsencrypt-production
+    kind: ClusterIssuer
+  commonName: laboratory.casa
+  dnsNames:
+    - laboratory.casa
+    - '*.laboratory.casa'
+sops:
+  kms: []
+  gcp_kms: []
+  azure_kv: []
+  hc_vault: []
+  age:
+    - recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
+      enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBjSkY4a3M5UlVqRjRnaDI3
+        ZzFWcGpRYXFrVGZnZjM3allSZ2xHbnV2UkNFCkd5Z1JYNlVoaHJka3RTVVhSTHVH
+        SW44NzIxZmF0cHBpZlgxTHNGVk1paVUKLS0tIGJPU2Rrdmtla2wvNTJPU0JsUjFj
+        Y0JUdmFScWEzMlNVTmRhay9SdG96WjgKeNW4ZNnixwTRwsYGv/xxeT+Q/7r8ZZIf
+        iGassOPIH+VG8wky11RCy6tqeIjA+qRl3vDtcmOt93QUUBIXQr6qjA==
+        -----END AGE ENCRYPTED FILE-----
+  lastmodified: "2025-01-24T15:50:07Z"
+  mac: ENC[AES256_GCM,data:XrSyBmmjltzHcYGCXwo7boyDABmEBHuZAoymnckZznF6MPhywTfWI7D62TIQaMjfk7rLjJRw1SG9VkGBtmnYFKhB3cA5ilcNWHuNPzGEqrQ4bLbT/ZJ1lA50dxNCLpSxZuntRMDzN3Tdgv1kkvacYL5pmqnt9VJOjfXCA9MGm04=,iv:m4n2WuS/Dw0cwqXvgLgdNG6gRyZKC2VBDNPTR0IgYGA=,tag:3kMrBoRDJbouw8isfC7+6A==,type:str]
+  pgp: []
+  encrypted_regex: ^(data|stringData)$
+  mac_only_encrypted: true
+  version: 3.9.3

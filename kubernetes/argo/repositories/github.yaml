@@ -1,0 +1,14 @@
+---
+# yaml-language-server: $schema=https://kubernetesjsonschema.dev/v1.18.1-standalone-strict/secret-v1.json
+apiVersion: v1
+kind: Secret
+metadata:
+  name: github
+  namespace: argo-system
+  annotations:
+    argocd.argoproj.io/sync-wave: '1'
+  labels:
+    argocd.argoproj.io/secret-type: repository
+stringData:
+  type: git
+  url: https://github.com/mebezac/home-cluster.git

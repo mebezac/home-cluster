@@ -1,0 +1,31 @@
+apiVersion: externaldns.k8s.io/v1alpha1
+kind: DNSEndpoint
+metadata:
+  name: cloudflared
+spec:
+  endpoints:
+    - dnsName: external.laboratory.casa
+      recordType: CNAME
+      targets:
+        - d91b60da-32b2-45b3-8a53-0cc03683847.cfargotunnel.com
+sops:
+  kms: []
+  gcp_kms: []
+  azure_kv: []
+  hc_vault: []
+  age:
+    - recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
+      enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSB3RHU3YldLbDN1UXRsOW5E
+        MStWOEJwTWp4My94b1lmZlNqMVJVRkplRG1BCk9lOWU3Ky8zMDJydzA4VTdKZVc2
+        VTV5TFJGektXbWVUaDlaTnJzSjd6QjAKLS0tIDFtSm4xekwxUUxIaTNqbHR1a1VM
+        cHFONGZSUGY3dU1jeE8rdm1CYXNLMWMKsixBKBzyBxqULd6mQh7FtSWUz7GSHUNW
+        xmhn5CNTxp83umDNRlwyXD41SFFs0u8Ns0aZL3DzkI84N8KCOaf4lQ==
+        -----END AGE ENCRYPTED FILE-----
+  lastmodified: "2025-01-24T15:50:07Z"
+  mac: ENC[AES256_GCM,data:z5ETCi1jELE6R8vGZWNAnuEd7oIwqTDTWxwfSiYSCvuVB6OJ9y/4BJyX8WIQj1kv+vgFhFhhC7TGb7FaORxxe8ZIXrP8e6hr1qCBXSZ39XxP8h7wtHn2O9y/0UhK+au72QJg3hjNgiQP02eY0KoSNgu5dvOWXHzdvohjrV0md+Q=,iv:pl5bgIJWeUqch8+Nh3WR6rnj65GncQK4JnnlgC45JBo=,tag:6LHb2QEs9U5E8sAdqp4hyg==,type:str]
+  pgp: []
+  encrypted_regex: ^(data|stringData)$
+  mac_only_encrypted: true
+  version: 3.9.3

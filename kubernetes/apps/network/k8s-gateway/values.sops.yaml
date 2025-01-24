@@ -1,0 +1,33 @@
+fullnameOverride: k8s-gateway
+domain: laboratory.casa
+ttl: 1
+service:
+  type: LoadBalancer
+  port: 53
+  annotations:
+    io.cilium/lb-ipam-ips: 10.25.30.118
+  externalTrafficPolicy: Cluster
+watchedResources:
+  - Ingress
+  - Service
+sops:
+  kms: []
+  gcp_kms: []
+  azure_kv: []
+  hc_vault: []
+  age:
+    - recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
+      enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBYV3hQbFRrV0tGRDhlRnR5
+        OTRNZFNxdTM2QlhyZkdPRWxqWENSMmMwbWdnCmNFcWYwNm9oWmd2U01aeWxqTnNN
+        cFV6aTVVb3R5NVhwNERkaU5td3BjNzAKLS0tIEV4c0VnOGFpVGJnc1p5NEd3NnNq
+        cyswOFJlOFBDbXFzdmVITm56VW9KL00KgM5CtOOhqP1EqVJNpxbWE4Vh+qNCGaXn
+        yqz/jF9G2/HTLQGbJY91cajZEh1chMxss82dlJwSaHUMaWbuZGW+8A==
+        -----END AGE ENCRYPTED FILE-----
+  lastmodified: "2025-01-24T15:50:07Z"
+  mac: ENC[AES256_GCM,data:XgaoqIK7NvPo5wvCQiNl2yGiEFIxZujDwpw0Uxg4AwCas139qsUu29jE83MqFtx37a9OKz6oVTUMDM6pTxlxGEvtZrsySMwIOLZrqY/APjBcdkjeY2nuk0a0AI1/NxxZUOcNkP3JSWPyWKF51tg51dJ3aNITNN22IeSqjGoUliQ=,iv:bBcsNCcJ0l4XJK54mBcSGpBDSSfWH7jJAP0seY/24X0=,tag:sg836+BG7gT6/B4lMA7xIA==,type:str]
+  pgp: []
+  encrypted_regex: ^(data|stringData)$
+  mac_only_encrypted: true
+  version: 3.9.3
