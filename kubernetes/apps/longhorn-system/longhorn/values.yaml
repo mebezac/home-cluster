@@ -1,4 +1,7 @@
 ---
+defaultBackupStore:
+  backupTarget: "cifs://10.25.30.36/longhorn-backup"
+  backupTargetCredentialSecret: backup-secret
 defaultSettings:
   allowCollectingLonghornUsageMetrics: false
   autoDeletePodWhenVolumeDetachedUnexpectedly: true
