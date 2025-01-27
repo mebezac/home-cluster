@@ -4,5 +4,8 @@ ingress:
   enabled: true
   hosts:
     - host: "up.laboratory.casa"
+      paths:
+        - path: "/"
+          pathType: ImplementationSpecific
 volume:
   storageClassName: "longhorn"
