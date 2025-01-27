@@ -1,0 +1,32 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: uptime-kuma
+  namespace: argo-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: kubernetes
+  sources:
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/apps/uptime-kuma/uptime-kuma
+      targetRevision: main
+      ref: repo
+    - repoURL: https://helm.irsigler.cloud
+      chart: uptime-kuma
+      targetRevision: 2.21.2
+      helm:
+        releaseName: uptime-kuma
+        valueFiles:
+          - $repo/kubernetes/apps/uptime-kuma/uptime-kuma/values.yaml
+  destination:
+    name: in-cluster
+    namespace: uptime-kuma
+  syncPolicy:
+    automated:
+      allowEmpty: true
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

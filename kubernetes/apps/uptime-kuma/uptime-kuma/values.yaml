@@ -1,0 +1,8 @@
+---
+ingress:
+  className: "internal"
+  enabled: true
+  hosts:
+    - host: "up.laboratory.casa"
+volume:
+  storageClassName: "longhorn"
