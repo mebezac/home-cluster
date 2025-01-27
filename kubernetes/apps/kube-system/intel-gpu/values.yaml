@@ -1,3 +1,4 @@
 ---
 sharedDevNum: 4
 nodeFeatureRule: true
+resourceManager: false
