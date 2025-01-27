@@ -1,0 +1,18 @@
+---
+defaultSettings:
+  allowCollectingLonghornUsageMetrics: false
+  autoDeletePodWhenVolumeDetachedUnexpectedly: true
+  createDefaultDiskLabeledNodes: true
+  nodeDownPodDeletionPolicy:
+ingress:
+  enabled: true
+  host: "longhorn.laboratory.casa"
+  ingressClassName: "internal"
+persistence:
+  defaultClassReplicaCount: 2
+  defaultDataLocality: best-effort
+preUpgradeChecker:
+  jobEnabled: false
+service:
+  ui:
+    type: ClusterIP
