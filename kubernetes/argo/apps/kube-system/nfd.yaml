@@ -18,6 +18,7 @@ spec:
       targetRevision: v0.17.1
       helm:
         releaseName: node-feature-discovery
+        valueFiles:
           - $repo/kubernetes/apps/kube-system/nfd/values.yaml
   destination:
     name: in-cluster
