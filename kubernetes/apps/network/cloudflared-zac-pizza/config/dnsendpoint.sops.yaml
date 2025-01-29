@@ -1,0 +1,31 @@
+apiVersion: externaldns.k8s.io/v1alpha1
+kind: DNSEndpoint
+metadata:
+  name: cloudflared-zac-pizza
+spec:
+  endpoints:
+    - dnsName: external.zac.pizza
+      recordType: CNAME
+      targets:
+        - 527a21c7-28f1-42fb-8067-80ebbe8e570.cfargotunnel.com
+sops:
+  kms: []
+  gcp_kms: []
+  azure_kv: []
+  hc_vault: []
+  age:
+    - recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
+      enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBjSHZhZWRwdVRXQlpCdUc4
+        VjJ4UUVVc1RNOFNkNmRyaUtwVVdFWUJudEVnCklTZm1JakRVQ0cweUhFZTFObnhQ
+        UXMwUkNoZktFdmFGUFdGQlVRYVNEVU0KLS0tIHJUckRacmNCM1VxMGk4SWtlUkJX
+        U1V4OSt2b21DcGVHeU82K3BIV09JblUKvqcfvC1lriyKElrevqP3TLu/pYZ40gYE
+        shGdkpGWTDChTOzybZvPTpHQssLWqjkRbATeetlHCJgRB2Z68Xt9ow==
+        -----END AGE ENCRYPTED FILE-----
+  lastmodified: "2025-01-29T21:10:43Z"
+  mac: ENC[AES256_GCM,data:2K6yxkewHUiawFR8MEsn/9KaG5zuhrpoh59OHDcsWkO8jm+UIYIMKwu3aFLbScriSw0iL0heO5RS9u960/bL/mPgyQ9P6s4JAdSTQtTelXaH32Sai0lbhggsjJ2vZpvEJehWQL9gtNYcQwu7k9QVlH7M4veZQWss1YrsNbPoizc=,iv:G7+NzjqhnzuoIHKd7Nq78CrY3Ym0WrIKn8Irpj+Vd14=,tag:NBmSyvkUhcWS9zbqJryJFw==,type:str]
+  pgp: []
+  encrypted_regex: ^(data|stringData)$
+  mac_only_encrypted: true
+  version: 3.9.3
