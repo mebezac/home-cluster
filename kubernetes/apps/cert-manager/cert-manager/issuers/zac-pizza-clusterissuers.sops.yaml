@@ -1,0 +1,83 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cert-manager.io/clusterissuer_v1.json
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-production
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: admin@zac.pizza
+    privateKeySecretRef:
+      name: letsencrypt-production
+    solvers:
+      - dns01:
+          cloudflare:
+            apiTokenSecretRef:
+              name: cert-manager-secret
+              key: zac-pizza-api-token
+        selector:
+          dnsZones:
+            - zac.pizza
+sops:
+  kms: []
+  gcp_kms: []
+  azure_kv: []
+  hc_vault: []
+  age:
+    - recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
+      enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBRNS9Gdm9JbUxwdi9xR0Rl
+        WFhSMFhIQ0JSb2h2emVjbklEbzI3OXBJU0RVCkxpd3gxQzRYbmxmNVozRUNvY3lR
+        Q3dtVmt6U2YvYWNsU0IvdHYzNzc4SWMKLS0tIFZvUWFqU0llQkF1WEdyVmpLblo0
+        RVEycWlWbjRGanZ4dVVYOTVVWEdYdzAKiekoBmTCsoUkxthbRObY/Q4epqVpizbf
+        d7QmePAgc7GO4KTKPyo7Ki3JB9qI1bS1Pt9LAOSeswVpRcmwlkrqbQ==
+        -----END AGE ENCRYPTED FILE-----
+  lastmodified: "2025-01-29T19:39:26Z"
+  mac: ENC[AES256_GCM,data:z1ZHpT3u8o/epP/4iJJFwbnUzh6q6xugCSJu5l3ZybKGb8+9RV4rE+f2qS9Tzkj07gKtnZQWRKKhPbzsxWmvQ/4hPm2T2KJBMexn4N+g6qHB
+  pgp: []
+  encrypted_regex: ^(data|stringData)$
+  mac_only_encrypted: true
+  version: 3.9.3
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cert-manager.io/clusterissuer_v1.json
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-staging
+spec:
+  acme:
+    server: https://acme-staging-v02.api.letsencrypt.org/directory
+    email: admin@zac.pizza
+    privateKeySecretRef:
+      name: letsencrypt-staging
+    solvers:
+      - dns01:
+          cloudflare:
+            apiTokenSecretRef:
+              name: cert-manager-secret
+              key: zac-pizza-api-token
+        selector:
+          dnsZones:
+            - zac.pizza
+sops:
+  kms: []
+  gcp_kms: []
+  azure_kv: []
+  hc_vault: []
+  age:
+    - recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
+      enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBRNS9Gdm9JbUxwdi9xR0Rl
+        WFhSMFhIQ0JSb2h2emVjbklEbzI3OXBJU0RVCkxpd3gxQzRYbmxmNVozRUNvY3lR
+        Q3dtVmt6U2YvYWNsU0IvdHYzNzc4SWMKLS0tIFZvUWFqU0llQkF1WEdyVmpLblo0
+        RVEycWlWbjRGanZ4dVVYOTVVWEdYdzAKiekoBmTCsoUkxthbRObY/Q4epqVpizbf
+        d7QmePAgc7GO4KTKPyo7Ki3JB9qI1bS1Pt9LAOSeswVpRcmwlkrqbQ==
+        -----END AGE ENCRYPTED FILE-----
+  lastmodified: "2025-01-29T19:39:26Z"
+  mac: ENC[AES256_GCM,data:z1ZHpT3u8o/epP/4iJJFwbnUzh6q6xugCSJu5l3ZybKGb8+9RV4rE+f2qS9Tzkj07gKtnZQWRKKhPbzsxWmvQ/4hPm2T2KJBMexn4N+g6qHBkQOMCriIT9lsd1wRPQH5DBekmuQby/mvCEw/Rb26rIF/7iiW9FEG4rRpHpgCkjg=,iv:vwQKH74ddR7pnDQ6B2cbZHBWhhP20yH88GmerIcRjf0=,tag:ql99YvZ1x7yQ9SoYAswjfQ==,type:str]
+  pgp: []
+  encrypted_regex: ^(data|stringData)$
+  mac_only_encrypted: true
+  version: 3.9.3

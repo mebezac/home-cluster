@@ -1,0 +1,49 @@
+fullnameOverride: external-dns-zac-pizza
+provider: cloudflare
+env:
+  - name: CF_API_TOKEN
+    valueFrom:
+      secretKeyRef:
+        name: external-dns-zac-pizza-secret
+        key: api-token
+extraArgs:
+  - --cloudflare-dns-records-per-page=1000
+  - --cloudflare-proxied
+  - --crd-source-apiversion=externaldns.k8s.io/v1alpha1
+  - --crd-source-kind=DNSEndpoint
+  - --events
+  - --ignore-ingress-tls-spec
+  - --ingress-class=external-zac-pizza
+policy: sync
+sources:
+  - crd
+  - ingress
+txtPrefix: k8s.
+txtOwnerId: default
+domainFilters:
+  - zac.pizza
+serviceMonitor:
+  enabled: true
+podAnnotations:
+  secret.reloader.stakater.com/reload: external-dns-zac-pizza-secret
+sops:
+  kms: []
+  gcp_kms: []
+  azure_kv: []
+  hc_vault: []
+  age:
+    - recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
+      enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBEeXVxYm1vYnFVa2kyeWwz
+        LzlSNFJLN0grOW1YelFDY3VxY3J6a01nSFU4Cis1MVVkYXFhNWtLMFBuVG9yMjlo
+        bmFrTitJVTVTVTV2UEpjWllhZDFjN3cKLS0tIHgrU28vVmJNcjVPTm9GcjN5c202
+        QVIvdDNyc0hSYXhHTFJ6c05LUTZNem8KeGuQAG4OAtPtSCpiRbYb5AXXAK2kNkNl
+        05MvMxSYDETaR3DByjqVRSKHrJZuoO/LqqQtqAjlwDjSs7hv8zCxCQ==
+        -----END AGE ENCRYPTED FILE-----
+  lastmodified: "2025-01-24T17:14:26Z"
+  mac: ENC[AES256_GCM,data:PLg/GbJ2+AZzAdBGUF4LIYfp3u9WamFMUUkSCbhU8+y8LNGTpUv25SeIxqkXfHFNvB7ykyQHlrJ9RfbUV6TsOE0UKtY44VpYt8vGHI4/yl6BZglQI+ZiqWYgo0nf3jo7DQz7/+YVTl6UGkV6rQKjrA/A9R092i+tZEo8P5AB7AE=,iv:COsVErJlnnN4IsexNxrVmMEWsGqo3vsR6jw5ohhUljY=,tag:AtU2zkoAksJ2T6n+AxNJlg==,type:str]
+  pgp: []
+  encrypted_regex: ^(data|stringData)$
+  mac_only_encrypted: true
+  version: 3.9.3
