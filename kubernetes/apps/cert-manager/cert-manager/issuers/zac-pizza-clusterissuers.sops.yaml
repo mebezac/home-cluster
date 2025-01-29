@@ -7,7 +7,7 @@ spec:
     server: https://acme-v02.api.letsencrypt.org/directory
     email: admin@zac.pizza
     privateKeySecretRef:
-      name: letsencrypt-production
+      name: letsencrypt-production-zac-pizza
     solvers:
       - dns01:
           cloudflare:
@@ -32,8 +32,8 @@ sops:
         SW8vUmpJelB6V1k2MTd2REJ5QURNV0EKN81N/g7yVXYEVxFMg8U0+/qplQB4b7yQ
         f1ur+jddLD4cLCVMViq6StDFEDlEQEzX9z3zru1IW0pByU7pcm/Jtw==
         -----END AGE ENCRYPTED FILE-----
-  lastmodified: "2025-01-29T20:35:01Z"
-  mac: ENC[AES256_GCM,data:YXEnxJJ+o8TA/CSFmKhPwk21nnmqjzlvIYl1gBqpEwwEIgSDI/r1sIOYgcMnRdFPvbh34mgOencKHXxTA5HZNS1d+3aM4vsacHz28Zow8BDSwi/MFsOWLmpvxECvXXGBpxOjbXLCxwuCLktV+927+qog4K60Ab7HzAs11pYfOFM=,iv:i/0zaOh+yuKI15NCoJPu8wwp9yKXT22htxJ1gz+/M4g=,tag:YvbQB9CwxUadCVCM8xfpgQ==,type:str]
+  lastmodified: "2025-01-29T20:43:38Z"
+  mac: ENC[AES256_GCM,data:u7YnKXjFP0TvNyGAyXC+OKNqUAuem1R7GzysgabkUsNhm/QsaBFbFKF5bUgdzhgQqDs75J0mL9Hp/oiBbuo8S888n2idyrTcBkb9LzqQTIU6Iflhn/Oazx7ybZ88Ai0/bRryvPSoMmH4ZmjrPDRi3nOvpz1g8muzULyQz9b1JZ0=,iv:cZtSkft32lI/SbCtXJ0nuJr1qBBlHgu7ErvZL8H5YZk=,tag:nXnbzrXWsWId47/Ofz5pPg==,type:str]
   pgp: []
   encrypted_regex: ^(data|stringData)$
   mac_only_encrypted: true
@@ -49,7 +49,7 @@ spec:
     server: https://acme-staging-v02.api.letsencrypt.org/directory
     email: admin@zac.pizza
     privateKeySecretRef:
-      name: letsencrypt-staging
+      name: letsencrypt-staging-zac-pizza
     solvers:
       - dns01:
           cloudflare:
@@ -74,8 +74,8 @@ sops:
         SW8vUmpJelB6V1k2MTd2REJ5QURNV0EKN81N/g7yVXYEVxFMg8U0+/qplQB4b7yQ
         f1ur+jddLD4cLCVMViq6StDFEDlEQEzX9z3zru1IW0pByU7pcm/Jtw==
         -----END AGE ENCRYPTED FILE-----
-  lastmodified: "2025-01-29T20:35:01Z"
-  mac: ENC[AES256_GCM,data:YXEnxJJ+o8TA/CSFmKhPwk21nnmqjzlvIYl1gBqpEwwEIgSDI/r1sIOYgcMnRdFPvbh34mgOencKHXxTA5HZNS1d+3aM4vsacHz28Zow8BDSwi/MFsOWLmpvxECvXXGBpxOjbXLCxwuCLktV+927+qog4K60Ab7HzAs11pYfOFM=,iv:i/0zaOh+yuKI15NCoJPu8wwp9yKXT22htxJ1gz+/M4g=,tag:YvbQB9CwxUadCVCM8xfpgQ==,type:str]
+  lastmodified: "2025-01-29T20:43:38Z"
+  mac: ENC[AES256_GCM,data:u7YnKXjFP0TvNyGAyXC+OKNqUAuem1R7GzysgabkUsNhm/QsaBFbFKF5bUgdzhgQqDs75J0mL9Hp/oiBbuo8S888n2idyrTcBkb9LzqQTIU6Iflhn/Oazx7ybZ88Ai0/bRryvPSoMmH4ZmjrPDRi3nOvpz1g8muzULyQz9b1JZ0=,iv:cZtSkft32lI/SbCtXJ0nuJr1qBBlHgu7ErvZL8H5YZk=,tag:nXnbzrXWsWId47/Ofz5pPg==,type:str]
   pgp: []
   encrypted_regex: ^(data|stringData)$
   mac_only_encrypted: true

@@ -1,0 +1,34 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: zac-pizza-staging
+spec:
+  secretName: zac-pizza-staging-tls
+  issuerRef:
+    name: letsencrypt-staging-zac-pizza
+    kind: ClusterIssuer
+  commonName: zac.pizza
+  dnsNames:
+    - zac.pizza
+    - '*.zac.pizza'
+sops:
+  kms: []
+  gcp_kms: []
+  azure_kv: []
+  hc_vault: []
+  age:
+    - recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
+      enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBtYWFmMHErYzlZYXJxQWZx
+        K3Zzd1Y5cTNpcDNZSVlZcElGZlg1WGpudlFjCmszS2F4YlVZWEcxRzJYbzlqOEx4
+        K2JUaVorRlVxNEtzNXNaT0FmOVdudkUKLS0tIG56eUdsMGl3Y2hmY0k3Z3prbGxw
+        MDgwbjFwNzAwZGhDbjJqem81cXloUHMKw7T7cDBdtB+GbYcBaZRZDeTSH25s+bs2
+        3zuAWdEdp92oNKz/qNyh3J2T1fptFs9yt+JRJxKWqcLr70xtN8DTnA==
+        -----END AGE ENCRYPTED FILE-----
+  lastmodified: "2025-01-29T20:46:14Z"
+  mac: ENC[AES256_GCM,data:8cHfOvCRceiYkF5idTRfH2PUCyUZR9zc1uG9LITo+g1b74w65Hy9V2NU47hgFHReN6TiaLyA100jB8RgeeJMip5GPwnNdSqL/LoNcn3o5dcwRNaoQ6cEeHeY11j8mVoL4nExEbRtK3R8fak+lm5sum0D6yQBu+N2ua2AIqSETbA=,iv:lNTN9OLXLJZ3jknc730/xoSbZcIFdqXbciDTCcSvQIQ=,tag:rK8gCY+DvAiuTi+swzFYIQ==,type:str]
+  pgp: []
+  encrypted_regex: ^(data|stringData)$
+  mac_only_encrypted: true
+  version: 3.9.3

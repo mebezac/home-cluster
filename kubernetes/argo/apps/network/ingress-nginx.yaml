@@ -5,7 +5,7 @@ metadata:
   name: ingress-nginx
   namespace: argo-system
   annotations:
-    argocd.argoproj.io/sync-wave: '0'
+    argocd.argoproj.io/sync-wave: "0"
 spec:
   project: kubernetes
   sources:
@@ -27,6 +27,20 @@ spec:
         releaseName: ingress-nginx-external
         valueFiles:
           - $repo/kubernetes/apps/network/ingress-nginx/external/values.sops.yaml
+    - repoURL: https://kubernetes.github.io/ingress-nginx
+      chart: ingress-nginx
+      targetRevision: 4.12.0
+      helm:
+        releaseName: ingress-nginx-internal-zac-pizza
+        valueFiles:
+          - $repo/kubernetes/apps/network/ingress-nginx/internal-zac-pizza/values.sops.yaml
+    - repoURL: https://kubernetes.github.io/ingress-nginx
+      chart: ingress-nginx
+      targetRevision: 4.12.0
+      helm:
+        releaseName: ingress-nginx-external-zac-pizza
+        valueFiles:
+          - $repo/kubernetes/apps/network/ingress-nginx/external-zac-pizza/values.sops.yaml
   destination:
     name: in-cluster
     namespace: network
@@ -36,4 +50,4 @@ spec:
       prune: true
       selfHeal: true
     syncOptions:
-    - CreateNamespace=true
+      - CreateNamespace=true

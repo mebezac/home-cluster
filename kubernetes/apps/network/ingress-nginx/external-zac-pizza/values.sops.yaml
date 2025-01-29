@@ -1,0 +1,73 @@
+fullnameOverride: ingress-nginx-external-zac-pizza
+controller:
+  service:
+    annotations:
+      external-dns.alpha.kubernetes.io/hostname: external.zac.pizza
+      lbipam.cilium.io/ips: 10.25.30.121
+    externalTrafficPolicy: Cluster
+  ingressClassResource:
+    name: external-zac-pizza
+    default: false
+    controllerValue: k8s.io/external
+  admissionWebhooks:
+    objectSelector:
+      matchExpressions:
+        - key: ingress-class
+          operator: In
+          values:
+            - external-zac-pizza
+  config:
+    allow-snippet-annotations: true
+    annotations-risk-level: Critical
+    client-body-buffer-size: 100M
+    client-body-timeout: 120
+    client-header-timeout: 120
+    enable-brotli: "true"
+    enable-ocsp: "true"
+    enable-real-ip: "true"
+    force-ssl-redirect: "true"
+    hide-headers: Server,X-Powered-By
+    hsts-max-age: 31449600
+    keep-alive-requests: 10000
+    keep-alive: 120
+    log-format-escape-json: "true"
+    log-format-upstream: |
+      {"time": "$time_iso8601", "remote_addr": "$proxy_protocol_addr", "x_forwarded_for": "$proxy_add_x_forwarded_for", "request_id": "$req_id", "remote_user": "$remote_user", "bytes_sent": $bytes_sent, "request_time": $request_time, "status": $status, "vhost": "$host", "request_proto": "$server_protocol", "path": "$uri", "request_query": "$args", "request_length": $request_length, "duration": $request_time,"method": "$request_method", "http_referrer": "$http_referer", "http_user_agent": "$http_user_agent"}
+    proxy-body-size: 0
+    proxy-buffer-size: 16k
+    ssl-protocols: TLSv1.3 TLSv1.2
+    use-forwarded-headers: "true"
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+      namespaceSelector:
+        any: true
+  extraArgs:
+    default-ssl-certificate: network/zac-pizza-production-tls
+  resources:
+    requests:
+      cpu: 100m
+    limits:
+      memory: 500Mi
+sops:
+  kms: []
+  gcp_kms: []
+  azure_kv: []
+  hc_vault: []
+  age:
+    - recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
+      enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBNS2xBNytia3dUSEFJc3VH
+        Zy94d1JLdHZkeHlaWWkrMEhpYnZlWW5FeWw4CmRMSTlQUFROYUlJQ1dtQVphREkr
+        MllVTVIwbndvWThrWDFzYk40bkFGdk0KLS0tIDAwbFJOR2JoYi9aUXhsUy9NNU9r
+        amYxK2ExeXFzZTBBcmJDR00yUUtxajQKZIk1kajIof/TzWPXkFIYc0g1Uo1zKCDn
+        E6dmTjr02qh7uLrFdZcaczF0a3d4XPH6ugE+T+aO7fTD7PYikDAdqA==
+        -----END AGE ENCRYPTED FILE-----
+  lastmodified: "2025-01-29T20:55:19Z"
+  mac: ENC[AES256_GCM,data:/pvqlcoLIkBe5Om/fiG05/Y1b/9HsXFSuTPPCXapgS0rCAa9Xi0hhObNPUG9nyqd75856OEmhEcmIVA3Z7UF/xHlLh6LWG1JEkwExoTjFbN1dFx98MX63rlKjhrsBBSh45MULU8bVPYNk/1Tt6z7Ja4NgjTBQhdivio4ZI/oePc=,iv:0XmK6oL9vIfRqC32WKWCHsSu4xG8h7nwGtiQVuXBqUo=,tag:917QtAyerLL9Apzo1jsw6w==,type:str]
+  pgp: []
+  encrypted_regex: ^(data|stringData)$
+  mac_only_encrypted: true
+  version: 3.9.3
