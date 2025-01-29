@@ -17,7 +17,7 @@ spec:
       chart: external-dns
       targetRevision: 1.15.1
       helm:
-        releaseName: external-dns
+        releaseName: external-dns-zac-pizza
         valueFiles:
           - $repo/kubernetes/apps/network/external-dns-zac-pizza/values.sops.yaml
   destination:
