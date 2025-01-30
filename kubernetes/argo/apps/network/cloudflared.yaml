@@ -20,13 +20,17 @@ spec:
         releaseName: cloudflared
         valueFiles:
           - $repo/kubernetes/apps/network/cloudflared/values.yaml
-    # - repoURL: ghcr.io/bjw-s/helm
-    #   chart: app-template
-    #   targetRevision: 3.6.1
-    #   helm:
-    #     releaseName: cloudflared-zac-pizza
-    #     valueFiles:
-    #       - $repo/kubernetes/apps/network/cloudflared-zac-pizza/values.yaml
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/apps/network/cloudflared-zac-pizza
+      targetRevision: main
+      ref: zac-pizza-repo
+    - repoURL: ghcr.io/bjw-s/helm
+      chart: app-template
+      targetRevision: 3.6.1
+      helm:
+        releaseName: cloudflared-zac-pizza
+        valueFiles:
+          - $zac-pizza-repo/kubernetes/apps/network/cloudflared-zac-pizza/values.yaml
   destination:
     name: in-cluster
     namespace: network
