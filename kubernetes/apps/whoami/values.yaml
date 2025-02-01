@@ -1,6 +1,8 @@
 ingress:
+  annotations:
+    external-dns.alpha.kubernetes.io/target: external.laboratory.casa
   enabled: true
-  ingressClassName: "internal-zac-pizza"
+  ingressClassName: "external-zac-pizza"
   hosts:
     - host: "whot.zac.pizza"
       paths:
