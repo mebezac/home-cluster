@@ -10,7 +10,7 @@ spec:
   project: kubernetes
   sources:
     - repoURL: https://github.com/mebezac/home-cluster.git
-      path: kubernetes/apps/network/external-dns-zac-pizza
+      path: kubernetes/apps/zac-pizza/external-dns-zac-pizza
       targetRevision: main
       ref: repo
     - repoURL: https://kubernetes-sigs.github.io/external-dns
