@@ -10,26 +10,26 @@ spec:
   project: kubernetes
   sources:
     - repoURL: https://github.com/mebezac/home-cluster.git
-      path: kubernetes/apps/network/ingress-nginx/certificates
+      path: kubernetes/apps/zac-pizza/ingress-nginx/certificates
       targetRevision: main
       ref: repo
     - repoURL: https://kubernetes.github.io/ingress-nginx
       chart: ingress-nginx
       targetRevision: 4.12.0
       helm:
-        releaseName: ingress-nginx-internal
+        releaseName: ingress-nginx-internal-zac-pizza
         valueFiles:
-          - $repo/kubernetes/apps/network/ingress-nginx/internal/values.sops.yaml
+          - $repo/kubernetes/apps/zac-pizza/ingress-nginx/internal-zac-pizza/values.sops.yaml
     - repoURL: https://kubernetes.github.io/ingress-nginx
       chart: ingress-nginx
       targetRevision: 4.12.0
       helm:
-        releaseName: ingress-nginx-external
+        releaseName: ingress-nginx-external-zac-pizza
         valueFiles:
-          - $repo/kubernetes/apps/network/ingress-nginx/external/values.sops.yaml
+          - $repo/kubernetes/apps/zac-pizza/ingress-nginx/external-zac-pizza/values.sops.yaml
   destination:
     name: in-cluster
-    namespace: network
+    namespace: zac-pizza
   syncPolicy:
     automated:
       allowEmpty: true

@@ -4,7 +4,6 @@ controller:
     annotations:
       lbipam.cilium.io/ips: 10.25.30.120
     externalTrafficPolicy: Cluster
-  electionID: internal-zac-pizza
   ingressClassResource:
     name: internal-zac-pizza
     default: false
@@ -67,8 +66,8 @@ sops:
         S0dQSVB1QTk5ZVR0N2hnNkdDbUsrWG8Kr9rc4xqbmL4CP7+NX+BUpiL/Vi50ey+E
         980yIGGENh5vbYreGW9I27x+r3dJoCiu11SCNY5k7xsaA7e7HUhRAA==
         -----END AGE ENCRYPTED FILE-----
-  lastmodified: "2025-02-02T02:19:26Z"
-  mac: ENC[AES256_GCM,data:7M0sBUHqOMQ3BV8HEyg31OIUpUkzSr8Q7NXcK6JgPnErac4DE+/zTF0YJmEZyvFBM4b+4wl/9hEsBVwXwx9TzJZskmzhiSjYrDWHENhZ9Unbl+Z2060HBwJg9odBueIdbEcYOHvUcZN7uGtwUbuDiUUeuJ6apHTiJGzNz99FUS0=,iv:7iBn79bf8noaSkLZNJA8SB42DvuMApvc2zJL2kjoKq4=,tag:q2jWMnHQ6Kjh+QGriyqK9A==,type:str]
+  lastmodified: "2025-02-02T02:30:51Z"
+  mac: ENC[AES256_GCM,data:BenKR6oWWSfp/qlrO3RvZejuLjabv621BcnPSMETohLHKYdKigViuqrSN01uE22kVyS13TaSqJYLi0pEexOAiHmg7X3ryZhw5BHzydYkAI2/A6siFmeHK3pl7rYaHfL/b4kPF8iMhhRbW5BPzMs7wq1IOhQZacyYYnEHjLvHFZw=,iv:KLzENFw2I/UE2PffLK0zslXKp43uMbmgJUDFU4emIzw=,tag:4bG0q3pKZTxZv6pxTvMu5A==,type:str]
   pgp: []
   encrypted_regex: ^(data|stringData)$
   mac_only_encrypted: true

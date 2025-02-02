@@ -10,19 +10,19 @@ spec:
   project: kubernetes
   sources:
     - repoURL: https://github.com/mebezac/home-cluster.git
-      path: kubernetes/apps/network/cloudflared
+      path: kubernetes/apps/zac-pizza/cloudflared-zac-pizza
       targetRevision: main
-      ref: repo
+      ref: zac-pizza-repo
     - repoURL: ghcr.io/bjw-s/helm
       chart: app-template
       targetRevision: 3.6.1
       helm:
-        releaseName: cloudflared
+        releaseName: cloudflared-zac-pizza
         valueFiles:
-          - $repo/kubernetes/apps/network/cloudflared/values.yaml
+          - $zac-pizza-repo/kubernetes/apps/zac-pizza/cloudflared-zac-pizza/values.yaml
   destination:
     name: in-cluster
-    namespace: network
+    namespace: zac-pizza
   syncPolicy:
     automated:
       allowEmpty: true
