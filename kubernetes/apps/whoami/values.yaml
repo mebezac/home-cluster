@@ -3,8 +3,12 @@ ingress:
   #
   #   external-dns.alpha.kubernetes.io/target: external.zac.pizza
   enabled: true
-  ingressClassName: "internal-zac-pizza"
+  ingressClassName: "internal"
   hosts:
     - host: "whot.zac.pizza"
       paths:
         - "/"
+  tls:
+    - hosts:
+        - whot.zac.pizza
+      secretName: zac-pizza-production-tls

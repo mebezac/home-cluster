@@ -13,7 +13,7 @@ extraArgs:
   - --crd-source-kind=DNSEndpoint
   - --events
   - --ignore-ingress-tls-spec
-  - --ingress-class=external-zac-pizza
+  - --ingress-class=external
 policy: sync
 sources:
   - crd

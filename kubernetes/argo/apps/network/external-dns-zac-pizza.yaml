@@ -10,7 +10,7 @@ spec:
   project: kubernetes
   sources:
     - repoURL: https://github.com/mebezac/home-cluster.git
-      path: kubernetes/apps/zac-pizza/external-dns-zac-pizza
+      path: kubernetes/apps/network/external-dns-zac-pizza
       targetRevision: main
       ref: repo
     - repoURL: https://kubernetes-sigs.github.io/external-dns
@@ -19,10 +19,10 @@ spec:
       helm:
         releaseName: external-dns-zac-pizza
         valueFiles:
-          - $repo/kubernetes/apps/zac-pizza/external-dns-zac-pizza/values.sops.yaml
+          - $repo/kubernetes/apps/network/external-dns-zac-pizza/values.sops.yaml
   destination:
     name: in-cluster
-    namespace: zac-pizza
+    namespace: network
   syncPolicy:
     automated:
       allowEmpty: true
