@@ -8,7 +8,7 @@ controller:
   ingressClassResource:
     name: internal-zac-pizza
     default: false
-    controllerValue: k8s.io/internal-zac-pizza
+    controllerValue: k8s.io/internal
   admissionWebhooks:
     objectSelector:
       matchExpressions:
@@ -67,8 +67,8 @@ sops:
         S0dQSVB1QTk5ZVR0N2hnNkdDbUsrWG8Kr9rc4xqbmL4CP7+NX+BUpiL/Vi50ey+E
         980yIGGENh5vbYreGW9I27x+r3dJoCiu11SCNY5k7xsaA7e7HUhRAA==
         -----END AGE ENCRYPTED FILE-----
-  lastmodified: "2025-02-02T03:05:20Z"
-  mac: ENC[AES256_GCM,data:l5mh/KDk0OYiMt/X5PM2db+u8q8HLG8wA4tR5GM7O4UChKOo/ZMZ+H7CEGnP8zTKK3e1qQ02dFPXtnATIRrkwkAfYSwxRil9mko+pVvTFEBPSwEdDK/zkSZ5lWIdEgwDtss95SRq3K0HY3gJBurngwiHwi4qmEdyT+qSqiXtorg=,iv:gLPIx2yFszMynhlq67GCeADgEXB6tksPY4fyz9cqrhs=,tag:ycqmMhXcpAHzwNUU8dwA4A==,type:str]
+  lastmodified: "2025-02-02T03:13:20Z"
+  mac: ENC[AES256_GCM,data:lcq0VABtBbc0ygN+20UcmAK9mLOvltOea/itfexWGhQg661nhZ2SjeL1xsEKLT3n20k5AyZlvodoKfo4QWtlJiJgO1KGIJzXh4IsCAqXVRZOdSh1NjB3P+5Lm2jZIwfzol9Qu5PNYXa+aGDWNukNdeugr0NHfOClP8M/cCwQ90U=,iv:XVP5vAuOETwX73J3xf9kBcOntaoxsFbyQD5+UrexXyk=,tag:tgeL0p4y3Ct7H+UVLcm2Zw==,type:str]
   pgp: []
   encrypted_regex: ^(data|stringData)$
   mac_only_encrypted: true
