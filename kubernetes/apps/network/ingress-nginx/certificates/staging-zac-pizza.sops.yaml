@@ -11,6 +11,12 @@ spec:
   dnsNames:
     - zac.pizza
     - '*.zac.pizza'
+  secretTemplate:
+    annotations:
+      reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
+      reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces: whoami
+      reflector.v1.k8s.emberstack.com/reflection-auto-enabled: "true"
+      reflector.v1.k8s.emberstack.com/reflection-auto-namespaces: whoami
 sops:
   kms: []
   gcp_kms: []
@@ -26,8 +32,8 @@ sops:
         MDgwbjFwNzAwZGhDbjJqem81cXloUHMKw7T7cDBdtB+GbYcBaZRZDeTSH25s+bs2
         3zuAWdEdp92oNKz/qNyh3J2T1fptFs9yt+JRJxKWqcLr70xtN8DTnA==
         -----END AGE ENCRYPTED FILE-----
-  lastmodified: "2025-01-29T20:46:14Z"
-  mac: ENC[AES256_GCM,data:8cHfOvCRceiYkF5idTRfH2PUCyUZR9zc1uG9LITo+g1b74w65Hy9V2NU47hgFHReN6TiaLyA100jB8RgeeJMip5GPwnNdSqL/LoNcn3o5dcwRNaoQ6cEeHeY11j8mVoL4nExEbRtK3R8fak+lm5sum0D6yQBu+N2ua2AIqSETbA=,iv:lNTN9OLXLJZ3jknc730/xoSbZcIFdqXbciDTCcSvQIQ=,tag:rK8gCY+DvAiuTi+swzFYIQ==,type:str]
+  lastmodified: "2025-02-03T04:28:21Z"
+  mac: ENC[AES256_GCM,data:CGyOxrLJBzYEqkaYFUHpEGB3+OWHpf/yhDqh1z0vt4+RuuPWD65F+POY5AnrjkJXCN71GUTgiRnQPwh1fuEkwKq0Fxyxjv0LfN8o0wjBOI352rjDqKvbakYJVzmojgcyEccBYa20LockOeVWSFL564cmLaMjJ7dlcUAymx8tqzg=,iv:LGOc3iqKt6xYvUO0pCy3pA5DhBRR+pd/K+7cExApHbs=,tag:SZqMNBTLg3VOPLWvEk60ag==,type:str]
   pgp: []
   encrypted_regex: ^(data|stringData)$
   mac_only_encrypted: true
