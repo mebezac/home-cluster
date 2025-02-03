@@ -1,0 +1,7 @@
+---
+fullnameOverride: reflector
+resources:
+  requests:
+    cpu: 10m
+  limits:
+    memory: 256Mi

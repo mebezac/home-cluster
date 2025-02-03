@@ -1,0 +1,32 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: reflector
+  namespace: argo-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: kubernetes
+  sources:
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/apps/kube-system/reflector
+      targetRevision: main
+      ref: repo
+    - repoURL: https://emberstack.github.io/helm-charts
+      chart: reflector
+      targetRevision: 7.1.288
+      helm:
+        releaseName: reflector
+        valueFiles:
+          - $repo/kubernetes/apps/kube-system/reflector/values.yaml
+  destination:
+    name: in-cluster
+    namespace: kube-system
+  syncPolicy:
+    automated:
+      allowEmpty: true
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
