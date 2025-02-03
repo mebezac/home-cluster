@@ -11,4 +11,4 @@ ingress:
   tls:
     - hosts:
         - whot.zac.pizza
-      secretName: zac-pizza-production-tls
+      secretName: network/zac-pizza-production-tls
