@@ -51,6 +51,16 @@ controllers:
             cpu: 10m
           limits:
             memory: 256Mi
+      debug-sidecar: # <----- ADD THIS SIDECAR CONTAINER DEFINITION
+        image:
+          repository: ghcr.io/maresb/docker-debian-curl
+          tag: latest
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities: { drop: ["ALL"] }
+        stdin: true # Keep it running
+        tty: true # Allocate a TTYkk
 defaultPodOptions:
   securityContext:
     runAsNonRoot: true
