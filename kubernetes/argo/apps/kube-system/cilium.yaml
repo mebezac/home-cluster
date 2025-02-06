@@ -32,11 +32,6 @@ spec:
       - CreateNamespace=true
       - ServerSideApply=true
   ignoreDifferences:
-    - group: "monitoring.coreos.com"
-      kind: ServiceMonitor
-      name: cilium-agent
-      jsonPointers:
-        - /spec/endpoints/relabelings/0/action
     - group: ""
       kind: ConfigMap
       name: hubble-ca-cert
