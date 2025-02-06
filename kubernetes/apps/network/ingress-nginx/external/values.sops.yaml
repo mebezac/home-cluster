@@ -2,7 +2,6 @@ fullnameOverride: ingress-nginx-external
 controller:
   service:
     annotations:
-      external-dns.alpha.kubernetes.io/hostname: external.laboratory.casa
       lbipam.cilium.io/ips: 10.25.30.119
     externalTrafficPolicy: Cluster
   ingressClassResource:
