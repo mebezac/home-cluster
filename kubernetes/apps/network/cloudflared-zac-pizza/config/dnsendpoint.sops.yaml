@@ -7,7 +7,7 @@ spec:
     - dnsName: external.zac.pizza
       recordType: CNAME
       targets:
-        - 527a21c7-28f1-42fb-8067-80ebbe8e570.cfargotunnel.com
+        - 527a21c7-28f1-42fb-8067-80ebbe8e5707.cfargotunnel.com
 sops:
   kms: []
   gcp_kms: []
@@ -23,8 +23,8 @@ sops:
         U1V4OSt2b21DcGVHeU82K3BIV09JblUKvqcfvC1lriyKElrevqP3TLu/pYZ40gYE
         shGdkpGWTDChTOzybZvPTpHQssLWqjkRbATeetlHCJgRB2Z68Xt9ow==
         -----END AGE ENCRYPTED FILE-----
-  lastmodified: "2025-01-29T21:10:43Z"
-  mac: ENC[AES256_GCM,data:2K6yxkewHUiawFR8MEsn/9KaG5zuhrpoh59OHDcsWkO8jm+UIYIMKwu3aFLbScriSw0iL0heO5RS9u960/bL/mPgyQ9P6s4JAdSTQtTelXaH32Sai0lbhggsjJ2vZpvEJehWQL9gtNYcQwu7k9QVlH7M4veZQWss1YrsNbPoizc=,iv:G7+NzjqhnzuoIHKd7Nq78CrY3Ym0WrIKn8Irpj+Vd14=,tag:NBmSyvkUhcWS9zbqJryJFw==,type:str]
+  lastmodified: "2025-02-06T17:20:30Z"
+  mac: ENC[AES256_GCM,data:NiX2mcodAM4pjRAbph1qG/o7wBkWI/oKbzo31u0jQ+yaBoi5CD3yW+2J+5YroLfCJVKK01GXNOrOOPzYpxlrTPRUzKht80REyXuvt24K3YOs8kleYc5sGKE2XRwVKpDHMBgLpOcGwpQ3mX03wIeF+9w19oFoQ81u9K7X1MmV5tI=,iv:21ko6peACd75HBTOnlvEUslEO3g394nCuGwIou5Q2zE=,tag:ZxebEIbW4lrwvorP90tnmA==,type:str]
   pgp: []
   encrypted_regex: ^(data|stringData)$
   mac_only_encrypted: true
