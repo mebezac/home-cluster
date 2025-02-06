@@ -45,11 +45,6 @@ operator:
 prometheus:
   enabled: true
   serviceMonitor:
-    relabelings:
-      - replacement: ${1}
-        sourceLabels:
-          - __meta_kubernetes_pod_node_name
-        targetLabel: node
     enabled: true
     trustCRDsExist: true
 rollOutCiliumPods: true
@@ -91,8 +86,8 @@ sops:
         MXJmdk5jNjVKeVovUmlBUlExMmZ1cVEKMWE4T92PVeoX1h2MDFAUaWXnc+DTprPX
         FxDC1kIxYo9M3b4kswXlxaiZRWesuvft7Jur4sIk3kOj3DlpRoYZYA==
         -----END AGE ENCRYPTED FILE-----
-  lastmodified: "2025-02-06T20:27:08Z"
-  mac: ENC[AES256_GCM,data:p3doVB8W5M58n8TiGYysd1gR8Y1KKzcNJ5W7qxeCpVbk/DBJpioZXPmHZ3JBXH1AbbZGdbsS5bqVLvMwC6p5qGO1hTC66UPwJh8AeL49wi5vnphfd5KvF8QM+C+tedVCrBHsNfX+5l5NuzPbR8xbJUJVs0Jd3jJB2YD7S8TK00k=,iv:PzWBS/VXd2ZGuTJwjIUdnom7rqC6ZCmMKSOt84CqCYk=,tag:7kS2Vs1Owu7pChvEi2TRMw==,type:str]
+  lastmodified: "2025-02-06T20:28:14Z"
+  mac: ENC[AES256_GCM,data:+o7OEB27ejV0d1qTw7YfxGFC5idcMxmSY1L4C6CqkFuLEbUX+mAoft4oIUxAFvuRiPsgoS+VI8uyYP7ZUht/Iu/29Kkg/m8v6SYRIy8dyTrSXAVQA/lAoWWd7IovLZ6Me76BSm5RnFxNRG7qJyS2S5bvnYnIcQuItWXDkzIQlZE=,iv:Tb+byV0U7btmNoXDF6Zjg6HhUJU7CWhGPRtOfoAMyg8=,tag:p+CbPnKicPr8K9iFsrVmXA==,type:str]
   pgp: []
   encrypted_regex: ^(data|stringData)$
   mac_only_encrypted: true
