@@ -7,8 +7,7 @@ ingress:
     - host: "whot.zac.pizza"
       paths:
         - "/"
-  # tls:
-  #
-  #   - hosts:
-  #       - whot.zac.pizza
-  #     secretName: zac-pizza-production-tls
+  tls:
+    - hosts:
+        - whot.zac.pizza
+      secretName: zac-pizza-production-tls
