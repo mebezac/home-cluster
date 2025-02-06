@@ -1,9 +1,8 @@
 ingress:
-  # annotations:
-  #
-  #   external-dns.alpha.kubernetes.io/target: external.zac.pizza
+  annotations:
+    external-dns.alpha.kubernetes.io/target: external.zac.pizza
   enabled: true
-  ingressClassName: "internal"
+  ingressClassName: "external"
   hosts:
     - host: "whot.zac.pizza"
       paths:
