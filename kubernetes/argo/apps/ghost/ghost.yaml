@@ -1,0 +1,32 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ghost
+  namespace: argo-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: kubernetes
+  sources:
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/apps/ghost
+      targetRevision: main
+      ref: repo
+    - repoURL: registry-1.docker.io/bitnamicharts
+      chart: ghost
+      targetRevision: 22.1.11
+      helm:
+        releaseName: ghost
+        valueFiles:
+          - $repo/kubernetes/apps/ghost/values.sops.yaml
+  destination:
+    name: in-cluster
+    namespace: ghost
+  syncPolicy:
+    automated:
+      allowEmpty: true
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
