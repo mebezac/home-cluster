@@ -13,8 +13,6 @@ ingress:
   enabled: true
   hostname: blog.zac.pizza
   ingressClassName: internal
-  tls: true
-  secrets: zac-pizza-production-tls
 persistence:
   enabled: true
   storageClass: longhorn
@@ -38,8 +36,8 @@ sops:
         b3F1WmM2M1gydVJJMW5VNzhXWFFCOE0KMgpw19Up8/7eKRtwR+pUhkT/c4bPlj5B
         rz+11Y06Ccu9bldQ1QDeX5YE/Mznk2BS0R9LWG/A3cOWpSdEhUPfLQ==
         -----END AGE ENCRYPTED FILE-----
-  lastmodified: "2025-02-07T17:12:40Z"
-  mac: ENC[AES256_GCM,data:L1ZqDjpn8q5Isf7ElFp/tgAB7OqDT4+UV/AQvlyFht1wFSeOC+uO3eA3qNbfHuQnWO9WiPpM5oqpO01XaFIqougP1rBdwYy7VwPFp7oH3QeYupM97muWrZhh+F1GFiKj9DnCF4jRPosoSyZxk3gzNGQmr1iiaVdVQc8Y3mnmz10=,iv:/DjkjL0o0XT2CETF7xAR5xHLRJSPRDJzONyxI6Obi3o=,tag:Z4cqFUdhsQNdt4xC7Ittug==,type:str]
+  lastmodified: "2025-02-07T18:52:53Z"
+  mac: ENC[AES256_GCM,data:meHYUZHcGogHReo3gMYBxTUjuijOKWPZy8bRtF/DpAjcd5jwVM3Rj024qWb8ITLoCfP0SbYHqnZF/dn6V8yyqOLE87JkfYSjaPMxWYUF55uKnrxmlqpH4HqVDKHB2sVUdtT+rqJSeZlJGrjdmEy7mPCJUlGgd05KLzPPsNcyGsk=,iv:aGeczAvsbw4xKVyhul6GhqnzOZE+dmV8j/rvujmKhWo=,tag:Ig/M7pkj5FMD53p3UWXmNA==,type:str]
   pgp: []
   encrypted_regex: (ghostEmail|smtpUser|.*assword)
   mac_only_encrypted: true
