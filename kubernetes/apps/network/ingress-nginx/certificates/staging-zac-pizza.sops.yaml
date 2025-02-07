@@ -14,9 +14,9 @@ spec:
   secretTemplate:
     annotations:
       reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
-      reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces: whoami
+      reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces: whoami,ghost
       reflector.v1.k8s.emberstack.com/reflection-auto-enabled: "true"
-      reflector.v1.k8s.emberstack.com/reflection-auto-namespaces: whoami
+      reflector.v1.k8s.emberstack.com/reflection-auto-namespaces: whoami,ghost
 sops:
   kms: []
   gcp_kms: []
@@ -32,8 +32,8 @@ sops:
         MDgwbjFwNzAwZGhDbjJqem81cXloUHMKw7T7cDBdtB+GbYcBaZRZDeTSH25s+bs2
         3zuAWdEdp92oNKz/qNyh3J2T1fptFs9yt+JRJxKWqcLr70xtN8DTnA==
         -----END AGE ENCRYPTED FILE-----
-  lastmodified: "2025-02-03T04:28:21Z"
-  mac: ENC[AES256_GCM,data:CGyOxrLJBzYEqkaYFUHpEGB3+OWHpf/yhDqh1z0vt4+RuuPWD65F+POY5AnrjkJXCN71GUTgiRnQPwh1fuEkwKq0Fxyxjv0LfN8o0wjBOI352rjDqKvbakYJVzmojgcyEccBYa20LockOeVWSFL564cmLaMjJ7dlcUAymx8tqzg=,iv:LGOc3iqKt6xYvUO0pCy3pA5DhBRR+pd/K+7cExApHbs=,tag:SZqMNBTLg3VOPLWvEk60ag==,type:str]
+  lastmodified: "2025-02-07T18:45:40Z"
+  mac: ENC[AES256_GCM,data:V71cBffz9fFR7yu6MfzATHK3alwGWjkYwg5i7yBAbFKhvbWOTl/90gLpIlWiSN57DRkVzgHycsGaUs9dzk2u9B70x9I2zgS411vjqNwvEEgowimVTvWedzisikqv56ZxXH8I7M6FbwGsi354T0kzxIZXsaPk1kax/217UpV2E4M=,iv:V0kDVQnsbnMavcVQMcQ26d4Y4lIJgImaYWMxAywRRrA=,tag:dkAKitfj7Tn9BTjrMS0Agw==,type:str]
   pgp: []
   encrypted_regex: ^(data|stringData)$
   mac_only_encrypted: true
