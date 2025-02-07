@@ -1,3 +1,4 @@
+allowEmptyPassword: ENC[AES256_GCM,data:3JNAHEQ=,iv:yYyULAhnpUkbYRnhd9mL+bBJChWtd2EVBOelF7JMXV0=,tag:m0d7h8zw2xZvOeA2Gwbl7g==,type:bool]
 ghostUsername: zac
 ghostPassword: ENC[AES256_GCM,data:PC4MrtCzvbW4TTfzxCbZb7FAWLZNgXiikhaZ,iv:6y86VMwmh8b/WnlUFLsu9lklYb9cBKJR672gqzKzJVw=,tag:tgu6TL9+mXhmq24Gv4EfRA==,type:str]
 ghostEmail: ENC[AES256_GCM,data:wsPRT3e0eLGa+xiZFt4=,iv:h0WQQLi7HQMO2OSqnWpRvGzOUx/HoDTxf2ATidzhpSE=,tag:13LhW72DUGzy8JHepyWYew==,type:str]
@@ -21,6 +22,8 @@ mysql:
   auth:
     rootPassword: ENC[AES256_GCM,data:xrtXyvM+LjtZJm7RBEKEryJYBlrmpxZz43Cr,iv:awEK9STdoenXR/U7U+FIJhzUnH65UauS5sAUCKF3ro4=,tag:UhFftB/bliFG8zT+bSXhjg==,type:str]
     password: ENC[AES256_GCM,data:yMqsISZJW/LE3sRVmmKarqS5ulyF2w==,iv:d14iO09EU1cSukeOvt88trqLEEp3B+tbw9iTC8aEj9M=,tag:s8kCDx2pkN7cY/l1hBfc3g==,type:str]
+service:
+  type: ClusterIP
 sops:
   kms: []
   gcp_kms: []
@@ -36,8 +39,8 @@ sops:
         b3F1WmM2M1gydVJJMW5VNzhXWFFCOE0KMgpw19Up8/7eKRtwR+pUhkT/c4bPlj5B
         rz+11Y06Ccu9bldQ1QDeX5YE/Mznk2BS0R9LWG/A3cOWpSdEhUPfLQ==
         -----END AGE ENCRYPTED FILE-----
-  lastmodified: "2025-02-07T18:52:53Z"
-  mac: ENC[AES256_GCM,data:meHYUZHcGogHReo3gMYBxTUjuijOKWPZy8bRtF/DpAjcd5jwVM3Rj024qWb8ITLoCfP0SbYHqnZF/dn6V8yyqOLE87JkfYSjaPMxWYUF55uKnrxmlqpH4HqVDKHB2sVUdtT+rqJSeZlJGrjdmEy7mPCJUlGgd05KLzPPsNcyGsk=,iv:aGeczAvsbw4xKVyhul6GhqnzOZE+dmV8j/rvujmKhWo=,tag:Ig/M7pkj5FMD53p3UWXmNA==,type:str]
+  lastmodified: "2025-02-07T19:00:50Z"
+  mac: ENC[AES256_GCM,data:HDBuYZNkHWuvX5ZThEAaqZ+di7fNOkquHpHzFinetscYpNCBDhKR+d/GFk/MhUFuTfU9ygMoBvMI1Xdz5HEz+XmntldFKrBOuFCPxKeOE52nZPLMiQ3Arp+HElj5/vrtLSXb6TvoUP+6QokJdbS4ORHrdLjq88jIZvKLp0UT5sI=,iv:vzeFtVX5aveDQagI+nZbxLUcBPq2sCEtayOdy7kUEc4=,tag:tvqvo3a/JEIrSdVjciyOwA==,type:str]
   pgp: []
   encrypted_regex: (ghostEmail|smtpUser|.*assword)
   mac_only_encrypted: true
