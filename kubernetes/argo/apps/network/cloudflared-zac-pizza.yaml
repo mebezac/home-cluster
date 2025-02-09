@@ -15,7 +15,7 @@ spec:
       ref: zac-pizza-repo
     - repoURL: ghcr.io/bjw-s/helm
       chart: app-template
-      targetRevision: 3.6.1
+      targetRevision: 3.7.0
       helm:
         releaseName: cloudflared-zac-pizza
         valueFiles:
