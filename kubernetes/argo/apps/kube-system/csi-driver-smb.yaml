@@ -1,0 +1,32 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: csi-driver-smb
+  namespace: argo-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: kubernetes
+  sources:
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/apps/kube-system/csi-driver-smb
+      targetRevision: main
+      ref: repo
+    - repoURL: https://raw.githubusercontent.com/kubernetes-csi/csi-driver-smb/master/charts
+      chart: csi-driver-smb
+      targetRevision: v1.17.0
+      helm:
+        releaseName: csi-driver-smb
+        valueFiles:
+          - $repo/kubernetes/apps/kube-system/csi-driver-smb/values.yaml
+  destination:
+    name: in-cluster
+    namespace: kube-system
+  syncPolicy:
+    automated:
+      allowEmpty: true
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
