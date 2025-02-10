@@ -16,7 +16,6 @@ python = "3.13"
 uv = "0.5.29"
 # Operations tools
 "aqua:argoproj/argo-cd" = "2.13.3"
-# renovate: datasource=github-releases depName=budimanjojo/talhelper
 "aqua:budimanjojo/talhelper" = "3.0.16"
 "aqua:cloudflare/cloudflared" = "2025.1.0"
 "aqua:FiloSottile/age" = "1.2.1"
@@ -30,4 +29,5 @@ uv = "0.5.29"
 "aqua:mikefarah/yq" = "4.45.1"
 "aqua:siderolabs/talos" = "1.9.2"
 "aqua:yannh/kubeconform" = "0.6.7"
+# renovate: datasource=github-releases depName=viaduct-ai/kustomize-sops
 "asdf:janpieper/asdf-ksops" = "4.3.2"

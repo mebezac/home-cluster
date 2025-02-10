@@ -329,7 +329,7 @@
       customType: 'regex',
       fileMatch: ['^\\.mise\\.toml$'],
       matchStrings: [
-        '# renovate: datasource=(?<datasource>[a-zA-Z0-9-._]+?) depName=(?<depName>\\S+)\\n.+aqua.*=.*"(?<currentValue>.*)"',
+        '# renovate: datasource=(?<datasource>[a-zA-Z0-9-._]+?) depName=(?<depName>\\S+)\\n.+.*=.*"(?<currentValue>.*)"',
         '"aqua:(?<depName>.*)".*=.*"(?<currentValue>.*)"'
       ],
       datasourceTemplate: '{{#if datasource}}{{{datasource}}}{{else}}github-releases{{/if}}',
