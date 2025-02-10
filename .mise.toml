@@ -18,7 +18,7 @@ uv = "0.5.29"
 "aqua:argoproj/argo-cd" = "2.13.3"
 # renovate: datasource=github-releases depName=budimanjojo/talhelper
 "aqua:budimanjojo/talhelper" = "3.0.16"
-"aqua:cloudflare/cloudflared" = "2025.1.0"
+"aqua:cloudflare/cloudflared" = "2025.1.1"
 "aqua:FiloSottile/age" = "1.2.1"
 "aqua:getsops/sops" = "3.9.3"
 "aqua:go-task/task" = "3.41.0"
