@@ -315,7 +315,7 @@
     {
       customType: 'regex',
       description: [
-        'Process YAML custom dependencies',
+        'Process custom dependencies',
       ],
       fileMatch: [
         '(^|/)kubernetes/.+\\.ya?ml(?:\\.j2)?$',
@@ -325,5 +325,14 @@
       ],
       datasourceTemplate: '{{#if datasource}}{{{datasource}}}{{else}}github-releases{{/if}}',
     },
-  ],
+    {
+      customType: 'regex',
+      fileMatch: ['^\\.mise\\.toml$'],
+      matchStrings: [
+        '# renovate: datasource=(?<datasource>[a-zA-Z0-9-._]+?) depName=(?<depName>\\S+)\\n.+aqua.*=.*"(?<currentValue>.*)"',
+        '"aqua:(?<depName>.*)".*=.*"(?<currentValue>.*)"'
+      ],
+      datasourceTemplate: '{{#if datasource}}{{{datasource}}}{{else}}github-releases{{/if}}',
+    }
+  ]
 }
