@@ -1,0 +1,18 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: audiobookshelf
+  namespace: audiobookshelf
+spec:
+  ingressClassName: internal
+  rules:
+    - host: audiobooks.laboratory.casa
+      http:
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: audiobookshelf-service
+                port:
+                  number: 80
