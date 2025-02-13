@@ -5,7 +5,7 @@ metadata:
   name: smb
 provisioner: smb.csi.k8s.io
 parameters:
-  source: //smb-server.default.svc.cluster.local/share
+  source: //10.25.30.36/10tb
   csi.storage.k8s.io/provisioner-secret-name: csi-driver-smb-secret
   csi.storage.k8s.io/provisioner-secret-namespace: kube-system
   csi.storage.k8s.io/node-stage-secret-name: csi-driver-smb-secret
