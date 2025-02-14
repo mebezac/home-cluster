@@ -11,3 +11,4 @@ spec:
     requests:
       storage: 50Gi
   storageClassName: smb
+  volumeName: audiobookshelf-smb
