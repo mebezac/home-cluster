@@ -11,42 +11,44 @@ smtpUser: ENC[AES256_GCM,data:B4rMVuqQOa7Dlggx0s5jNPPblbCg/aU8+1+xTA==,iv:b2lHJ7
 smtpPassword: ENC[AES256_GCM,data:9lHzMsDwLXNmaV7NAE73k4VRXZYowz8axNBgLGmKnaA4Z1LCM0FwciRzic8FbELE254=,iv:FNUy+uZYBvhu3vjuhVa7qjkPT1jPBKdUhCaPxFK0+UQ=,tag:pIqrcw66ZAXYphLwfL5rEQ==,type:str]
 smtpService: Mailgun
 ingress:
-  enabled: true
-  hostname: blog.zac.pizza
-  ingressClassName: internal
-  tls: true
-  extraTls:
-    - hosts:
-        - blog.zac.pizza
-      secretName: zac-pizza-production-tls
+    enabled: true
+    hostname: blog.zac.pizza
+    ingressClassName: internal
+    tls: true
+    extraTls:
+        - hosts:
+            - blog.zac.pizza
+          secretName: zac-pizza-production-tls
 persistence:
-  enabled: true
-  storageClass: longhorn
+    enabled: true
+    storageClass: longhorn
 mysql:
-  enabled: true
-  auth:
-    rootPassword: ENC[AES256_GCM,data:xrtXyvM+LjtZJm7RBEKEryJYBlrmpxZz43Cr,iv:awEK9STdoenXR/U7U+FIJhzUnH65UauS5sAUCKF3ro4=,tag:UhFftB/bliFG8zT+bSXhjg==,type:str]
-    password: ENC[AES256_GCM,data:yMqsISZJW/LE3sRVmmKarqS5ulyF2w==,iv:d14iO09EU1cSukeOvt88trqLEEp3B+tbw9iTC8aEj9M=,tag:s8kCDx2pkN7cY/l1hBfc3g==,type:str]
+    enabled: true
+    auth:
+        rootPassword: ENC[AES256_GCM,data:xrtXyvM+LjtZJm7RBEKEryJYBlrmpxZz43Cr,iv:awEK9STdoenXR/U7U+FIJhzUnH65UauS5sAUCKF3ro4=,tag:UhFftB/bliFG8zT+bSXhjg==,type:str]
+        password: ENC[AES256_GCM,data:yMqsISZJW/LE3sRVmmKarqS5ulyF2w==,iv:d14iO09EU1cSukeOvt88trqLEEp3B+tbw9iTC8aEj9M=,tag:s8kCDx2pkN7cY/l1hBfc3g==,type:str]
 service:
-  type: ClusterIP
+    type: ClusterIP
+updateStrategy:
+    type: Recreate
 sops:
-  kms: []
-  gcp_kms: []
-  azure_kv: []
-  hc_vault: []
-  age:
-    - recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
-      enc: |
-        -----BEGIN AGE ENCRYPTED FILE-----
-        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBHdlVTbnhrMHdOcWNYNWdL
-        WVNiSUE5UWJQTkJFQnhyODdEVUhlTGNGUnpVCjhNV0dTVVlxZm1Mdjd1Z21LMVh3
-        bmpZT3R1bnNocHdHL0dNdnJmOTZNQzQKLS0tIERaZG5DQmxyYWFGdkdOUU5HbUpE
-        b3F1WmM2M1gydVJJMW5VNzhXWFFCOE0KMgpw19Up8/7eKRtwR+pUhkT/c4bPlj5B
-        rz+11Y06Ccu9bldQ1QDeX5YE/Mznk2BS0R9LWG/A3cOWpSdEhUPfLQ==
-        -----END AGE ENCRYPTED FILE-----
-  lastmodified: "2025-02-07T19:12:40Z"
-  mac: ENC[AES256_GCM,data:QWthBd9wsicXwcM3AWIwcoqUkq0yEQ7wJeZPLEfXaHUZ1AhX7IKFdcCgR9ughz2tmiJ53M95ySgh8QAKboFk2t2ZD01Zs3/KW485Xcj6qFuSQ+CFW8ahPffD+kWGIc0tatfiDlKj58ZVnyTN0s+ymS1beBO+5OIdcknlOT+TThY=,iv:LDQnYYGVl2nG9XoOloEZKTB6/c9dVXPT1dvRoWZx45M=,tag:+P2jmTRCTeC517hPjkDYKw==,type:str]
-  pgp: []
-  encrypted_regex: (ghostEmail|smtpUser|.*assword)
-  mac_only_encrypted: true
-  version: 3.9.3
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age:
+        - recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBHdlVTbnhrMHdOcWNYNWdL
+            WVNiSUE5UWJQTkJFQnhyODdEVUhlTGNGUnpVCjhNV0dTVVlxZm1Mdjd1Z21LMVh3
+            bmpZT3R1bnNocHdHL0dNdnJmOTZNQzQKLS0tIERaZG5DQmxyYWFGdkdOUU5HbUpE
+            b3F1WmM2M1gydVJJMW5VNzhXWFFCOE0KMgpw19Up8/7eKRtwR+pUhkT/c4bPlj5B
+            rz+11Y06Ccu9bldQ1QDeX5YE/Mznk2BS0R9LWG/A3cOWpSdEhUPfLQ==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2025-02-17T03:41:18Z"
+    mac: ENC[AES256_GCM,data:y+nBtJv72kEUFAOToYHzuSB0kwOlk3Ik+62o92Rlhc8LGmu5Hxd3Fl3IbAe9gXYXkJYuBiF4H2u9SNkXMUuLyKtuzsfvtNQtpBAHxgpsd9LQ5SBPhi4YMVn5IPs5EtezTLh7JtMyN8zltuPDLWRbZ89umA5hmnVnMkz4vTrPKd4=,iv:odKHo0GwoYYeqC62xpxwjdGU6JVWHAY2w9Tj5mwlyXw=,tag:ArwvAtrDeWWjnBv4jdZvkg==,type:str]
+    pgp: []
+    encrypted_regex: (ghostEmail|smtpUser|.*assword)
+    mac_only_encrypted: true
+    version: 3.9.4
