@@ -10,6 +10,36 @@ services:
       - name: http
         port: 80
         target_port: 80
+  - name: router
+    external_name: 10.25.30.1
+    ingresses:
+      - host: router.laboratory.casa
+        ingressClassName: internal
+        port: 80
+    service_ports:
+      - name: http
+        port: 80
+        target_port: 80
+  - name: adguard-pi-02
+    external_name: 10.25.30.32
+    ingresses:
+      - host: adguard-pi-02.laboratory.casa
+        ingressClassName: internal
+        port: 80
+    service_ports:
+      - name: http
+        port: 80
+        target_port: 80
+  - name: adguard-pi-03
+    external_name: 10.25.30.38
+    ingresses:
+      - host: adguard-pi-03.laboratory.casa
+        ingressClassName: internal
+        port: 80
+    service_ports:
+      - name: http
+        port: 80
+        target_port: 80
   - name: birdnet
     external_name: 10.25.30.14
     ingresses:
