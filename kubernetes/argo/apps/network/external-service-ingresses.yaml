@@ -13,9 +13,9 @@ spec:
       path: kubernetes/apps/network/external-service-ingresses
       targetRevision: main
       ref: repo
-    - repoURL: https://github.com/mebezac/helm-charts.git
+    - repoURL: https://zac.pizza/helm-charts
       chart: external-service-ingresses
-      targetRevision: 1.0.0
+      targetRevision: 1.0.1
       helm:
         releaseName: external-service-ingresses
         valueFiles:
