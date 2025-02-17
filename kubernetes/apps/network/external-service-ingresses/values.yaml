@@ -1,0 +1,12 @@
+---
+services:
+  - name: truenas
+    external_name: 10.25.30.36
+    ingresses:
+      - host: tn.laboratory.casa
+        ingressClassName: internal
+        port: 80
+    service_ports:
+      - name: http
+        port: 80
+        target_port: 80

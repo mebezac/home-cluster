@@ -1,0 +1,32 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: external-service-ingresses
+  namespace: argo-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: kubernetes
+  sources:
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/apps/network/external-service-ingresses
+      targetRevision: main
+      ref: repo
+    - repoURL: https://github.com/mebezac/helm-charts.git
+      chart: external-service-ingresses
+      targetRevision: 1.0.0
+      helm:
+        releaseName: external-service-ingresses
+        valueFiles:
+          - $repo/kubernetes/apps/network/external-service-ingresses/values.yaml
+  destination:
+    name: in-cluster
+    namespace: network
+  syncPolicy:
+    automated:
+      allowEmpty: true
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
