@@ -10,16 +10,6 @@ services:
       - name: http
         port: 80
         target_port: 80
-  - name: router
-    external_name: 10.25.30.1
-    ingresses:
-      - host: router.laboratory.casa
-        ingressClassName: internal
-        port: 80
-    service_ports:
-      - name: http
-        port: 80
-        target_port: 80
   - name: adguard-pi-02
     external_name: 10.25.30.32
     ingresses:
