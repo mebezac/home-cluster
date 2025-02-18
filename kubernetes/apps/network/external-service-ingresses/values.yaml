@@ -42,3 +42,27 @@ services:
       - name: http
         port: 80
         target_port: 80
+  - name: minio-tc
+    external_name: 10.25.30.36
+    ingresses:
+      - host: minio-tc.laboratory.casa
+        ingressClassName: external
+        port: 9000
+        annotations:
+          external-dns.alpha.kubernetes.io/target: external.laboratory.casa
+    service_ports:
+      - name: http
+        port: 9000
+        target_port: 9000
+  - name: minio-tc-console
+    external_name: 10.25.30.36
+    ingresses:
+      - host: minio-tc-console.laboratory.casa
+        ingressClassName: external
+        port: 9002
+        annotations:
+          external-dns.alpha.kubernetes.io/target: external.laboratory.casa
+    service_ports:
+      - name: http
+        port: 9002
+        target_port: 9002
