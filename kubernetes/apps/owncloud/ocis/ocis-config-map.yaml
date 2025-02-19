@@ -1,0 +1,17 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ocis
+  namespace: owncloud
+data:
+  web.yaml: |
+    web:
+      config:
+        apps:
+          - files
+          - search
+          - pdf-viewer
+          - admin-settings
+          - preview
+          - app-store

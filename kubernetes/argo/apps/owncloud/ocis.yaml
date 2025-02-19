@@ -1,0 +1,32 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ocis
+  namespace: argo-system
+  annotations:
+    argocd.argoproj.io/sync-wave: '0'
+spec:
+  project: kubernetes
+  sources:
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/apps/owncloud/ocis
+      targetRevision: main
+      ref: repo
+    - repoURL: ghcr.io/bjw-s/helm
+      chart: app-template
+      targetRevision: 3.7.1
+      helm:
+        releaseName: ocis
+        valueFiles:
+          - $repo/kubernetes/apps/owncloud/ocis/values.sops.yaml
+  destination:
+    name: in-cluster
+    namespace: owncloud
+  syncPolicy:
+    automated:
+      allowEmpty: true
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
