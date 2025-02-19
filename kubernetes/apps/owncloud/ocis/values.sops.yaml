@@ -75,6 +75,8 @@ service:
 
 ingress:
   app:
+    annotations:
+      external-dns.alpha.kubernetes.io/target: external.laboratory.casa
     className: "external"
     hosts:
       - host: files.laboratory.casa
