@@ -17,7 +17,7 @@ spec:
         app: audiobookshelf
     spec:
       containers:
-        - image: ghcr.io/advplyr/audiobookshelf:2.19.4
+        - image: ghcr.io/advplyr/audiobookshelf:2.19.5
           imagePullPolicy: Always
           name: audiobookshelf
           resources:
