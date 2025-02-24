@@ -53,13 +53,12 @@ controllers:
             enabled: true
           readiness:
             enabled: true
-        # TODO: put back down after initial transfer
         resources:
           requests:
-            cpu: 500m
-            memory: 1024Mi
+            cpu: 50m
+            memory: 128Mi
           limits:
-            cpu: 2000m
+            cpu: 1000m
             memory: 2048Mi
         securityContext:
           allowPrivilegeEscalation: false
