@@ -1,0 +1,93 @@
+---
+controllers:
+  mosquitto:
+    annotations:
+      reloader.stakater.com/auto: "true"
+    initContainers:
+      init-config:
+        image:
+          repository: public.ecr.aws/docker/library/eclipse-mosquitto
+          tag: 2.0.20
+          pullPolicy: IfNotPresent
+        command: ["/bin/sh", "-c"]
+        args:
+          [
+            "cp /tmp/secret/* /mosquitto/external_config/ && chmod 0700 /mosquitto/external_config/mosquitto_pwd && mosquitto_passwd -U /mosquitto/external_config/mosquitto_pwd",
+          ]
+    containers:
+      app:
+        image:
+          repository: public.ecr.aws/docker/library/eclipse-mosquitto
+          tag: 2.0.20
+        resources:
+          requests:
+            cpu: 5m
+          limits:
+            memory: 16Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities: { drop: ["ALL"] }
+
+defaultPodOptions:
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 100
+    fsGroup: 100
+    fsGroupChangePolicy: OnRootMismatch
+
+service:
+  app:
+    annotations:
+      lbipam.cilium.io/ips: 10.25.30.54
+      tailscale.com/expose: "true"
+    controller: mosquitto
+    type: LoadBalancer
+    ports:
+      mqtt:
+        port: 1883
+
+ingress:
+  main:
+    enabled: true
+    className: internal
+    hosts:
+      - host: mqtt.laboratory.casa
+        paths:
+          - path: /
+            service:
+              identifier: app
+              port: mqtt
+
+persistence:
+  data:
+    enabled: true
+    type: persistentVolumeClaim
+    storageClass: longhorn
+    accessMode: ReadWriteOnce
+    size: 100Mi
+    globalMounts:
+      - path: /mosquitto/data
+
+  config-file:
+    type: configMap
+    name: mosquitto-configmap
+    advancedMounts:
+      mosquitto:
+        app:
+          - path: /mosquitto/config/mosquitto.conf
+            subPath: mosquitto.conf
+
+  secret-file:
+    type: secret
+    name: mosquitto-secret
+    advancedMounts:
+      mosquitto:
+        init-config:
+          - path: /tmp/secret
+
+  external-config:
+    type: emptyDir
+    globalMounts:
+      - path: /mosquitto/external_config
