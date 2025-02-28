@@ -1,0 +1,34 @@
+# Tailscale Kubernetes Operator values
+# https://github.com/tailscale/tailscale/tree/main/cmd/k8s-operator/deploy/chart
+# OAuth credentials for Tailscale
+oauth:
+  clientId: ENC[AES256_GCM,data:QArt57cilDVfp4eTedqn23s=,iv:TvUmJaO1awlAgmvhI7cwlXiYRGEjV9s/xrqnEzxWVvQ=,tag:7Tv7oEO0jZcy9qEgw4plUw==,type:str]
+  clientSecret: ENC[AES256_GCM,data:iekkUsmdpt1Iqf3Qot2aLbKYTmkt4mfQt1ezc7PcLOM6r56sVbHxyUi7OEgEsxESTLwJFk/teaOhmB5zgkCumg==,iv:kZTNYEqGqw8oPVfsPkHIy4rfeVmQzLBQqiE9RJuqcdE=,tag:TD7bQFo4KKii+73KvCEUfQ==,type:str]
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi
+sops:
+  kms: []
+  gcp_kms: []
+  azure_kv: []
+  hc_vault: []
+  age:
+    - recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
+      enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBSckhjVnZZd0l6ZUNFa0tV
+        aGJSd0g5SUVzcjh5akpXdU55MkNZQXlKbFFNCjVRYkRJUEMveDE0S09sYVUzTVlk
+        dlAvQTZtUDVTWnBGUlJOWjhmMnYwQk0KLS0tIEQzMjNFRnljTXpGTkxFNkI2Mmxs
+        UGxMcU85TW5lSkt1aVo3Y1FnSHpYcGsKZGOH/tuJUubrtQ87YJjO0+l349PzAS4Z
+        MjoeppQk39nh1woQy1hNOjVu80dNSfcBvVefVp88xQ3ciTGwMfz2kw==
+        -----END AGE ENCRYPTED FILE-----
+  lastmodified: "2025-02-28T03:14:33Z"
+  mac: ENC[AES256_GCM,data:eyk/u2inIyogX5Mvh4QN3NdiaLwXwP9BwXL5ScZ/N47WxxJTfXiHKQZrq//HdTIRjVrwJJOgYXV3SkaicZ7AJEymmp13r/oy57pcbqH2Ue6IRfvH1pLQpGnPyLRWZ66Fn3WH9EVzePHFl/8CfQCbssNw45sUXmUASYGElB9ANxc=,iv:AsVbX2NOVXthFMsWnyCZoD8+6sVnIRQAdPmmiCFR2ng=,tag:bjVS4OJW10OAm4AR12JjnQ==,type:str]
+  pgp: []
+  encrypted_regex: (client.*)
+  mac_only_encrypted: true
+  version: 3.9.4
