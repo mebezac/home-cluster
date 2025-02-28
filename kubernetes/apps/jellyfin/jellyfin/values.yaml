@@ -1,0 +1,70 @@
+---
+controllers:
+  main:
+    replicas: 1
+
+    containers:
+      main:
+        image:
+          repository: ghcr.io/jellyfin/jellyfin
+          tag: 10.10.6
+
+        resources:
+          requests:
+            cpu: 100m
+            gpu.intel.com/i915: 1
+            memory: 512Mi
+          limits:
+            gpu.intel.com/i915: 1
+            memory: 8000Mi
+
+service:
+  main:
+    controller: main
+    ports:
+      http:
+        port: 8096
+
+ingress:
+  main:
+    enabled: true
+    className: internal
+    hosts:
+      - host: jf.laboratory.casa
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            service:
+              identifier: main
+              port: http
+
+persistence:
+  media:
+    enabled: true
+    type: persistentVolumeClaim
+    existingClaim: jellyfin-smb-pvc
+    globalMounts:
+      - path: /Media
+        subPath: Media
+
+  data:
+    enabled: true
+    type: persistentVolumeClaim
+    storageClass: longhorn
+    accessMode: ReadWriteOnce
+    size: 5Gi
+    globalMounts:
+      - path: /config
+        subPath: config
+      - path: /cache
+        subPath: cache
+
+  transcodes:
+    enabled: true
+    type: persistentVolumeClaim
+    storageClass: openebs-hostpath
+    accessMode: ReadWriteOnce
+    # TODO: bump this up after we're on bigger storage
+    size: 1Gi
+    globalMounts:
+      - path: /transcodes
