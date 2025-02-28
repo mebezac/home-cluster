@@ -27,10 +27,12 @@ service:
 
 ingress:
   main:
+    annotations:
+      external-dns.alpha.kubernetes.io/target: external.laboratory.casa
     enabled: true
-    className: internal
+    className: external
     hosts:
-      - host: jf.laboratory.casa
+      - host: jellyfin.laboratory.casa
         paths:
           - path: /
             pathType: ImplementationSpecific
