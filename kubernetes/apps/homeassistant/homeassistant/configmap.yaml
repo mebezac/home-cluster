@@ -1,0 +1,36 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: homeassistant-config
+  namespace: homeassistant
+data:
+  configuration.yaml: |-
+    # Loads default set of integrations. Do not remove.
+    default_config:
+
+    # Text to speech
+    tts:
+      - platform: google_translate
+
+    automation: !include automations.yaml
+    script: !include scripts.yaml
+    scene: !include scenes.yaml
+
+    http:
+      use_x_forwarded_for: true
+      trusted_proxies:
+        - 172.0.0.0/8 # Docker internal
+        - 10.42.0.0/16 # K3S internal
+
+    homeassistant:
+      allowlist_external_dirs:
+        - /tmp
+        - /config/tmp
+
+    sonos:
+      media_player:
+        advertise_addr: 10.25.30.56
+        interface_addr: 10.25.30.56
+        hosts:
+          - 10.25.30.220

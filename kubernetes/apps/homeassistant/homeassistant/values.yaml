@@ -1,0 +1,68 @@
+---
+controllers:
+  main:
+    annotations:
+      reloader.stakater.com/auto: "true"
+    containers:
+      app:
+        image:
+          repository: ghcr.io/home-assistant/home-assistant
+          tag: 2025.2.5
+        env:
+          - name: TZ
+            value: "America/New_York"
+        securityContext:
+          privileged: true
+        resources:
+          requests:
+            cpu: 100m
+            memory: 512Mi
+          limits:
+            memory: 2Gi
+
+service:
+  main:
+    annotations:
+      lbipam.cilium.io/ips: 10.25.30.56
+    controller: main
+    type: LoadBalancer
+    ports:
+      http:
+        port: 8123
+        targetPort: 8123
+      sonos:
+        port: 1400
+        targetPort: 1400
+
+ingress:
+  main:
+    enabled: true
+    className: external
+    annotations:
+      external-dns.alpha.kubernetes.io/target: external.laboratory.casa
+    hosts:
+      - host: ha.laboratory.casa
+        paths:
+          - path: /
+            service:
+              identifier: main
+              port: http
+
+persistence:
+  config:
+    enabled: true
+    type: persistentVolumeClaim
+    storageClass: longhorn
+    accessMode: ReadWriteOnce
+    size: 5Gi
+    globalMounts:
+      - path: /config
+
+  config-file:
+    type: configMap
+    name: homeassistant-config
+    advancedMounts:
+      main:
+        app:
+          - path: /config/configuration.yaml
+            subPath: configuration.yaml
