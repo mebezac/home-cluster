@@ -1,0 +1,62 @@
+---
+controllers:
+  main:
+    annotations:
+      reloader.stakater.com/auto: "true"
+    containers:
+      app:
+        image:
+          repository: ghcr.io/esphome/esphome
+          tag: 2025.2.1
+        env:
+          - name: TZ
+            value: "America/New_York"
+          - name: USERNAME
+            value: "esp"
+          - name: PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: esphome-secret
+                key: password
+          - name: ESPHOME_DASHBOARD_USE_PING
+            value: "true"
+        resources:
+          requests:
+            cpu: 10m
+            memory: 100Mi
+          limits:
+            memory: 500Mi
+
+service:
+  main:
+    annotations:
+      lbipam.cilium.io/ips: 10.25.30.55
+      tailscale.com/expose: "true"
+    controller: main
+    type: LoadBalancer
+    ports:
+      http:
+        port: 6052
+        targetPort: 6052
+
+ingress:
+  main:
+    enabled: true
+    className: internal
+    hosts:
+      - host: esphome.laboratory.casa
+        paths:
+          - path: /
+            service:
+              identifier: main
+              port: http
+
+persistence:
+  config:
+    enabled: true
+    type: persistentVolumeClaim
+    storageClass: longhorn
+    accessMode: ReadWriteOnce
+    size: 100Mi
+    globalMounts:
+      - path: /config
