@@ -21,7 +21,7 @@ data:
       use_x_forwarded_for: true
       trusted_proxies:
         - 172.0.0.0/8 # Docker internal
-        - 10.42.0.0/16 # K3S internal
+        - 10.69.0.0/16 # K3S internal
 
     homeassistant:
       allowlist_external_dirs:
