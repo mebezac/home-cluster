@@ -31,6 +31,5 @@ data:
     sonos:
       media_player:
         advertise_addr: 10.25.30.56
-        interface_addr: 10.25.30.56
         hosts:
           - 10.25.30.220
