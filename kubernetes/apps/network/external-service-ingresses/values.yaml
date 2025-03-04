@@ -1,7 +1,7 @@
 ---
 services:
   - name: truenas
-    external_name: 10.25.30.36
+    external_ip: 10.25.30.36
     ingresses:
       - host: truenas.laboratory.casa
         ingressClassName: internal
@@ -11,7 +11,7 @@ services:
         port: 80
         target_port: 80
   - name: adguard-pi-02
-    external_name: 10.25.30.32
+    external_ip: 10.25.30.32
     ingresses:
       - host: adguard-pi-02.laboratory.casa
         ingressClassName: internal
@@ -21,7 +21,7 @@ services:
         port: 80
         target_port: 80
   - name: adguard-pi-03
-    external_name: 10.25.30.38
+    external_ip: 10.25.30.38
     ingresses:
       - host: adguard-pi-03.laboratory.casa
         ingressClassName: internal
@@ -31,7 +31,7 @@ services:
         port: 80
         target_port: 80
   - name: birdnet
-    external_name: 10.25.30.14
+    external_ip: 10.25.30.14
     ingresses:
       - host: birdnet.laboratory.casa
         ingressClassName: external
@@ -43,7 +43,7 @@ services:
         port: 80
         target_port: 80
   - name: minio-tc
-    external_name: 10.25.30.36
+    external_ip: 10.25.30.36
     ingresses:
       - host: minio-tc.laboratory.casa
         ingressClassName: external
@@ -55,7 +55,7 @@ services:
         port: 9000
         target_port: 9000
   - name: minio-tc-console
-    external_name: 10.25.30.36
+    external_ip: 10.25.30.36
     ingresses:
       - host: minio-tc-console.laboratory.casa
         ingressClassName: external
