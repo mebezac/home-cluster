@@ -26,25 +26,6 @@ cniConfig:
   name: none
 
 nodes:
-  - hostname: "wyse-5070-05-talos-k3s-main-03"
-    ipAddress: "10.25.30.127"
-    installDisk: "/dev/sda"
-    machineSpec:
-      secureboot: false
-    talosImageURL: factory.talos.dev/installer/88d1f7a5c4f1d3aba7df787c448c1d3d008ed29cfb34af53fa0df4336a56040b
-    controlPlane: true
-    networkInterfaces:
-      - deviceSelector:
-          hardwareAddr: "bc:24:11:49:98:e8"
-        dhcp: false
-        addresses:
-          - "10.25.30.127/24"
-        routes:
-          - network: "0.0.0.0/0"
-            gateway: "10.25.30.1"
-        mtu: 1500
-        vip:
-          ip: "10.25.30.116"
   - hostname: "elitebook-01-talos-k3s-main-01"
     ipAddress: "10.25.30.45"
     installDisk: "/dev/sdb"
@@ -77,6 +58,25 @@ nodes:
         dhcp: false
         addresses:
           - "10.25.30.46/24"
+        routes:
+          - network: "0.0.0.0/0"
+            gateway: "10.25.30.1"
+        mtu: 1500
+        vip:
+          ip: "10.25.30.116"
+  - hostname: "wyse-5070-04-talos-k3s-main-03"
+    ipAddress: "10.25.30.39"
+    installDisk: "/dev/sda"
+    machineSpec:
+      secureboot: false
+    talosImageURL: factory.talos.dev/installer/9ba0b24a91c2b56085dceb616daaf013f0453bcf2f2036814be062733e583806
+    controlPlane: true
+    networkInterfaces:
+      - deviceSelector:
+          hardwareAddr: "6c:2b:59:33:bd:50"
+        dhcp: false
+        addresses:
+          - "10.25.30.39/24"
         routes:
           - network: "0.0.0.0/0"
             gateway: "10.25.30.1"
@@ -130,6 +130,23 @@ nodes:
         dhcp: false
         addresses:
           - "10.25.30.35/24"
+        routes:
+          - network: "0.0.0.0/0"
+            gateway: "10.25.30.1"
+        mtu: 1500
+  - hostname: "wyse-5070-05-talos-k3s-worker-04"
+    ipAddress: "10.25.30.40"
+    installDisk: "/dev/sda"
+    machineSpec:
+      secureboot: false
+    talosImageURL: factory.talos.dev/installer/9ba0b24a91c2b56085dceb616daaf013f0453bcf2f2036814be062733e583806
+    controlPlane: false
+    networkInterfaces:
+      - deviceSelector:
+          hardwareAddr: "6c:2b:59:33:bb:47"
+        dhcp: false
+        addresses:
+          - "10.25.30.40/24"
         routes:
           - network: "0.0.0.0/0"
             gateway: "10.25.30.1"
