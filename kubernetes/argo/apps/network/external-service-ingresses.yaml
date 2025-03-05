@@ -30,3 +30,8 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+  ignoreDifferences:
+    - group: discovery.k8s.io
+      kind: EndpointSlice
+      jsonPointers:
+        - /endpoints/0/conditions
