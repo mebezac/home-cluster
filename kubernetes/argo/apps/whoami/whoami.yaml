@@ -15,7 +15,7 @@ spec:
       ref: repo
     - repoURL: https://cowboysysop.github.io/charts
       chart: whoami
-      targetRevision: 5.2.1
+      targetRevision: 5.3.0
       helm:
         releaseName: whoami
         valueFiles:
