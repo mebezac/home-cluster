@@ -1,0 +1,54 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: lychee
+  namespace: argo-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: kubernetes
+  sources:
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/apps/lychee/mariadb
+      targetRevision: main
+      ref: mariadb-repo
+    - repoURL: registry-1.docker.io/bitnamicharts
+      chart: mariadb
+      targetRevision: 20.4.1
+      helm:
+        releaseName: lychee-db
+        valueFiles:
+          - $mariadb-repo/kubernetes/apps/lychee/mariadb/values.yaml
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/apps/lychee/redis
+      targetRevision: main
+      ref: redis-repo
+    - repoURL: registry-1.docker.io/bitnamicharts
+      chart: redis
+      targetRevision: 20.4.1
+      helm:
+        releaseName: lychee-redis
+        valueFiles:
+          - $redis-repo/kubernetes/apps/lychee/redis/values.yaml
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/apps/lychee/lychee
+      targetRevision: main
+      ref: lychee-repo
+    - repoURL: ghcr.io/bjw-s/helm
+      chart: app-template
+      targetRevision: 3.7.3
+      helm:
+        releaseName: lychee
+        valueFiles:
+          - $lychee-repo/kubernetes/apps/lychee/lychee/values.yaml
+  destination:
+    name: in-cluster
+    namespace: lychee
+  syncPolicy:
+    automated:
+      allowEmpty: true
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

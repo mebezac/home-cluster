@@ -1,40 +1,40 @@
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: zac-pizza-production
+    name: zac-pizza-production
 spec:
-  secretName: zac-pizza-production-tls
-  issuerRef:
-    name: letsencrypt-production-zac-pizza
-    kind: ClusterIssuer
-  commonName: zac.pizza
-  dnsNames:
-    - zac.pizza
-    - '*.zac.pizza'
-  secretTemplate:
-    annotations:
-      reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
-      reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces: whoami,ghost
-      reflector.v1.k8s.emberstack.com/reflection-auto-enabled: "true"
-      reflector.v1.k8s.emberstack.com/reflection-auto-namespaces: whoami,ghost
+    secretName: zac-pizza-production-tls
+    issuerRef:
+        name: letsencrypt-production-zac-pizza
+        kind: ClusterIssuer
+    commonName: zac.pizza
+    dnsNames:
+        - zac.pizza
+        - '*.zac.pizza'
+    secretTemplate:
+        annotations:
+            reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
+            reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces: ghost,lychee
+            reflector.v1.k8s.emberstack.com/reflection-auto-enabled: "true"
+            reflector.v1.k8s.emberstack.com/reflection-auto-namespaces: ghost,lychee
 sops:
-  kms: []
-  gcp_kms: []
-  azure_kv: []
-  hc_vault: []
-  age:
-    - recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
-      enc: |
-        -----BEGIN AGE ENCRYPTED FILE-----
-        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBzRXdpZGVrK1BiNkFlUC9i
-        L2dYUlMwTnVvMmU2Z21WZGZDTTNYa0tSL1RNCm1LMTBnUTBKY3ZURjRXRDVvVW9L
-        d0NRR3ozWTJiOXp4QTZxTFd5dzNuVEUKLS0tIERDME1WWHRCVEwybUVVVnc3SkdY
-        dkRhejl6SjhyQ1ZJRW5MYkNPb3ROcHcKc6bnMe91yh3UVKq263c/ZROQjSEjHfu7
-        EMKX+RI35T9DtgRBvG5B/27ucOJZlNSfGM/7LwBcEzdVX4TI+Mg5aw==
-        -----END AGE ENCRYPTED FILE-----
-  lastmodified: "2025-02-07T18:45:55Z"
-  mac: ENC[AES256_GCM,data:NCz1GJ49LfcOOa8GyyZS/h7XqeYh3G5DeDPxhIHWU9oKIEt1+d3WG+sC8c56R8LZKO/hYz+a28bQ0uRoO5Tafwc1XCTdedJv/rLF9Zv2YvR17dvjbw4Faofqli9/xkIausore6x/0AjyHgFjK74ASpFM3Wayp7MdyuOBadQwIvI=,iv:bV/8jmfN5EeZj7snWTBmP/WvKzhAfFVfJ6sh8W4QPzM=,tag:Bx9+HBRKoxSou9g/Km40Fg==,type:str]
-  pgp: []
-  encrypted_regex: ^(data|stringData)$
-  mac_only_encrypted: true
-  version: 3.9.3
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age:
+        - recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBzRXdpZGVrK1BiNkFlUC9i
+            L2dYUlMwTnVvMmU2Z21WZGZDTTNYa0tSL1RNCm1LMTBnUTBKY3ZURjRXRDVvVW9L
+            d0NRR3ozWTJiOXp4QTZxTFd5dzNuVEUKLS0tIERDME1WWHRCVEwybUVVVnc3SkdY
+            dkRhejl6SjhyQ1ZJRW5MYkNPb3ROcHcKc6bnMe91yh3UVKq263c/ZROQjSEjHfu7
+            EMKX+RI35T9DtgRBvG5B/27ucOJZlNSfGM/7LwBcEzdVX4TI+Mg5aw==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2025-03-18T20:08:17Z"
+    mac: ENC[AES256_GCM,data:at19svzwv+Jgnwx0vv90xeqHdmFfYJkRCAztCbyT8AEeHsmDIevSVnrw9Q1C8Mtv6SZgBYwy5n0+NocRGBhMx03CJXVviQg4mZ3a3Jy0IbWdpT0ySPDicEwEVcVXpbJs4DaOYJOZTbyHG5TRuza2qnaeFbXt5cpVVkyb6PF7Fc8=,iv:Pw10JalNlS6GOSdW3pSBDnkwufybBacIhcd8PrRBzzo=,tag:k6zDMwlp3qo7c0om5b0Y+w==,type:str]
+    pgp: []
+    encrypted_regex: ^(data|stringData)$
+    mac_only_encrypted: true
+    version: 3.9.4

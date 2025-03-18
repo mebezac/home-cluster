@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: lychee-mariadb-auth
+  namespace: lychee
+type: Opaque
+stringData:
+  mariadb-password: ENC[AES256_GCM,data:JnptcTbedwADSaY5QuAHzcdciqvQ5midig==,iv:Xp7gbO0zkxUBd2JYwjQ2cUNgsNzW/7RKnmiGLDURmKw=,tag:FbHsAFdIaqOOu6t2LTibCQ==,type:str]
+  mariadb-replication-password: ENC[AES256_GCM,data:YHXaIIybl9an6TdZynY5chG7efCMFo+kh/GynB0=,iv:1zFf12bpbLijOlEQHvokYpQl7fFWidD8r/KZ/R3eWf8=,tag:K4aCGae9nhq8B6JNd5gRrg==,type:str]
+  mariadb-root-password: ENC[AES256_GCM,data:MWrvB86hlqkbFkPgF2oRT7GmwmpwfFwA5WnvwBE=,iv:eNiHV5yysLcydF4PgYfqIvXsjYQO5ztGmteTpihhZ8s=,tag:bPcb+OE4BK0rlWK6sLkCIQ==,type:str]
+sops:
+  kms: []
+  gcp_kms: []
+  azure_kv: []
+  hc_vault: []
+  age:
+    - recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
+      enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBLQzJ2c3UrTFF4Q3NybmlR
+        SG9zbzVQK0dxSUxURnJMS28rUU1rekNoSVNvCnc3aDhQNkhNdEFpQkJxSzJ4dUtQ
+        MTJFbXBJUmI4ODN4WGRpMWFuSTc5SEEKLS0tIE1qWVU3NlVxVU53UmtPZnlpT2RI
+        aXAxN0NwNEw0N1VBQkpTWW84RG1naGcK5u5O4vp20veafZdAmjjBJiFY2K2uxd3b
+        LSOKVk3f5eA7QNZdGQGWm9/h3QjqISBBSa5aITSnsffB8NwEgFFYfA==
+        -----END AGE ENCRYPTED FILE-----
+  lastmodified: "2025-03-18T19:40:35Z"
+  mac: ENC[AES256_GCM,data:XbWGT89CpQRl3lw6ci/nnEH6qNSdmgtv6WNwf++DfzDw/gdM7+tLalELgVtcPhuUlo3BOzQDKWngTGnnb23Rr9oAA7coqujhJqpBtl9+XHSn0VKLfeWfWlk2XqnXBAcpwmsSjHVLAOWvXx2Gel6NdcY4MzRBkZ3W0PeTZlC/9eo=,iv:6CZ4yKFPHaBRyBGLKTHlOzGFdj09AE8qwjarU6tqwmQ=,tag:RU2+s6/XBYe4xJAY1NgzkQ==,type:str]
+  pgp: []
+  encrypted_regex: ^(data|stringData)$
+  mac_only_encrypted: true
+  version: 3.9.4

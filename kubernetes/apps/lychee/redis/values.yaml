@@ -1,0 +1,6 @@
+global:
+  storageClass: longhorn
+architecture: standalone
+auth:
+  enabled: true
+  existingSecret: lychee-redis-auth

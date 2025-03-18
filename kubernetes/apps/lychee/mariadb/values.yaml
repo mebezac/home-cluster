@@ -1,0 +1,9 @@
+global:
+  storageClass: longhorn
+architecture: standalone
+auth:
+  database: lychee
+  existingSecret: lychee-mariadb-auth
+persistence:
+  storageClass: longhorn
+  size: 512Mi
