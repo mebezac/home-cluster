@@ -13,7 +13,7 @@ controllers:
             cpu: 100m
             memory: 256Mi
           limits:
-            cpu: 500m
+            cpu: 2000m
             memory: 2048Mi
         env:
           TIMEZONE: America/New_York
@@ -74,18 +74,23 @@ ingress:
               port: http
 
 persistence:
-  config:
+  data:
     enabled: true
     type: persistentVolumeClaim
     storageClass: longhorn
     accessMode: ReadWriteOnce
     size: 5Gi
     globalMounts:
-      - path: /uploads
-  photo:
+      - path: /conf
+        subPath: conf
+      - path: /sym
+        subPath: sym
+      - path: /logs
+        subPath: logs
+  uploads:
     enabled: true
     type: persistentVolumeClaim
     existingClaim: lychee-smb-pvc
     globalMounts:
-      - path: /mnt/storage/photo
-        subPath: lychee/photo
+      - path: /uploads
+        subPath: lychee
