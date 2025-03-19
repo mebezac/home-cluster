@@ -4,3 +4,7 @@ architecture: standalone
 auth:
   enabled: true
   existingSecret: lychee-redis-auth
+master:
+  persistence:
+    storageClass: longhorn
+    size: 512Mi
