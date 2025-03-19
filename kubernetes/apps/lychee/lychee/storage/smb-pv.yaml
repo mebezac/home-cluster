@@ -18,6 +18,9 @@ spec:
     - file_mode=2775
     - uid=1000
     - gid=1000
+    - mfsymlinks
+    - cache=strict
+    - noserverino
   csi:
     driver: smb.csi.k8s.io
     readOnly: false

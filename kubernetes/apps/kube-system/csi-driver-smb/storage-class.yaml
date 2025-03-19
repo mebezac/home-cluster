@@ -11,10 +11,3 @@ parameters:
   csi.storage.k8s.io/node-stage-secret-name: csi-driver-smb-secret
   csi.storage.k8s.io/node-stage-secret-namespace: kube-system
 volumeBindingMode: Immediate
-mountOptions:
-  - dir_mode=0777
-  - file_mode=0777
-  - noperm
-  - mfsymlinks
-  - cache=strict
-  - noserverino # required to prevent data corruption
