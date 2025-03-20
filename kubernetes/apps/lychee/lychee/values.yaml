@@ -6,8 +6,8 @@ controllers:
     containers:
       app:
         image:
-          repository: lycheeorg/lychee
-          tag: v6.3.5
+          repository: linuxserver/lychee
+          tag: 6.3.5
         resources:
           requests:
             cpu: 100m
@@ -22,6 +22,8 @@ controllers:
           DB_CONNECTION: mysql
           DB_PORT: 3306
           PHP_TZ: America/New_York
+          PUID: 1000
+          PGID: 1000
           REDIS_PORT: 6379
           TRUSTED_PROXIES: "*"
         envFrom:
@@ -74,23 +76,19 @@ ingress:
               port: http
 
 persistence:
-  data:
+  config:
     enabled: true
     type: persistentVolumeClaim
     storageClass: longhorn
     accessMode: ReadWriteOnce
-    size: 5Gi
+    size: 1Gi
     globalMounts:
-      - path: /conf
-        subPath: conf
-      - path: /sym
-        subPath: sym
-      - path: /logs
-        subPath: logs
-  uploads:
+      - path: /config
+
+  pictures:
     enabled: true
     type: persistentVolumeClaim
     existingClaim: lychee-smb-pvc
     globalMounts:
-      - path: /uploads
+      - path: /pictures
         subPath: lychee
