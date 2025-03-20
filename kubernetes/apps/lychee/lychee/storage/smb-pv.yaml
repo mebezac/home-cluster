@@ -16,6 +16,8 @@ spec:
   mountOptions:
     - dir_mode=2775
     - file_mode=2775
+    - forceuid
+    - forcegid
     - uid=1000
     - gid=1000
     - mfsymlinks

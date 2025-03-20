@@ -52,20 +52,6 @@ controllers:
                 path: /
                 port: 80
 
-    initContainers:
-      fix-permissions:
-        image:
-          repository: busybox
-          tag: latest
-        command:
-          - /bin/sh
-          - -c
-          - |
-            chown -R 1000:1000 /uploads &&
-            chmod -R 2775 /uploads
-        securityContext:
-          runAsUser: 0
-
 service:
   main:
     controller: main
