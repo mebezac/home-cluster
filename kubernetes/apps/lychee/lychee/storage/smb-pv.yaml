@@ -18,8 +18,8 @@ spec:
     - file_mode=0775
     - forceuid
     - forcegid
-    - uid=1000
-    - gid=1000
+    - uid=1234
+    - gid=1234
     - mfsymlinks
     - cache=strict
     - noserverino
