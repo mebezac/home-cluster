@@ -16,10 +16,6 @@ spec:
   mountOptions:
     - dir_mode=0775
     - file_mode=0775
-    - forceuid
-    - forcegid
-    - uid=1234
-    - gid=1234
     - mfsymlinks
     - cache=strict
     - noserverino
