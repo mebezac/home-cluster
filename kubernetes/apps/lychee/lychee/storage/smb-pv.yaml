@@ -14,8 +14,8 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: smb
   mountOptions:
-    - dir_mode=2775
-    - file_mode=2775
+    - dir_mode=0775
+    - file_mode=0775
     - forceuid
     - forcegid
     - uid=1000
