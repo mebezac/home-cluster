@@ -6,8 +6,8 @@ controllers:
     containers:
       app:
         image:
-          repository: linuxserver/lychee
-          tag: 6.3.5
+          repository: lycheeorg/lychee
+          tag: v6.3.5
         resources:
           requests:
             cpu: 100m
@@ -74,19 +74,24 @@ ingress:
               port: http
 
 persistence:
-  config:
+  data:
     enabled: true
     type: persistentVolumeClaim
     storageClass: longhorn
     accessMode: ReadWriteOnce
-    size: 1Gi
+    size: 2Gi
     globalMounts:
-      - path: /config
-
-  pictures:
+      - path: /conf
+        subPath: conf
+      - path: /sym
+        subPath: sym
+      - path: /logs
+        subPath: logs
+  uploads:
     enabled: true
     type: persistentVolumeClaim
-    existingClaim: lychee-smb-pvc
+    storageClass: longhorn
+    accessMode: ReadWriteOnce
+    size: 10Gi
     globalMounts:
-      - path: /pictures
-        subPath: lychee
+      - path: /uploads
