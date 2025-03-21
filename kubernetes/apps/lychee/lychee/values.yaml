@@ -24,10 +24,6 @@ controllers:
           PHP_TZ: America/New_York
           REDIS_PORT: 6379
           TRUSTED_PROXIES: "*"
-          S3_ENABLED: true
-          AWS_DEFAULT_REGION: us-east-1
-          AWS_IMAGE_VISIBILITY: public
-          AWS_USE_PATH_STYLE_ENDPOINT: true
         envFrom:
           - secretRef:
               name: lychee-secret
@@ -96,6 +92,6 @@ persistence:
     type: persistentVolumeClaim
     storageClass: longhorn
     accessMode: ReadWriteOnce
-    size: 10Gi
+    size: 20Gi
     globalMounts:
       - path: /uploads
