@@ -14,7 +14,7 @@ controllers:
             memory: 256Mi
           limits:
             cpu: 3000m
-            memory: 8192Mi
+            memory: 2048Mi
         env:
           TIMEZONE: America/New_York
           APP_NAME: Lychee
