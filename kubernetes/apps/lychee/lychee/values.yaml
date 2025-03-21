@@ -66,12 +66,16 @@ ingress:
     annotations:
       external-dns.alpha.kubernetes.io/target: external.zac.pizza
     hosts:
-      - host: photos.zac.pizza
+      - host: &host photos.zac.pizza
         paths:
           - path: /
             service:
               identifier: main
               port: http
+    tls:
+      - hosts:
+          - *host
+        secretName: zac-pizza-production-tls
 
 persistence:
   data:
