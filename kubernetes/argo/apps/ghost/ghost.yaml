@@ -15,7 +15,7 @@ spec:
       ref: repo
     - repoURL: registry-1.docker.io/bitnamicharts
       chart: ghost
-      targetRevision: 22.2.2
+      targetRevision: 22.2.3
       helm:
         releaseName: ghost
         valueFiles:
