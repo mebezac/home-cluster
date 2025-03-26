@@ -37,6 +37,7 @@ controller:
         memory: 200Mi
         ephemeral-storage: 5Gi
   driver:
+    logLevel: warn
     resources:
       requests:
         cpu: 20m
@@ -80,6 +81,7 @@ driver:
     driver: freenas-api-nfs
 node:
   driver:
+    logLevel: warn
     resources:
       requests:
         cpu: 40m
