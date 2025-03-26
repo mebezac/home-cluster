@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Secret
+type: Opaque
+metadata:
+    name: democratic-csi-driver-config
+    namespace: storage
+stringData:
+    driver-config-file.yaml: ENC[AES256_GCM,data:l9Nf0uVXnzPiUN8Et8nL1y7+ljq2erXQ/GW5mnd3UT2ZYiMMHpu7vO/KbMtWV78dvvLgxEprzRSC0THhUzLvYA77hjsJ6337+kH70fvG+Y7crP2efuwDiT+5COJMaKoeIDBoCB1Hs8j+qG5J1fbT8iNRIGuldkh7XkyptyWcL17cItv3/+O9d7FqiWpJhcSY8Q2aypB+Uzf74vInVXM1UkhdYKm/cCEJ6xUFWEKqwGGSqxe/B5szCHDQNjXzpERtS6kwmUamv9jfFHU/WkkAREt0ZgbDZSS5N7uWUQWP66yFTr7xwJyJNiky9PpOXMLe75TA+v5VdeWAy68s8wi3daMDsxkWVaKEANIt+Bo6hIHcqpqXVlI+BkxRH3GHIFEC1bar11T5BK9A4eHOinWxDsy9LohkDcYAtnCZ7eorYdh+B2YXX9wavjVkxCJ5gn0MN3FXh335dXqar+N1qhkscV3UR+myJLGoyFSkz4jf9jXhKmWm6FwdPoQPy1umYDnoVYDuprDUEbZYL5+Un/EfeG1sIxTRkyi+6wykeoZbS2pgLQipo2LY8kZ4zMzQ6dmDAKrW0UluUyaGzrZwB3n1p5TVjgNO8oJ2DIXzKtz6UJLLEmedPJwcN1g4HfZFEAAaqo7DdW+4lFB+8g4ADxD+GQBJgxhHjnGgcnBzPfIdXR8TOGK2nvHSH7zI1rC9IFoKEkw1vRb6WsB28J7RDdTFw8GYHiLQ8Htra/zisgiiIPHJPMErd5jjE555C7WhvxzczH/9ZpyvTOm6wk6D4wOJ6q4RRh3hEbBgAM8ny4l2pR+tq4eHDv+f0KzhYOyIHJ4uw6FwUVQ72kGKXhHq,iv:WW6phB9I4qJf7bytW/IICj5diMsYi4YFUL59UZA+oV4=,tag:fcCztMGShRS/14uj7jQuzQ==,type:str]
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age:
+        - recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBLdjZVZ01TR3RMMWlIQnpl
+            M1pCenZLNXFTODF5Q3ZLTCs3UmlZRHkvbVJBCit1bnVtRW9HUGhjVUJ3cVBwQzl3
+            U0JpNGpvUmxMTmRVbGdIcTdaVTdma2sKLS0tIGR5SXhZbWxxS1FVcGxXTDVqeDRk
+            b1F6ak9XZ1NqZ25veXRxS3N6MEJ6eGsK/Z7EI28jtRNeWHgvGYJjU+XfOw4ZM9j8
+            vxlQZK9VmcUojY66nvwRYnZEoR4raC7AYGGqLIniEKhZcmbi9UblVQ==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2025-03-26T06:54:14Z"
+    mac: ENC[AES256_GCM,data:nJskQNIELS9R0Ez2VXfqG5Ml2eDTr06oPR2cK17geqNAHX1i6K+UTKOWN16ukmV8Kzc4NANHwrK3r4DxsXIzz7yW9/pA4kq6FuH1g4uZRBd6XIgThzkMzDEzbTn4DkfSAEHIMqTsqd0qjwr1wYPGhp0xpBLAVbTqIsOo2e9/be4=,iv:0TE1pVH9GhZf1J5lsi5pQUlX/UVyidn6NHnzuFq5P20=,tag:DJQ5twpYJc5eOopBaoouGQ==,type:str]
+    pgp: []
+    encrypted_regex: ^(data|stringData)$
+    mac_only_encrypted: true
+    version: 3.9.4
