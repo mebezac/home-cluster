@@ -1,0 +1,31 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: snapshot-controller
+  namespace: argo-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: kubernetes
+  sources:
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/apps/storage/snapshot-controller
+      targetRevision: main
+      ref: snapshot-controller-repo
+    - repoURL: https://piraeus.io/helm-charts/
+      chart: snapshot-controller
+      targetRevision: 4.0.1
+      helm:
+        releaseName: snapshot-controller
+        valueFiles:
+          - $snapshot-controller-repo/kubernetes/apps/storage/snapshot-controller/values.yaml
+  destination:
+    name: in-cluster
+    namespace: storage
+  syncPolicy:
+    automated:
+      allowEmpty: true
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
