@@ -1,14 +1,19 @@
 ---
+defaultPodOptions:
+  securityContext:
+    runAsUser: 3000
+    runAsGroup: 3000
+    fsGroup: 3000
+    fsGroupChangePolicy: "OnRootMismatch"
+
 controllers:
   main:
     replicas: 1
-
     containers:
       main:
         image:
           repository: ghcr.io/advplyr/audiobookshelf
           tag: 2.20.0
-
         resources:
           requests:
             cpu: 100m
@@ -16,8 +21,9 @@ controllers:
           limits:
             cpu: 200m
             memory: 300Mi
-
         env:
+          AUDIOBOOKSHELF_UID: 3000
+          AUDIOBOOKSHELF_GID: 3000
           TZ: America/Detroit
 
 service:
