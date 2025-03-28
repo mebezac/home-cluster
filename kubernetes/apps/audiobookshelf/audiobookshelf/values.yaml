@@ -57,8 +57,8 @@ persistence:
 
   audiobooks:
     enabled: true
-    type: persistentVolumeClaim
-    existingClaim: audiobookshelf-smb-pvc
+    type: nfs
+    server: 10.25.30.36
+    path: /mnt/data/10tb/Media/Audiobooks
     globalMounts:
       - path: /audiobooks
-        subPath: Media/Audiobooks
