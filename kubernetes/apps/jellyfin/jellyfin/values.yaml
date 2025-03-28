@@ -2,13 +2,11 @@
 controllers:
   main:
     replicas: 1
-
     containers:
       main:
         image:
           repository: ghcr.io/jellyfin/jellyfin
           tag: 10.10.6
-
         resources:
           requests:
             cpu: 100m
@@ -43,17 +41,11 @@ ingress:
 persistence:
   media:
     enabled: true
-    type: custom
-    volumeSpec:
-      nfs:
-        server: nas.laboratory.casa
-        path: /mnt/data/10tb/Media
-        mountOptions:
-          - vers=4.2
-          - nolock
+    type: nfs
+    server: nas.laboratory.casa
+    path: /mnt/data/10tb/Media
     globalMounts:
       - path: /Media
-        subPath: Media
 
   data:
     enabled: true
