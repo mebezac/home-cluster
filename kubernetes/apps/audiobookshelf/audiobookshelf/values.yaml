@@ -1,0 +1,62 @@
+---
+controllers:
+  main:
+    replicas: 1
+
+    containers:
+      main:
+        image:
+          repository: ghcr.io/advplyr/audiobookshelf
+          tag: 2.20.0
+
+        resources:
+          requests:
+            cpu: 100m
+            memory: 150Mi
+          limits:
+            cpu: 200m
+            memory: 300Mi
+
+        env:
+          TZ: America/Detroit
+
+service:
+  main:
+    controller: main
+    ports:
+      http:
+        port: 80
+
+ingress:
+  main:
+    enabled: true
+    className: internal
+    hosts:
+      - host: audiobooks.laboratory.casa
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            service:
+              identifier: main
+              port: http
+
+persistence:
+  config:
+    enabled: true
+    type: persistentVolumeClaim
+    storageClass: longhorn
+    accessMode: ReadWriteOnce
+    size: 500Mi
+    globalMounts:
+      - path: /config
+        subPath: config
+      - path: /metadata
+        subPath: metadata
+
+  audiobooks:
+    enabled: true
+    type: persistentVolumeClaim
+    existingClaim: audiobookshelf-smb-pvc
+    globalMounts:
+      - path: /audiobooks
+        subPath: Media/Audiobooks

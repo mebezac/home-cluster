@@ -13,6 +13,13 @@ spec:
       path: kubernetes/apps/audiobookshelf/audiobookshelf
       targetRevision: main
       ref: repo
+    - repoURL: ghcr.io/bjw-s/helm
+      chart: app-template
+      targetRevision: 3.7.3
+      helm:
+        releaseName: audiobookshelf
+        valueFiles:
+          - $repo/kubernetes/apps/audiobookshelf/audiobookshelf/values.yaml
   destination:
     name: in-cluster
     namespace: audiobookshelf
