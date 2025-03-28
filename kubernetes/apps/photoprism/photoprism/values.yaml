@@ -20,13 +20,16 @@ controllers:
           limits:
             memory: 4192Mi
         env:
+          PHOTOPRISM_AUTH_MODE: "password"
           PHOTOPRISM_STORAGE_PATH: &storagePath /photoprism/storage
           PHOTOPRISM_ORIGINALS_PATH: &originalsPath /photoprism/originals
-          PHOTOPRISM_PUBLIC: "true"
           PHOTOPRISM_SITE_URL: "https://photoprism.zac.pizza"
           PHOTOPRISM_SITE_TITLE: "zac.pizza"
           PHOTOPRISM_UID: 3000
           PHOTOPRISM_GID: 3000
+        envFrom:
+          - secretRef:
+              name: photoprism-secret
 
 persistence:
   config:
