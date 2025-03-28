@@ -43,8 +43,14 @@ ingress:
 persistence:
   media:
     enabled: true
-    type: persistentVolumeClaim
-    existingClaim: jellyfin-smb-pvc
+    type: custom
+    volumeSpec:
+      nfs:
+        server: nas.laboratory.casa
+        path: /mnt/data/10tb/Media
+        mountOptions:
+          - vers=4.2
+          - nolock
     globalMounts:
       - path: /Media
         subPath: Media

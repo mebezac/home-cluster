@@ -64,7 +64,7 @@ persistence:
   audiobooks:
     enabled: true
     type: nfs
-    server: 10.25.30.36
+    server: nas.laboratory.casa
     path: /mnt/data/10tb/Media/Audiobooks
     globalMounts:
       - path: /audiobooks
