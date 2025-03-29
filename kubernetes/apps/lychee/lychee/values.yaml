@@ -2,12 +2,11 @@
 controllers:
   main:
     replicas: 1
-
     containers:
       app:
         image:
           repository: lycheeorg/lychee
-          tag: v6.4.1
+          tag: v6.3.5
         resources:
           requests:
             cpu: 100m
