@@ -94,8 +94,8 @@ persistence:
   uploads:
     enabled: true
     type: persistentVolumeClaim
-    storageClass: longhorn
+    storageClass: freenas-api-nfs
     accessMode: ReadWriteOnce
-    size: 20Gi
+    size: 50Gi
     globalMounts:
       - path: /uploads
