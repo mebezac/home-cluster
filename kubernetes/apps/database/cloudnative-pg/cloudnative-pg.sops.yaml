@@ -5,7 +5,7 @@ metadata:
     labels:
         cnpg.io/reload: "true"
 stringData:
-    username: ENC[AES256_GCM,data:Q4ZMuFr2z4E=,iv:Y6mBmpLftVQqn9CGuJW0GOrceW3JY9y1okDAcinqlAc=,tag:xAa0z7ZQTymxuF8intd+zw==,type:str]
+    username: ENC[AES256_GCM,data:a0+kvH9oogs=,iv:eIzOnwlyKKApNknyjhNo8+rD9BCZuKqwTWPUYooLEjY=,tag:RsTD38DlyHomCyiKWOmJPg==,type:str]
     password: ENC[AES256_GCM,data:splmOKDCB3ZGGn93GTGdsoqbIlyL4Eys6s4=,iv:JvuFokp2Z0IY21r4Ycu/t9jvRgKj4LLztGgIzAxRuEY=,tag:OjCWxo6m9Pn2D8KWeI9kJA==,type:str]
     aws-access-key-id: ENC[AES256_GCM,data:ZZahn8o0LZIRywtnjJOhnd/Psv0=,iv:989diOR9Uh1Y2huuh8YtUpDlNuHRwZqbO2EQb2niPSM=,tag:4pu0mQeUn636TtKAvII+hA==,type:str]
     aws-secret-access-key: ENC[AES256_GCM,data:smDryAnu2wHvufdKZepcbcsfffn3OroLW7u3SBK7hWHE+flP1JKl3Q==,iv:vpwvPSHcFireIzk+MVf3OyONAb2bl6hnA2mMrgmuAos=,tag:/FwIUQnFm+B8ee+Q7U7ePw==,type:str]
@@ -20,8 +20,8 @@ sops:
             UEdCUlhyVUM0UCt6ZXRSbFRzNGpMUmcKSnxuapHQeWHitCaZ9SYfRhKpVwG3mx2z
             tC+fpaYeXhbMga/Bzp5cAUH6GE0iqDhsXSZZEXrkVk1pcLrMxjkThw==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2025-04-04T02:36:46Z"
-    mac: ENC[AES256_GCM,data:uaEhgVmd+pPD4mTcNT47n7+9Z/WnLnSJiUf8ixBPHOeY91Vejc5il+8WYdFOA22rIz7KzMV3PiW7ek+3xiv7QsfHquD5qDnQjlAvqaUIiI/EnCHvx+S/kgvjymLt7z9TcT+inqa4x775Enw3luaWgtbNO733b4YueG1FWZLjeeE=,iv:EAk1i/g7v/rmJkk+JAdZR+VzwEHWmfd16sUAqF9P2tQ=,tag:BJWvSlR9acbS5XXt6qvhBw==,type:str]
+    lastmodified: "2025-04-04T03:34:35Z"
+    mac: ENC[AES256_GCM,data:X8X+mnGcS0BxKyt765j11wRCjHyJ6vCd4ZJHEQrh79M10JRIC3m//DpiwbJxMuUWn/vqISm5JPvwHaxxV+wMQONeDGIDoFip34xBgHPr0hVhUOqHMfvS2pThngWRXUgP8zBN/VFA8wF4jfaeK17B9zzmi0JA7KyyFTjDEg2Hb+o=,iv:zdmxlPXVjbvZ0vV2kG9HVtvci6vTybmi9qUQ/YmXo5U=,tag:EgYh3pfg0oI+iHU1k1Iyxg==,type:str]
     encrypted_regex: ^(data|stringData)$
     mac_only_encrypted: true
     version: 3.10.0
