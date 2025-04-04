@@ -5,6 +5,7 @@ ghostEmail: ENC[AES256_GCM,data:wsPRT3e0eLGa+xiZFt4=,iv:h0WQQLi7HQMO2OSqnWpRvGzO
 ghostBlogTitle: zac.pizza
 ghostHost: blog.zac.pizza
 ghostEnableHttps: true
+ghostSkipInstall: true
 smtpHost: smtp.mailgun.org
 smtpPort: 465
 smtpUser: ENC[AES256_GCM,data:B4rMVuqQOa7Dlggx0s5jNPPblbCg/aU8+1+xTA==,iv:b2lHJ7iQsroRsW2uaUnuW2ePOs+YkS5V6Z+8hC5Li0g=,tag:1vQP7Q5WpKIb9cx1AFpifA==,type:str]
@@ -32,10 +33,6 @@ service:
 updateStrategy:
     type: Recreate
 sops:
-    kms: []
-    gcp_kms: []
-    azure_kv: []
-    hc_vault: []
     age:
         - recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
           enc: |
@@ -46,9 +43,8 @@ sops:
             b3F1WmM2M1gydVJJMW5VNzhXWFFCOE0KMgpw19Up8/7eKRtwR+pUhkT/c4bPlj5B
             rz+11Y06Ccu9bldQ1QDeX5YE/Mznk2BS0R9LWG/A3cOWpSdEhUPfLQ==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2025-02-17T03:41:18Z"
-    mac: ENC[AES256_GCM,data:y+nBtJv72kEUFAOToYHzuSB0kwOlk3Ik+62o92Rlhc8LGmu5Hxd3Fl3IbAe9gXYXkJYuBiF4H2u9SNkXMUuLyKtuzsfvtNQtpBAHxgpsd9LQ5SBPhi4YMVn5IPs5EtezTLh7JtMyN8zltuPDLWRbZ89umA5hmnVnMkz4vTrPKd4=,iv:odKHo0GwoYYeqC62xpxwjdGU6JVWHAY2w9Tj5mwlyXw=,tag:ArwvAtrDeWWjnBv4jdZvkg==,type:str]
-    pgp: []
+    lastmodified: "2025-04-04T15:15:54Z"
+    mac: ENC[AES256_GCM,data:6zb8d+iCNeJbqhUKN3RxShIXNAmxXCsiC6SuTsShg9h2rBqZDUgeTUX+kqIoY3CVjy19Qjv5CVjOhelsGCO4vijb79iNJH8ML2z+E95COBIsQkm9avtIitc/X/a+35VL4KQrWQOrl1J90GmBujKAURK6kBKFSGMVRIoqcKZjmpM=,iv:fzTD7eYWwx1LfsL88e71yIWCrRSPPbbClPNcJVLXnc8=,tag:dZGyyBwhphdRwvL2s/eWAQ==,type:str]
     encrypted_regex: (ghostEmail|smtpUser|.*assword)
     mac_only_encrypted: true
-    version: 3.9.4
+    version: 3.10.1
