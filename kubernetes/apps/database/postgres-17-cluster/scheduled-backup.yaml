@@ -1,0 +1,11 @@
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: postgres-17-cluster-daily-backup
+spec:
+  schedule: "15 2 * * *"
+  immediate: true
+  backupOwnerReference: self
+  cluster:
+    name: postgres-17-cluster
