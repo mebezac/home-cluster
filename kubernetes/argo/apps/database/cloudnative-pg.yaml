@@ -1,0 +1,33 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cloudnative-pg
+  namespace: argo-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: kubernetes
+  sources:
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/apps/database/cloudnative-pg
+      targetRevision: main
+      ref: cloudnative-pg-repo
+    - repoURL: https://cloudnative-pg.github.io/charts
+      chart: cloudnative-pg
+      targetRevision: 0.23.2
+      helm:
+        releaseName: cloudnative-pg
+        valueFiles:
+          - $cloudnative-pg-repo/kubernetes/apps/database/cloudnative-pg/values.yaml
+  destination:
+    name: in-cluster
+    namespace: database
+  syncPolicy:
+    automated:
+      allowEmpty: true
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
