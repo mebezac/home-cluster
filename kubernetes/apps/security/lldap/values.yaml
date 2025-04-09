@@ -10,9 +10,17 @@ controllers:
           repository: ghcr.io/home-operations/postgres-init
           tag: 17.4
           pullPolicy: IfNotPresent
-        envFrom: &envFrom
+        envFrom:
           - secretRef:
-              name: lldap-secret
+              name: lldap-initdb-secret
+    pod:
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: lldap
     containers:
       lldap:
         image:
@@ -24,7 +32,9 @@ controllers:
           LLDAP_HTTP_URL: https://lldap.laboratory.casa
           LLDAP_LDAP_PORT: &ldapPort 389
           LLDAP_LDAP_BASE_DN: dc=laboratory,dc=casa
-        envFrom: *envFrom
+        envFrom:
+          - secretRef:
+              name: lldap-secret
         resources:
           requests:
             cpu: 5m
