@@ -1,0 +1,10 @@
+global:
+  storageClass: longhorn
+architecture: standalone
+auth:
+  enabled: true
+  existingSecret: authelia-redis-auth
+master:
+  persistence:
+    storageClass: longhorn
+    size: 100Mi

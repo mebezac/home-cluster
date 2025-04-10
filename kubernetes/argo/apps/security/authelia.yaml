@@ -10,6 +10,17 @@ spec:
   project: kubernetes
   sources:
     - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/apps/security/authelia-redis
+      targetRevision: main
+      ref: authelia-redis-repo
+    - repoURL: registry-1.docker.io/bitnamicharts
+      chart: redis
+      targetRevision: 20.11.5
+      helm:
+        releaseName: authelia-redis
+        valueFiles:
+          - $authelia-redis-repo/kubernetes/apps/security/authelia-redis/values.yaml
+    - repoURL: https://github.com/mebezac/home-cluster.git
       path: kubernetes/apps/security/authelia
       targetRevision: main
       ref: authelia-repo

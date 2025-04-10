@@ -7,10 +7,10 @@ authentication_backend:
   # How often authelia should check if there is a user update in LDAP
   refresh_interval: 1m
   ldap:
-    implementation: lldap
+    implementation: custom
     # Pattern is ldap://HOSTNAME-OR-IP:PORT
     # Normal ldap port is 389, standard in LLDAP is 3890
-    address: ldap://lldap.security.svc.cluster.local:3890
+    address: ldap://lldap.security.svc.cluster.local:389
     # Set base dn that you configured in LLDAP
     base_dn: dc=laboratory,dc=casa
     # The username and password of the bind user.
@@ -20,8 +20,68 @@ authentication_backend:
     # Password can also be set using a secret: https://www.authelia.com/configuration/methods/secrets/
     # password: PUT-IN-SECRET
 
-    # Optional: To allow sign in with BOTH username and email, you can change the users_filter to this
-    # users_filter: "(&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))"
+    # Adapted from https://docs.ibracorp.io/authelia/ldap/ldap-lldap-light-ldap
+    username_attribute: uid
+    additional_users_dn: ou=people
+    # To restrict sign-in to username ONLY, use this filter:
+    # (&({username_attribute}={input})(objectClass=person))
+    # To allow sign-in with either username OR email, use this filter:
+    # (&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))
+    users_filter: (&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))
+    additional_groups_dn: ou=groups
+    groups_filter: (member={dn})
+    group_name_attribute: cn
+    mail_attribute: mail
+    display_name_attribute: displayName
+
+# Adapted from https://docs.ibracorp.io/authelia/configuration-files/configuration.yml
+access_control:
+  default_policy: deny
+  rules:
+    ## bypass rule
+    - domain:
+        - "auth.laboratory.casa"
+      policy: bypass
+    ## catch-all
+    - domain:
+        - "*.laboratory.casa"
+      subject:
+        - "group:admins"
+      policy: one_factor
+
+session:
+  name: authelia_session
+  same_site: lax
+  expiration: 1h
+  inactivity: 30m
+  remember_me_duration: 2M
+  cookies:
+    - domain: laboratory.casa
+      authelia_url: https://login.laboratory.casa
+      default_redirection_url: https://login.laboratory.casa/
+  redis:
+    host: authelia-redis-master.security.svc.cluster.local
+    port: 6379
+    database_index: 0
+    maximum_active_connections: 8
+    minimum_idle_connections: 0
+
+regulation:
+  max_retries: 3
+  find_time: 10m
+  ban_time: 12h
+
+notifier:
+  disable_startup_check: false
+  smtp:
+    identifier: localhost
+    subject: "[Authelia] {title}"
+    startup_check_address: test@laboratory.casa
+    disable_require_tls: false
+    disable_html_emails: false
+    tls:
+      skip_verify: false
+      minimum_version: TLS1.2
 
 # Disable some stuff for now
 totp:
@@ -31,3 +91,22 @@ webauthn:
   disable: true
 duo_api:
   disable: true
+
+# OIDC
+identity_providers:
+  oidc:
+    cors:
+      endpoints: ["authorization", "token", "revocation", "introspection"]
+      allowed_origins_from_client_redirect_uris: true
+    clients:
+      - client_id: ocis
+        client_name: OwnCloud Infinite Scale
+        client_secret: '{{ env "OIDC_OCIS_CLIENT_SECRET" }}'
+        authorization_policy: one_factor
+        pre_configured_consent_duration: 1y
+        scopes: ["openid", "profile", "groups", "email"]
+        redirect_uris:
+          - "https://files.laboratory.casa/"
+          - "https://files.laboratory.casa/oidc-callback.html"
+          - "https://files.laboratory.casa/oidc-silent-redirect.html"
+        userinfo_signed_response_alg: none
