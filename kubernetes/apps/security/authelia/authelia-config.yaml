@@ -21,7 +21,6 @@ authentication_backend:
     # password: PUT-IN-SECRET
 
     # Adapted from https://docs.ibracorp.io/authelia/ldap/ldap-lldap-light-ldap
-    username_attribute: uid
     additional_users_dn: ou=people
     # To restrict sign-in to username ONLY, use this filter:
     # (&({username_attribute}={input})(objectClass=person))
@@ -30,9 +29,13 @@ authentication_backend:
     users_filter: (&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))
     additional_groups_dn: ou=groups
     groups_filter: (member={dn})
-    group_name_attribute: cn
-    mail_attribute: mail
-    display_name_attribute: displayName
+
+    attributes:
+      username: uid
+      mail: mail
+      display_name: displayName
+      group_name: cn
+      picture: avatar
 
 # Adapted from https://docs.ibracorp.io/authelia/configuration-files/configuration.yml
 access_control:
