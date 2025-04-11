@@ -12,7 +12,6 @@ controllers:
             cpu: 100m
             memory: 256Mi
           limits:
-            cpu: 3000m
             memory: 2048Mi
         env:
           TIMEZONE: America/New_York
