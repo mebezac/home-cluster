@@ -1,1 +1,7 @@
 ---
+master:
+  replicaCount: 1
+worker:
+  config:
+    core:
+      sources: ["pci", "usb", "kernel", "cpu", "custom"]
