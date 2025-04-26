@@ -1,0 +1,32 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: zwave-js-ui
+  namespace: argo-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: kubernetes
+  sources:
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/apps/homeassistant/zwave-js-ui
+      targetRevision: main
+      ref: zwave-js-ui-repo
+    - repoURL: ghcr.io/bjw-s/helm
+      chart: app-template
+      targetRevision: 3.7.3
+      helm:
+        releaseName: zwave-js-ui
+        valueFiles:
+          - $zwave-js-ui-repo/kubernetes/apps/homeassistant/zwave-js-ui/values.yaml
+  destination:
+    name: in-cluster
+    namespace: homeassistant
+  syncPolicy:
+    automated:
+      allowEmpty: true
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

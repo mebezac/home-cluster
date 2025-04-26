@@ -1,0 +1,76 @@
+---
+controllers:
+  main:
+    type: statefulset
+    annotations:
+      reloader.stakater.com/auto: "true"
+    containers:
+      main:
+        image:
+          repository: ghcr.io/zwave-js/zwave-js-ui
+          tag: 10.3.1
+        probes:
+          liveness: &probes
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /health
+                port: &httpPort 8091
+              initialDelaySeconds: 0
+              periodSeconds: 10
+              timeoutSeconds: 1
+              failureThreshold: 3
+          readiness: *probes
+          startup:
+            enabled: false
+        securityContext:
+          privileged: true
+        resources:
+          requests:
+            cpu: 50m
+            memory: 128M
+          limits:
+            memory: 512M
+    pod:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: zwave.feature.node.kubernetes.io/zooz-zst39-lr
+                    operator: In
+                    values:
+                      - "true"
+      nodeSelector:
+        zwave.feature.node.kubernetes.io/zooz-zst39-lr: "true"
+
+service:
+  main:
+    controller: main
+    ports:
+      http:
+        port: *httpPort
+      websocket:
+        port: 3000
+
+ingress:
+  main:
+    className: internal
+    hosts:
+      - host: &host "zwave.laboratory.casa"
+        paths:
+          - path: /
+            service:
+              identifier: main
+              port: *httpPort
+
+persistence:
+  config:
+    enabled: true
+    type: persistentVolumeClaim
+    storageClass: longhorn
+    accessMode: ReadWriteOnce
+    size: 1Gi
+    globalMounts:
+      - path: /usr/src/app/store
