@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Secret
+metadata:
+    name: volsync-rclone-conf
+    namespace: lychee
+stringData:
+    rclone.conf: ENC[AES256_GCM,data:YZ941Y3/GyhZENp4ueewmqdkJXcrkio7veurFBxGUgY0FPKciQd64x7bmF2IWAu3ZezBBW4cIVTdodLdoa3TjLWmc2ZXLasreLXlUJ6BOUDeffalY6Od9CvV0spKMPubyezYZwi0de7C9BaspcfgNTFC0MtfsmPnmw2p+vn0ohzyFgvmI4Jq0NPNUx/uzxiveCYyt9ITlkw3OqH74QVGtzF06xyXtsR2kI56acRcySgFqLqGsSiswcl6B7Lt61WJLKOkdtObqFkyB66AnwwoiREyKI2I25OxLjc83Os4vrq7Vnn6ogUvH3f5So6BkXSgLPdhP/4cyclbUhqoVEf52gS+wHd2SX2eK1Cw/PQ/p49FpNCKLhJn5E8VQhGcYQSRePgqWqjPrmrRWs364F9m7aOtbSv3hrh+JdK/a1062PVd0bAggSvONuA/o8QUhA72A3OfEUymSiatBPhOruG/76OR+O84on4yA6/3OWjqmVR4H7iYP0r7tuyLmdmD06Gd09ybBqvkc9CHMA23fnGye3ioTXqDkYv6KlaB4BYhVUC6h5rXGl69wRmRQrhfHYWX3Rb76DzfkAcOoQltc0XmBGHr8LnAJV+T68NZ8G4m3NCvuVjSTbLaLmUhP28ryObT3wLa6XZPIWG3gfTpCSlnD7j3f1m9i632gCZIIlYyqsYHy/V/0Pg/mXs5VK4ZXCkNk+HVoBb1G0kaudqjQ3KBNSyfPEBl4zquL7DfDAKE953y0zMw4mVkNObEy8n9L+Xqz0wSayTBZLLVdfb0SNOquGFKu4f3YhFoy88AefzbYdD95Ss0ctumdbVES3tvnsTpOROs9zeIFB9rzCr9XxTWtx/Gf/QBZ4tXOlK7dlEi6JIpA9c0a4sV2Sg3fD9bPCKtv6kL2lbMKHip4DnmB7QqGzk3Tc+aU4dWkwnaq/mDvm3AqLCq6shy1J+3h1VvYPZlRepB4likHQAmeUbmTVYs36spQYwvWRWk5AapnZKsVdZc7Zgax6ceA331G/7j7Y63jai8TzuDLUTDO14Kauw=,iv:pTObeiBFEsOTvspYxHT8O0fxHdH45xl8NfbzopViEKY=,tag:rSqWMc35UOVQyG+kWuW4Fw==,type:str]
+sops:
+    age:
+        - recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBoZm9FTWZ3b29WOUljeWcw
+            RjkyMk5MdW1Ydm9DdjZYUCs0MkRiaDlPa1FJCm4yUTJkaXE5MWxBLzUwend0eFc1
+            Nlg2bDl1YTVkaitNTUdOQ3ZOVVJWT3MKLS0tIEhGZVNYSXNyczhQdTFHK3FjRGN1
+            eXdObnVnd3pXdFJ6UG9xSW0vTDl2Yk0KCxQimoU1Dwv6mlU2YMw95WoGgdS33Xzk
+            3lpUITjDeINj3OKcDA5w9AcyLMj6nxn3Zex7Rq4jVat39CjSj80obw==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2025-04-28T20:57:44Z"
+    mac: ENC[AES256_GCM,data:O5kdWlVX0XF/lmEvRmth+GSHdhQUJungeCjnarMZS4WqAKHwXQKCXlTcf9Vvjmt8MNbi+O+pC903TUoL0iLPSCj+H0eWC1rF+oK2VxmYRf8nuxwNf0Fv3X53Ox76A6LzsADYKoMt87zuaNyYtUwQMYazfx6ljkX6LNbiqj4CoaE=,iv:NR550/cAxY9KrDBRfdKXshunxFbqOMBhr6xM9BKT9QA=,tag:jvL063DL35XLKGCFRSaIpA==,type:str]
+    encrypted_regex: ^(data|stringData)$
+    mac_only_encrypted: true
+    version: 3.10.2
