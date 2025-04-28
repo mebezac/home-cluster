@@ -108,3 +108,5 @@ node:
       limits:
         memory: 200Mi
         ephemeral-storage: 5Gi
+volumeSnapshotClasses:
+  - name: freenas-api-nfs-snapshot
