@@ -109,4 +109,4 @@ node:
         memory: 200Mi
         ephemeral-storage: 5Gi
 volumeSnapshotClasses:
-  - name: freenas-api-nfs-snapshot
+  - name: freenas-api-nfs
