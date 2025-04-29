@@ -20,6 +20,6 @@ spec:
     # Method used to generate the PiT copy
     copyMethod: Snapshot
     # The StorageClass to use when creating the PiT copy (same as source PVC if omitted)
-    storageClassName: openebs-hostpath
+    storageClassName: freenas-api-nfs
     # The VSC to use if the copy method is Snapshot (default if omitted)
     volumeSnapshotClassName: freenas-api-nfs-snapshot-class
