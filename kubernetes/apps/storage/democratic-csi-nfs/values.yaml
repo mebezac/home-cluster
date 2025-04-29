@@ -65,7 +65,7 @@ storageClasses:
     allowVolumeExpansion: true
     parameters:
       fsType: nfs
-      detachedVolumesFromSnapshots: "false"
+      detachedVolumesFromSnapshots: "true"
     mountOptions:
       - noatime
       - nfsvers=4.2
@@ -109,4 +109,8 @@ node:
         memory: 200Mi
         ephemeral-storage: 5Gi
 volumeSnapshotClasses:
-  - name: freenas-api-nfs
+  - name: freenas-api-nfs-snapshot-class
+    driver: org.democratic-csi.nfs
+    deletionPolicy: Delete
+    parameters:
+      detachedSnapshots: true
