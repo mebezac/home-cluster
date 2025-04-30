@@ -7,7 +7,7 @@ controllers:
     containers:
       main:
         image:
-          repository: ghcr.io/zwave-js/zwave-js-ui
+          repository: docker.io/zwavejs/zwave-js-ui
           tag: 10.3.3
         probes:
           liveness: &probes
