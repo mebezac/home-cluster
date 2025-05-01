@@ -12,7 +12,7 @@ spec:
       path: kubernetes/apps/security/lldap
       targetRevision: main
       ref: lldap-repo
-    - repoURL: https://bjw-s.github.io/helm-charts
+    - repoURL: ghcr.io/bjw-s/helm
       chart: app-template
       targetRevision: 3.7.3
       helm:
