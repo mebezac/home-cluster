@@ -20,8 +20,8 @@ configs:
             ignoreAggregatedRoles: true
             ignoreResourceStatusField: crd
     secret:
-        argocdServerAdminPassword: ENC[AES256_GCM,data:mb4fE13D2apNEdSEI5pdO9iZgXfrdlC4iXhfMkASvBSiJF6gRkld+nzRLJA4DDa5SEICc8F8VAFFLZoxZQ==,iv:REimiW7Vd6M4aQuacFgWksgpPSNNlArdQnJsMeTbAYs=,tag:UIK962lWHw62vpjdfH5w+Q==,type:str]
-        argocdServerAdminPasswordMtime: ENC[AES256_GCM,data:O7LAK/yuZMQgujpkkmlF9nQZvg==,iv:ziMkTvfFqphT3FOUIauzXRzlSn6VM2x5okf0ovqVmUM=,tag:9ZRCFN/v6NFJLiWsy1UKqQ==,type:str]
+        argocdServerAdminPassword: ENC[AES256_GCM,data:YfcMCjACYn5nY1LZ2L7knELWB1o9oUPH0vTUFH7lsYBuH9h4pv6iqsz+L5zWKfexR5yRlchXBWF/p/wPSA==,iv:dpfETfRgR6fpWekLEpbZv15yiovzHXnY3feW1mcTQi8=,tag:sGuNZZEoI+do6hitM91SAQ==,type:str]
+        argocdServerAdminPasswordMtime: ENC[AES256_GCM,data:zca5ZskOjgdFMTGsB/mbhOVs8Q==,iv:zsjtE2JgwRmEZEEKbH0G6l5ySU8P8WFeXChf/Qvz0F8=,tag:ivo6y9dM3VeS5zRAKSGCxw==,type:str]
         githubSecret: ENC[AES256_GCM,data:3GJGOl5UdNOKF6G3bEMpTX26dM2q4x1X79rfEZpGe0w=,iv:+hUNfHF2KObB5cXKHz5TheD7gUVGyvWEJnZcURV4UyU=,tag:dujCIcz3JOXPuMBXWBIhJQ==,type:str]
 controller:
     replicas: 2
@@ -159,8 +159,8 @@ sops:
             Yk1tc1ZRV1ZDVnRBOWVLVUlZcWZyaW8KF6jJaD0ojyuoIlGcGDgVo0tHgdy7Yp5v
             YKlde9Hqlc+7owvJ05aFC4L9VXvBaNgoZbw9MMN4fdxr83KOeU8a8A==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2025-05-12T14:48:33Z"
-    mac: ENC[AES256_GCM,data:a2Z5CITkJ7HIgBH19RoPSJ5Io2MZ5i/VxfSk2fjUEmQUPY3TZvfMfPomMHvTJ0QXK6JASCo3XaYqZrthPT6W8UuRd8pMdXyfkEiaXkF23/xW3XkKP39lneUKD11qICzJNAHjwsfMA7u0NNMGEZogwZCqFwRsXDguYcFl2lkVuOc=,iv:mxxkBSECYlyPi5L2u+mktQTO+GiRe8/U0XIBXwUfqI4=,tag:0vzuR32VGfZAifubfXXhlA==,type:str]
+    lastmodified: "2025-05-12T14:56:47Z"
+    mac: ENC[AES256_GCM,data:vh+Utov1RLcs9+ANOPIEjTnvWPud0o6pQANoJnyjHJWyJN/N1e4KjURBWAVUAH3MLt+TB5aJA7muDpQN304PC6txon1rctn9CEBGVG7vj3AGQUXVAnqx3fogN1lRWVJSnHRDdwy/cmTQnjIAY1ZaZ6BTMQdA2B0m/P7xpQKOvag=,iv:ycpyzjq6TO1m4bZt2SRzlj1I5gVOuLP4VlE5qO5GKhU=,tag:BZXMjFa7xqFIqDSPhsGSTA==,type:str]
     encrypted_regex: (secret)
     mac_only_encrypted: true
     version: 3.10.2
