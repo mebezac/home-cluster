@@ -16,10 +16,13 @@ configs:
           - CiliumIdentity
         clusters:
           - "*"
+    resource.compareoptions: |
+      ignoreAggregatedRoles: true
+      ignoreResourceStatusField: crd
   secret:
-    argocdServerAdminPassword: $2a$10$DVIjIRlJNsMB6GElIT7na.a/KAemA5.UF9FFjhk04HgYcYy2s3kX.%
-    argocdServerAdminPasswordMtime: 2025-01-24T12:14:26
-    githubSecret: 15012ffc5b26d9ae1e1d7e493ee2ff63
+    argocdServerAdminPassword: ENC[AES256_GCM,data:mb4fE13D2apNEdSEI5pdO9iZgXfrdlC4iXhfMkASvBSiJF6gRkld+nzRLJA4DDa5SEICc8F8VAFFLZoxZQ==,iv:REimiW7Vd6M4aQuacFgWksgpPSNNlArdQnJsMeTbAYs=,tag:UIK962lWHw62vpjdfH5w+Q==,type:str]
+    argocdServerAdminPasswordMtime: ENC[AES256_GCM,data:O7LAK/yuZMQgujpkkmlF9nQZvg==,iv:ziMkTvfFqphT3FOUIauzXRzlSn6VM2x5okf0ovqVmUM=,tag:9ZRCFN/v6NFJLiWsy1UKqQ==,type:str]
+    githubSecret: ENC[AES256_GCM,data:IgAQIaLt2sCGnUAI5/MJI97C6Dpp7czVcxauGaRp+bE=,iv:mZ6U+rClrPtGNnG1BCj18+VbMfydJYGD80Za0nKdTto=,tag:s1b3He7U35MXhSgGCY2hfw==,type:str]
 controller:
   replicas: 2
   metrics:
@@ -115,7 +118,7 @@ repoServer:
     # kubectl create secret generic helm-secrets-private-keys --from-file=key.asc=assets/gpg/private2.gpg
     - name: helm-secrets-private-keys
       secret:
-        secretName: helm-secrets-private-keys
+        secretName: ENC[AES256_GCM,data:qW2w5A7uI3VxbuZcBlTrfjt8h+SGHSIkaQ==,iv:pxalMMqWfsDCF/x56pMyVb4Dz+nBqhCtO8C1NWVor9k=,tag:Nui2N2yqwHsfasUw6Idcuw==,type:str]
   volumeMounts:
     - mountPath: /custom-tools
       name: custom-tools
@@ -146,23 +149,18 @@ repoServer:
         - mountPath: /custom-tools
           name: custom-tools
 sops:
-  kms: []
-  gcp_kms: []
-  azure_kv: []
-  hc_vault: []
   age:
     - recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
       enc: |
         -----BEGIN AGE ENCRYPTED FILE-----
-        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSA1L0pXODRIY3BuL002c0tj
-        eUZOTVpSVnphWHh4VGc3Q3VBc2o5RFQ0d2lVCi95aXYrQWt5dkRPY2NkT0c3QXdC
-        WXJmUTg4KzhtQ2Q2Qy9EelMyK3Z3MlUKLS0tIDh1U3FuUlFicmhUdys4WmM5RTdl
-        cE5maUNLRzNNYVlDRjdia0p3ZWE1NkkKdHl15ksv18yN/BmXwAew1IcRn91dc2ya
-        2MxP0JcGb/cCkdTkCwgjpFeL4LSxFwvQRTC/R5B8TYjZEFxH5uwvsQ==
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSA1Y0svMlpKWEVSa090eUl4
+        NmVLZ0xpNkVoMytGdHJJU2pjRFhvWElnUVZ3ClJTVTFaTWsvVGFDUXpQMlBFUTBS
+        Y0x3QlUyakkzSU5YVUFxeGZMcFI5V0EKLS0tIC9ZRlFKRXZWYnUvaHN6WDBBNDky
+        Yk1tc1ZRV1ZDVnRBOWVLVUlZcWZyaW8KF6jJaD0ojyuoIlGcGDgVo0tHgdy7Yp5v
+        YKlde9Hqlc+7owvJ05aFC4L9VXvBaNgoZbw9MMN4fdxr83KOeU8a8A==
         -----END AGE ENCRYPTED FILE-----
-  lastmodified: "2025-01-24T17:14:27Z"
-  mac: ENC[AES256_GCM,data:503eza5Sd1xgMHg3qab0HXNnZzn9ilnBUDjAMWBOUrPzF0Hg77r2fXTSQI99lkirlMcaGeAI20lNl7tj6bQGCmtXG4iSVwUbV5VAG64JSLSFjqgTb/0NALexUAQEmA5Rn3Niw3kK28kywyvtwutwWvym1Nk9/bEvxNGDeDwOMm0=,iv:8Lx2EYQl069hyhWAZSd10D2M69KnAbGYO7Hr9PadGuE=,tag:LgIZW80TYzzh1OByKIP7eQ==,type:str]
-  pgp: []
-  encrypted_regex: ^(data|stringData)$
+  lastmodified: "2025-05-12T14:34:25Z"
+  mac: ENC[AES256_GCM,data:qjIrw+b0vZZ3i/TebwwMc+nHuFhzbLX05t9E6cxN49t4bw7DqUDyB3fOokbqBUGF0K63RWBQWrCi3AVi506FoPUsGfsnnApB13QiB7vzEpo+abAjJCgUc0DdeXwywu1SuemvmPqBA2R/75OxcICSPDDUzwagrOAFNQ5iMvwL30g=,iv:pdKu8qDbevXnOkLTBzE0Ljun6XBIxKQ8pzt1AkzxgNU=,tag:B4smw49RpNgNqQ1Ja4yY3A==,type:str]
+  encrypted_regex: (secret)
   mac_only_encrypted: true
-  version: 3.9.3
+  version: 3.10.2
