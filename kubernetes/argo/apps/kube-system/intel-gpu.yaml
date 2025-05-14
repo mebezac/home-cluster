@@ -15,7 +15,7 @@ spec:
       ref: repo
     - repoURL: https://intel.github.io/helm-charts
       chart: intel-device-plugins-operator
-      targetRevision: 0.32.0
+      targetRevision: 0.32.1
       helm:
         releaseName: intel-device-plugins-operator
     - repoURL: https://intel.github.io/helm-charts
