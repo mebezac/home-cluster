@@ -112,7 +112,7 @@ persistence:
       - path: /config/configuration.yaml
         subPath: configuration.yaml
         readOnly: true
-  private_key:
+  private-key:
     type: secret
     name: authelia-oidc-private-key
     globalMounts:
