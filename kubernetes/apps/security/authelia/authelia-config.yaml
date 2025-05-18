@@ -98,6 +98,16 @@ duo_api:
 # OIDC
 identity_providers:
   oidc:
+    jwks:
+      # https://www.authelia.com/reference/guides/generating-secure-values/#generating-an-rsa-keypair
+      # openssl genrsa -out authelia_oidc_private_key.pem 2048
+      # openssl rsa -in authelia_oidc_private_key.pem -outform PEM -pubout -out authelia_oidc_public_key.pem
+      - key:
+          {
+            {
+              secret "/config/secrets/oidc/jwks/authelia_oidc_private_key.pem" | mindent 10 "|" | msquote,
+            },
+          }
     cors:
       endpoints: ["authorization", "token", "revocation", "introspection"]
       allowed_origins_from_client_redirect_uris: true

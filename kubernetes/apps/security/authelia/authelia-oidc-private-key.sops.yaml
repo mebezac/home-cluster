@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Secret
+metadata:
+    name: authelia-oidc-private-key
+    namespace: security
+stringData:
+    authelia_oidc_private_key.pem: ENC[AES256_GCM,data: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,iv:pc+db/c0kmS6VIkKtPkxsE5vT49JacZSaagfs4p3xSw=,tag:xzHUneoCBZXlAV0B3dgo6w==,type:str]
+sops:
+    age:
+        - recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBxODlRa01tME1WTWVCZnZN
+            TlZXeVUwc0RTMjJHQjJDemdCVWw2SVpQempjCmlyQjg5Qng0T09rWDFXVFlPampR
+            bHpsL3Mwd3FwdVJmbGNFbXJGNXNHakEKLS0tIEV2c0RscFR5YUUraWpzenZJUWpi
+            OUl0WlZBdFlCYXB2cFQrSENNdTYyNncKpSXHx4bZaKo1fgPo0ZHCPXsJQEokJJde
+            mK2H9Wi/2Z8XaXNNxOLLMyte9l2w6rRxj/NurHpvjy7PXHpzbDp+Sw==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2025-05-18T18:43:49Z"
+    mac: ENC[AES256_GCM,data:b2QGAmkGDYEwV+SfdZCXMWrR84E8+FbHHsIdEPTUm2Gb2zclnQ8ElIw7guGMS5q6v2AVKz5np3HvamO90vTWAOOIhruFOOOQZwT8kOfLGghZCFxntLExa/jvi6EAsRSpu27FfR7XQZguFBKHsR1G/aDzzTPrIJ7XgVrUZg7d9BE=,iv:ZLHrWsBek9wqIpsL2xVRBjhJjn0ehwmL+I+CsqAF23c=,tag:/I5LmW7z3DjvzX+lptcqqw==,type:str]
+    encrypted_regex: ^(data|stringData)$
+    mac_only_encrypted: true
+    version: 3.10.2
