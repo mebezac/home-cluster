@@ -57,7 +57,7 @@ session:
   same_site: lax
   expiration: 1h
   inactivity: 30m
-  remember_me_duration: 2M
+  remember_me: 1M
   cookies:
     - domain: laboratory.casa
       authelia_url: https://login.laboratory.casa
