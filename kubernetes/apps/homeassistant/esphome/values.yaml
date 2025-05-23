@@ -11,13 +11,6 @@ controllers:
         env:
           - name: TZ
             value: "America/New_York"
-          - name: USERNAME
-            value: "esp"
-          - name: PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: esphome-secret
-                key: password
           - name: ESPHOME_DASHBOARD_USE_PING
             value: "true"
         resources:
