@@ -15,7 +15,7 @@ spec:
       ref: mariadb-repo
     - repoURL: registry-1.docker.io/bitnamicharts
       chart: mariadb
-      targetRevision: 20.5.5
+      targetRevision: 20.5.6
       helm:
         releaseName: lychee-db
         valueFiles:
