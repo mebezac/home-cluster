@@ -2,10 +2,22 @@ crds:
     install: true
 global:
     domain: argo.laboratory.casa
+    logging:
+        level: warn
 configs:
     params:
         server.insecure: true
     cm:
+        oidc.config: |
+            name: 'Authelia'
+            issuer: 'https://login.laboratory.casa'
+            clientID: 'By4sXGwiayM7NNeMvTuYMPFOJatVapIBtK8rdnFF1FTexB6oh0Xv_jUCkeEw9L8s~EP3bT7s'
+            clientSecret: $oidcClientSecret
+            requestedScopes:
+                - 'email'
+                - 'groups'
+                - 'openid'
+                - 'profile'
         statusbadge.enabled: true
         kustomize.buildOptions: --enable-alpha-plugins --enable-exec
         helm.valuesFileSchemes: secrets+gpg-import, secrets+gpg-import-kubernetes, secrets+age-import, secrets+age-import-kubernetes, secrets, secrets+literal, https
@@ -19,10 +31,21 @@ configs:
         resource.compareoptions: |
             ignoreAggregatedRoles: true
             ignoreResourceStatusField: crd
+    rbac:
+        create: true
+        policy.default: role:none
+        scopes: '[groups, email]'
+        policy.csv: |
+            p, role:none, *, *, */*, deny
+            g, apps_readonly, role:readonly
+            g, apps_admin, role:admin
+            g, zac, role:readonly
     secret:
         argocdServerAdminPassword: ENC[AES256_GCM,data:YfcMCjACYn5nY1LZ2L7knELWB1o9oUPH0vTUFH7lsYBuH9h4pv6iqsz+L5zWKfexR5yRlchXBWF/p/wPSA==,iv:dpfETfRgR6fpWekLEpbZv15yiovzHXnY3feW1mcTQi8=,tag:sGuNZZEoI+do6hitM91SAQ==,type:str]
         argocdServerAdminPasswordMtime: ENC[AES256_GCM,data:zca5ZskOjgdFMTGsB/mbhOVs8Q==,iv:zsjtE2JgwRmEZEEKbH0G6l5ySU8P8WFeXChf/Qvz0F8=,tag:ivo6y9dM3VeS5zRAKSGCxw==,type:str]
         githubSecret: ENC[AES256_GCM,data:3GJGOl5UdNOKF6G3bEMpTX26dM2q4x1X79rfEZpGe0w=,iv:+hUNfHF2KObB5cXKHz5TheD7gUVGyvWEJnZcURV4UyU=,tag:dujCIcz3JOXPuMBXWBIhJQ==,type:str]
+        extra:
+            oidcClientSecret: ENC[AES256_GCM,data:dx+Txt/MKUn+m8bhiidmbcQjEExSrg3DkPhUNwuBRpAYCVb9zXDe9+8gOjOIdFzeuf2SRfcOYNFqwRyIICPOe2ZBSGRGBo5n,iv:vUwFj9o4RbVfSh9pH16yIztzLQmkjZ8O30eEW4c7yBM=,tag:YHvAZZyAJ/8YwDOmW1mjcQ==,type:str]
 controller:
     replicas: 2
     metrics:
@@ -159,8 +182,8 @@ sops:
             Yk1tc1ZRV1ZDVnRBOWVLVUlZcWZyaW8KF6jJaD0ojyuoIlGcGDgVo0tHgdy7Yp5v
             YKlde9Hqlc+7owvJ05aFC4L9VXvBaNgoZbw9MMN4fdxr83KOeU8a8A==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2025-05-22T13:57:03Z"
-    mac: ENC[AES256_GCM,data:ZqdkoU+ygvcbCQELrjhPSloDg7EqRyiR31wgFhMm8H4kR3iXzpXFNW9il8vfj33bpfbTSKLeMSpUkTHLq8wEw1RuhT7llYjVdVvgWGwAnsxF/biFFDPgMaKo3rxKsKRIB4T/WGbo73YSynAtJYScDTOON9cGD3bFOqZEDfLWQvA=,iv:Jh2TtvbwYK6eV6wawM5LdkMv3P3ezOoJCeuTptASZrY=,tag:xd6J6ik247eIFmtVLHwwCw==,type:str]
+    lastmodified: "2025-05-23T02:40:48Z"
+    mac: ENC[AES256_GCM,data:hcwi1mIi2js35BdGRyyDM0Mmj5JIKQhU/jtT6Gk/qTONx85+Es0Klx3D3OIzbUO4xj50iuGrBAl3AqksJJYpaWM+GxVqsI4gVvcLTFw4LeUzUP2m3ryDgf9q7YrelWxE/XRks54fxoMXq9GMfP8Ip3/dLR1AfC8Rogyn76Nyqww=,iv:ghp//TyoXTNKq59P40EjkasKJsU3KGiOd3JnS+v3Pt8=,tag:cfRjXWwPMmByTDrUQ94APg==,type:str]
     encrypted_regex: (secret)
     mac_only_encrypted: true
     version: 3.10.2
