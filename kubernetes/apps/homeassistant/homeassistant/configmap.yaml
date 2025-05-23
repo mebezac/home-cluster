@@ -5,7 +5,7 @@ metadata:
   name: homeassistant-config
   namespace: homeassistant
 data:
-  configuration.yaml: |-
+  configuration.yaml: |
     # Loads default set of integrations. Do not remove.
     default_config:
 
@@ -34,3 +34,12 @@ data:
         advertise_addr: 10.25.30.56
         hosts:
           - 10.25.30.220
+
+    auth_oidc:
+      client_id: 'SWm7hj4WCxjlpcDcuGq24Fs3kt14YgES_tmXLzfN7IUq7Yo5geag.2NewaRVB-cMCfBV2MlQ'
+      client_secret: !secret oidc_client_secret
+      discovery_url: 'https://login.laboratory.casa/.well-known/openid-configuration'
+      display_name: 'Authelia'
+      roles:
+        admin: 'apps_admin'
+        user: 'apps_user'

@@ -66,3 +66,13 @@ persistence:
         app:
           - path: /config/configuration.yaml
             subPath: configuration.yaml
+
+  secrets:
+    type: secret
+    name: homeassistant-secret
+    advancedMounts:
+      main:
+        app:
+          - path: /config/secrets.yaml
+            subPath: secrets.yaml
+            readOnly: true

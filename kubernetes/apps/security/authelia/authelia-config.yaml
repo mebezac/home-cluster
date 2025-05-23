@@ -112,3 +112,19 @@ identity_providers:
           - "profile"
         userinfo_signed_response_alg: "none"
         token_endpoint_auth_method: "client_secret_basic"
+      # Home Assistant
+      - client_id: "SWm7hj4WCxjlpcDcuGq24Fs3kt14YgES_tmXLzfN7IUq7Yo5geag.2NewaRVB-cMCfBV2MlQ"
+        client_name: "Home Assistant"
+        client_secret: "$pbkdf2-sha512$310000$F07F3crL5QymStERExCd7w$6VZNPA44xZgJwrX6LKN/Mw5lzNuV3z81p2DA1nozvLKFyGnEoS62EkN9MfN59LEPUBwlokuz4UAi6G8RhMKY1w"
+        public: false
+        require_pkce: true
+        pkce_challenge_method: "S256"
+        authorization_policy: "one_factor"
+        redirect_uris:
+          - "https://ha.laboratory.casa/auth/oidc/callback"
+        scopes:
+          - "openid"
+          - "profile"
+          - "groups"
+        userinfo_signed_response_alg: "none"
+        token_endpoint_auth_method: "client_secret_post"
