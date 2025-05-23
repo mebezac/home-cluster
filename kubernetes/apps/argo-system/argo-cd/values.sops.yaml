@@ -13,6 +13,9 @@ configs:
             issuer: 'https://login.laboratory.casa'
             clientID: 'By4sXGwiayM7NNeMvTuYMPFOJatVapIBtK8rdnFF1FTexB6oh0Xv_jUCkeEw9L8s~EP3bT7s'
             clientSecret: $oidcClientSecret
+            enableUserInfoGroups: true
+            userInfoPath: /api/oidc/userinfo
+            userInfoCacheExpiration: "5m"
             requestedScopes:
                 - 'email'
                 - 'groups'
@@ -182,8 +185,8 @@ sops:
             Yk1tc1ZRV1ZDVnRBOWVLVUlZcWZyaW8KF6jJaD0ojyuoIlGcGDgVo0tHgdy7Yp5v
             YKlde9Hqlc+7owvJ05aFC4L9VXvBaNgoZbw9MMN4fdxr83KOeU8a8A==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2025-05-23T02:40:48Z"
-    mac: ENC[AES256_GCM,data:hcwi1mIi2js35BdGRyyDM0Mmj5JIKQhU/jtT6Gk/qTONx85+Es0Klx3D3OIzbUO4xj50iuGrBAl3AqksJJYpaWM+GxVqsI4gVvcLTFw4LeUzUP2m3ryDgf9q7YrelWxE/XRks54fxoMXq9GMfP8Ip3/dLR1AfC8Rogyn76Nyqww=,iv:ghp//TyoXTNKq59P40EjkasKJsU3KGiOd3JnS+v3Pt8=,tag:cfRjXWwPMmByTDrUQ94APg==,type:str]
+    lastmodified: "2025-05-23T14:44:36Z"
+    mac: ENC[AES256_GCM,data:hd/BvTatoi3Wkfg3sLM5Oeb2vKt/pc4SFIZi5Crg+izPIFdF+IBKppcyfrpRMBEeA64f80nN5oO9vjugO9Z/IWu7i8kAG+j4kyvxE5RJaGeZr4+4Ed6q32hl1UmglVKqJxBd2BcrdrARiBddeW1jq/2MFYx8q1tVAgZh2MvpE3Y=,iv:PKL+vx8+NBxmPc1z1dcXDz1Xy03s/oKrlzJCXMRz3T4=,tag:hIkK4mcNzlm+/FMFToJpyw==,type:str]
     encrypted_regex: (secret)
     mac_only_encrypted: true
     version: 3.10.2
