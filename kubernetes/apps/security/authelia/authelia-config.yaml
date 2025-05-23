@@ -1,6 +1,6 @@
 ---
 log:
-  level: debug
+  level: warn
 # Take from https://github.com/lldap/lldap/blob/main/example_configs/authelia_config.yml
 authentication_backend:
   # Password reset through authelia works normally.
@@ -9,7 +9,7 @@ authentication_backend:
   # How often authelia should check if there is a user update in LDAP
   refresh_interval: 1m
   ldap:
-    implementation: custom
+    implementation: lldap
     # Pattern is ldap://HOSTNAME-OR-IP:PORT
     # Normal ldap port is 389, standard in LLDAP is 3890
     address: ldap://lldap.security.svc.cluster.local:389
@@ -21,23 +21,6 @@ authentication_backend:
     user: uid=authelia,ou=people,dc=laboratory,dc=casa
     # Password can also be set using a secret: https://www.authelia.com/configuration/methods/secrets/
     # password: PUT-IN-SECRET
-
-    # Adapted from https://docs.ibracorp.io/authelia/ldap/ldap-lldap-light-ldap
-    additional_users_dn: OU=people
-    # To restrict sign-in to username ONLY, use this filter:
-    # (&({username_attribute}={input})(objectClass=person))
-    # To allow sign-in with either username OR email, use this filter:
-    # (&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))
-    users_filter: (&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))
-    additional_groups_dn: OU=groups
-    groups_filter: (uniquemember={dn})
-
-    attributes:
-      username: uid
-      mail: mail
-      display_name: cn
-      group_name: cn
-      member_of: memberOf
 
 # Adapted from https://docs.ibracorp.io/authelia/configuration-files/configuration.yml
 access_control:
