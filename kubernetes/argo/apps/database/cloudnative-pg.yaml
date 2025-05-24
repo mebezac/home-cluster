@@ -15,7 +15,7 @@ spec:
       ref: cloudnative-pg-repo
     - repoURL: https://cloudnative-pg.github.io/charts
       chart: cloudnative-pg
-      targetRevision: 0.23.2
+      targetRevision: 0.24.0
       helm:
         releaseName: cloudnative-pg
         valueFiles:
