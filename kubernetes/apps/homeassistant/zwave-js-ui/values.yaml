@@ -71,6 +71,7 @@ persistence:
     type: persistentVolumeClaim
     storageClass: longhorn
     accessMode: ReadWriteOnce
+    suffix: config
     size: 1Gi
     globalMounts:
       - path: /usr/src/app/store
