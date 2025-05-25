@@ -90,8 +90,9 @@ serviceMonitor:
       - port: metrics
 ingress:
   app:
-    className: internal
+    className: external
     annotations:
+      external-dns.alpha.kubernetes.io/target: external.laboratory.casa
       nginx.ingress.kubernetes.io/configuration-snippet: |
         add_header Cache-Control "no-store";
         add_header Pragma "no-cache";
