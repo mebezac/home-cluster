@@ -24,7 +24,7 @@ spec:
       path: kubernetes/apps/security/authelia
       targetRevision: main
       ref: authelia-repo
-    - repoURL: ghcr.io/bjw-s/helm
+    - repoURL: ghcr.io/bjw-s-labs/helm
       chart: app-template
       targetRevision: 3.7.3
       helm:

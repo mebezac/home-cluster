@@ -35,7 +35,7 @@ spec:
       path: kubernetes/apps/lychee/lychee
       targetRevision: main
       ref: lychee-repo
-    - repoURL: ghcr.io/bjw-s/helm
+    - repoURL: ghcr.io/bjw-s-labs/helm
       chart: app-template
       targetRevision: 3.7.3
       helm:

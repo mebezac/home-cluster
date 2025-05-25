@@ -5,7 +5,7 @@ metadata:
   name: echo-server
   namespace: argo-system
   annotations:
-    argocd.argoproj.io/sync-wave: '0'
+    argocd.argoproj.io/sync-wave: "0"
 spec:
   project: kubernetes
   sources:
@@ -13,7 +13,7 @@ spec:
       path: kubernetes/apps/network/echo-server
       targetRevision: main
       ref: repo
-    - repoURL: ghcr.io/bjw-s/helm
+    - repoURL: ghcr.io/bjw-s-labs/helm
       chart: app-template
       targetRevision: 3.7.3
       helm:
@@ -29,4 +29,4 @@ spec:
       prune: true
       selfHeal: true
     syncOptions:
-    - CreateNamespace=true
+      - CreateNamespace=true
