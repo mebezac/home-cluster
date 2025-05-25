@@ -54,6 +54,7 @@ persistence:
     type: persistentVolumeClaim
     storageClass: longhorn
     accessMode: ReadWriteOnce
+    suffix: config
     size: 5Gi
     globalMounts:
       - path: /config

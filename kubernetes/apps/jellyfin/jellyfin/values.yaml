@@ -59,6 +59,7 @@ persistence:
     type: persistentVolumeClaim
     storageClass: longhorn
     accessMode: ReadWriteOnce
+    suffix: data
     size: 5Gi
     globalMounts:
       - path: /config
@@ -71,6 +72,7 @@ persistence:
     type: persistentVolumeClaim
     storageClass: openebs-hostpath
     accessMode: ReadWriteOnce
+    suffix: transcodes
     size: 60Gi
     globalMounts:
       - path: /transcodes

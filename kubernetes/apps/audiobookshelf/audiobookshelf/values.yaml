@@ -55,6 +55,7 @@ persistence:
     storageClass: longhorn
     accessMode: ReadWriteOnce
     size: 500Mi
+    suffix: config
     globalMounts:
       - path: /config
         subPath: config

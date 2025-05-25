@@ -100,6 +100,7 @@ persistence:
     type: persistentVolumeClaim
     storageClass: longhorn
     accessMode: ReadWriteOnce
+    suffix: data
     size: 15Gi
     globalMounts:
       - path: /var/lib/ocis

@@ -66,6 +66,7 @@ persistence:
     type: persistentVolumeClaim
     storageClass: longhorn
     accessMode: ReadWriteOnce
+    suffix: data
     size: 100Mi
     globalMounts:
       - path: /mosquitto/data
