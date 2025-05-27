@@ -23,6 +23,8 @@ controllers:
           tag: v1.133.1
         env:
           TZ: America/New_York
+          IMMICH_SERVER_URL: http://immich-server.immich.svc.cluster.local:2283
+          IMMICH_MACHINE_LEARNING_URL: http://immich-machine-learning.immich.svc.cluster.local:3003
           IMMICH_WORKERS_INCLUDE: api
         envFrom:
           - secretRef:
@@ -75,6 +77,8 @@ controllers:
               name: *secret
         env:
           TZ: America/New_York
+          IMMICH_SERVER_URL: http://immich-server.immich.svc.cluster.local:2283
+          IMMICH_MACHINE_LEARNING_URL: http://immich-machine-learning.immich.svc.cluster.local:3003
           IMMICH_WORKERS_EXCLUDE: api
         resources:
           requests:
@@ -108,6 +112,8 @@ controllers:
           tag: v1.133.1
         env:
           TZ: America/New_York
+          IMMICH_SERVER_URL: http://immich-server.immich.svc.cluster.local:2283
+          IMMICH_MACHINE_LEARNING_URL: http://immich-machine-learning.immich.svc.cluster.local:3003
           MACHINE_LEARNING_PRELOAD__CLIP__TEXTUAL: ViT-B-16-SigLIP__webli
           MACHINE_LEARNING_PRELOAD__CLIP__VISUAL: ViT-B-16-SigLIP__webli
           MACHINE_LEARNING_PRELOAD__FACIAL_RECOGNITION__RECOGNITION: buffalo_l
