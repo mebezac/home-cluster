@@ -1,14 +1,21 @@
-defaultPodOptions:
-  securityContext:
-    runAsUser: 3000
-    runAsGroup: 3000
-    fsGroup: 3000
-    fsGroupChangePolicy: "OnRootMismatch"
-
+---
 controllers:
   server:
     annotations:
       secret.reloader.stakater.com/reload: &secret immich-secret
+    pod:
+      securityContext:
+        runAsUser: 3000
+        runAsGroup: 3000
+        fsGroup: 3000
+        fsGroupChangePolicy: "OnRootMismatch"
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/instance: immich
     containers:
       main:
         image:
@@ -47,6 +54,19 @@ controllers:
   microservices:
     annotations:
       secret.reloader.stakater.com/reload: *secret
+    pod:
+      securityContext:
+        runAsUser: 3000
+        runAsGroup: 3000
+        fsGroup: 3000
+        fsGroupChangePolicy: "OnRootMismatch"
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/instance: immich
     containers:
       main:
         image:
@@ -60,13 +80,28 @@ controllers:
         resources:
           requests:
             cpu: 100m
+            gpu.intel.com/i915: 1
             memory: 250Mi
           limits:
+            gpu.intel.com/i915: 1
             memory: 2Gi
 
   machine-learning:
     annotations:
       secret.reloader.stakater.com/reload: *secret
+    pod:
+      securityContext:
+        runAsUser: 3000
+        runAsGroup: 3000
+        fsGroup: 3000
+        fsGroupChangePolicy: "OnRootMismatch"
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/instance: immich
     containers:
       main:
         image:
