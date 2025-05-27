@@ -8,7 +8,7 @@ primary:
     enabled: true
     storageClass: longhorn
     accessMode: ReadWriteOnce
-    size: 256Mi
+    size: 2Gi
 metrics:
   enabled: false
   serviceMonitor:
