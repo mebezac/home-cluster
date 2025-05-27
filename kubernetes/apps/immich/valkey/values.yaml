@@ -1,0 +1,15 @@
+fullnameOverride: immich-valkey
+architecture: standalone
+auth:
+  enabled: true
+  existingSecret: immich-valkey-secret
+primary:
+  persistence:
+    enabled: true
+    storageClass: longhorn
+    accessMode: ReadWriteOnce
+    size: 256Mi
+metrics:
+  enabled: false
+  serviceMonitor:
+    enabled: false

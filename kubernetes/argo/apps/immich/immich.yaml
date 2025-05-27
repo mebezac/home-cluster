@@ -1,0 +1,54 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: immich
+  namespace: argo-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: kubernetes
+  sources:
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/apps/immich/postgres
+      targetRevision: main
+      ref: postgres-repo
+    - repoURL: ghcr.io/bjw-s-labs/helm
+      chart: app-template
+      targetRevision: 4.0.1
+      helm:
+        releaseName: immich-db
+        valueFiles:
+          - $postgres-repo/kubernetes/apps/immich/postgres/values.yaml
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/apps/immich/valkey
+      targetRevision: main
+      ref: valkey-repo
+    - repoURL: registry-1.docker.io/bitnamicharts
+      chart: valkey
+      targetRevision: 3.0.9
+      helm:
+        releaseName: immich-valkey
+        valueFiles:
+          - $valkey-repo/kubernetes/apps/immich/valkey/values.yaml
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/apps/immich/immich
+      targetRevision: main
+      ref: immich-repo
+    - repoURL: ghcr.io/bjw-s-labs/helm
+      chart: app-template
+      targetRevision: 4.0.1
+      helm:
+        releaseName: immich
+        valueFiles:
+          - $immich-repo/kubernetes/apps/immich/immich/values.yaml
+  destination:
+    name: in-cluster
+    namespace: immich
+  syncPolicy:
+    automated:
+      allowEmpty: true
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

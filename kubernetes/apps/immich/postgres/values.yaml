@@ -1,0 +1,37 @@
+---
+controllers:
+  main:
+    replicas: 1
+    containers:
+      main:
+        image:
+          repository: ghcr.io/immich-app/postgres
+          tag: 14-vectorchord0.3.0-pgvectors0.2.0
+        env:
+          POSTGRES_INITDB_ARGS: --data-checksums
+        envFrom:
+          - secretRef:
+              name: immich-db-secret
+        resources:
+          requests:
+            cpu: 100m
+            memory: 250Mi
+          limits:
+            memory: 2Gi
+service:
+  main:
+    ports:
+      postgres:
+        port: 5432
+
+persistence:
+  data:
+    enabled: true
+    type: persistentVolumeClaim
+    storageClass: longhorn
+    accessMode: ReadWriteOnce
+    suffix: data
+    size: 2Gi
+    globalMounts:
+      - path: /var/lib/postgresql/data
+        subPath: postgresql-data

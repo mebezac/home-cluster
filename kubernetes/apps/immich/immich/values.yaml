@@ -1,0 +1,190 @@
+defaultPodOptions:
+  securityContext:
+    runAsUser: 3000
+    runAsGroup: 3000
+    fsGroup: 3000
+    fsGroupChangePolicy: "OnRootMismatch"
+
+controllers:
+  server:
+    annotations:
+      secret.reloader.stakater.com/reload: &secret immich-secret
+    containers:
+      main:
+        image:
+          repository: ghcr.io/immich-app/immich-server
+          tag: v1.133.1
+        env:
+          DB_PORT: 5432
+          REDIS_PORT: 6379
+          TZ: America/New_York
+          IMMICH_WORKERS_INCLUDE: api
+        envFrom:
+          - secretRef:
+              name: *secret
+        resources:
+          requests:
+            cpu: 100m
+            memory: 250Mi
+          limits:
+            memory: 2Gi
+        probes:
+          liveness: &probes
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /api/server/ping
+                port: &serverport 2283
+              initialDelaySeconds: 0
+              periodSeconds: 10
+              timeoutSeconds: 1
+              failureThreshold: 5
+          readiness: *probes
+          startup:
+            enabled: false
+
+  microservices:
+    annotations:
+      secret.reloader.stakater.com/reload: *secret
+    containers:
+      main:
+        image:
+          repository: ghcr.io/immich-app/immich-server
+          tag: v1.133.1
+        envFrom:
+          - secretRef:
+              name: *secret
+        env:
+          IMMICH_WORKERS_EXCLUDE: api
+        resources:
+          requests:
+            cpu: 100m
+            memory: 250Mi
+          limits:
+            memory: 2Gi
+
+  machine-learning:
+    annotations:
+      secret.reloader.stakater.com/reload: *secret
+    containers:
+      main:
+        image:
+          repository: ghcr.io/immich-app/immich-machine-learning
+          tag: v1.133.1
+        env:
+          TZ: America/New_York
+          MACHINE_LEARNING_PRELOAD__CLIP__TEXTUAL: ViT-B-16-SigLIP__webli
+          MACHINE_LEARNING_PRELOAD__CLIP__VISUAL: ViT-B-16-SigLIP__webli
+          MACHINE_LEARNING_PRELOAD__FACIAL_RECOGNITION__RECOGNITION: buffalo_l
+          MACHINE_LEARNING_PRELOAD__FACIAL_RECOGNITION__DETECTION: buffalo_l
+          MPLCONFIGDIR: "/cache/matplotlib"
+        envFrom:
+          - secretRef:
+              name: *secret
+        resources:
+          requests:
+            cpu: 100m
+            memory: 250Mi
+          limits:
+            memory: 8Gi
+        probes:
+          liveness: &probes
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /ping
+                port: &mlport 3003
+              initialDelaySeconds: 0
+              periodSeconds: 10
+              timeoutSeconds: 1
+              failureThreshold: 5
+          readiness: *probes
+          startup:
+            enabled: false
+
+service:
+  server:
+    controller: server
+    ports:
+      http:
+        port: *serverport
+      metrics:
+        port: 8081
+  microservices:
+    controller: microservices
+    ports:
+      metrics:
+        port: 8081
+  machine-learning:
+    controller: machine-learning
+    ports:
+      http:
+        port: *mlport
+
+ingress:
+  main:
+    enabled: true
+    className: internal
+    hosts:
+      - host: photos.laboratory.casa
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            service:
+              identifier: server
+              port: http
+
+persistence:
+  library:
+    enabled: true
+    type: persistentVolumeClaim
+    storageClass: freenas-api-nfs
+    accessMode: ReadWriteOnce
+    size: 5Gi
+    advancedMounts:
+      server:
+        main:
+          - path: /usr/src/app/upload
+      microservices:
+        main:
+          - path: /usr/src/app/upload
+  geocoding-dump:
+    type: emptyDir
+    advancedMounts:
+      server:
+        main:
+          - path: /usr/src/app/.reverse-geocoding-dump
+      microservices:
+        main:
+          - path: /usr/src/app/.reverse-geocoding-dump
+  geoname-dump:
+    type: emptyDir
+    advancedMounts:
+      microservices:
+        main:
+          - path: /usr/src/app/node_modules/local-reverse-geocoder/geonames_dump
+  transformers-cache:
+    type: emptyDir
+    advancedMounts:
+      server:
+        main:
+          - path: /usr/src/app/.transformers_cache
+      microservices:
+        main:
+          - path: /usr/src/app/.transformers_cache
+  model-cache:
+    enabled: true
+    type: persistentVolumeClaim
+    storageClass: longhorn
+    accessMode: ReadWriteOnce
+    size: 4Gi
+    suffix: model-cache
+    advancedMounts:
+      machine-learning:
+        main:
+          - path: /cache
+            subPath: cache
+          - path: /.cache
+            subPath: dotCache
