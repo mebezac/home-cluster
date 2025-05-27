@@ -142,7 +142,7 @@ persistence:
     type: persistentVolumeClaim
     storageClass: freenas-api-nfs
     accessMode: ReadWriteOnce
-    size: 5Gi
+    size: 1Ti
     advancedMounts:
       server:
         main:
