@@ -22,8 +22,6 @@ controllers:
           repository: ghcr.io/immich-app/immich-server
           tag: v1.133.1
         env:
-          DB_PORT: 5432
-          REDIS_PORT: 6379
           TZ: America/New_York
           IMMICH_WORKERS_INCLUDE: api
         envFrom:
@@ -76,6 +74,7 @@ controllers:
           - secretRef:
               name: *secret
         env:
+          TZ: America/New_York
           IMMICH_WORKERS_EXCLUDE: api
         resources:
           requests:
