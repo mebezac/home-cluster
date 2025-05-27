@@ -175,7 +175,7 @@ persistence:
     enabled: true
     type: persistentVolumeClaim
     storageClass: freenas-api-nfs
-    accessMode: ReadWriteOnce
+    accessMode: ReadWriteMany
     size: 1Ti
     advancedMounts:
       server:
