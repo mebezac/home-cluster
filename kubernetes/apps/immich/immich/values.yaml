@@ -111,7 +111,7 @@ controllers:
       main:
         image:
           repository: ghcr.io/immich-app/immich-machine-learning
-          tag: v1.133.1
+          tag: v1.134.0
         env:
           TZ: America/New_York
           IMMICH_SERVER_URL: http://immich-server.immich.svc.cluster.local:2283
