@@ -52,6 +52,7 @@ controllers:
             enabled: false
 
   microservices:
+    replicas: 3
     annotations:
       secret.reloader.stakater.com/reload: *secret
     pod:
@@ -67,6 +68,7 @@ controllers:
           labelSelector:
             matchLabels:
               app.kubernetes.io/instance: immich
+              app.kubernetes.io/controller: microservices
     containers:
       main:
         image:
