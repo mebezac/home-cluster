@@ -6,7 +6,7 @@ controllers:
       main:
         image:
           repository: ghcr.io/immich-app/postgres
-          tag: 16-vectorchord0.3.0-pgvectors0.3.0
+          tag: 17-vectorchord0.3.0-pgvectors0.3.0
         env:
           POSTGRES_INITDB_ARGS: --data-checksums
         envFrom:
