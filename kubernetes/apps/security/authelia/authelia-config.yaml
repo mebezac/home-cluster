@@ -26,15 +26,13 @@ authentication_backend:
 access_control:
   default_policy: deny
   rules:
-    ## bypass rule
+    ## bypasses
     - domain:
         - "auth.laboratory.casa"
       policy: bypass
     ## catch-all
     - domain:
         - "*.laboratory.casa"
-      subject:
-        - "group:admins"
       policy: one_factor
 
 session:

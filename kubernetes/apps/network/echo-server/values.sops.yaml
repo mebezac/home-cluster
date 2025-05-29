@@ -72,18 +72,18 @@ ingress:
     className: external
     annotations:
       external-dns.alpha.kubernetes.io/target: external.laboratory.casa
+      nginx.ingress.kubernetes.io/auth-method: GET
+      nginx.ingress.kubernetes.io/auth-url: http://authelia.security.svc.cluster.local/api/authz/auth-request
+      nginx.ingress.kubernetes.io/auth-signin: https://login.laboratory.casa?rm=$request_method
+      nginx.ingress.kubernetes.io/auth-response-headers: Remote-User,Remote-Name,Remote-Groups,Remote-Email
     hosts:
-      - host: '{{ .Release.Name }}.laboratory.casa'
+      - host: "{{ .Release.Name }}.laboratory.casa"
         paths:
           - path: /
             service:
               identifier: app
               port: http
 sops:
-  kms: []
-  gcp_kms: []
-  azure_kv: []
-  hc_vault: []
   age:
     - recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
       enc: |
@@ -94,9 +94,8 @@ sops:
         azIzZVdUQUJNTkE1djBWWGhUT1FURFUKGsGKnYFL0sG+OtDvP4jX4w6ZjOSkhKhE
         /IDrFqAXamdCNGu1fNslAeUn3yEYzRVfYGdmW06nY6bneqhfFB9sQg==
         -----END AGE ENCRYPTED FILE-----
-  lastmodified: "2025-01-24T17:14:26Z"
-  mac: ENC[AES256_GCM,data:t5GWjfcZ4YCRUPhu0u2qyGQTS2hTSNYs52e2vHBzRkR/FSMO4PFUY6l9N1EHpXdcxO0NMvz/+zSeY4Wjo1smaBIQUJOhcqZC0YgtrcszBECsDe575MFLuNZJyUCjvAfaqgJl6IMZwXMkwWbL6zY/Io8OzW/y0WLa5TmXJ+4lfeU=,iv:YhSUJQUPoyfGDHCB9ifv+5k6WKFt7Zk9KKI9D88OcS0=,tag:1drvPXPejlCBZPAQWxa6rw==,type:str]
-  pgp: []
+  lastmodified: "2025-05-29T18:18:35Z"
+  mac: ENC[AES256_GCM,data:vhl4BD3VU55iJMHvmKQ9BK4SRAve7Cvo1ors7XZKO6FgalO1Z2UarAmoNXWgQO9XDZuwfTx6Jw+JNpG8DcC7c2E+926B7uWZMDcly0GW/sU8ieHFaxyej0Hf+jBtG68unF7QynvgXLYByFHfwrfywSh4ngvNNCm7Q5TehJzqE6I=,iv:10di+af+1ZfxCjypDtawNRl9crjrzYqT3QRE0JTW6c4=,tag:bCSAbDJ4owOqw2FgmYfYRg==,type:str]
   encrypted_regex: ^(data|stringData)$
   mac_only_encrypted: true
-  version: 3.9.3
+  version: 3.10.2
