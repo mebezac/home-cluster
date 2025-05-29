@@ -102,6 +102,7 @@ identity_providers:
         client_secret: "$pbkdf2-sha512$310000$i4Ya6f5hnMVkT1K9goEDMw$SmXN5XUB3yVY5n7UTXA15lcI0yWDuhZSn6y6jUC3UAZZY6MnTRje/Gr352voZL7P5202.Yj5ieLiLC1RfXuZIw"
         public: false
         authorization_policy: "one_factor"
+        pre_configured_consent_duration: "1 week"
         require_pkce: false
         redirect_uris:
           - "https://argo.laboratory.casa/auth/callback"
