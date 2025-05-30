@@ -127,3 +127,19 @@ identity_providers:
           - "groups"
         userinfo_signed_response_alg: "none"
         token_endpoint_auth_method: "client_secret_post"
+      # Immich
+      - client_id: "41nHQ5imgM1h3nOJL8FfXvggecdeXrGkhnLHyyTp3S1ucf0H-PzO3NNcVDY6yyXEtNOfHWZs"
+        client_name: "Immich"
+        client_secret: "$pbkdf2-sha512$310000$L8d/Waz0mSe94FCHULvOkg$c2TUcXjKETw/tjugKN7XfzysfCE5548s/wiLo1ayoQRojR3PWVdguwhlsW4eozujdzViFM5Hg9UFJWz7uYzh3A"
+        public: false
+        authorization_policy: "one_factor"
+        redirect_uris:
+          - "https://photos.laboratory.casa/auth/login"
+          - "https://photos.laboratory.casa/user-settings"
+          - "app.immich:///oauth-callback"
+        scopes:
+          - "openid"
+          - "profile"
+          - "email"
+        userinfo_signed_response_alg: "none"
+        token_endpoint_auth_method: "client_secret_post"
