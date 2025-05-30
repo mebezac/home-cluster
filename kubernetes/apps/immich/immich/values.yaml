@@ -23,6 +23,7 @@ controllers:
           tag: v1.134.0
         env:
           TZ: America/New_York
+          IMMICH_CONFIG_FILE: /config/immich-config.json
           IMMICH_SERVER_URL: http://immich-server.immich.svc.cluster.local:2283
           IMMICH_MACHINE_LEARNING_URL: http://immich-machine-learning.immich.svc.cluster.local:3003
           IMMICH_WORKERS_INCLUDE: api
@@ -79,6 +80,7 @@ controllers:
               name: *secret
         env:
           TZ: America/New_York
+          IMMICH_CONFIG_FILE: /config/immich-config.json
           IMMICH_SERVER_URL: http://immich-server.immich.svc.cluster.local:2283
           IMMICH_MACHINE_LEARNING_URL: http://immich-machine-learning.immich.svc.cluster.local:3003
           IMMICH_WORKERS_EXCLUDE: api
@@ -114,6 +116,7 @@ controllers:
           tag: v1.134.0
         env:
           TZ: America/New_York
+          IMMICH_CONFIG_FILE: /config/immich-config.json
           IMMICH_SERVER_URL: http://immich-server.immich.svc.cluster.local:2283
           IMMICH_MACHINE_LEARNING_URL: http://immich-machine-learning.immich.svc.cluster.local:3003
           MACHINE_LEARNING_PRELOAD__CLIP__TEXTUAL: ViT-B-16-SigLIP__webli
@@ -179,6 +182,12 @@ ingress:
               port: http
 
 persistence:
+  config:
+    type: secret
+    name: immich-secret
+    globalMounts:
+      - path: /config/immich-config.json
+        subPath: immich-config.json
   library:
     enabled: true
     type: persistentVolumeClaim
