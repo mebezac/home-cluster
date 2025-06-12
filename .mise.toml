@@ -30,5 +30,4 @@ uv = "0.7.12"
 "aqua:mikefarah/yq" = "4.45.4"
 "aqua:siderolabs/talos" = "1.10.4"
 "aqua:yannh/kubeconform" = "0.7.0"
-# renovate: datasource=github-releases depName=viaduct-ai/kustomize-sops
 "asdf:janpieper/asdf-ksops" = "4.3.3"
