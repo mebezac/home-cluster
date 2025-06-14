@@ -1,4 +1,6 @@
 ---
+alloy:
+  enabled: false
 engines:
   local:
     lvm:
