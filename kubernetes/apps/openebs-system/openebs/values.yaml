@@ -1,6 +1,10 @@
 ---
 alloy:
   enabled: false
+loki:
+  enabled: false
+minio:
+  enabled: false
 engines:
   local:
     lvm:
