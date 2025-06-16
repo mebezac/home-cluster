@@ -7,8 +7,10 @@ To translate a Flux HelmRelease to an Argo CD Application in the home-cluster:
 1. Create app directory structure:
 
    ```
-   kubernetes/apps/<category>/<app-name>/
+   kubernetes/apps/<app-name>/<app-name>/
    ```
+
+   Note: Unless specified otherwise, each app should have its own namespace with the same name as the app itself.
 
 2. Create values.yaml with the Helm chart values from the Flux HelmRelease
 
@@ -61,7 +63,7 @@ Don't run or attempt to run, or suggest to run the sops encryption, leave that u
      project: kubernetes
      sources:
        - repoURL: https://github.com/mebezac/home-cluster.git
-         path: kubernetes/apps/<category>/<app-name>
+         path: kubernetes/apps/<app-name>/<app-name>
          targetRevision: main
          ref: <app-name>-repo
        - repoURL: <helm-repo-url>
@@ -70,10 +72,10 @@ Don't run or attempt to run, or suggest to run the sops encryption, leave that u
          helm:
            releaseName: <release-name>
            valueFiles:
-             - $<app-name>-repo/kubernetes/apps/<category>/<app-name>/values.yaml
+             - $<app-name>-repo/kubernetes/apps/<app-name>/<app-name>/values.yaml
      destination:
        name: in-cluster
-       namespace: <namespace>
+       namespace: <app-name>
      syncPolicy:
        automated:
          allowEmpty: true
@@ -85,7 +87,33 @@ Don't run or attempt to run, or suggest to run the sops encryption, leave that u
 
 5. Place the Application definition at:
    ```
-   kubernetes/argo/apps/<category>/<app-name>.yaml
+   kubernetes/argo/apps/<app-name>/<app-name>.yaml
+   ```
+
+6. For ingress configuration:
+
+   - When a Flux app includes "routes", convert them to ingresses following these rules:
+   - Always change the domain to `laboratory.casa`
+   - Choose an appropriate subdomain based on the service function (e.g., `speedtest` for OpenSpeedTest, `photos` for photo services)
+   - Only include annotations if they are nginx-specific configuration
+   - Use the `internal` className for ingresses
+   - Do not include TLS configuration
+   - Make sure the service identifier matches the service name (usually `app`)
+   - Ensure the port matches the name of the port in the service (usually `http`)
+   - Example ingress configuration in values.yaml:
+
+   ```yaml
+   ingress:
+     app:
+       enabled: true
+       className: internal
+       hosts:
+         - host: <appropriate-subdomain>.laboratory.casa
+           paths:
+             - path: /
+               service:
+                 identifier: app
+                 port: http
    ```
 
 Key differences from Flux:
@@ -94,3 +122,5 @@ Key differences from Flux:
 - References values from Git repo using the `$<app-name>-repo` syntax
 - Uses ksops for secret management instead of Flux's valuesFrom
 - No need to add Helm repositories in the repositories directory as they're referenced directly in the Application
+- Standardizes on `laboratory.casa` domain with appropriate subdomains
+- Only preserves nginx-specific annotations in ingress configurations
