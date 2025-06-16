@@ -1,0 +1,38 @@
+---
+controllers:
+  app:
+    containers:
+      app:
+        image:
+          repository: docker.io/openspeedtest/latest
+          tag: v2.0.6
+        probes:
+          liveness: &probes
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /
+                port: 3000
+          readiness: *probes
+          startup:
+            enabled: false
+
+service:
+  app:
+    controller: app
+    ports:
+      http:
+        port: 3000
+
+ingress:
+  app:
+    enabled: true
+    className: internal
+    hosts:
+      - host: speed.laboratory.casa
+        paths:
+          - path: /
+            service:
+              identifier: app
+              port: http
