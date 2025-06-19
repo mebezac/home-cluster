@@ -6,7 +6,7 @@ controllers:
       app:
         image:
           repository: lycheeorg/lychee
-          tag: v6.6.8
+          tag: v6.6.10
         resources:
           requests:
             cpu: 100m
