@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: Secret
+type: Opaque
+metadata:
+    name: github-private-repo
+    namespace: argo-system
+    annotations:
+        argocd.argoproj.io/sync-wave: "1"
+    labels:
+        argocd.argoproj.io/secret-type: repository
+stringData:
+    type: ENC[AES256_GCM,data:Gw15,iv:DYjM4DvO5151pDzsI6TiPJj7z5ZI3HbvTj04hf3/YuU=,tag:99hp7SKo7Pc46HLkpftvIA==,type:str]
+    name: ENC[AES256_GCM,data:zidX0BKw39NbHUkiBQbE/gWrHG8=,iv:sp1jWBIU0WxAPX5bU5am4lCHy9OjDZEIzhhQkbxr4bk=,tag:3q1crwRg05mTgYLFeNUSSw==,type:str]
+    url: ENC[AES256_GCM,data:ZMURcpYcs00UA2LBmthyjxmM7JOMVp/gXBfzNq339bKzxL9bYPentc/d4ROPVdXtSYFg,iv:7YQCAwH+qxvSZgtzXS/NEoKPFkpFEe7IX+1R/+jlH/I=,tag:3hGuAiHbx87YcQyLZDFfnw==,type:str]
+    username: ENC[AES256_GCM,data:rr0OOVpUiw==,iv:X/JiZIWHiXVHxJS2oVnb3VawLWNsk+wpCJXbOAkJ9IE=,tag:GlM67if7BqYvr7UJRh/pVA==,type:str]
+    password: ENC[AES256_GCM,data:UP60gTIu4+SRdBaeBUNz7b4t+D33z/V10If9q0q06P2ZCsWVPba0Uh36P9IXSosCOm9tirm8ao1u6S5AIIWr928Rr+Gs875EFvBLMvwB1RcscQcTnOglTY5S4UoN,iv:DMfeM60VkJnHme6HvCaWxDKvx+OMAZoOl6jvBQSF6Hg=,tag:iplcOVIYc0Qy8CDMFI7G+w==,type:str]
+sops:
+    age:
+        - recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBIODB0WXlrTnVKRm1RVUYv
+            ekN0eXpET1lmQnRIK2I4QlQ1NUdhc3kwSHkwCjFSanNKYVVuVFRzUGJiZDJBUEUz
+            SkY5SDdJd2JlYkkyeEgzYU1TRWM0L2sKLS0tIGxWR2JjL3VFNU9oQXBPRUQzMDZP
+            RUlaRFRJM0c5N3BYa1VoVWFBYldFdXcKUHpdlp6KdqMJjdj97ywQUYCggIdLDvg3
+            jrmTOkLIZLaIJcBSXRGogpE6bZZGpsfwyz4HGxsixW45azuIMELbsw==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2025-06-20T20:15:21Z"
+    mac: ENC[AES256_GCM,data:772jHr5qKkLrrYFCWLruxPlseoKt9g4VgPOf579IJmaTXme2xljintWW6gmmCGdHQmkT30iAe/+vEy8dYVIIJvGOqhMy5ifMoH2/h5QETUp9WyKpKoqR0iaFofmNlWJ1ROyZg2bt18p8I67R2T3tN08qWdd1x+8txwk2q0ISY/8=,iv:KaqskmfYOQtVywLohjNICbvoRhmaTiC9VAB8wdd471Y=,tag:6kfQ23r9N1fzKC6vVcDtCw==,type:str]
+    encrypted_regex: ^(data|stringData)$
+    mac_only_encrypted: true
+    version: 3.10.2

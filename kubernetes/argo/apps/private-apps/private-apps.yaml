@@ -2,12 +2,12 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: apps
+  name: private-apps
   namespace: argo-system
 spec:
   project: default
   source:
-    repoURL: https://github.com/mebezac/home-cluster.git
+    repoURL: https://github.com/mebezac/home-cluster-private.git
     path: kubernetes/argo/apps
     targetRevision: main
     directory:
