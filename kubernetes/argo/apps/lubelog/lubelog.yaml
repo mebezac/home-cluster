@@ -21,7 +21,7 @@ spec:
           - $lubelog-repo/kubernetes/apps/lubelog/lubelog/values.yaml
   destination:
     name: in-cluster
-    namespace: selfhosted
+    namespace: lubelog
   syncPolicy:
     automated:
       allowEmpty: true
