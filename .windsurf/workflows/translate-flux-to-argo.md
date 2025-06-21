@@ -48,6 +48,7 @@ C. Include the secret generator in a `kustomization.yaml` file:
 
 This pattern is used throughout the cluster for managing sensitive configuration data securely.
 Don't run or attempt to run, or suggest to run the sops encryption, leave that up to the user to do on their own.
+Also note whenever you see https://bjw-s.github.io/helm-charts/ change it to ghcr.io/bjw-s-labs/helm
 
 4. Create Argo CD Application definition:
 
@@ -86,6 +87,7 @@ Don't run or attempt to run, or suggest to run the sops encryption, leave that u
    ```
 
 5. Place the Application definition at:
+
    ```
    kubernetes/argo/apps/<app-name>/<app-name>.yaml
    ```
