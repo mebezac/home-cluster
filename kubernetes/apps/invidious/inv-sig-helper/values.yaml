@@ -1,0 +1,44 @@
+fullnameOverride: inv-sig-helper
+defaultPodOptions:
+  automountServiceAccountToken: false
+  enableServiceLinks: false
+  securityContext:
+    runAsUser: 3000
+    runAsGroup: 3000
+    fsGroup: 3000
+    fsGroupChangePolicy: "OnRootMismatch"
+    runAsNonRoot: true
+    seccompProfile:
+      type: RuntimeDefault
+controllers:
+  inv-sig-helper:
+    strategy: RollingUpdate
+    replicas: 1
+    annotations:
+      reloader.stakater.com/auto: "true"
+    containers:
+      inv-sig-helper:
+        image:
+          repository: quay.io/invidious/inv-sig-helper
+          tag: latest@sha256:b5466c9add729e82e4e3ee5515c30b69df02d78ebb2486dbc9c63e456f29083d
+        env:
+          RUST_LOG: info
+        args:
+          - --tcp
+          - "0.0.0.0:12999"
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities: { drop: ["ALL"] }
+        resources:
+          requests:
+            cpu: 10m
+            memory: 50Mi
+          limits:
+            memory: 100Mi
+service:
+  inv-sig-helper:
+    controller: inv-sig-helper
+    ports:
+      http:
+        port: 12999
