@@ -1,7 +1,7 @@
 frontend:
   image:
     repository: registry.skysolutions.fi/docker.io/1337kavin/piped-frontend
-    tag: latest@sha256:c5b6f70ebc494d20e7a8b00a39d8d25a238b7a5b5956e526d99859b0a9c9935d
+    tag: latest@sha256:e23436faf9bd00377b2f9feb09faa7541aac6cd7764ce1cfb2fa408cea7e75b6
     pullPolicy: IfNotPresent
 
   env:
