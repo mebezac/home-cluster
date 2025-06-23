@@ -1,0 +1,116 @@
+---
+controller:
+  externalAttacher:
+    resources:
+      requests:
+        cpu: 10m
+        memory: 50Mi
+        ephemeral-storage: 1Gi
+      limits:
+        memory: 150Mi
+        ephemeral-storage: 5Gi
+  externalProvisioner:
+    resources:
+      requests:
+        cpu: 10m
+        memory: 50Mi
+        ephemeral-storage: 1Gi
+      limits:
+        memory: 150Mi
+        ephemeral-storage: 5Gi
+  externalResizer:
+    resources:
+      requests:
+        cpu: 10m
+        memory: 50Mi
+        ephemeral-storage: 1Gi
+      limits:
+        memory: 150Mi
+        ephemeral-storage: 5Gi
+  externalSnapshotter:
+    resources:
+      requests:
+        cpu: 10m
+        memory: 50Mi
+        ephemeral-storage: 1Gi
+      limits:
+        memory: 200Mi
+        ephemeral-storage: 5Gi
+  driver:
+    logLevel: warn
+    resources:
+      requests:
+        cpu: 20m
+        memory: 50Mi
+        ephemeral-storage: 1Gi
+      limits:
+        memory: 200Mi
+        ephemeral-storage: 2Gi
+csiProxy:
+  resources:
+    requests:
+      cpu: 40m
+      memory: 50Mi
+      ephemeral-storage: 1Gi
+    limits:
+      memory: 200Mi
+      ephemeral-storage: 5Gi
+csiDriver:
+  name: "org.democratic-csi.nfs.fast"
+storageClasses:
+  - name: freenas-api-nfs-fast
+    defaultClass: false
+    reclaimPolicy: Delete
+    volumeBindingMode: Immediate
+    allowVolumeExpansion: true
+    parameters:
+      fsType: nfs
+      detachedVolumesFromSnapshots: "true"
+    mountOptions:
+      - noatime
+      - nfsvers=4.2
+    secrets:
+      provisioner-secret:
+      controller-publish-secret:
+      node-stage-secret:
+      node-publish-secret:
+      controller-expand-secret:
+driver:
+  existingConfigSecret: democratic-csi-driver-fast-config
+  config:
+    driver: freenas-api-nfs
+node:
+  driver:
+    logLevel: warn
+    resources:
+      requests:
+        cpu: 40m
+        memory: 50Mi
+        ephemeral-storage: 1Gi
+      limits:
+        memory: 200Mi
+        ephemeral-storage: 5Gi
+  driverRegistrar:
+    resources:
+      requests:
+        cpu: 30m
+        memory: 50Mi
+        ephemeral-storage: 1Gi
+      limits:
+        memory: 200Mi
+        ephemeral-storage: 5Gi
+  cleanup:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 50Mi
+        ephemeral-storage: 1Gi
+      limits:
+        memory: 200Mi
+        ephemeral-storage: 5Gi
+volumeSnapshotClasses:
+  - name: freenas-api-nfs-fast-snapshot-class
+    driver: org.democratic-csi.nfs.fast
+    deletionPolicy: Delete
+    parameters:
+      detachedSnapshots: true

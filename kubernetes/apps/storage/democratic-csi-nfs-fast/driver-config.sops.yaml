@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: Secret
+type: Opaque
+metadata:
+    name: democratic-csi-driver-fast-config
+    namespace: storage
+stringData:
+    driver-config-file.yaml: ENC[AES256_GCM,data:5hZhUsuN/kyh0RqknO9wTnhUFEuwhz0YiFFJI72+7isqxQXLU+ePWesvLy7ridw1g8o3uNp5V5AB2nQWGgItkQsijyr4420que4rzIyy/AFDy6bal78nvLdNzBNhix0+BnZvE0nQuFRROpEL04n7a2RdgDf0RK+WFEEXdp5a06VJiVuRtqLsGZ+nyIq45rInRB51lETGKaTRjoN1SngCg4Da+hmq9yGcDB/g3F6TNCcHVNzEEKSzFpn+q8hUv0lHAThr7oSfweDlcuNh/J4hCMwdMG6k37w9970bjXhKB+uHs8gyWnzUIM00KKyJFYIw9I9ltLVv2nCFnoiPcg8LD38gpjtSce51FA/jy26EScN1dZx3Au6s47vsi5Ad3mSjFDHp5zUfd0cwj4yMNXau4Q1w5/eIosyMhITlxw4LQMd0a85kmQ0yXxuSf2dp4g5ZCUBAerp/jk0nG0vMx5zkpowRHTL4SKo804YNBcH2tOaZvWKQVjasTlSn/I8Mns7Zad4QN7q6zv9XIv3F8mRZEVnY+I92TwculdK6J1CAPaiBn59kua42BGPRjXsVrlZX48iGzUFvJ9NRCV8GJFrK9W8azVumM7i8TI1O+gjJ6cA2N2X51CoWNqPLrjybzXAON8GZEe/HsRcRWg/BdSRR8fXlnAd/NrHwHEHjmhmAZjC+a7bEZrlckkb5jLQk4csU9B3jNMtLQdekS3ydkrn8rnrFh/yU5epreIrfTnVmsg6J8xWi4VzBKPkebq3J3M08q7E4Bp0AVaFoBSKcgYwnW+JpYDbYFoejVrLGXx1F1Yq20zDdleO85wCeHpCNkvsoYQHTlaNu/2NtQ78qjGWf5lkwH7J1NQ==,iv:Px9/bdcr4pt787FMaTlVuP8Np6l3yFwegTsYu2xM1go=,tag:gfu+KkDDFBnDh1C8w34WvA==,type:str]
+sops:
+    age:
+        - recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBLdjZVZ01TR3RMMWlIQnpl
+            M1pCenZLNXFTODF5Q3ZLTCs3UmlZRHkvbVJBCit1bnVtRW9HUGhjVUJ3cVBwQzl3
+            U0JpNGpvUmxMTmRVbGdIcTdaVTdma2sKLS0tIGR5SXhZbWxxS1FVcGxXTDVqeDRk
+            b1F6ak9XZ1NqZ25veXRxS3N6MEJ6eGsK/Z7EI28jtRNeWHgvGYJjU+XfOw4ZM9j8
+            vxlQZK9VmcUojY66nvwRYnZEoR4raC7AYGGqLIniEKhZcmbi9UblVQ==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2025-06-23T14:16:16Z"
+    mac: ENC[AES256_GCM,data:Vzi2sxb8lGFiaspiQN+E0FBZQWI0BsTmowXNc3/2oSNfT+vWJ6yLeFUF1hpyXXMFWhiPHuobKSM7k1XNoLEDHTvwTTwJqdm6w0paIgz5FJ7kHPW9ZXWaCZREJ3VbKGzoCnh6CghptC0QaZEMs1yY26B8JT73otCqNKumcpC0fes=,iv:zuMfXzl3K3MSm8NhHBiEAci1Dqv2Bm5z9cKPQqmHrnc=,tag:/ZNxivkG28YU5qmyD9RCxg==,type:str]
+    encrypted_regex: ^(data|stringData)$
+    mac_only_encrypted: true
+    version: 3.10.2

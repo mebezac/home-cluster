@@ -1,0 +1,32 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: democratic-csi-nfs-fast
+  namespace: argo-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: kubernetes
+  sources:
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/apps/storage/democratic-csi-nfs-fast
+      targetRevision: main
+      ref: democratic-csi-fast-repo
+    - repoURL: https://democratic-csi.github.io/charts
+      chart: democratic-csi
+      targetRevision: 0.15.0
+      helm:
+        releaseName: freenas-api-nfs-fast
+        valueFiles:
+          - $democratic-csi-fast-repo/kubernetes/apps/storage/democratic-csi-nfs-fast/values.yaml
+  destination:
+    name: in-cluster
+    namespace: storage
+  syncPolicy:
+    automated:
+      allowEmpty: true
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
