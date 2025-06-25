@@ -18,7 +18,7 @@ spec:
       helm:
         releaseName: piped
         valueFiles:
-          - $piped-repo/kubernetes/apps/piped/piped/values.yaml
+          - $piped-repo/kubernetes/apps/piped/piped/values.sops.yaml
   destination:
     name: in-cluster
     namespace: piped
