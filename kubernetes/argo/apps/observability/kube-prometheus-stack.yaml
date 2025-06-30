@@ -1,0 +1,31 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kube-prometheus-stack
+  namespace: argo-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: kubernetes
+  sources:
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/apps/observability/kube-prometheus-stack
+      targetRevision: main
+      ref: kube-prometheus-stack-repo
+    - repoURL: ghcr.io/prometheus-community/charts
+      chart: kube-prometheus-stack
+      targetRevision: 75.6.1
+      helm:
+        releaseName: kube-prometheus-stack
+        valueFiles:
+          - $kube-prometheus-stack-repo/kubernetes/apps/observability/kube-prometheus-stack/values.yaml
+  destination:
+    name: in-cluster
+    namespace: observability
+  syncPolicy:
+    automated:
+      allowEmpty: true
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
