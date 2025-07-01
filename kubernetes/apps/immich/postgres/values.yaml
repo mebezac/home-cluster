@@ -31,7 +31,7 @@ persistence:
     storageClass: longhorn
     accessMode: ReadWriteOnce
     suffix: data
-    size: 2Gi
+    size: 5Gi
     globalMounts:
       - path: /var/lib/postgresql/data
         subPath: postgresql-data
