@@ -59,14 +59,6 @@ controller:
             enabled: true
             additionalLabels:
                 release: kube-prometheus-stack
-dex:
-    replicas: 2
-    metrics:
-        enabled: true
-        serviceMonitor:
-            enabled: true
-            additionalLabels:
-                release: kube-prometheus-stack
 redis:
     metrics:
         enabled: true
@@ -185,8 +177,8 @@ sops:
             Yk1tc1ZRV1ZDVnRBOWVLVUlZcWZyaW8KF6jJaD0ojyuoIlGcGDgVo0tHgdy7Yp5v
             YKlde9Hqlc+7owvJ05aFC4L9VXvBaNgoZbw9MMN4fdxr83KOeU8a8A==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2025-05-23T14:44:36Z"
-    mac: ENC[AES256_GCM,data:hd/BvTatoi3Wkfg3sLM5Oeb2vKt/pc4SFIZi5Crg+izPIFdF+IBKppcyfrpRMBEeA64f80nN5oO9vjugO9Z/IWu7i8kAG+j4kyvxE5RJaGeZr4+4Ed6q32hl1UmglVKqJxBd2BcrdrARiBddeW1jq/2MFYx8q1tVAgZh2MvpE3Y=,iv:PKL+vx8+NBxmPc1z1dcXDz1Xy03s/oKrlzJCXMRz3T4=,tag:hIkK4mcNzlm+/FMFToJpyw==,type:str]
+    lastmodified: "2025-07-01T15:27:01Z"
+    mac: ENC[AES256_GCM,data:LU4pdjXE5Dczq4gXNgdqdbRUlsjW/xbUgDzzsXaiuHmM82PLA1JzZwxrvfNPTKo3bAwkiDrJzQvT+JFMxdnw9pTdFj6pu0Cb9KJk1UC+0nQtGbN9tbsAazB+KVXmqiwbWvWA2PeTK6ig5fD8lK3sHlC8h3VGcH6pb5mHcgSOfx4=,iv:G8/2JCs4XZPCBlC0JiTV7sCaJGwp5/sKFYSCL+og4x8=,tag:PTxd7ZBcR8526RAu6eFKKA==,type:str]
     encrypted_regex: (secret)
     mac_only_encrypted: true
     version: 3.10.2
