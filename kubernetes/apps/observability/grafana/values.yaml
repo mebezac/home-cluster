@@ -1,0 +1,241 @@
+annotations:
+  secret.reloader.stakater.com/reload: grafana-secret
+extraInitContainers:
+  - name: init-db
+    image: ghcr.io/home-operations/postgres-init:17.5
+    envFrom:
+      - secretRef:
+          name: grafana-secret
+rbac:
+  pspEnabled: false
+persistence:
+  enabled: false
+testFramework:
+  enabled: false
+imageRenderer:
+  enabled: false
+serviceMonitor:
+  enabled: true
+serviceAccount:
+  autoMount: true
+ingress:
+  enabled: true
+  ingressClassName: internal
+  hosts: ["graf.laboratory.casa"]
+env:
+  GF_SECURITY_DISABLE_INITIAL_ADMIN_CREATION: true
+envFromSecrets:
+  - name: grafana-secret
+grafana.ini:
+  analytics:
+    check_for_updates: false
+    check_for_plugin_updates: false
+    reporting_enabled: false
+  auth:
+    oauth_auto_login: true
+    signout_redirect_url: https://login.laboratory.casa/application/o/grafana/end-session/
+    oauth_allow_insecure_email_lookup: true
+  auth.basic:
+    enabled: false
+  auth.anonymous:
+    enabled: false
+  auth.generic_oauth:
+    enabled: true
+    name: Authelia
+    icon: signin
+    scopes: openid profile email groups
+    empty_scopes: false
+    auth_url: https://login.laboratory.casa/api/oidc/authorization
+    token_url: https://login.laboratory.casa/api/oidc/token
+    api_url: https://login.laboratory.casa/api/oidc/userinfo
+    login_attribute_path: preferred_username
+    groups_attribute_path: groups
+    name_attribute_path: name
+    use_pkce: true
+    role_attribute_path:
+  auth.generic_oauth.group_mapping:
+    role_attribute_path: |
+      contains(groups[*], 'apps_admin') && 'Admin'
+    org_id: 1
+  log:
+    mode: console
+  news:
+    news_feed_enabled: false
+  paths:
+    data: /var/lib/grafana/data
+    logs: /var/log/grafana
+    plugins: /var/lib/grafana/plugins
+    provisioning: /etc/grafana/provisioning
+  server:
+    root_url: https://graf.laboratory.casa
+plugins:
+  - pr0ps-trackmap-panel
+  - grafana-clock-panel
+  - grafana-piechart-panel
+  - grafana-worldmap-panel
+  - natel-discrete-panel
+  - natel-plotly-panel
+  - vonage-status-panel
+  - https://github.com/panodata/panodata-map-panel/releases/download/0.16.0/panodata-map-panel-0.16.0.zip;grafana-worldmap-panel-ng
+  - redis-datasource
+sidecar:
+  datasources:
+    enabled: true
+    searchNamespace: ALL
+    initDatasources: true
+    labelValue: ""
+  dashboards:
+    enabled: true
+    labelValue: ""
+    label: grafana_dashboard
+    folderAnnotation: grafana_folder
+    searchNamespace: ALL
+    provider:
+      disableDelete: true
+      foldersFromFilesStructure: true
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        type: prometheus
+        access: proxy
+        url: http://thanos-query.observability.svc.cluster.local:10902
+        isDefault: true
+        jsonData:
+          timeInterval: 30s
+      - name: Alertmanager
+        type: alertmanager
+        access: proxy
+        url: http://alertmanager-operated.observability.svc.cluster.local:9093
+        jsonData:
+          implementation: prometheus
+dashboardProviders:
+  dashboardproviders.yaml:
+    apiVersion: 1
+    providers:
+      - name: "default"
+        disableDeletion: false
+        editable: true
+        folder: ""
+        options:
+          path: /var/lib/grafana/dashboards/default
+        orgId: 1
+        type: file
+      - name: "storage"
+        disableDeletion: false
+        editable: true
+        folder: "Storage"
+        options:
+          path: /var/lib/grafana/dashboards/database
+        orgId: 1
+        type: file
+      - name: "kubernetes"
+        orgId: 1
+        folder: "Kubernetes"
+        type: file
+        disableDeletion: false
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/kubernetes
+      - name: "networking"
+        org_id: 1
+        folder: "Networking"
+        type: file
+        disableDeletion: false
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/networking
+      - name: "system"
+        orgId: 1
+        folder: "System"
+        type: file
+        disableDeletion: false
+        editable: true
+        allowUiUpdates: true
+        options:
+          path: /var/lib/grafana/dashboards/system
+dashboards:
+  kubernetes:
+    api-server:
+      # renovate: depName="Kubernetes / System / API Server"
+      gnetId: 15761
+      revision: 19
+      datasource: Prometheus
+    coredns:
+      # renovate: depName="Kubernetes / System / CoreDNS"
+      gnetId: 15762
+      revision: 20
+      datasource: Prometheus
+    global:
+      # renovate: depName="Kubernetes / Views / Global"
+      gnetId: 15757
+      revision: 43
+      datasource: Prometheus
+    namespaces:
+      # renovate: depName="Kubernetes / Views / Namespaces"
+      gnetId: 15758
+      revision: 42
+      datasource: Prometheus
+    nodes:
+      # renovate: depName="Kubernetes / Views / Nodes"
+      gnetId: 15759
+      revision: 37
+      datasource: Prometheus
+    pods:
+      # renovate: depName="Kubernetes / Views / Pods"
+      gnetId: 15760
+      revision: 36
+      datasource: Prometheus
+    volumes:
+      # renovate: depName="K8s / Storage / Volumes / Cluster"
+      gnetId: 11454
+      revision: 14
+      datasource: Prometheus
+    nfd:
+      url: https://raw.githubusercontent.com/kubernetes-sigs/node-feature-discovery/master/examples/grafana-dashboard.json
+      datasource: Prometheus
+    spegel:
+      # renovate: depName="Spegel"
+      gnetId: 18089
+      revision: 1
+      datasource:
+        - {name: DS_PROMETHEUS, value: Prometheus}
+  networking:
+    cert-manager:
+      # renovate: dashboardName="cert-manager"
+      gnetId: 20340
+      revision: 1
+      datasource:
+        - name: DS_PROMETHEUS
+          value: Prometheus
+    ingress-nginx:
+      url: https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/grafana/dashboards/nginx.json
+      datasource: Prometheus
+    ingress-nginx-request-handling-performance:
+      url: https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/grafana/dashboards/request-handling-performance.json
+      datasource: Prometheus
+    external-dns:
+      # renovate: depName="External-DNS"
+      gnetId: 15038
+      revision: 3
+      datasource: Prometheus
+  storage:
+    minio-dashboard:
+      # renovate: depName="Minio"
+      gnetId: 13502
+      revision: 26
+      datasource:
+        - {name: DS_PROMETHEUS, value: Prometheus}
+  system:
+    node-exporter:
+      # renovate: depName="Node Exporter"
+      gnetId: 11074
+      revision: 9
+      datasource: Prometheus
+    node-exporter-full:
+      # renovate: depName="Node Exporter Full"
+      gnetId: 1860
+      revision: 41
+      datasource:
+        - {name: DS_PROMETHEUS, value: Prometheus}
