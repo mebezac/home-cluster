@@ -122,14 +122,6 @@ dashboardProviders:
           path: /var/lib/grafana/dashboards/default
         orgId: 1
         type: file
-      - name: "storage"
-        disableDeletion: false
-        editable: true
-        folder: "Storage"
-        options:
-          path: /var/lib/grafana/dashboards/database
-        orgId: 1
-        type: file
       - name: "kubernetes"
         orgId: 1
         folder: "Kubernetes"
@@ -220,13 +212,6 @@ dashboards:
       gnetId: 15038
       revision: 3
       datasource: Prometheus
-  storage:
-    minio-dashboard:
-      # renovate: depName="Minio"
-      gnetId: 13502
-      revision: 26
-      datasource:
-        - {name: DS_PROMETHEUS, value: Prometheus}
   system:
     node-exporter:
       # renovate: depName="Node Exporter"
@@ -237,5 +222,4 @@ dashboards:
       # renovate: depName="Node Exporter Full"
       gnetId: 1860
       revision: 41
-      datasource:
-        - {name: DS_PROMETHEUS, value: Prometheus}
+      datasource: Prometheus
