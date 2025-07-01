@@ -1,0 +1,31 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: thanos
+  namespace: argo-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: kubernetes
+  sources:
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/apps/observability/thanos
+      targetRevision: main
+      ref: thanos-repo
+    - repoURL: ghcr.io/stevehipwell/helm-charts
+      chart: thanos
+      targetRevision: 1.20.0
+      helm:
+        releaseName: thanos
+        valueFiles:
+          - $thanos-repo/kubernetes/apps/observability/thanos/values.yaml
+  destination:
+    name: in-cluster
+    namespace: observability
+  syncPolicy:
+    automated:
+      allowEmpty: true
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
