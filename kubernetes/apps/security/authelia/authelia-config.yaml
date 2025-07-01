@@ -35,6 +35,8 @@ access_control:
     - domain:
         - "*.laboratory.casa"
       policy: one_factor
+      subject:
+        - group:apps_admin
 
 session:
   name: authelia_session
