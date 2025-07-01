@@ -28,6 +28,7 @@ access_control:
   rules:
     ## bypasses
     - domain:
+        - "login.laboratory.casa"
         - "auth.laboratory.casa"
       policy: bypass
     ## catch-all
