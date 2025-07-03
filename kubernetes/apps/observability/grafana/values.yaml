@@ -149,6 +149,9 @@ dashboardProviders:
           path: /var/lib/grafana/dashboards/system
 dashboards:
   kubernetes:
+    argo:
+      url: https://raw.githubusercontent.com/argoproj/argo-cd/refs/heads/master/examples/dashboard.json
+      datasource: Prometheus
     api-server:
       # renovate: depName="Kubernetes / System / API Server"
       gnetId: 15761
