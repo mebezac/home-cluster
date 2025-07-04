@@ -1,0 +1,11 @@
+fullnameOverride: alloy
+serviceMonitor:
+  enabled: true
+alloy:
+  configMap:
+    create: false
+    name: alloy-configmap
+    key: config.alloy
+controller:
+  podAnnotations:
+    configmap.reloader.stakater.com/reload: alloy-configmap
