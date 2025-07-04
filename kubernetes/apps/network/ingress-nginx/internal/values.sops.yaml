@@ -24,6 +24,7 @@ controller:
         client-body-buffer-size: 100M
         client-body-timeout: 120
         client-header-timeout: 120
+        disable-access-log: "true"
         enable-brotli: "true"
         enable-ocsp: "true"
         enable-real-ip: "true"
@@ -53,10 +54,6 @@ controller:
         limits:
             memory: 500Mi
 sops:
-    kms: []
-    gcp_kms: []
-    azure_kv: []
-    hc_vault: []
     age:
         - recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
           enc: |
@@ -67,9 +64,8 @@ sops:
             S0dQSVB1QTk5ZVR0N2hnNkdDbUsrWG8Kr9rc4xqbmL4CP7+NX+BUpiL/Vi50ey+E
             980yIGGENh5vbYreGW9I27x+r3dJoCiu11SCNY5k7xsaA7e7HUhRAA==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2025-02-28T03:18:33Z"
-    mac: ENC[AES256_GCM,data:xC47KEtpAuX2RsmykfVOT/rR4eiYfJPjUuNZeEQTRt/owG5S27WDmtiroJ+zjfkgRPRNznZpKuu8JpMUM+xnXwxiOgqfkegallOgEl9f/koTZ81amRtKlHPv2KtAMilIt8EIVmGj1kGWbEFMN9lkRyiYhQ3Y3iLkvl9QkWA95x4=,iv:HnKTTh/qcF64cxNek6sCuUlRDBe4pxhpOxLxrEXsXpY=,tag:EcaZSbdYWMX6NOnvqaB+tw==,type:str]
-    pgp: []
+    lastmodified: "2025-07-04T19:47:43Z"
+    mac: ENC[AES256_GCM,data:LieiUsD1sdMXhjtNPbjxlOCaEHuyjQqXb7TYKk2weppBpI90wpKYTjF6raWyMJjzJzJzgoc6iQ+qeGmsX4anjv1UWGMuqxj4Qla+ZGZB4qo1NedaCaf3ReDBIxFK3yPEbDpiWYjgh/2E6HSbSnJdXFtwe+p4noARVmFchT95lcM=,iv:JXAzLKvliHVUfGo6VEhpaPUiyJM7LJo/MuK0o0iSU3I=,tag:zWVI4aEz5BaGhQJ+6t7ECA==,type:str]
     encrypted_regex: ^(data|stringData)$
     mac_only_encrypted: true
-    version: 3.9.4
+    version: 3.10.2
