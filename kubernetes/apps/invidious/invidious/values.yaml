@@ -35,21 +35,6 @@ controllers:
           TZ: "America/New_York"
           INVIDIOUS_PORT: "3000"
           INVIDIOUS_SIGNATURE_SERVER: inv-sig-helper.invidious.svc.cluster.local:12999
-        probes:
-          liveness: &probes
-            enabled: true
-            custom: true
-            spec:
-              httpGet:
-                path: /api/v1/trending
-                port: 3000
-              initialDelaySeconds: 5
-              periodSeconds: 30
-              timeoutSeconds: 5
-              failureThreshold: 3
-          readiness: *probes
-          startup:
-            enabled: false
         securityContext:
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
