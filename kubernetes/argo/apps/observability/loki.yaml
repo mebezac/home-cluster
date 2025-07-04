@@ -1,0 +1,31 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: loki
+  namespace: argo-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: kubernetes
+  sources:
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/apps/observability/loki
+      targetRevision: main
+      ref: loki-repo
+    - repoURL: ghcr.io/grafana/helm-charts
+      chart: loki
+      targetRevision: 6.30.1
+      helm:
+        releaseName: loki
+        valueFiles:
+          - $loki-repo/kubernetes/apps/observability/loki/values.yaml
+  destination:
+    name: in-cluster
+    namespace: observability
+  syncPolicy:
+    automated:
+      allowEmpty: true
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
