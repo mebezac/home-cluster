@@ -6,6 +6,7 @@ metadata:
 spec:
   instances: 3
   imageName: ghcr.io/cloudnative-pg/postgresql:17.5-8
+  logLevel: warning
   storage:
     size: 3Gi
     storageClass: longhorn-single-replica
