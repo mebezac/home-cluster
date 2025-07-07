@@ -19,7 +19,7 @@ spec:
       helm:
         releaseName: echo-server
         valueFiles:
-          - $repo/kubernetes/apps/network/echo-server/values.sops.yaml
+          - $repo/kubernetes/apps/network/echo-server/values.yaml
   destination:
     name: in-cluster
     namespace: network
