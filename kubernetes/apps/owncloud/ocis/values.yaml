@@ -31,9 +31,9 @@ controllers:
           tag: 7.1.3
         env:
           DEMO_USERS: false
-          OCIS_LOG_COLOR: true
-          OCIS_LOG_LEVEL: info
-          OCIS_LOG_PRETTY: true
+          OCIS_LOG_COLOR: false
+          OCIS_LOG_LEVEL: warn
+          OCIS_LOG_PRETTY: false
           OCIS_URL: https://files.laboratory.casa
           PROXY_TLS: false
           STORAGE_USERS_DRIVER: s3ng
