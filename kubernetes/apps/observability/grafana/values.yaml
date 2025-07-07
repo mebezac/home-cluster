@@ -212,8 +212,7 @@ dashboards:
       gnetId: 20340
       revision: 1
       datasource:
-        - name: DS_PROMETHEUS
-          value: Prometheus
+        - {name: DS_PROMETHEUS, value: Prometheus}
     ingress-nginx:
       url: https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/grafana/dashboards/nginx.json
       datasource: Prometheus
