@@ -8,7 +8,7 @@ loki:
   analytics:
     reporting_enabled: false
   server:
-    log_level: info
+    log_level: warn
   commonConfig:
     replication_factor: 1
   compactor:
@@ -19,6 +19,7 @@ loki:
     chunk_encoding: snappy
   limits_config:
     retention_period: 14d
+    query_timeout: 600s
   storage:
     type: filesystem
   schemaConfig:
