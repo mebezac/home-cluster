@@ -59,6 +59,7 @@ grafana.ini:
     org_id: 1
   log:
     mode: console
+    level: warn
   news:
     news_feed_enabled: false
   paths:

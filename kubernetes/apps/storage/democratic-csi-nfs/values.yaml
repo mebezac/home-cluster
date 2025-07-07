@@ -9,6 +9,8 @@ controller:
       limits:
         memory: 150Mi
         ephemeral-storage: 5Gi
+    extraArgs:
+      - --v=1
   externalProvisioner:
     resources:
       requests:
@@ -18,6 +20,8 @@ controller:
       limits:
         memory: 150Mi
         ephemeral-storage: 5Gi
+    extraArgs:
+      - --v=1
   externalResizer:
     resources:
       requests:
@@ -27,6 +31,8 @@ controller:
       limits:
         memory: 150Mi
         ephemeral-storage: 5Gi
+    extraArgs:
+      - --v=1
   externalSnapshotter:
     resources:
       requests:
@@ -36,6 +42,8 @@ controller:
       limits:
         memory: 200Mi
         ephemeral-storage: 5Gi
+    extraArgs:
+      - --v=1
   driver:
     logLevel: warn
     resources:
@@ -99,6 +107,8 @@ node:
       limits:
         memory: 200Mi
         ephemeral-storage: 5Gi
+    extraArgs:
+      - --v=1
   cleanup:
     resources:
       requests:

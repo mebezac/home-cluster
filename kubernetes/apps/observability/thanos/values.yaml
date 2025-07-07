@@ -5,6 +5,7 @@ objstoreConfig:
 additionalEndpoints:
   - dnssrv+_grpc._tcp.kube-prometheus-stack-thanos-discovery.observability.svc.cluster.local
 additionalReplicaLabels: ["__replica__"]
+logLevel: warn
 serviceMonitor:
   enabled: true
 compact:
