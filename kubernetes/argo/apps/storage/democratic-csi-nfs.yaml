@@ -13,9 +13,9 @@ spec:
       path: kubernetes/apps/storage/democratic-csi-nfs
       targetRevision: main
       ref: democratic-csi-repo
-    - repoURL: https://democratic-csi.github.io/charts
+    - repoURL: https://zac.pizza/democratic-csi-charts/
       chart: democratic-csi
-      targetRevision: 0.15.0
+      targetRevision: 0.15.2
       helm:
         releaseName: freenas-api-nfs
         valueFiles:
