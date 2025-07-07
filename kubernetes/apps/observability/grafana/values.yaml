@@ -158,6 +158,15 @@ dashboardProviders:
         allowUiUpdates: true
         options:
           path: /var/lib/grafana/dashboards/system
+      - name: "database"
+        orgId: 1
+        folder: "Database"
+        type: file
+        disableDeletion: false
+        editable: true
+        allowUiUpdates: true
+        options:
+          path: /var/lib/grafana/dashboards/database
 dashboards:
   kubernetes:
     argo:
@@ -213,7 +222,7 @@ dashboards:
       gnetId: 20340
       revision: 1
       datasource:
-        - {name: DS_PROMETHEUS, value: Prometheus}
+        - { name: DS_PROMETHEUS, value: Prometheus }
     ingress-nginx:
       url: https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/grafana/dashboards/nginx.json
       datasource: Prometheus
@@ -235,4 +244,8 @@ dashboards:
       # renovate: depName="Node Exporter Full"
       gnetId: 1860
       revision: 41
+      datasource: Prometheus
+  database:
+    postgres-17-cluster:
+      url: https://raw.githubusercontent.com/cloudnative-pg/grafana-dashboards/refs/heads/main/charts/cluster/grafana-dashboard.json
       datasource: Prometheus
