@@ -19,7 +19,7 @@ spec:
       helm:
         releaseName: ingress-nginx-internal
         valueFiles:
-          - $repo/kubernetes/apps/network/ingress-nginx/internal/values.sops.yaml
+          - $repo/kubernetes/apps/network/ingress-nginx/internal/values.yaml
     - repoURL: https://kubernetes.github.io/ingress-nginx
       chart: ingress-nginx
       targetRevision: 4.13.0
