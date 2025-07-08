@@ -19,7 +19,7 @@ spec:
       helm:
         releaseName: external-dns
         valueFiles:
-          - $repo/kubernetes/apps/network/external-dns/values.sops.yaml
+          - $repo/kubernetes/apps/network/external-dns/values.yaml
         skipSchemaValidation: true
   destination:
     name: in-cluster

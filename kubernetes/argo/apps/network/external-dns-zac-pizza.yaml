@@ -19,7 +19,7 @@ spec:
       helm:
         releaseName: external-dns-zac-pizza
         valueFiles:
-          - $repo/kubernetes/apps/network/external-dns-zac-pizza/values.sops.yaml
+          - $repo/kubernetes/apps/network/external-dns-zac-pizza/values.yaml
         skipSchemaValidation: true
   destination:
     name: in-cluster
