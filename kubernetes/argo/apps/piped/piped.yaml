@@ -14,7 +14,7 @@ spec:
       ref: piped-repo
     - repoURL: https://helm.piped.video
       chart: piped
-      targetRevision: 7.4.18
+      targetRevision: 7.4.19
       helm:
         releaseName: piped
         valueFiles:
