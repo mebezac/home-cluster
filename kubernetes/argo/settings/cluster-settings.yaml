@@ -5,7 +5,7 @@ metadata:
   name: kubernetes
   namespace: argo-system
   annotations:
-    argocd.argoproj.io/sync-wave: '0'
+    argocd.argoproj.io/sync-wave: "0"
 spec:
   destinations:
     - name: "*"
@@ -16,3 +16,6 @@ spec:
   clusterResourceWhitelist:
     - group: "*"
       kind: "*"
+  clusterResourceBlacklist:
+    - group: cilium.io
+      kind: CiliumIdentity
