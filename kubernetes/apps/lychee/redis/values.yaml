@@ -8,3 +8,10 @@ master:
   persistence:
     storageClass: longhorn
     size: 512Mi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 64Mi
+    limits:
+      cpu: 250m
+      memory: 128Mi

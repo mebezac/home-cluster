@@ -9,6 +9,13 @@ primary:
     storageClass: longhorn
     accessMode: ReadWriteOnce
     size: 2Gi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 64Mi
+    limits:
+      cpu: 250m
+      memory: 128Mi
 metrics:
   enabled: false
   serviceMonitor:
