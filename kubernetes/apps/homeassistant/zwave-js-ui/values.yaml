@@ -8,7 +8,7 @@ controllers:
       main:
         image:
           repository: docker.io/zwavejs/zwave-js-ui
-          tag: 10.8.0
+          tag: 10.9.0
         probes:
           liveness: &probes
             enabled: true
