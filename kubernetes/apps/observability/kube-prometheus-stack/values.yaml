@@ -48,6 +48,10 @@ alertmanager:
     ingressClassName: internal
     hosts: ["alertmanager.laboratory.casa"]
   alertmanagerSpec:
+    alertmanagerConfiguration:
+      name: alertmanager
+      global:
+        resolveTimeout: 5m
     storage:
       volumeClaimTemplate:
         spec:
