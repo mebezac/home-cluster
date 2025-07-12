@@ -7,7 +7,7 @@ controllers:
       init-config:
         image:
           repository: public.ecr.aws/docker/library/eclipse-mosquitto
-          tag: 2.0.21
+          tag: 2.0.22
           pullPolicy: IfNotPresent
         command: ["/bin/sh", "-c"]
         args:
@@ -18,7 +18,7 @@ controllers:
       app:
         image:
           repository: public.ecr.aws/docker/library/eclipse-mosquitto
-          tag: 2.0.21
+          tag: 2.0.22
         resources:
           requests:
             cpu: 5m
