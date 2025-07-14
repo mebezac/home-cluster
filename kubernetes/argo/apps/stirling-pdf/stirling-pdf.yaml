@@ -1,0 +1,31 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: stirling-pdf
+  namespace: argo-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: kubernetes
+  sources:
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/apps/stirling-pdf/stirling-pdf
+      targetRevision: main
+      ref: stirling-pdf-repo
+    - repoURL: ghcr.io/bjw-s-labs/helm
+      chart: app-template
+      targetRevision: 4.1.2
+      helm:
+        releaseName: stirling-pdf
+        valueFiles:
+          - $stirling-pdf-repo/kubernetes/apps/stirling-pdf/stirling-pdf/values.yaml
+  destination:
+    name: in-cluster
+    namespace: stirling-pdf
+  syncPolicy:
+    automated:
+      allowEmpty: true
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
