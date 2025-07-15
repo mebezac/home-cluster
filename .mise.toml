@@ -13,7 +13,7 @@ run = "uv pip install -r requirements.txt"
 [tools]
 # Template tools
 python = "3.13"
-uv = "0.7.20"
+uv = "0.7.21"
 # Operations tools
 "aqua:argoproj/argo-cd" = "3.0.11"
 "aqua:budimanjojo/talhelper" = "3.0.30"
