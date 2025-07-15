@@ -1,0 +1,35 @@
+controllers:
+  app:
+    containers:
+      app:
+        image:
+          repository: ghcr.io/probot/smee.io
+          tag: v1.0.0
+        probes:
+          liveness: &probes
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /
+                port: 3000
+          readiness: *probes
+
+service:
+  app:
+    controller: app
+    ports:
+      http:
+        port: 3000
+
+ingress:
+  app:
+    enabled: true
+    className: internal
+    hosts:
+      - host: smee.laboratory.casa
+        paths:
+          - path: /
+            service:
+              identifier: app
+              port: http
