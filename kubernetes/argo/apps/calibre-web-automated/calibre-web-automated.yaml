@@ -1,0 +1,31 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: calibre-web-automated
+  namespace: argo-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: kubernetes
+  sources:
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/apps/calibre-web-automated/calibre-web-automated
+      targetRevision: main
+      ref: calibre-web-automated-repo
+    - repoURL: ghcr.io/bjw-s-labs/helm
+      chart: app-template
+      targetRevision: 4.1.2
+      helm:
+        releaseName: calibre-web-automated
+        valueFiles:
+          - $calibre-web-automated-repo/kubernetes/apps/calibre-web-automated/calibre-web-automated/values.yaml
+  destination:
+    name: in-cluster
+    namespace: calibre-web-automated
+  syncPolicy:
+    automated:
+      allowEmpty: true
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
