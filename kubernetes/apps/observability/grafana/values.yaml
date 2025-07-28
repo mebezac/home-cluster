@@ -245,6 +245,12 @@ dashboards:
       gnetId: 1860
       revision: 41
       datasource: Prometheus
+    smartctl-exporter:
+      # renovate: depName="SMARTctl Exporter Dashboard"
+      gnetId: 22604
+      revision: 2
+      datasource:
+        - { name: DS_PROMETHEUS, value: Prometheus }
   database:
     postgres-17-cluster:
       url: https://raw.githubusercontent.com/cloudnative-pg/grafana-dashboards/refs/heads/main/charts/cluster/grafana-dashboard.json
