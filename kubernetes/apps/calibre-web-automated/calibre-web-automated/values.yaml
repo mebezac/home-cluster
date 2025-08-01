@@ -3,8 +3,8 @@ controllers:
     containers:
       app:
         image:
-          repository: docker.io/crocodilestick/calibre-web-automated
-          tag: V3.0.4@sha256:e602e73b6fd50c3ba389b38acb701205976a05b650898f615f93bd7e3537a827
+          repository: crocodilestick/calibre-web-automated
+          tag: V3.1.1@sha256:b84377e5c8e559ab80c803dd38d96087cf92b48206cefcc749d521d141e0b8e7
         env:
           CACHE_DIR: /cache
           PUID: 1000
