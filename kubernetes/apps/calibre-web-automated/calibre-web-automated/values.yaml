@@ -4,7 +4,7 @@ controllers:
       app:
         image:
           repository: crocodilestick/calibre-web-automated
-          tag: V3.1.1@sha256:b84377e5c8e559ab80c803dd38d96087cf92b48206cefcc749d521d141e0b8e7
+          tag: V3.1.1@sha256:a4f91a780685274bde623d38b540932be5638e5379075a002d9c55517869e25a
         env:
           CACHE_DIR: /cache
           PUID: 1000
