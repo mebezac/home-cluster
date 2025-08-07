@@ -4,7 +4,7 @@ controllers:
       app:
         image:
           repository: ghcr.io/probot/smee.io
-          tag: v1.0.0
+          tag: v2.0.1
         probes:
           liveness: &probes
             enabled: true
