@@ -15,7 +15,7 @@ spec:
       ref: authelia-redis-repo
     - repoURL: registry-1.docker.io/bitnamicharts
       chart: redis
-      targetRevision: 21.2.14
+      targetRevision: 22.0.1
       helm:
         releaseName: authelia-redis
         valueFiles:
