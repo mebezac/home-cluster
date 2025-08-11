@@ -26,7 +26,7 @@ spec:
       ref: valkey-repo
     - repoURL: registry-1.docker.io/bitnamicharts
       chart: valkey
-      targetRevision: 3.0.22
+      targetRevision: 3.0.28
       helm:
         releaseName: immich-valkey
         valueFiles:
