@@ -1,7 +1,4 @@
 fullnameOverride: smartctl-exporter
-config:
-  devices:
-    - /dev/sda
 serviceMonitor:
   enabled: true
 prometheusRules:
