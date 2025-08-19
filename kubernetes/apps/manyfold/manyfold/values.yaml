@@ -37,7 +37,7 @@ controllers:
       main:
         image:
           repository: ghcr.io/bjw-s-labs/manyfold
-          tag: 0.120.0@sha256:95e7c3143877113a0c5fa103a5f45f3af24f572a9ccc9c5d2f4104657c380cdc
+          tag: 0.121.0@sha256:f85b892cf9fc9969f942801fce3d075a7a685d2b87d0cac1b242ebfe0810fd5c
         env:
           DATABASE_ADAPTER: postgresql
           MULTIUSER: false
