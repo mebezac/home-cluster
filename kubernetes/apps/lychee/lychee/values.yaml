@@ -33,6 +33,8 @@ controllers:
           PHP_TZ: America/New_York
           REDIS_PORT: 6379
           TRUSTED_PROXIES: "*"
+          SECURITY_HEADER_SCRIPT_SRC_ALLOW: https://analytics.laboratory.casa/script.js
+          SECURITY_HEADER_CSP_CONNECT_SRC: https://analytics.laboratory.casa/script.js
         envFrom: *envFrom
         probes:
           liveness: &liveness
