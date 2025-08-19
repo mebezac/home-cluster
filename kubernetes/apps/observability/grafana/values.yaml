@@ -255,3 +255,6 @@ dashboards:
     postgres-17-cluster:
       url: https://raw.githubusercontent.com/cloudnative-pg/grafana-dashboards/refs/heads/main/charts/cluster/grafana-dashboard.json
       datasource: Prometheus
+    valkey:
+      url: https://raw.githubusercontent.com/oliver006/redis_exporter/refs/heads/master/contrib/grafana_prometheus_redis_dashboard.json
+      datasource: Prometheus

@@ -1,0 +1,29 @@
+image:
+  repository: oliver006/redis_exporter
+  tag: v1.75.0
+env:
+  - name: TZ
+    value: America/New_York
+redisAddress: redis://valkey.valkey.svc.cluster.local:6379
+serviceMonitor:
+  enabled: true
+  labels:
+    release: kube-prometheus-stack
+prometheusRule:
+  enabled: true
+  labels:
+    release: kube-prometheus-stack
+  rules:
+    - alert: RedisExporterAbsent
+      annotations:
+        description: Redis Exporter has disappeared from Prometheus target discovery.
+        summary: Redis Exporter is down.
+      expr: absent(up{service="{{ template "prometheus-redis-exporter.fullname" . }}"} == 1)
+      for: 2m
+      labels:
+        severity: critical
+auth:
+  enabled: true
+  secret:
+    name: "prometheus-redis-exporter-secret"
+    key: "password"

@@ -1,0 +1,31 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: prometheus-redis-exporter
+  namespace: argo-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: kubernetes
+  sources:
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/apps/observability/prometheus-redis-exporter
+      targetRevision: main
+      ref: redis-exporter-repo
+    - repoURL: ghcr.io/prometheus-community/charts
+      chart: prometheus-redis-exporter
+      targetRevision: 6.15.0
+      helm:
+        releaseName: prometheus-redis-exporter
+        valueFiles:
+          - $redis-exporter-repo/kubernetes/apps/observability/prometheus-redis-exporter/values.yaml
+  destination:
+    name: in-cluster
+    namespace: observability
+  syncPolicy:
+    automated:
+      allowEmpty: true
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
