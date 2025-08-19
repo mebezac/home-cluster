@@ -3,10 +3,6 @@ kind: Dragonfly
 metadata:
   name: dragonfly-cluster
 spec:
-  authentication:
-    passwordFromSecret:
-      name: dragonfly-secret
-      key: password
   replicas: 2
   snapshot:
     cron: "*/15 * * * *"
