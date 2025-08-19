@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Secret
+metadata:
+    name: valkey-secret
+    namespace: valkey
+stringData:
+    valkey.conf: ENC[AES256_GCM,data:C9LrGQd262vvPyOh8DGvw4DbJU7RpBP6LffKZNtwx9TJG6Yf4RIqq1lqyXvtB82LTZvGCVOVFO06JKyiLnCrmDTyZiQd14Fj2oWA9VzSZHPyCYBSGVbK9zCNNm2zb1/TWowUzxQv7oEn2qxww2gvvG5FFX2QazN3SBCdGU8is1C2eX1ny+MX6jlT07iQaIBq4ADKI2RiKgmtxutSFvte27LL4wj6zLVH4S3e85FYYGgnQUScWhYmBnRSXg==,iv:yfjyikoqPZUCaeGCUPcinGKOHdxE2jAoo3EERKNMU8I=,tag:O2HNQ0Uhz1oOhr2+CpTBTQ==,type:str]
+sops:
+    age:
+        - recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBUaUFpdjBHcU5ZRDg5T3JH
+            VUo3UWI3ekdUMHJyNGgwQ1RIYkg3MS9HdUhNClpkZkg1QmZpdFZIaWE5TE5DR0F3
+            ODlpWWcrMytjVjVCVmovekd5UFlqSzgKLS0tIHVNUFMvRVRmNVVRaVVzWGFrbzhh
+            L2xmNHYzaVRiTk50dUlkc1VTR0JLYzgKtrFRvMFnZbJOvsE/6KxOBKD5pjPKnllH
+            Rd1NjeOKSU0WZw7NsHkrMyPYRjHFekyiH7RmHRKYCRg9MJqjLI2Zqw==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2025-08-19T16:27:50Z"
+    mac: ENC[AES256_GCM,data:9p52KsrIgkbphYXaKkKzQ9SAPBIwQnaVUKjVKdRUqAgt/+HAP4YNL2wdcVGCDEvptYv9ky0mn/ELqitP+RHfRLULcNf9OndWdHLAr+kjB/ubiVhnghitHxKiGh9bUDCu4znN86qvrcd7FRNk4/y0dwF0iE1UpjEOYxWJzZLtFhQ=,iv:KCsaehlqPIhI7E30BvnjeQbkTPwujicddqGraBb6+f8=,tag:A/cy/T3B5UFC4vBi55zkvQ==,type:str]
+    encrypted_regex: ^(data|stringData)$
+    mac_only_encrypted: true
+    version: 3.10.2
