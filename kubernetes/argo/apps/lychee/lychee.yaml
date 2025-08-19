@@ -21,17 +21,6 @@ spec:
         valueFiles:
           - $mariadb-repo/kubernetes/apps/lychee/mariadb/values.yaml
     - repoURL: https://github.com/mebezac/home-cluster.git
-      path: kubernetes/apps/lychee/redis
-      targetRevision: main
-      ref: redis-repo
-    - repoURL: registry-1.docker.io/bitnamicharts
-      chart: redis
-      targetRevision: 22.0.3
-      helm:
-        releaseName: lychee-redis
-        valueFiles:
-          - $redis-repo/kubernetes/apps/lychee/redis/values.yaml
-    - repoURL: https://github.com/mebezac/home-cluster.git
       path: kubernetes/apps/lychee/lychee
       targetRevision: main
       ref: lychee-repo
