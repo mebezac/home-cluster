@@ -56,7 +56,7 @@ controllers:
                 path: /health
                 port: *httpPort
               initialDelaySeconds: 0
-              periodSeconds: 30
+              periodSeconds: 300
               timeoutSeconds: 1
               failureThreshold: 10
           readiness: *probes
