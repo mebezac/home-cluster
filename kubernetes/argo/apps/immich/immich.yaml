@@ -21,17 +21,6 @@ spec:
         valueFiles:
           - $postgres-repo/kubernetes/apps/immich/postgres/values.yaml
     - repoURL: https://github.com/mebezac/home-cluster.git
-      path: kubernetes/apps/immich/valkey
-      targetRevision: main
-      ref: valkey-repo
-    - repoURL: registry-1.docker.io/bitnamicharts
-      chart: valkey
-      targetRevision: 3.0.30
-      helm:
-        releaseName: immich-valkey
-        valueFiles:
-          - $valkey-repo/kubernetes/apps/immich/valkey/values.yaml
-    - repoURL: https://github.com/mebezac/home-cluster.git
       path: kubernetes/apps/immich/immich
       targetRevision: main
       ref: immich-repo
