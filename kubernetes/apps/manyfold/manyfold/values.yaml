@@ -43,7 +43,6 @@ controllers:
           MULTIUSER: false
           PORT: &httpPort 3214
           REGISTRATION: false
-          REDIS_URL: redis://dragonfly-cluster.dragonfly.svc.cluster.local:6379/2
         envFrom: &envFrom
           - secretRef:
               name: manyfold-secret
