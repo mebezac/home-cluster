@@ -1,0 +1,19 @@
+apiVersion: dragonflydb.io/v1alpha1
+kind: Dragonfly
+metadata:
+  name: dragonfly-cluster
+spec:
+  authentication:
+    passwordFromSecret:
+      name: dragonfly-secret
+      key: password
+  replicas: 2
+  snapshot:
+    cron: "*/15 * * * *"
+    persistentVolumeClaimSpec:
+      storageClassName: longhorn
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 256Mi
