@@ -20,7 +20,7 @@ controllers:
       main:
         image:
           repository: ghcr.io/immich-app/immich-server
-          tag: v1.138.1
+          tag: v1.139.3
         env:
           TZ: America/New_York
           IMMICH_CONFIG_FILE: /config/immich-config.json
@@ -74,7 +74,7 @@ controllers:
       main:
         image:
           repository: ghcr.io/immich-app/immich-server
-          tag: v1.138.1
+          tag: v1.139.3
         envFrom:
           - secretRef:
               name: *secret
