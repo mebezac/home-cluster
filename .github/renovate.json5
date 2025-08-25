@@ -189,6 +189,12 @@
       matchManagers: ["github-actions"],
       addLabels: ["renovate/github-action"],
     },
+    {
+      description: ["Override versioning for calibre-web-automated"],
+      matchDatasources: ["docker"],
+      matchPackageNames: ["crocodilestick/calibre-web-automated"],
+      versioning: "regex:^V(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$",
+    },
   ],
   customManagers: [
     {
