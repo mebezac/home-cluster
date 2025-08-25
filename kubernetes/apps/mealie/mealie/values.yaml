@@ -1,0 +1,79 @@
+defaultPodOptions:
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 3000
+    runAsGroup: 3000
+    fsGroup: 3000
+    fsGroupChangePolicy: OnRootMismatch
+    seccompProfile: { type: RuntimeDefault }
+
+controllers:
+  mealie:
+    annotations:
+      reloader.stakater.com/auto: "true"
+    initContainers:
+      init-db:
+        image:
+          repository: ghcr.io/home-operations/postgres-init
+          tag: 17.6
+          pullPolicy: IfNotPresent
+        envFrom: &envFrom
+          - secretRef:
+              name: mealie-secret
+    containers:
+      app:
+        image:
+          repository: ghcr.io/mealie-recipes/mealie
+          tag: v3.1.2@sha256:d872fb529097df2d77b3c6f5e469b047f99d0d1c9f793a84ae27aa106e1f5d7e
+        env:
+          TZ: America/New_York
+          BASE_URL: https://mealie.laboratory.casa
+          API_DOCS: false
+          DB_ENGINE: postgres
+          POSTGRES_PORT: 5432
+        envFrom: *envFrom
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities: { drop: ["ALL"] }
+        resources:
+          requests:
+            cpu: 100m
+            memory: 400Mi
+          limits:
+            memory: 600Mi
+
+service:
+  app:
+    controller: mealie
+    ports:
+      http:
+        port: 9000
+
+ingress:
+  app:
+    enabled: true
+    className: internal
+    hosts:
+      - host: mealie.laboratory.casa
+        paths:
+          - path: /
+            service:
+              identifier: app
+              port: http
+
+persistence:
+  data:
+    enabled: true
+    type: persistentVolumeClaim
+    storageClass: longhorn
+    accessMode: ReadWriteOnce
+    suffix: data
+    size: 1Gi
+    globalMounts:
+      - path: /app/data
+  nltk-data:
+    enabled: true
+    type: emptyDir
+    globalMounts:
+      - path: /nltk_data
