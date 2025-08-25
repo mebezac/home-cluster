@@ -1,9 +1,9 @@
 defaultPodOptions:
   securityContext:
-    runAsNonRoot: false
-    runAsUser: 0
-    runAsGroup: 0
-    fsGroup: 0
+    runAsNonRoot: true
+    runAsUser: 1001
+    runAsGroup: 1001
+    fsGroup: 1001
     fsGroupChangePolicy: OnRootMismatch
     seccompProfile: { type: RuntimeDefault }
 
@@ -23,7 +23,6 @@ controllers:
               name: umami-secret
     containers:
       app:
-        command: ["sleep", "infinity"]
         image:
           repository: ghcr.io/umami-software/umami
           tag: postgresql-v2.19.0
@@ -35,7 +34,7 @@ controllers:
         envFrom: *envFrom
         probes:
           liveness: &probes
-            enabled: false
+            enabled: true
             custom: true
             spec:
               httpGet:
@@ -53,8 +52,9 @@ controllers:
           limits:
             memory: 500Mi
         securityContext:
-          allowPrivilegeEscalation: true
+          allowPrivilegeEscalation: false
           readOnlyRootFilesystem: false
+          capabilities: { drop: ["ALL"] }
 
 service:
   app:
