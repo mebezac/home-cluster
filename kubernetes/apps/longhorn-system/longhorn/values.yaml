@@ -1,4 +1,6 @@
 ---
+csi:
+  storageMinimalAvailablePercentage: 15
 defaultBackupStore:
   backupTarget: "cifs://10.25.30.36/longhorn-backup"
   backupTargetCredentialSecret: backup-secret
