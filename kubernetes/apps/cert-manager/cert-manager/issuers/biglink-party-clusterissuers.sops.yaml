@@ -1,0 +1,71 @@
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+    name: letsencrypt-production-biglink-party
+spec:
+    acme:
+        server: https://acme-v02.api.letsencrypt.org/directory
+        email: cloudflare@biglink.party
+        privateKeySecretRef:
+            name: letsencrypt-production-biglink-party
+        solvers:
+            - dns01:
+                cloudflare:
+                    apiTokenSecretRef:
+                        name: cert-manager-secret
+                        key: biglink-party-api-token
+              selector:
+                dnsZones:
+                    - biglink.party
+sops:
+    age:
+        - recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBsYlBPK3Vvd3ZCSEpLTFJ3
+            UDRIUUxOcmdEbndiZTFwRUVHbDB3UGY2c1EwCkx4WlBQOWsrb0FCcXl5UW5mdis0
+            dU0zT0llR1NqRkV3d0pqUFBjNFFBeTQKLS0tIEJ4bkJOMjRBVDJDZFU1Nmh5aTdx
+            dlgxaWpxWG9PeHNVditLU2ZzQndCbVEK/oTjpD56e1L1+w/ESBYWoz2iVtRLBjXI
+            PzuOVSTyoGYrirKj7mvhXdRnE7Eqa1201sA0N0L6n+1YdtPE1uKfqg==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2025-09-03T05:00:35Z"
+    mac: ENC[AES256_GCM,data:TCq4V/CWsNugTf9IX2tRip0zoetiiY1wAHjsZPK16PAvqLOdPdA8GPGmvF5MRUYg/33DHJKTRyYRSQIyVoAqTWIP1znSQzjM1ecazKVZ4zSae/XA1Qx4RUHph8IGonrvRfCA4vWD334jlGBULNjakdj800cxVDpZMxKV2ZjNBb8=,iv:/W5ddwSSf1UBGVR4rJ5u1igOwKogioPLh9XXLKagyGA=,tag:QepUnoV8bLfWHc/rv/C1Uw==,type:str]
+    encrypted_regex: ^(data|stringData)$
+    mac_only_encrypted: true
+    version: 3.10.2
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+    name: letsencrypt-staging-biglink-party
+spec:
+    acme:
+        server: https://acme-staging-v02.api.letsencrypt.org/directory
+        email: cloudflare@biglink.party
+        privateKeySecretRef:
+            name: letsencrypt-staging-biglink-party
+        solvers:
+            - dns01:
+                cloudflare:
+                    apiTokenSecretRef:
+                        name: cert-manager-secret
+                        key: biglink-party-api-token
+              selector:
+                dnsZones:
+                    - biglink.party
+sops:
+    age:
+        - recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBsYlBPK3Vvd3ZCSEpLTFJ3
+            UDRIUUxOcmdEbndiZTFwRUVHbDB3UGY2c1EwCkx4WlBQOWsrb0FCcXl5UW5mdis0
+            dU0zT0llR1NqRkV3d0pqUFBjNFFBeTQKLS0tIEJ4bkJOMjRBVDJDZFU1Nmh5aTdx
+            dlgxaWpxWG9PeHNVditLU2ZzQndCbVEK/oTjpD56e1L1+w/ESBYWoz2iVtRLBjXI
+            PzuOVSTyoGYrirKj7mvhXdRnE7Eqa1201sA0N0L6n+1YdtPE1uKfqg==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2025-09-03T05:00:35Z"
+    mac: ENC[AES256_GCM,data:TCq4V/CWsNugTf9IX2tRip0zoetiiY1wAHjsZPK16PAvqLOdPdA8GPGmvF5MRUYg/33DHJKTRyYRSQIyVoAqTWIP1znSQzjM1ecazKVZ4zSae/XA1Qx4RUHph8IGonrvRfCA4vWD334jlGBULNjakdj800cxVDpZMxKV2ZjNBb8=,iv:/W5ddwSSf1UBGVR4rJ5u1igOwKogioPLh9XXLKagyGA=,tag:QepUnoV8bLfWHc/rv/C1Uw==,type:str]
+    encrypted_regex: ^(data|stringData)$
+    mac_only_encrypted: true
+    version: 3.10.2
