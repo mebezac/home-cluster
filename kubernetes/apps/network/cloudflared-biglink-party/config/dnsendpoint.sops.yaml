@@ -1,0 +1,28 @@
+apiVersion: externaldns.k8s.io/v1alpha1
+kind: DNSEndpoint
+metadata:
+    name: biglink-party-tunnel
+    namespace: network
+spec:
+    endpoints:
+        - dnsName: '*.biglink.party'
+          recordTTL: 1
+          recordType: CNAME
+          targets:
+            - 75f25117-b292-4a15-b0cc-022478841b41.cfargotunnel.com
+sops:
+    age:
+        - recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBjanVYZzFnbVJNT0IyME9Q
+            ajRDMG9QNG1mRDUwRW14cXVTTUgxZnlwK1hNCkZoQVBick93S0J6OXZNOFpyTkQ5
+            ZVBpeU4raDNwOUJrNG54VkhROEVlM0EKLS0tIHlKN3FsSjFTemZBYlJwZzZvUjVR
+            SzJJV2hUd0VYdzQ4TExodkp2STdiVk0KYyKZWqySM2aILWN7aMSTM2PQMupBDhYC
+            Za2/nIWjlwMYe0hC3N78KQUTD4YNBbNJLOoWAnl3mIshWXH5tDVDqQ==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2025-09-03T04:37:43Z"
+    mac: ENC[AES256_GCM,data:eWIDEmsX7ijc3nvhhAspeUq8i+VnR0rHgrgiM6qf3B1+Vbrka6ioG3LoP1tIeNAiB8Dxgjr9+AAFfwZtNvjPX4KnRkvSKnto+fgnyeQTfc5vYzccWXAChGjVqzs6wDqLIBbsYTVqtugf1BmZ7Ad/yp+k0ni0hN7nUyhDw/1sHXk=,iv:zgPccTWoRIr3Q3B7ELOcq6S8JGmn5LbvuU8Iouk6n2Y=,tag:LJ3LkwjyV88Kq2+pei/YQw==,type:str]
+    encrypted_regex: ^(data|stringData)$
+    mac_only_encrypted: true
+    version: 3.10.2

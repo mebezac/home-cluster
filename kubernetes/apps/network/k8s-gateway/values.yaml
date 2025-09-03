@@ -1,5 +1,5 @@
 fullnameOverride: k8s-gateway
-domain: laboratory.casa
+domain: laboratory.casa biglink.party
 ttl: 1
 service:
   type: LoadBalancer

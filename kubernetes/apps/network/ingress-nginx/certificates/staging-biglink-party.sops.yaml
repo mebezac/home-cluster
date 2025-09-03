@@ -1,0 +1,35 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: biglink-party-staging
+spec:
+  secretName: biglink-party-staging-tls
+  issuerRef:
+    name: letsencrypt-staging-biglink-party
+    kind: ClusterIssuer
+  commonName: biglink.party
+  dnsNames:
+    - biglink.party
+    - '*.biglink.party'
+  secretTemplate:
+    annotations:
+      reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
+      reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces: shlink
+      reflector.v1.k8s.emberstack.com/reflection-auto-enabled: "true"
+      reflector.v1.k8s.emberstack.com/reflection-auto-namespaces: shlink
+sops:
+  age:
+    - recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
+      enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSAwb09uUDRpSEpQQmp0MXpR
+        VjZOMytXdmE3eWlaVFFzWERMcG9SU0dLTWlrCnR6SjA3bUdtWldSWlYxUFlTcDQz
+        U3llYXZYQWp3RE1MM1RGM21ER2pZMDAKLS0tIHBKK3Iya2JNck1pbkwxajdBaU5L
+        OUtiY1pSSG1UdU5VNXFsSXBTWTJDSGcK1J1fOemY9jOKr/bn4TZCPM5RmMYOyRM3
+        HNuL5GYDOOzxdIrrbl25t8KbHVcv8hJQJQTzCro+UF5cH5xz4mgCZg==
+        -----END AGE ENCRYPTED FILE-----
+  lastmodified: "2025-09-03T04:47:03Z"
+  mac: ENC[AES256_GCM,data:pE0tVE8n7/RZmfg0Pq7d6DS5dHLks6Qaxt0ckHMAj0ixd71NqOfZwKr8JXdVg2FyPm1aURgBgC/QMt47Fr07AUbXq/GcD5mvvpNC5OXXI9aSrG32VPCnT8MIwA+RN/CO93zBh/0SXX+M0ZchiHJ5+fa0UXUkwWTNG616yxPjZNQ=,iv:lWe7NYmBWhzBKr8kCX5cyWXczyWqsud7wnAcXaazWT0=,tag:P4w05ibtlN9PLnpg//SobQ==,type:str]
+  encrypted_regex: ^(data|stringData)$
+  mac_only_encrypted: true
+  version: 3.10.2
