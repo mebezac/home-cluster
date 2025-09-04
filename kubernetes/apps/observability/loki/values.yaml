@@ -2,7 +2,7 @@ deploymentMode: SingleBinary
 loki:
   image:
     repository: grafana/loki
-    tag: 3.5.3
+    tag: 3.5.4
     pullPolicy: IfNotPresent
   auth_enabled: false
   analytics:
