@@ -30,10 +30,12 @@ access_control:
     - domain:
         - "login.laboratory.casa"
         - "auth.laboratory.casa"
+        - "login.biglink.party"
       policy: bypass
     ## catch-all
     - domain:
         - "*.laboratory.casa"
+        - "*.biglink.party"
       policy: one_factor
       subject:
         - group:apps_admin
@@ -48,6 +50,9 @@ session:
     - domain: laboratory.casa
       authelia_url: https://login.laboratory.casa
       default_redirection_url: https://login.laboratory.casa/
+    - domain: biglink.party
+      authelia_url: https://login.biglink.party
+      default_redirection_url: https://login.biglink.party/
   redis:
     host: valkey.valkey.svc.cluster.local
     port: 6379

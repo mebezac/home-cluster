@@ -1,0 +1,137 @@
+defaultPodOptions:
+  securityContext:
+    fsGroup: 3000
+    fsGroupChangePolicy: OnRootMismatch
+controllers:
+  main:
+    annotations:
+      secret.reloader.stakater.com/reload: shlink-secret
+    initContainers:
+      init-db:
+        image:
+          repository: ghcr.io/home-operations/postgres-init
+          tag: 17.6
+          pullPolicy: IfNotPresent
+        envFrom: &envFrom
+          - secretRef:
+              name: shlink-secret
+    containers:
+      api:
+        image:
+          repository: ghcr.io/shlinkio/shlink
+          tag: 4.5.2@sha256:57df87b68a2ef9ffb7f5fa0335e22e6f08d688f661eb58bb290f5b0753a2361a
+        env:
+          USER_ID: "3000"
+          SHLINK_SERVER_NAME: "Links"
+          DEFAULT_DOMAIN: &api-host "biglink.party"
+          DISABLE_TRACKING_FROM: "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
+          ENABLE_PERIODIC_VISIT_LOCATE: "true"
+          IS_HTTPS_ENABLED: "true"
+          PORT: &api-port 8081
+          TIMEZONE: "America/New_York"
+          DB_DRIVER: "postgres"
+        envFrom: *envFrom
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 3000
+          runAsGroup: 3000
+          seccompProfile: { type: RuntimeDefault }
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+              - ALL
+        probes:
+          liveness: &probes
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /rest/health
+                port: *api-port
+              periodSeconds: 10
+              timeoutSeconds: 1
+              failureThreshold: 3
+          readiness: *probes
+          startup:
+            enabled: false
+        resources:
+          requests:
+            cpu: 10m
+            memory: 50Mi
+          limits:
+            memory: 256Mi
+
+      web:
+        image:
+          repository: ghcr.io/shlinkio/shlink-web-client
+          tag: 4.5.1@sha256:0e695130f19307dd89c5a2b9b3486106b2445319da88b3af489af162a8f05ee4
+        env:
+          UID: "3000"
+          SHLINK_SERVER_URL: "https://biglink.party"
+          SHLINK_SERVER_NAME: "🎉"
+        envFrom:
+          - secretRef:
+              name: shlink-secret
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          capabilities: { drop: ["ALL"] }
+service:
+  api:
+    controller: main
+    ports:
+      http:
+        port: *api-port
+
+  web:
+    controller: main
+    ports:
+      http:
+        port: 8080
+
+ingress:
+  api:
+    className: external
+    annotations:
+      external-dns.alpha.kubernetes.io/target: external.biglink.party
+    hosts:
+      - host: *api-host
+        paths:
+          - path: /
+            service:
+              identifier: api
+              port: http
+    tls:
+      - hosts:
+          - *api-host
+        secretName: biglink-party-production-tls
+
+  web:
+    className: external
+    annotations:
+      external-dns.alpha.kubernetes.io/target: external.biglink.party
+      nginx.ingress.kubernetes.io/auth-method: GET
+      nginx.ingress.kubernetes.io/auth-url: http://authelia.security.svc.cluster.local/api/authz/auth-request
+      nginx.ingress.kubernetes.io/auth-signin: https://login.biglink.party?rm=$request_method
+      nginx.ingress.kubernetes.io/auth-response-headers: Remote-User,Remote-Name,Remote-Groups,Remote-Email
+    hosts:
+      - host: app.biglink.party
+        paths:
+          - path: /
+            service:
+              identifier: web
+              port: http
+    tls:
+      - hosts:
+          - app.biglink.party
+        secretName: biglink-party-production-tls
+
+persistence:
+  tmpfs:
+    type: emptyDir
+    globalMounts:
+      - path: /etc/shlink/data
+        subPath: data
+      - path: /tmp
+        subPath: tmp

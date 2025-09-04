@@ -105,6 +105,27 @@ ingress:
             service:
               identifier: app
               port: http
+  biglink-party:
+    className: external
+    annotations:
+      external-dns.alpha.kubernetes.io/target: external.biglink.party
+      nginx.ingress.kubernetes.io/configuration-snippet: |
+        add_header Cache-Control "no-store";
+        add_header Pragma "no-cache";
+        add_header X-Frame-Options "SAMEORIGIN";
+        add_header X-XSS-Protection "1; mode=block";
+    hosts:
+      - host: "login.biglink.party"
+        paths:
+          - path: /
+            service:
+              identifier: app
+              port: http
+    tls:
+      - hosts:
+          - login.biglink.party
+        secretName: biglink-party-production-tls
+
 persistence:
   private-key:
     type: secret
