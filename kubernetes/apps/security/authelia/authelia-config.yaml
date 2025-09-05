@@ -26,20 +26,25 @@ authentication_backend:
 access_control:
   default_policy: deny
   rules:
-    ## bypasses
+    ## bypasses for logging in
     - domain:
         - "login.laboratory.casa"
         - "auth.laboratory.casa"
         - "login.biglink.party"
       policy: bypass
-    ## catch-all
+    ## Open up shlink for non-admins
+    - domain:
+        - "app.biglink.party"
+      policy: one_factor
+      subject:
+        - group:apps_user
+    ## Allow everything for admins
     - domain:
         - "*.laboratory.casa"
         - "*.biglink.party"
       policy: one_factor
       subject:
         - group:apps_admin
-
 session:
   name: authelia_session
   same_site: lax
