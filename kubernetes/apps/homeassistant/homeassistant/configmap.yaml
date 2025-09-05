@@ -34,6 +34,9 @@ data:
         advertise_addr: 10.25.30.56
         hosts:
           - 10.25.30.220
+          - 10.25.30.222
+          - 10.25.30.223
+          - 10.25.30.224
 
     auth_oidc:
       client_id: 'SWm7hj4WCxjlpcDcuGq24Fs3kt14YgES_tmXLzfN7IUq7Yo5geag.2NewaRVB-cMCfBV2MlQ'
