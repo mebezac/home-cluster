@@ -20,7 +20,7 @@ spec:
         releaseName: intel-device-plugins-operator
     - repoURL: https://intel.github.io/helm-charts
       chart: intel-device-plugins-gpu
-      targetRevision: 0.32.1
+      targetRevision: 0.34.0
       helm:
         releaseName: intel-device-plugins-gpu
         valueFiles:
