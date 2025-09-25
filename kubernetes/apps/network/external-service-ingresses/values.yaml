@@ -30,6 +30,16 @@ services:
       - name: http
         port: 80
         target_port: 80
+  - name: zigbee-hub
+    external_ip: 10.25.30.78
+    ingresses:
+      - host: zigbee-hub.laboratory.casa
+        ingressClassName: internal
+        port: 80
+    service_ports:
+      - name: http
+        port: 80
+        target_port: 80
   - name: birdnet
     external_ip: 10.25.30.14
     ingresses:
