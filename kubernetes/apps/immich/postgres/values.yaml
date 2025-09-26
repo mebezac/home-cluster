@@ -14,7 +14,7 @@ controllers:
               name: immich-db-secret
         resources:
           requests:
-            cpu: 100m
+            cpu: 1000m
             memory: 250Mi
           limits:
             memory: 2Gi
