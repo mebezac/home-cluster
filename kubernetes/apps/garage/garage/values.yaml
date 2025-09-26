@@ -120,17 +120,20 @@ persistence:
     advancedMounts:
       main:
         main:
-          - path: /tmp/data
-        rclone:
-          - path: /data
-  tmpd:
-    type: emptyDir
-    advancedMounts:
-      main:
-        main:
           - path: /var/lib/garage/data
         rclone:
-          - path: /tmp-d
+          - path: /data
+  # Use this the first time and attach to the rclone container and:
+  # cp /tmp-d/garage-marker /data/garage-marker
+  # then comment this out again and re-deploy
+  # tmpd:
+  #   type: emptyDir
+  #   advancedMounts:
+  #     main:
+  #       main:
+  #         - path: /var/lib/garage/data
+  #       rclone:
+  #         - path: /tmp-d
   vfs-cache:
     type: emptyDir
     advancedMounts:
