@@ -120,9 +120,17 @@ persistence:
     advancedMounts:
       main:
         main:
-          - path: /var/lib/garage/data
+          - path: /tmp/data
         rclone:
           - path: /data
+  tmpd:
+    type: emptyDir
+    advancedMounts:
+      main:
+        main:
+          - path: /var/lib/garage/data
+        rclone:
+          - path: /tmp-d
   vfs-cache:
     type: emptyDir
     advancedMounts:
