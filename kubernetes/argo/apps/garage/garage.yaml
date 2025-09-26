@@ -1,0 +1,43 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: garage
+  namespace: argo-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: kubernetes
+  sources:
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/apps/garage/garage
+      targetRevision: main
+      ref: garage-repo
+    - repoURL: ghcr.io/bjw-s-labs/helm
+      chart: app-template
+      targetRevision: 4.3.0
+      helm:
+        releaseName: garage
+        valueFiles:
+          - $garage-repo/kubernetes/apps/garage/garage/values.yaml
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/apps/garage/webui
+      targetRevision: main
+      ref: webui-repo
+    - repoURL: ghcr.io/bjw-s-labs/helm
+      chart: app-template
+      targetRevision: 4.3.0
+      helm:
+        releaseName: garage-webui
+        valueFiles:
+          - $webui-repo/kubernetes/apps/garage/webui/values.yaml
+  destination:
+    name: in-cluster
+    namespace: garage
+  syncPolicy:
+    automated:
+      allowEmpty: true
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
