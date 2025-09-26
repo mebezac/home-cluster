@@ -1,0 +1,131 @@
+---
+defaultPodOptions:
+  securityContext:
+    runAsUser: 568
+    runAsGroup: 568
+    fsGroup: 568
+    fsGroupChangePolicy: "OnRootMismatch"
+
+controllers:
+  main:
+    annotations:
+      reloader.stakater.com/auto: "true"
+    containers:
+      main:
+        image:
+          repository: dxflrs/garage
+          tag: v2.1.0@sha256:4c9b34c113e61358466e83fd6e7d66e6d18657ede14b776eb78a93ee8da7cf6a
+        env:
+          TZ: America/Detroit
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            memory: 512Mi
+      rclone:
+        image:
+          repository: rclone/rclone
+          tag: 1.71.1@sha256:d5971950c2b370fb04dd3292541b5bda6d9103143fd7e345aeb435a399388afc
+        command:
+          - /bin/sh
+          - -c
+        args:
+          - |
+            if ! getent passwd 568 >/dev/null; then
+              echo "appuser:x:568:568::/home/appuser:/sbin/nologin" >> /etc/passwd
+              echo "appgroup:x:568:" >> /etc/group || true
+              mkdir -p /home/appuser && chown 568:568 /home/appuser
+            fi
+            grep -q '^user_allow_other' /etc/fuse.conf || echo 'user_allow_other' >> /etc/fuse.conf
+            exec su -s /bin/sh -c 'exec rclone mount bf-nd24-10tb-garage-crypt: /data --config /etc/rclone/rclone.conf --allow-other --allow-non-empty --vfs-cache-mode writes --cache-dir=/vfs-cache --log-level NOTICE --uid=568 --gid=568 --umask=002' appuser
+        envFrom:
+          - secretRef:
+              name: rclone-secret
+        securityContext:
+          privileged: true
+          capabilities:
+            add:
+              - SYS_ADMIN
+          runAsUser: 0
+          runAsGroup: 0
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            memory: 256Mi
+
+service:
+  s3:
+    controller: main
+    ports:
+      s3:
+        port: 3900
+  admin:
+    controller: main
+    ports:
+      admin:
+        port: 3903
+
+ingress:
+  main:
+    enabled: true
+    className: internal
+    hosts:
+      - host: garage.laboratory.casa
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            service:
+              identifier: s3
+              port: s3
+
+persistence:
+  config:
+    type: secret
+    name: garage-secret
+    globalMounts:
+      - path: /etc/garage.toml
+        subPath: garage.toml
+  rclone-config:
+    type: secret
+    name: rclone-secret
+    advancedMounts:
+      main:
+        rclone:
+          - path: /etc/rclone/rclone.conf
+            subPath: rclone.conf
+            readOnly: true
+  ssh-key:
+    type: secret
+    name: rclone-secret
+    advancedMounts:
+      main:
+        rclone:
+          - path: /etc/ssh-key/id_ed25519
+            subPath: id_ed25519
+            readOnly: true
+  meta:
+    enabled: true
+    type: persistentVolumeClaim
+    storageClass: longhorn
+    accessMode: ReadWriteOnce
+    size: 2Gi
+    suffix: meta
+    globalMounts:
+      - path: /var/lib/garage/meta
+  data:
+    type: emptyDir
+    advancedMounts:
+      main:
+        main:
+          - path: /var/lib/garage/data
+        rclone:
+          - path: /data
+  vfs-cache:
+    type: emptyDir
+    advancedMounts:
+      main:
+        rclone:
+          - path: /vfs-cache
