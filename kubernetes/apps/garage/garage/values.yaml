@@ -55,7 +55,6 @@ controllers:
             memory: 64Mi
           limits:
             memory: 256Mi
-
 service:
   s3:
     controller: main
@@ -119,21 +118,24 @@ persistence:
     type: emptyDir
     advancedMounts:
       main:
+        # main:
+        #   - path: /var/lib/garage/data
+        #     mountPropagation: HostToContainer
+        rclone:
+          - path: /data
+            mountPropagation: Bidirectional
+  # Use this the first time, with an empty meta volume
+  # and attach to the rclone container and:
+  # cp /tmp-d/garage-marker /data/garage-marker
+  # then comment this out again and re-deploy
+  tmpd:
+    type: emptyDir
+    advancedMounts:
+      main:
         main:
           - path: /var/lib/garage/data
         rclone:
-          - path: /data
-  # Use this the first time and attach to the rclone container and:
-  # cp /tmp-d/garage-marker /data/garage-marker
-  # then comment this out again and re-deploy
-  # tmpd:
-  #   type: emptyDir
-  #   advancedMounts:
-  #     main:
-  #       main:
-  #         - path: /var/lib/garage/data
-  #       rclone:
-  #         - path: /tmp-d
+          - path: /tmp-d
   vfs-cache:
     type: emptyDir
     advancedMounts:
