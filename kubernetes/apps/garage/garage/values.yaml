@@ -1,5 +1,6 @@
 ---
 defaultPodOptions:
+  terminationGracePeriodSeconds: 30
   securityContext:
     runAsUser: 568
     runAsGroup: 568
@@ -39,6 +40,18 @@ controllers:
             fi
             grep -q '^user_allow_other' /etc/fuse.conf || echo 'user_allow_other' >> /etc/fuse.conf
             exec su -s /bin/sh -c 'exec rclone mount bf-nd24-10tb-garage-crypt: /data --config /etc/rclone/rclone.conf --allow-other --allow-non-empty --vfs-cache-mode writes --cache-dir=/vfs-cache --log-level NOTICE --uid=568 --gid=568 --umask=002' appuser
+        lifecycle:
+          preStop:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  echo "PreStop: unmounting rclone fuse..."
+                  # Try fusermount3 first, then fallback
+                  fusermount3 -u /data 2>/dev/null || true
+                  fusermount -u /data 2>/dev/null || true
+                  umount -l /data 2>/dev/null || true
         envFrom:
           - secretRef:
               name: rclone-secret
