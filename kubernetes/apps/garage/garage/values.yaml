@@ -9,6 +9,8 @@ defaultPodOptions:
 
 controllers:
   main:
+    serviceAccount:
+      name: tailscale
     annotations:
       reloader.stakater.com/auto: "true"
     containers:
@@ -24,6 +26,32 @@ controllers:
             memory: 128Mi
           limits:
             memory: 512Mi
+      tailscale:
+        image:
+          repository: ghcr.io/tailscale/tailscale
+          tag: v1.88.2@sha256:9d66a1c8922e174cd346c2776c7c6f4450589543d988ae1bb9cefd8de58fd6c2
+        securityContext:
+          privileged: true
+          runAsUser: 0
+          runAsGroup: 0
+        env:
+          TS_KUBE_SECRET: "tailscale-auth"
+          TS_USERSPACE: "false"
+          TS_DEBUG_FIREWALL_MODE: "auto"
+          POD_NAME:
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          POD_UID:
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.uid
+        envFrom:
+          - secretRef:
+              name: tailscale-secret
+        resources:
+          limits:
+            squat.ai/tun: "1"
       rclone:
         image:
           repository: rclone/rclone
@@ -74,13 +102,6 @@ service:
     ports:
       s3:
         port: 3900
-  rpc:
-    type: LoadBalancer
-    loadBalancerClass: tailscale
-    controller: main
-    ports:
-      rpc:
-        port: 3901
   admin:
     controller: main
     ports:
