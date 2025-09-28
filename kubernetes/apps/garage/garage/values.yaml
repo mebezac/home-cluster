@@ -67,7 +67,7 @@ controllers:
               mkdir -p /home/appuser && chown 568:568 /home/appuser
             fi
             grep -q '^user_allow_other' /etc/fuse.conf || echo 'user_allow_other' >> /etc/fuse.conf
-            exec su -s /bin/sh -c 'exec rclone mount bf-nd24-10tb-garage-crypt: /data --config /etc/rclone/rclone.conf --allow-other --allow-non-empty --vfs-cache-mode writes --cache-dir=/vfs-cache --log-level NOTICE --uid=568 --gid=568 --umask=002' appuser
+            exec su -s /bin/sh -c 'exec rclone mount bf-nd24-10tb-garage-crypt: /data --config /etc/rclone/rclone.conf --allow-other --allow-non-empty --vfs-cache-mode writes --vfs-cache-max-size 6G --vfs-cache-max-age 15m --cache-dir=/vfs-cache --log-level NOTICE --uid=568 --gid=568 --umask=002' appuser
         lifecycle:
           preStop:
             exec:
@@ -178,7 +178,12 @@ persistence:
   #       rclone:
   #         - path: /tmp-d
   vfs-cache:
-    type: emptyDir
+    enabled: true
+    type: persistentVolumeClaim
+    storageClass: openebs-hostpath
+    accessMode: ReadWriteOnce
+    suffix: vfs-cache
+    size: 7Gi
     advancedMounts:
       main:
         rclone:
