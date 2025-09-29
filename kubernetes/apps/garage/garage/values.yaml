@@ -107,6 +107,11 @@ service:
     ports:
       admin:
         port: 3903
+  metrics:
+    controller: main
+    ports:
+      metrics:
+        port: 3903
 
 ingress:
   main:
@@ -188,3 +193,16 @@ persistence:
       main:
         rclone:
           - path: /vfs-cache
+
+serviceMonitor:
+  metrics:
+    enabled: true
+    serviceName: garage-metrics
+    endpoints:
+      - port: metrics
+        scheme: http
+        path: /metrics
+        interval: 30s
+        bearerTokenSecret:
+          key: metrics_token
+          name: garage-secret
