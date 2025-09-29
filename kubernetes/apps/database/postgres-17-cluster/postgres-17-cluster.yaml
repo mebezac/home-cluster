@@ -31,7 +31,7 @@ spec:
   backup:
     retentionPolicy: 30d
     barmanObjectStore:
-      endpointURL: https://minio-tc.laboratory.casa
+      endpointURL: https://garage-tc.laboratory.casa
       s3Credentials:
         accessKeyId:
           name: cloudnative-pg
