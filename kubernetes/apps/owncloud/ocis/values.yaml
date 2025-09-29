@@ -38,8 +38,8 @@ controllers:
           PROXY_TLS: false
           STORAGE_USERS_DRIVER: s3ng
           STORAGE_SYSTEM_DRIVER: ocis
-          STORAGE_USERS_S3NG_ENDPOINT: https://minio-tc.laboratory.casa
-          STORAGE_USERS_S3NG_REGION: default
+          STORAGE_USERS_S3NG_ENDPOINT: https://garage-tc.laboratory.casa
+          STORAGE_USERS_S3NG_REGION: us-east-1
           STORAGE_USERS_S3NG_BUCKET: ocis
           OCIS_INSECURE: true
           OCIS_SHARING_PUBLIC_SHARE_MUST_HAVE_PASSWORD: false
