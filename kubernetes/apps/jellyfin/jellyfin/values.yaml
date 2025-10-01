@@ -53,7 +53,10 @@ persistence:
     path: /mnt/data/10tb/Media
     globalMounts:
       - path: /Media
-
+  pinchflat:
+    existingClaim: pinchflat-media
+    globalMounts:
+      - path: /pinchflat
   data:
     enabled: true
     type: persistentVolumeClaim
