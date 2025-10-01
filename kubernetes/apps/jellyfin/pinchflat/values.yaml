@@ -1,0 +1,96 @@
+controllers:
+  main:
+    pod:
+      securityContext:
+        runAsUser: 3000
+        runAsGroup: 3000
+        runAsNonRoot: true
+        fsGroup: 3000
+        fsGroupChangePolicy: OnRootMismatch
+        supplementalGroups: [44]
+    containers:
+      main:
+        image:
+          repository: ghcr.io/kieraneglin/pinchflat
+          tag: v2025.6.6@sha256:4e975edf58f0861a5cbfe8fc6aac4851ff5a02dfc3f05ffeea4982e3084a5a4a
+        env:
+          TZ: America/Detroit
+          TZ_DATA_DIR: /tmp/elixir_tz_data
+          PORT: &port 80
+          PUID: 3000
+          PGID: 3000
+        probes:
+          liveness: &probes
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /healthcheck
+                port: *port
+              initialDelaySeconds: 0
+              periodSeconds: 10
+              timeoutSeconds: 1
+              failureThreshold: 3
+          readiness: *probes
+        resources:
+          requests:
+            cpu: 10m
+          limits:
+            gpu.intel.com/i915: 1
+            memory: 8Gi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          capabilities:
+            drop:
+              - ALL
+
+service:
+  main:
+    controller: main
+    ports:
+      http:
+        port: *port
+
+ingress:
+  main:
+    enabled: true
+    className: internal
+    hosts:
+      - host: pinchflat.laboratory.casa
+        paths:
+          - path: /
+            service:
+              identifier: main
+              port: http
+
+persistence:
+  config:
+    enabled: true
+    type: persistentVolumeClaim
+    storageClass: longhorn
+    accessMode: ReadWriteOnce
+    suffix: config
+    size: 256Mi
+    globalMounts:
+      - path: /config
+  media:
+    enabled: true
+    type: persistentVolumeClaim
+    storageClass: freenas-api-nfs
+    accessMode: ReadWriteMany
+    suffix: media
+    size: 1Ti
+    advancedMounts:
+      main:
+        main:
+          - path: /downloads
+  tmpfs:
+    type: emptyDir
+    advancedMounts:
+      main:
+        main:
+          - path: /etc/yt-dlp
+            subPath: yt-dlp
+          - path: /tmp
+            subPath: tmp
