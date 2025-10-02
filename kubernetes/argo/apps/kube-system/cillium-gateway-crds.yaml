@@ -1,0 +1,23 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cilium-gateway-crds
+  namespace: argo-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "-5"
+spec:
+  project: kubernetes
+  sources:
+    - repoURL: https://github.com/kubernetes-sigs/gateway-api
+      targetRevision: v1.3.0
+      path: config/crd/experimental
+  destination:
+    name: in-cluster
+  syncPolicy:
+    automated:
+      allowEmpty: true
+      prune: false
+      selfHeal: true
+    syncOptions:
+      - ServerSideApply=true
