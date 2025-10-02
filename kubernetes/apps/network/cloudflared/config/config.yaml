@@ -10,7 +10,9 @@ data:
 
     ingress:
       - hostname: "laboratory.casa"
-        service: https://ingress-nginx-external-controller.network.svc.cluster.local:443
+        service: &nginx-svc https://ingress-nginx-external-controller.network.svc.cluster.local:443
+      - hostname: "audiobookshelf.laboratory.casa"
+        service: &gateway-svc https://cilium-gateway-external.kube-system.svc.cluster.local
       - hostname: "*.laboratory.casa"
-        service: https://ingress-nginx-external-controller.network.svc.cluster.local:443
+        service: *nginx-svc
       - service: http_status:404
