@@ -252,6 +252,11 @@ dashboards:
       datasource:
         - { name: DS_PROMETHEUS, value: Prometheus }
   database:
+    immich-postgres-exporter:
+      # renovate: depName="PostgreSQL Database"
+      gnetId: 9628
+      revision: 8
+      datasource: Prometheus
     postgres-17-cluster:
       url: https://raw.githubusercontent.com/cloudnative-pg/grafana-dashboards/refs/heads/main/charts/cluster/grafana-dashboard.json
       datasource: Prometheus

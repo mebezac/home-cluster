@@ -18,11 +18,43 @@ controllers:
             memory: 250Mi
           limits:
             memory: 2Gi
+
+      metrics:
+        image:
+          repository: quay.io/prometheuscommunity/postgres-exporter
+          tag: v0.18.1@sha256:fb96c4413985d4b23ab02b19022b3d70a86c8e0a62f41ab15ebb6f4673781a5d
+        env:
+          DATA_SOURCE_URI: localhost:5432/postgres?sslmode=disable
+        envFrom:
+          - secretRef:
+              name: immich-db-secret
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            memory: 256Mi
+        probes:
+          liveness:
+            enabled: true
+          readiness:
+            enabled: true
 service:
   main:
     ports:
       postgres:
         port: 5432
+  metrics:
+    ports:
+      metrics:
+        port: 9187
+
+serviceMonitor:
+  main:
+    enabled: true
+    serviceName: immich-db-metrics
+    endpoints:
+      - port: metrics
 
 persistence:
   data:
