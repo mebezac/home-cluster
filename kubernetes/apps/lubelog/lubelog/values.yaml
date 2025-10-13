@@ -24,7 +24,7 @@ controllers:
       app:
         image:
           repository: ghcr.io/hargata/lubelogger
-          tag: v1.5.2
+          tag: v1.5.3
         env:
           TZ: America/New_York
           LC_ALL: en_US.UTF-8
