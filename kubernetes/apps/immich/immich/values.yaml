@@ -20,7 +20,7 @@ controllers:
       main:
         image:
           repository: ghcr.io/immich-app/immich-server
-          tag: v2.0.1
+          tag: commit-46869f664d0f1c5cab102fabaeaf7c2307ebabe1 # Need to be able to use vectorchord 0.5.3 which won't release until 2.0.2 TODO: go back to normal versions after that releases
         env:
           TZ: America/New_York
           IMMICH_CONFIG_FILE: /config/immich-config.json
@@ -74,7 +74,7 @@ controllers:
       main:
         image:
           repository: ghcr.io/immich-app/immich-server
-          tag: v2.0.1
+          tag: commit-46869f664d0f1c5cab102fabaeaf7c2307ebabe1 # Need to be able to use vectorchord 0.5.3 which won't release until 2.0.2 TODO: go back to normal versions after that releases
         envFrom:
           - secretRef:
               name: *secret
@@ -113,7 +113,7 @@ controllers:
       main:
         image:
           repository: ghcr.io/immich-app/immich-machine-learning
-          tag: v2.0.1
+          tag: commit-46869f664d0f1c5cab102fabaeaf7c2307ebabe1 # Need to be able to use vectorchord 0.5.3 which won't release until 2.0.2 TODO: go back to normal versions after that releases
         env:
           TZ: America/New_York
           IMMICH_CONFIG_FILE: /config/immich-config.json
