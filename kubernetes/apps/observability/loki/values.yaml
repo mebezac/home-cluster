@@ -47,6 +47,9 @@ singleBinary:
     enabled: true
     storageClass: longhorn-single-replica
     size: 50Gi
+memberlist:
+  service:
+    publishNotReadyAddresses: true
 gateway:
   replicas: 0
 backend:
