@@ -180,3 +180,19 @@ identity_providers:
         access_token_signed_response_alg: "none"
         userinfo_signed_response_alg: "none"
         token_endpoint_auth_method: "client_secret_basic"
+      # Romm
+      - client_id: ".VBSb-hcpa9r3odp1o~1VreQRYpwUWpb1Dzw5dDkEcr08duvBx2TZ6tAIO-gFJ92q2rPZ-Y8"
+        client_name: "Romm"
+        client_secret: "$pbkdf2-sha512$310000$qdx8gSyPI1fZyRXaDLTHtg$Um9tnhj7NGSviNGxy4WGbXNw8x8tX.Z.WQCrLltfz7NOTzcQHJIBKdmSxGlk3.AwJN.2ghy2y2bAAYHAPmc1sg"
+        public: false
+        authorization_policy: "one_factor"
+        grant_types:
+          - authorization_code
+        redirect_uris:
+          - "https://romm.laboratory.casa/api/oauth/openid"
+        scopes:
+          - "openid"
+          - "email"
+          - "profile"
+        userinfo_signed_response_alg: "none"
+        token_endpoint_auth_method: "client_secret_basic"

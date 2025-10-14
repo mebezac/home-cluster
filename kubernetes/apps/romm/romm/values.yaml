@@ -1,0 +1,133 @@
+---
+defaultPodOptions:
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 3000
+    runAsGroup: 3000
+    fsGroup: 3000
+    fsGroupChangePolicy: OnRootMismatch
+    seccompProfile:
+      type: RuntimeDefault
+
+controllers:
+  romm:
+    labels:
+      reloader.stakater.com/auto: "true"
+
+    initContainers:
+      postgres-init:
+        image:
+          repository: ghcr.io/home-operations/postgres-init
+          tag: 17.6
+        envFrom: &envFrom
+          - secretRef:
+              name: romm-secret
+
+      fix-permissions:
+        image:
+          repository: busybox
+          tag: stable
+
+        command:
+          [
+            "sh",
+            "-c",
+            "mkdir -p /romm/config /romm/assets && chown -R 3000:3000 /romm/config && chown -R 3000:3000 /romm/assets",
+          ]
+
+        securityContext:
+          runAsNonRoot: false
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: true
+          runAsUser: 0
+          runAsGroup: 0
+          capabilities:
+            { add: ["CHOWN", "FOWNER", "DAC_OVERRIDE"], drop: ["ALL"] }
+
+    containers:
+      app:
+        image:
+          repository: ghcr.io/rommapp/romm
+          tag: 4.3.2@sha256:1895c339b3c7ca62d52f809f5e4c747d78fc8291ea5ee88b3b57df84acf33449
+
+        env:
+          ENABLE_RESCAN_ON_FILESYSTEM_CHANGE: "true"
+          ENABLE_SCHEDULED_RESCAN: "true"
+          HASHEOUS_API_ENABLED: "true"
+          OIDC_ENABLED: "true"
+          OIDC_PROVIDER: authelia
+          OIDC_REDIRECT_URI: https://romm.laboratory.casa/api/oauth/openid
+          OIDC_SERVER_APPLICATION_URL: https://login.laboratory.casa
+          REDIS_DB: "6"
+          REDIS_HOST: valkey.valkey.svc.cluster.local
+          REDIS_PORT: "6379"
+          RESCAN_ON_FILESYSTEM_CHANGE_DELAY: 5
+          ROMM_DB_DRIVER: postgresql
+          SCHEDULED_RESCAN_CRON: "0 3 * * *"
+          SCAN_TIMEOUT: 72000
+          TZ: America/Detroit
+        envFrom: *envFrom
+        probes:
+          liveness:
+            enabled: true
+          readiness:
+            enabled: true
+          startup:
+            enabled: true
+            spec:
+              failureThreshold: 30
+              periodSeconds: 5
+        resources:
+          requests:
+            cpu: 10m
+            memory: 500Mi
+
+service:
+  app:
+    controller: romm
+    ports:
+      http:
+        port: 8080
+
+ingress:
+  app:
+    enabled: true
+    className: internal
+    hosts:
+      - host: romm.laboratory.casa
+        paths:
+          - path: /
+            service:
+              identifier: app
+              port: http
+
+persistence:
+  data:
+    type: persistentVolumeClaim
+    storageClass: longhorn
+    accessMode: ReadWriteOnce
+    suffix: data
+    size: 512Mi
+    globalMounts:
+      - path: /romm/config
+        subPath: config
+      - path: /romm/assets
+        subPath: assets
+
+  nas:
+    enabled: true
+    type: nfs
+    server: nas.laboratory.casa
+    path: /mnt/data/10tb/romm
+    advancedMounts:
+      romm:
+        app:
+          - path: /romm/library
+            subPath: library
+          - path: /romm/resources
+            subPath: resources
+
+  tmp:
+    type: emptyDir
+    globalMounts:
+      - path: /tmp
