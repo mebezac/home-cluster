@@ -54,6 +54,7 @@ controllers:
           ENABLE_RESCAN_ON_FILESYSTEM_CHANGE: "true"
           ENABLE_SCHEDULED_RESCAN: "true"
           HASHEOUS_API_ENABLED: "true"
+          HLTB_API_ENABLED: "true"
           OIDC_ENABLED: "true"
           OIDC_PROVIDER: authelia
           OIDC_REDIRECT_URI: https://romm.laboratory.casa/api/oauth/openid
