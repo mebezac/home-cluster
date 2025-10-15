@@ -94,6 +94,17 @@ duo_api:
 # OIDC
 identity_providers:
   oidc:
+    claims_policies:
+      all:
+        id_token:
+          [
+            "groups",
+            "email",
+            "email_verified",
+            "alt_emails",
+            "preferred_username",
+            "name",
+          ]
     jwks:
       # https://www.authelia.com/reference/guides/generating-secure-values/#generating-an-rsa-keypair
       # openssl genrsa -out authelia_oidc_private_key.pem 2048
@@ -184,6 +195,7 @@ identity_providers:
       - client_id: ".VBSb-hcpa9r3odp1o~1VreQRYpwUWpb1Dzw5dDkEcr08duvBx2TZ6tAIO-gFJ92q2rPZ-Y8"
         client_name: "Romm"
         client_secret: "$pbkdf2-sha512$310000$qdx8gSyPI1fZyRXaDLTHtg$Um9tnhj7NGSviNGxy4WGbXNw8x8tX.Z.WQCrLltfz7NOTzcQHJIBKdmSxGlk3.AwJN.2ghy2y2bAAYHAPmc1sg"
+        claims_policy: "all"
         public: false
         authorization_policy: "one_factor"
         grant_types:
