@@ -52,6 +52,7 @@ controllers:
 
         env:
           ENABLE_RESCAN_ON_FILESYSTEM_CHANGE: "true"
+          ENABLE_SCHEDULED_CONVERT_IMAGES_TO_WEBP: "true"
           ENABLE_SCHEDULED_RESCAN: "true"
           HASHEOUS_API_ENABLED: "true"
           HLTB_API_ENABLED: "true"
@@ -62,10 +63,11 @@ controllers:
           REDIS_DB: "6"
           REDIS_HOST: valkey.valkey.svc.cluster.local
           REDIS_PORT: "6379"
-          RESCAN_ON_FILESYSTEM_CHANGE_DELAY: 5
+          RESCAN_ON_FILESYSTEM_CHANGE_DELAY: "5"
           ROMM_DB_DRIVER: postgresql
           SCHEDULED_RESCAN_CRON: "0 3 * * *"
-          SCAN_TIMEOUT: 72000
+          SCAN_TIMEOUT: "72000"
+          TASK_TIMEOUT: "14400"
           TZ: America/Detroit
         envFrom: *envFrom
         probes:
