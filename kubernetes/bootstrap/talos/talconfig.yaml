@@ -153,14 +153,14 @@ nodes:
         mtu: 1500
   - hostname: "wyse-5070-05-talos-k3s-worker-04"
     ipAddress: "10.25.30.40"
-    installDisk: "/dev/sda"
+    installDisk: "/dev/sdb"
     machineSpec:
       secureboot: false
     talosImageURL: factory.talos.dev/installer/9ba0b24a91c2b56085dceb616daaf013f0453bcf2f2036814be062733e583806
     controlPlane: false
     networkInterfaces:
       - deviceSelector:
-          hardwareAddr: "6c:2b:59:33:bb:47"
+          hardwareAddr: "b0:7b:25:54:36:8a"
         dhcp: false
         addresses:
           - "10.25.30.40/24"
