@@ -14,7 +14,7 @@ spec:
       ref: kube-prometheus-stack-repo
     - repoURL: ghcr.io/prometheus-community/charts
       chart: kube-prometheus-stack
-      targetRevision: 78.2.1
+      targetRevision: 78.3.0
       helm:
         releaseName: kube-prometheus-stack
         valueFiles:
