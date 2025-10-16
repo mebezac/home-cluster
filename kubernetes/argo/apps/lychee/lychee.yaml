@@ -26,7 +26,7 @@ spec:
       ref: lychee-repo
     - repoURL: ghcr.io/bjw-s-labs/helm
       chart: app-template
-      targetRevision: 4.3.0
+      targetRevision: 4.4.0
       helm:
         releaseName: lychee
         valueFiles:
