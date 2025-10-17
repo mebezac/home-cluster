@@ -14,7 +14,7 @@ spec:
       ref: snapshot-controller-repo
     - repoURL: https://piraeus.io/helm-charts/
       chart: snapshot-controller
-      targetRevision: 4.1.0
+      targetRevision: 4.1.1
       helm:
         releaseName: snapshot-controller
         valueFiles:
