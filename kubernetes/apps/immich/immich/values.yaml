@@ -113,7 +113,7 @@ controllers:
       main:
         image:
           repository: ghcr.io/immich-app/immich-machine-learning
-          tag: v2.1.0@sha256:24bfef29bc5c0923c64c98810931eda1449a4b237e6704a715605761bc107ae4
+          tag: v2.2.2@sha256:848b097e1250695ceaa371824b441356847140328bcfb921bdd5e3459878d535
         env:
           TZ: America/New_York
           IMMICH_CONFIG_FILE: /config/immich-config.json
