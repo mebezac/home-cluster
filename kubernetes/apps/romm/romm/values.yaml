@@ -67,6 +67,7 @@ controllers:
           ROMM_DB_DRIVER: postgresql
           SCHEDULED_RESCAN_CRON: "0 3 * * *"
           SCAN_TIMEOUT: "72000"
+          SCAN_WORKERS: "3"
           TASK_TIMEOUT: "14400"
           TZ: America/Detroit
         envFrom: *envFrom
