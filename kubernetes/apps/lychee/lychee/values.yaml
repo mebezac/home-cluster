@@ -17,7 +17,7 @@ controllers:
       app:
         image:
           repository: lycheeorg/lychee
-          tag: v6.9.4@sha256:82108ea745822d509610f0b0b8a8c89acbb9d92c71e7c4733d5e29b0e546043b
+          tag: v6.10.2@sha256:b0bc0423f8a1050bb8244185284c0cb36595fbce1607438ee08a023e24486bc1
         resources:
           requests:
             cpu: 100m
