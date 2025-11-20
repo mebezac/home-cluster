@@ -5,7 +5,7 @@ metadata:
   name: postgres-17-cluster
 spec:
   instances: 3
-  imageName: ghcr.io/cloudnative-pg/postgresql:17.7-standard-trixie@sha256:e5625154c77ec5b2f70557e9e61b46283f19bae4625155b3611c2140e6eb853d
+  imageName: ghcr.io/cloudnative-pg/postgresql:17.7-system-trixie@sha256:6d8125b098073329ff00b83e5da766175f4aa4c2ff826e819eb9d7ce467b6cd3
   logLevel: warning
   storage:
     size: 8Gi
