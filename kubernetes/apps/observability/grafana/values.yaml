@@ -83,8 +83,6 @@ sidecar:
   datasources:
     enabled: true
     searchNamespace: ALL
-    initDatasources: true
-    labelValue: ""
   dashboards:
     enabled: true
     labelValue: ""
