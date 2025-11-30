@@ -1,0 +1,21 @@
+apiVersion: barmancloud.cnpg.io/v1
+kind: ObjectStore
+metadata:
+  name: pg-cluster-garage-object-store
+spec:
+  retentionPolicy: 30d
+  configuration:
+    endpointURL: https://garage-tc.laboratory.casa
+    s3Credentials:
+      accessKeyId:
+        name: cloudnative-pg
+        key: aws-access-key-id
+      secretAccessKey:
+        name: cloudnative-pg
+        key: aws-secret-access-key
+    destinationPath: s3://cloudnative-pg/v17
+    data:
+      compression: bzip2
+    wal:
+      compression: bzip2
+      maxParallel: 4
