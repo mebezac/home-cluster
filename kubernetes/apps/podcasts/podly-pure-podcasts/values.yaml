@@ -13,7 +13,7 @@ controllers:
       main:
         image:
           repository: ghcr.io/jdrbc/podly-pure-podcasts
-          tag: 2.1.3-latest@sha256:e6f3d2cb677c2eb3fafd87c16ba7bf0113d52ff29f7f8a12c4367e65f4ae5ba3
+          tag: 2.1.3-lite@sha256:cc0f8c134aa603895be93ee298b7bc9acc184b7d97a3f3965f829864f2cba2f0
           pullPolicy: IfNotPresent
         resources:
           requests:
@@ -27,6 +27,9 @@ controllers:
           PGID: "3000"
           CUDA_VISIBLE_DEVICES: "-1"
           SERVER_THREADS: "3"
+          GROQ_WHISPER_MODEL: whisper-large-v3-turbo
+          GROQ_MAX_RETRIES: "3"
+          WHISPER_TYPE: groq
         envFrom:
           - secretRef:
               name: podly-secret
