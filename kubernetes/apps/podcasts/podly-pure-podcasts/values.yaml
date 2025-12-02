@@ -68,7 +68,9 @@ service:
 ingress:
   main:
     enabled: true
-    className: internal
+    className: external
+    annotations:
+      external-dns.alpha.kubernetes.io/target: external.laboratory.casa
     hosts:
       - host: podly.laboratory.casa
         paths:
