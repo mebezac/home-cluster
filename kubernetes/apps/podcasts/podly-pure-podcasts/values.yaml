@@ -1,0 +1,90 @@
+---
+defaultPodOptions:
+  securityContext:
+    runAsUser: 3000
+    runAsGroup: 3000
+    fsGroup: 3000
+    fsGroupChangePolicy: "OnRootMismatch"
+
+controllers:
+  main:
+    replicas: 1
+    containers:
+      main:
+        image:
+          repository: ghcr.io/jdrbc/podly-pure-podcasts
+          tag: 2.1.3-latest@sha256:e6f3d2cb677c2eb3fafd87c16ba7bf0113d52ff29f7f8a12c4367e65f4ae5ba3
+          pullPolicy: IfNotPresent
+        resources:
+          requests:
+            cpu: 100m
+            memory: 2Gi
+          limits:
+            cpu: 3000m
+            memory: 8Gi
+        env:
+          PUID: "3000"
+          PGID: "3000"
+          CUDA_VISIBLE_DEVICES: "-1"
+          SERVER_THREADS: "3"
+        envFrom:
+          - secretRef:
+              name: podly-secret
+        probes:
+          liveness: &probes
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /
+                port: 5001
+              initialDelaySeconds: 10
+              periodSeconds: 30
+              timeoutSeconds: 10
+              failureThreshold: 3
+          readiness: *probes
+          startup:
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /
+                port: 5001
+              initialDelaySeconds: 10
+              periodSeconds: 10
+              timeoutSeconds: 10
+              failureThreshold: 30
+
+service:
+  main:
+    controller: main
+    ports:
+      http:
+        port: 5001
+
+ingress:
+  main:
+    enabled: true
+    className: internal
+    hosts:
+      - host: podly.laboratory.casa
+        paths:
+          - path: /
+            pathType: Prefix
+            service:
+              identifier: main
+              port: http
+
+persistence:
+  data:
+    enabled: true
+    type: persistentVolumeClaim
+    storageClass: longhorn-single-replica
+    accessMode: ReadWriteOnce
+    size: 5Gi
+    globalMounts:
+      - path: /app/src/instance
+  cache:
+    type: emptyDir
+    globalMounts:
+      - path: /.cache
