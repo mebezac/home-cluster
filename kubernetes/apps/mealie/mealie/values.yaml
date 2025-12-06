@@ -48,19 +48,20 @@ service:
     controller: mealie
     ports:
       http:
-        port: 9000
+        port: &port 9000
 
-ingress:
+route:
   app:
-    enabled: true
-    className: internal
-    hosts:
-      - host: mealie.laboratory.casa
-        paths:
-          - path: /
-            service:
-              identifier: app
-              port: http
+    hostnames:
+      - mealie.laboratory.casa
+    parentRefs:
+      - name: internal
+        namespace: kube-system
+        sectionName: https
+    rules:
+      - backendRefs:
+          - identifier: app
+            port: *port
 
 persistence:
   data:
