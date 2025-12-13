@@ -7,7 +7,7 @@ controllers:
       app:
         image:
           repository: ghcr.io/esphome/esphome
-          tag: 2025.11.4
+          tag: 2025.11.5
         env:
           - name: TZ
             value: "America/New_York"
