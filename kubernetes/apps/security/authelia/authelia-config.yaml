@@ -105,6 +105,8 @@ identity_providers:
             "preferred_username",
             "name",
           ]
+      jotty:
+        id_token: [preferred_username, email]
     jwks:
       # https://www.authelia.com/reference/guides/generating-secure-values/#generating-an-rsa-keypair
       # openssl genrsa -out authelia_oidc_private_key.pem 2048
@@ -195,8 +197,10 @@ identity_providers:
       - client_id: "0MyAbPRQbqQSZhoZlFXjkOA8NLL486gFIHa5Ioe-jws7~oYiemtbJ1QyGyEKRhS-QOtbII65"
         client_name: "Jotty"
         client_secret: ""
+        claims_policy: jotty
         public: true
         authorization_policy: "one_factor"
+        consent_mode: "implicit"
         require_pkce: true
         redirect_uris:
           - "https://jotty.laboratory.casa/api/oidc/callback"
