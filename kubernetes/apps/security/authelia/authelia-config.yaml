@@ -152,23 +152,6 @@ identity_providers:
           - "groups"
         userinfo_signed_response_alg: "none"
         token_endpoint_auth_method: "client_secret_post"
-      # Immich
-      - client_id: "41nHQ5imgM1h3nOJL8FfXvggecdeXrGkhnLHyyTp3S1ucf0H-PzO3NNcVDY6yyXEtNOfHWZs"
-        client_name: "Immich"
-        client_secret: "$pbkdf2-sha512$310000$L8d/Waz0mSe94FCHULvOkg$c2TUcXjKETw/tjugKN7XfzysfCE5548s/wiLo1ayoQRojR3PWVdguwhlsW4eozujdzViFM5Hg9UFJWz7uYzh3A"
-        public: false
-        authorization_policy: "one_factor"
-        consent_mode: "implicit"
-        redirect_uris:
-          - "https://photos.laboratory.casa/auth/login"
-          - "https://photos.laboratory.casa/user-settings"
-          - "app.immich:///oauth-callback"
-        scopes:
-          - "openid"
-          - "profile"
-          - "email"
-        userinfo_signed_response_alg: "none"
-        token_endpoint_auth_method: "client_secret_post"
       # Grafana
       - client_id: "GsZwRm8rK2QfEtcJFCeIm1Y7M5Vb4JhLlYKp-od5xDjiSkIQ3ySB1NpZrcmEK2pJtwboW9et"
         client_name: "Grafana"
@@ -191,6 +174,38 @@ identity_providers:
         access_token_signed_response_alg: "none"
         userinfo_signed_response_alg: "none"
         token_endpoint_auth_method: "client_secret_basic"
+      # Immich
+      - client_id: "41nHQ5imgM1h3nOJL8FfXvggecdeXrGkhnLHyyTp3S1ucf0H-PzO3NNcVDY6yyXEtNOfHWZs"
+        client_name: "Immich"
+        client_secret: "$pbkdf2-sha512$310000$L8d/Waz0mSe94FCHULvOkg$c2TUcXjKETw/tjugKN7XfzysfCE5548s/wiLo1ayoQRojR3PWVdguwhlsW4eozujdzViFM5Hg9UFJWz7uYzh3A"
+        public: false
+        authorization_policy: "one_factor"
+        consent_mode: "implicit"
+        redirect_uris:
+          - "https://photos.laboratory.casa/auth/login"
+          - "https://photos.laboratory.casa/user-settings"
+          - "app.immich:///oauth-callback"
+        scopes:
+          - "openid"
+          - "profile"
+          - "email"
+        userinfo_signed_response_alg: "none"
+        token_endpoint_auth_method: "client_secret_post"
+      # Jotty
+      - client_id: "0MyAbPRQbqQSZhoZlFXjkOA8NLL486gFIHa5Ioe-jws7~oYiemtbJ1QyGyEKRhS-QOtbII65"
+        client_name: "Jotty"
+        client_secret: "$pbkdf2-sha512$310000$ciAOD172DWxmbuxKA3sryw$gsDh9CzA3oyBqfyUDNbY9iXlBBB0tg5pzf2Txf.dbPDUFhu5SXHxx0tWErgut.6iK1Jye3EAoZ5W/F1gkui0GA"
+        public: false
+        authorization_policy: "one_factor"
+        require_pkce: true
+        redirect_uris:
+          - "https://jotty.laboratory.casa/api/oidc/callback"
+        scopes: ["openid", "profile", "email"]
+        response_types: ["code"]
+        grant_types: ["authorization_code"]
+        token_endpoint_auth_method: none
+        access_token_signed_response_alg: "none"
+        userinfo_signed_response_alg: "none"
       # Romm
       - client_id: ".VBSb-hcpa9r3odp1o~1VreQRYpwUWpb1Dzw5dDkEcr08duvBx2TZ6tAIO-gFJ92q2rPZ-Y8"
         client_name: "Romm"
