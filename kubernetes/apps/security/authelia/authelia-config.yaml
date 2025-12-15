@@ -194,13 +194,13 @@ identity_providers:
       # Jotty
       - client_id: "0MyAbPRQbqQSZhoZlFXjkOA8NLL486gFIHa5Ioe-jws7~oYiemtbJ1QyGyEKRhS-QOtbII65"
         client_name: "Jotty"
-        client_secret: "$pbkdf2-sha512$310000$ciAOD172DWxmbuxKA3sryw$gsDh9CzA3oyBqfyUDNbY9iXlBBB0tg5pzf2Txf.dbPDUFhu5SXHxx0tWErgut.6iK1Jye3EAoZ5W/F1gkui0GA"
-        public: false
+        client_secret: ""
+        public: true
         authorization_policy: "one_factor"
         require_pkce: true
         redirect_uris:
           - "https://jotty.laboratory.casa/api/oidc/callback"
-        scopes: ["openid", "profile", "email"]
+        scopes: ["openid", "profile", "email", "groups"]
         response_types: ["code"]
         grant_types: ["authorization_code"]
         token_endpoint_auth_method: none

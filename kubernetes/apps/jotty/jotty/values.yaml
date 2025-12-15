@@ -20,7 +20,7 @@ controllers:
           NODE_ENV: production
           PUID: 3000
           PGID: 3000
-          APP_URL: jotty.laboratory.casa
+          APP_URL: https://jotty.laboratory.casa
           STOP_CHECK_UPDATES: yes
           TZ: America/New_York
         envFrom:
