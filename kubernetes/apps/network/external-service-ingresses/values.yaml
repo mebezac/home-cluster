@@ -55,7 +55,7 @@ services:
   - name: frigate
     external_ip: 10.25.30.10
     ingresses:
-      - host: frig.laboratory.casa
+      - host: frigate.laboratory.casa
         ingressClassName: external
         port: 5000
         annotations:

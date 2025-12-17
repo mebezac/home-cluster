@@ -40,7 +40,7 @@ access_control:
         - group:apps_user
     ## Special access for frigate
     - domain:
-        - "frig.laboratory.casa"
+        - "frigate.laboratory.casa"
       policy: one_factor
       subject:
         - group:apps_user
