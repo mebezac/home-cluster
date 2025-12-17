@@ -60,6 +60,10 @@ services:
         port: 5000
         annotations:
           external-dns.alpha.kubernetes.io/target: external.laboratory.casa
+          nginx.ingress.kubernetes.io/auth-method: GET
+          nginx.ingress.kubernetes.io/auth-url: http://authelia.security.svc.cluster.local/api/authz/auth-request
+          nginx.ingress.kubernetes.io/auth-signin: https://login.laboratory.casa?rm=$request_method
+          nginx.ingress.kubernetes.io/auth-response-headers: Remote-User,Remote-Name,Remote-Groups,Remote-Email
     service_ports:
       - name: http
         port: 5000
