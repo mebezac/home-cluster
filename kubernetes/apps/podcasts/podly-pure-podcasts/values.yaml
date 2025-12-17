@@ -15,7 +15,7 @@ controllers:
       main:
         image:
           repository: ghcr.io/jdrbc/podly-pure-podcasts
-          tag: 2.2.0-lite@sha256:2f40993d3f9a39e957f6070a0d843998a36b5deb80ca4542d2da0fb804e6e4e6
+          tag: 2.2.1-lite@sha256:8c02a63391f195bff42241a75dee611a4efa849d4b791fb44eb5fc76a5bbbd9b
           pullPolicy: IfNotPresent
         resources:
           requests:
