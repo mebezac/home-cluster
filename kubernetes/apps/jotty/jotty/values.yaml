@@ -42,7 +42,9 @@ service:
 
 ingress:
   app:
-    className: internal
+    className: external
+    annotations:
+      external-dns.alpha.kubernetes.io/target: external.laboratory.casa
     hosts:
       - host: jotty.laboratory.casa
         paths:
@@ -56,7 +58,7 @@ persistence:
     type: persistentVolumeClaim
     storageClass: longhorn
     accessMode: ReadWriteOnce
-    size: 2Gi
+    size: 512Mi
     globalMounts:
       - path: /app/data
         subPath: data
