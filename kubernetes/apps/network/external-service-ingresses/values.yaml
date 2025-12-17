@@ -52,6 +52,18 @@ services:
       - name: http
         port: 80
         target_port: 80
+  - name: frigate
+    external_ip: 10.25.30.10
+    ingresses:
+      - host: frig.laboratory.casa
+        ingressClassName: external
+        port: 5000
+        annotations:
+          external-dns.alpha.kubernetes.io/target: external.laboratory.casa
+    service_ports:
+      - name: http
+        port: 5000
+        target_port: 5000
   - name: minio-tc
     external_ip: 10.25.30.36
     ingresses:
