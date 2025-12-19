@@ -19,7 +19,7 @@ spec:
         serverName: postgres-17-cluster-v2
 
   storage:
-    size: 8Gi
+    size: 16Gi
     storageClass: longhorn-single-replica
   enableSuperuserAccess: true
   superuserSecret:
