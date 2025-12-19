@@ -4,7 +4,7 @@ kind: Cluster
 metadata:
   name: postgres-17-cluster
 spec:
-  instances: 3
+  instances: 2
   # NOTE: Yes I know everything is called *-17-*, even though the version is now higher
   # That was an oversight when first making the cluster, but I don't care enough to fix it now
   imageName: ghcr.io/cloudnative-pg/postgresql:18.1-standard-trixie@sha256:bbefe420af6ba639167cf6b5ea385a5a5816db47cfaa8c6b1fecc2c503b8df81
