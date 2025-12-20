@@ -16,6 +16,13 @@ controllers:
         image:
           repository: ghcr.io/music-assistant/server
           tag: 2.7.1@sha256:35dc0ea99095e96d99538cdef6d52de8939a84096ba49a391474409b3d7bcb71
+        env:
+          TZ: America/New_York
+          LOG_LEVEL: info
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities: { drop: ["ALL"], add: ["SYS_ADMIN", "DAC_READ_SEARCH"] }
         resources:
           requests:
             cpu: 100m
