@@ -33,6 +33,8 @@ service:
     ports:
       http:
         port: 8095
+      stream:
+        port: 8097
 
 ingress:
   main:
