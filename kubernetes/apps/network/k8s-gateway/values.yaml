@@ -8,5 +8,6 @@ service:
     io.cilium/lb-ipam-ips: 10.25.30.118
   externalTrafficPolicy: Cluster
 watchedResources:
+  - HTTPRoute
   - Ingress
   - Service
