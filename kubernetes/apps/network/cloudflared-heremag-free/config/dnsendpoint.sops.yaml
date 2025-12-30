@@ -1,0 +1,27 @@
+apiVersion: externaldns.k8s.io/v1alpha1
+kind: DNSEndpoint
+metadata:
+  name: heremag-free-tunnel
+  namespace: network
+spec:
+  endpoints:
+    - dnsName: external.heremag.free
+      recordType: CNAME
+      targets:
+        - 37bdf31a-c269-426d-9a70-823699fb91d9.cfargotunnel.com
+sops:
+  age:
+    - recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
+      enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBhbGhlUEg1SUlObXdNVjYv
+        ZEZUSGdQVU5lbzFCRURtVUNXeStNbjNnS0JJCmQxNjBnWWZvUUVxSEVOVTVHMU5E
+        VEJuTk5Ud3pzL3RzVlNVNUVyTWZKejAKLS0tIFVnUXlvc3FhMXBrTDFJaVBpVjJa
+        WmxDTGlqREpoSXMrQlpiOUdRZXEzNVEKWIf8o61Zd9wHIJH7F4Vtq+jgj1la/H7y
+        lyY2crVgM2C3TdL7pO4q54YITG3eiZ7LwEpxYtdv7fzDH4Z+L6MHNQ==
+        -----END AGE ENCRYPTED FILE-----
+  lastmodified: "2025-12-30T15:03:01Z"
+  mac: ENC[AES256_GCM,data:k04XKZomL5bhCtvzNfnNKpQD/mgmhCufmANn2Mx7+qQDcJcUD/2Y1zTXwssg4IdzhSaPmsk5Y+Atj5OWQ0fI+Zlv8npX0eTsN+1+s9Yvj25fnzvJvmqn9Gsl4D1InhF6ok6RzjARUI58bukvLQTJKIIfLgiTASqYtinW2KkssIg=,iv:CogfKjZ9lEWSW8MezUSun50d74F8TZWCBKZFKFZ1pBo=,tag:J+gZp9DPTJEF2qWKIWARig==,type:str]
+  encrypted_regex: ^(data|stringData)$
+  mac_only_encrypted: true
+  version: 3.11.0
