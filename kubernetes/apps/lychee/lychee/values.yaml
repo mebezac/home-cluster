@@ -95,11 +95,13 @@ persistence:
     suffix: data
     size: 2Gi
     globalMounts:
-      - path: /conf
-        subPath: conf
+      - path: /app/.env
+        subPath: conf/.env
       - path: /sym
         subPath: sym
-      - path: /logs
+      - path: /app/storage/app
+        subPath: app
+      - path: /app/storage/logs
         subPath: logs
   uploads:
     enabled: true
@@ -108,4 +110,8 @@ persistence:
     accessMode: ReadWriteOnce
     size: 50Gi
     globalMounts:
-      - path: /uploads
+      - path: /app/public/uploads
+  tmp:
+    type: emptyDir
+    globalMounts:
+      - path: /app/storage/tmp
