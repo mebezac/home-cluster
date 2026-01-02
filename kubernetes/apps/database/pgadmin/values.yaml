@@ -1,0 +1,75 @@
+defaultPodOptions:
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 3000
+    runAsGroup: 3000
+    fsGroup: 3000
+    fsGroupChangePolicy: OnRootMismatch
+
+controllers:
+  pgadmin:
+    annotations:
+      reloader.stakater.com/auto: "true"
+    containers:
+      app:
+        image:
+          repository: docker.io/dpage/pgadmin4
+          tag: "9.11@sha256:50700ac17936d0227f9e3e4bb086a91efb67064debc4b4737c35545bf1564088"
+        env:
+          GUNICORN_LIMIT_REQUEST_LINE: "0"
+          GUNICORN_LIMIT_REQUEST_FIELD_SIZE: "0"
+          PGADMIN_CUSTOM_CONFIG_DISTRO_FILE: /tmp/config_distro.py
+          PGADMIN_DISABLE_POSTFIX: "true"
+        envFrom:
+          - secretRef:
+              name: pgadmin-secret
+        resources:
+          requests:
+            cpu: 50m
+            memory: 100Mi
+          limits:
+            memory: 500Mi
+
+service:
+  app:
+    controller: pgadmin
+    ports:
+      http:
+        port: 80
+
+ingress:
+  app:
+    className: internal
+    hosts:
+      - host: pgadmin.laboratory.casa
+        paths:
+          - path: /
+            service:
+              identifier: app
+              port: http
+
+persistence:
+  config:
+    type: persistentVolumeClaim
+    storageClass: longhorn
+    accessMode: ReadWriteOnce
+    size: 512Mi
+    globalMounts:
+      - path: /var/lib/pgadmin
+  oauth:
+    enabled: true
+    type: secret
+    name: pgadmin-secret
+    advancedMounts:
+      pgadmin:
+        app:
+          - path: /pgadmin4/config_local.py
+            subPath: config_local.py
+  empty:
+    type: emptyDir
+    sizeLimit: 100Mi
+    globalMounts:
+      - path: /tmp
+        subPath: tmp
+      - path: /var/log
+        subPath: log
