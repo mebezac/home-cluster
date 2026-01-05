@@ -49,3 +49,7 @@ ingress:
             service:
               identifier: app
               port: http
+    tls:
+      - hosts:
+          - forms.heremag.free
+        secretName: heremag-free-production-tls
