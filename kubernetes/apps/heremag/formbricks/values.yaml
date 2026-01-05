@@ -28,9 +28,10 @@ controllers:
         envFrom: *envFrom
         resources:
           requests:
-            cpu: 15m
+            cpu: 500m
             memory: 256M
           limits:
+            cpu: 2000m
             memory: 2048M
 service:
   app:
