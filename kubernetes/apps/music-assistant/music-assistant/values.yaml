@@ -1,0 +1,80 @@
+---
+defaultPodOptions:
+  securityContext:
+    runAsUser: 3000
+    runAsGroup: 3000
+    fsGroup: 3000
+    fsGroupChangePolicy: "OnRootMismatch"
+
+controllers:
+  main:
+    replicas: 1
+    annotations:
+      reloader.stakater.com/auto: "true"
+    containers:
+      main:
+        image:
+          repository: ghcr.io/music-assistant/server
+          tag: 2.7.2@sha256:8fc7f780a0a30594e170d5a71138852b1a1e7ce33d2d460e50bf8cadf9eda74f
+        env:
+          TZ: America/New_York
+          LOG_LEVEL: info
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities: { drop: ["ALL"], add: ["SYS_ADMIN", "DAC_READ_SEARCH"] }
+        resources:
+          requests:
+            cpu: 100m
+            memory: 1Gi
+          limits:
+            memory: 2Gi
+
+service:
+  main:
+    controller: main
+    annotations:
+      io.cilium/lb-ipam-ips: 10.25.30.57
+    type: LoadBalancer
+    externalTrafficPolicy: Cluster
+    ports:
+      http:
+        port: 8095
+      stream:
+        port: 8097
+
+ingress:
+  main:
+    enabled: true
+    className: internal
+    hosts:
+      - host: ma.laboratory.casa
+        paths:
+          - path: /
+            service:
+              identifier: main
+              port: http
+
+persistence:
+  media:
+    enabled: true
+    type: nfs
+    server: nas.laboratory.casa
+    path: /mnt/data/10tb/Media
+    globalMounts:
+      - path: /Media
+
+  data:
+    enabled: true
+    type: persistentVolumeClaim
+    storageClass: longhorn
+    accessMode: ReadWriteOnce
+    suffix: data
+    size: 5Gi
+    globalMounts:
+      - path: /data
+
+  tmpfs:
+    type: emptyDir
+    globalMounts:
+      - path: /.audio

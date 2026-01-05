@@ -15,12 +15,12 @@ spec:
       ref: repo
     - repoURL: https://intel.github.io/helm-charts
       chart: intel-device-plugins-operator
-      targetRevision: 0.34.0
+      targetRevision: 0.34.1
       helm:
         releaseName: intel-device-plugins-operator
     - repoURL: https://intel.github.io/helm-charts
       chart: intel-device-plugins-gpu
-      targetRevision: 0.34.0
+      targetRevision: 0.34.1
       helm:
         releaseName: intel-device-plugins-gpu
         valueFiles:

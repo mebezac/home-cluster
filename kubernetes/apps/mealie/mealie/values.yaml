@@ -15,7 +15,7 @@ controllers:
       init-db:
         image:
           repository: ghcr.io/home-operations/postgres-init
-          tag: 17.6
+          tag: 18.1
           pullPolicy: IfNotPresent
         envFrom: &envFrom
           - secretRef:
@@ -24,7 +24,7 @@ controllers:
       app:
         image:
           repository: ghcr.io/mealie-recipes/mealie
-          tag: v3.5.0@sha256:7f776bbb5457db7f58951c11e3aa881f0167675a78459d7a7f2cd5e42d181fa5
+          tag: v3.9.1@sha256:8c5c7765ca5f7f3070f08482aca8102c2b43193777fe958e06d86b153ec18f5f
         env:
           TZ: America/New_York
           BASE_URL: https://mealie.laboratory.casa

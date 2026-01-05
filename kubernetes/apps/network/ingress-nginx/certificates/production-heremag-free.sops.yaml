@@ -1,0 +1,35 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: heremag-free-production
+spec:
+  secretName: heremag-free-production-tls
+  issuerRef:
+    name: letsencrypt-production-heremag-free
+    kind: ClusterIssuer
+  commonName: heremag.free
+  dnsNames:
+    - heremag.free
+    - '*.heremag.free'
+  secretTemplate:
+    annotations:
+      reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
+      reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces: ""
+      reflector.v1.k8s.emberstack.com/reflection-auto-enabled: "true"
+      reflector.v1.k8s.emberstack.com/reflection-auto-namespaces: ""
+sops:
+  age:
+    - recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
+      enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBYMjVxcDU3UjIzd2U3MzNZ
+        Nkc5c0xyZmxMVGV3eTZiK1JHeEh6blVxNEJjCmQ4bkJMOWFRYVE2a2lEV1YzdHNj
+        b0hEVml5clhLY1lPSy9iNmNxaHJzUHMKLS0tIGlZRFJ0bW95bG1IdkpGWG9KbnVK
+        N0pONHBPTVd1SUxRZVZvcFFQNEo3YmsKrfvsQxw1xzX8lcYNjH6aN8XOybQhHiyf
+        oQZg63IuXrooeHyUJMEufczVcqq+xQkq6r3VLcs5w1kCowJYv3XvDQ==
+        -----END AGE ENCRYPTED FILE-----
+  lastmodified: "2025-12-30T15:03:22Z"
+  mac: ENC[AES256_GCM,data:I+125CWgsMJHZ/EFFQ0ysOjkTKBRLDzkDfzncIdFLEm1MqBI9sZa/7RNr9iKFdfoBH01Vh+qtGfovYv30IK3ZnvLo/n3nXzt4EEufgq2LC1IdywMnYyzI++XEkhHOzFsiirfU6SLO/Jbzlpsqg+01DOrk1Uxy3c7CvwJPchwGgo=,iv:WdGLhy2Tr8uVV8H/GkaIiKGJY0YB6SuRhZax7O9iA/I=,tag:oKD1xw4/gq7+yytXC6VhcQ==,type:str]
+  encrypted_regex: ^(data|stringData)$
+  mac_only_encrypted: true
+  version: 3.11.0

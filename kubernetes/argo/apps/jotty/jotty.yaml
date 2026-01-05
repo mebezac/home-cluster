@@ -1,0 +1,31 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: jotty
+  namespace: argo-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: kubernetes
+  sources:
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/apps/jotty/jotty
+      targetRevision: main
+      ref: jotty-repo
+    - repoURL: ghcr.io/bjw-s-labs/helm
+      chart: app-template
+      targetRevision: 4.5.0
+      helm:
+        releaseName: jotty
+        valueFiles:
+          - $jotty-repo/kubernetes/apps/jotty/jotty/values.yaml
+  destination:
+    name: in-cluster
+    namespace: jotty
+  syncPolicy:
+    automated:
+      allowEmpty: true
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

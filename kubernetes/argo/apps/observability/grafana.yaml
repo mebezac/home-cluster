@@ -14,7 +14,7 @@ spec:
       ref: grafana-repo
     - repoURL: ghcr.io/grafana/helm-charts
       chart: grafana
-      targetRevision: 10.1.5
+      targetRevision: 10.4.3
       helm:
         releaseName: grafana
         valueFiles:
@@ -29,3 +29,4 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+

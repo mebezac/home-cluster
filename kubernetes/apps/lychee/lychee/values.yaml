@@ -8,7 +8,7 @@ controllers:
       init-db:
         image:
           repository: ghcr.io/home-operations/postgres-init
-          tag: 17.6
+          tag: 18.1
           pullPolicy: IfNotPresent
         envFrom: &envFrom
           - secretRef:
@@ -17,7 +17,7 @@ controllers:
       app:
         image:
           repository: lycheeorg/lychee
-          tag: v6.10.2@sha256:b0bc0423f8a1050bb8244185284c0cb36595fbce1607438ee08a023e24486bc1
+          tag: v7.0.1@sha256:c109a65be24498fca32c147970c4cd655ca60fb70141a2f795b0bab39fd76bf0
         resources:
           requests:
             cpu: 100m
@@ -43,7 +43,7 @@ controllers:
             spec:
               httpGet:
                 path: /
-                port: 80
+                port: &appPort 8000
               initialDelaySeconds: 0
               periodSeconds: 10
               timeoutSeconds: 1
@@ -59,14 +59,14 @@ controllers:
               failureThreshold: 30
               httpGet:
                 path: /
-                port: 80
+                port: *appPort
 
 service:
   main:
     controller: main
     ports:
       http:
-        port: 80
+        port: *appPort
 
 ingress:
   main:
@@ -95,11 +95,13 @@ persistence:
     suffix: data
     size: 2Gi
     globalMounts:
-      - path: /conf
-        subPath: conf
+      - path: /app/.env
+        subPath: conf/.env
       - path: /sym
         subPath: sym
-      - path: /logs
+      - path: /app/storage/app
+        subPath: app
+      - path: /app/storage/logs
         subPath: logs
   uploads:
     enabled: true
@@ -108,4 +110,8 @@ persistence:
     accessMode: ReadWriteOnce
     size: 50Gi
     globalMounts:
-      - path: /uploads
+      - path: /app/public/uploads
+  tmp:
+    type: emptyDir
+    globalMounts:
+      - path: /app/storage/tmp

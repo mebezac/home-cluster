@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cloudflared-heremag-free-configmap
+  namespace: network
+data:
+  config.yaml: ENC[AES256_GCM,data:70IM0K2/cVsc+zWTIGd9wgGgcB5B4W5qzXSrWwVUu682E/gcLHU76E311V80ooRktCwSCNsbw2TowgHIdMXxhnWNHdNvQFvCUZUmsViI92++DLEEW1zlheQwPXIIQxBPoaF8zEToDQ+MIio25ePggJd7RmsPCaEk80g1kloQ+zXvVOoq7lYn5ig9HanMn6JUWHuSJ7HBuy7rD02SuHZZK1o9DeM15MxAGDeqUwZAua4wtuZH8a1EUED7K3pb/lbBRzScpCQ=,iv:uwA/Ka3bcOpx6JXIIJjIwbWOIFCUpu1xtTYbK9+Bf/I=,tag:xhLl5hFR/QguL4b6a4NYbQ==,type:str]
+sops:
+  age:
+    - recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
+      enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBLa0pPT28zQ25EM3hSaDhw
+        dDZMVVh0MG54aTUyaWgxZTEwcDhFS21hUDJFClNrUnAveXcrcTc2cFpYUkhPZEM1
+        SlBaaGx4clkzN2YyUGp3Y2UxK084RDAKLS0tIFZMdmVyb3JFTFBXeEZkb1Y5N3By
+        alNuSnd0UWhGVzdENGVvUWZlcmpBeHcK330BNDYBEmpezmYypmClRjXtVBOb6aJO
+        hIpxBNLQiEqz0apqudyDhbdpiLVFFi4zDsLFcFLxd9yjF2yuhksNYQ==
+        -----END AGE ENCRYPTED FILE-----
+  lastmodified: "2025-12-30T15:02:40Z"
+  mac: ENC[AES256_GCM,data:uwAw7jtLDtF/QpOKBMzQtnLsNveYFMGDnUuxnAuKjEkg80LV03quhekUuRQZ7yC+VHb3e9MrZpZy732pijK8IXSw/8wE+0mg0BcztYugk9XsBDPg4vQZyDs4GXDIwPbqRSF9DSBfmxqXTVwHae8Yu3IvnuYNr186a6pMym4HKjM=,iv:mJw6RLshaOXlB018obyle4Xtt1U1Hs+zejup9Byc/Cc=,tag:jI4NgGFfNjsIMnPN8/2iXw==,type:str]
+  encrypted_regex: ^(data|stringData)$
+  mac_only_encrypted: true
+  version: 3.11.0

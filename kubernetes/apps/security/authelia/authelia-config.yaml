@@ -38,6 +38,13 @@ access_control:
       policy: one_factor
       subject:
         - group:apps_user
+    ## Special access for frigate
+    - domain:
+        - "frigate.laboratory.casa"
+      policy: one_factor
+      subject:
+        - group:apps_user
+        - group:frigate_only
     ## Allow everything for admins
     - domain:
         - "*.laboratory.casa"
@@ -105,6 +112,8 @@ identity_providers:
             "preferred_username",
             "name",
           ]
+      jotty:
+        id_token: [preferred_username, email]
     jwks:
       # https://www.authelia.com/reference/guides/generating-secure-values/#generating-an-rsa-keypair
       # openssl genrsa -out authelia_oidc_private_key.pem 2048
@@ -152,6 +161,28 @@ identity_providers:
           - "groups"
         userinfo_signed_response_alg: "none"
         token_endpoint_auth_method: "client_secret_post"
+      # Grafana
+      - client_id: "GsZwRm8rK2QfEtcJFCeIm1Y7M5Vb4JhLlYKp-od5xDjiSkIQ3ySB1NpZrcmEK2pJtwboW9et"
+        client_name: "Grafana"
+        client_secret: "$pbkdf2-sha512$310000$2vOKyoOWcrZLKvJ4v/t8qQ$LP5DSdgiorcOExz4EuCFsFAR2RCgvMaJ7mIJkTkoXAxbMQ0B2QvKRViQ48yRC/eboOPjGjuUzaqkUr/kNQkVWg"
+        public: false
+        authorization_policy: "one_factor"
+        require_pkce: true
+        pkce_challenge_method: "S256"
+        redirect_uris:
+          - "https://graf.laboratory.casa/login/generic_oauth"
+        scopes:
+          - "openid"
+          - "profile"
+          - "groups"
+          - "email"
+        response_types:
+          - "code"
+        grant_types:
+          - "authorization_code"
+        access_token_signed_response_alg: "none"
+        userinfo_signed_response_alg: "none"
+        token_endpoint_auth_method: "client_secret_basic"
       # Immich
       - client_id: "41nHQ5imgM1h3nOJL8FfXvggecdeXrGkhnLHyyTp3S1ucf0H-PzO3NNcVDY6yyXEtNOfHWZs"
         client_name: "Immich"
@@ -169,20 +200,36 @@ identity_providers:
           - "email"
         userinfo_signed_response_alg: "none"
         token_endpoint_auth_method: "client_secret_post"
-      # Grafana
-      - client_id: "GsZwRm8rK2QfEtcJFCeIm1Y7M5Vb4JhLlYKp-od5xDjiSkIQ3ySB1NpZrcmEK2pJtwboW9et"
-        client_name: "Grafana"
-        client_secret: "$pbkdf2-sha512$310000$2vOKyoOWcrZLKvJ4v/t8qQ$LP5DSdgiorcOExz4EuCFsFAR2RCgvMaJ7mIJkTkoXAxbMQ0B2QvKRViQ48yRC/eboOPjGjuUzaqkUr/kNQkVWg"
+      # Jotty
+      - client_id: "0MyAbPRQbqQSZhoZlFXjkOA8NLL486gFIHa5Ioe-jws7~oYiemtbJ1QyGyEKRhS-QOtbII65"
+        client_name: "Jotty"
+        client_secret: ""
+        claims_policy: jotty
+        public: true
+        authorization_policy: "one_factor"
+        consent_mode: "implicit"
+        require_pkce: true
+        redirect_uris:
+          - "https://jotty.laboratory.casa/api/oidc/callback"
+        scopes: ["openid", "profile", "email", "groups"]
+        response_types: ["code"]
+        grant_types: ["authorization_code"]
+        token_endpoint_auth_method: none
+        access_token_signed_response_alg: "none"
+        userinfo_signed_response_alg: "none"
+        # pgAdmin
+      - client_id: "180j8UKBM3CEMYV~0sQFlbvG-HlZX1SagNIIBf5Gk~9UtCadBzRAj32_QQdP2WkJWW3ek1AW"
+        client_name: "pgAdmin"
+        client_secret: "$pbkdf2-sha512$310000$mW.OvQaOY78b4afaoGtyMA$ROU1LSObbw48vu.EE2SuN/iqnK5abuTf0FYpSnXiSGobwbzFpXjLIIdyfswhpuOyUXLYonCFfXpbZzHE/VkCHA"
         public: false
         authorization_policy: "one_factor"
         require_pkce: true
         pkce_challenge_method: "S256"
         redirect_uris:
-          - "https://graf.laboratory.casa/login/generic_oauth"
+          - "https://pgadmin.laboratory.casa/oauth2/authorize"
         scopes:
           - "openid"
           - "profile"
-          - "groups"
           - "email"
         response_types:
           - "code"

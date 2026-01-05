@@ -15,7 +15,7 @@ controllers:
       init-db:
         image:
           repository: ghcr.io/home-operations/postgres-init
-          tag: 17.6
+          tag: 18.1
           pullPolicy: IfNotPresent
         envFrom: &envFrom
           - secretRef:
@@ -24,7 +24,7 @@ controllers:
       app:
         image:
           repository: ghcr.io/hargata/lubelogger
-          tag: v1.5.4
+          tag: v1.5.6
         env:
           TZ: America/New_York
           LC_ALL: en_US.UTF-8

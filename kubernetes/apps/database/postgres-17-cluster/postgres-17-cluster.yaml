@@ -5,10 +5,21 @@ metadata:
   name: postgres-17-cluster
 spec:
   instances: 3
-  imageName: ghcr.io/cloudnative-pg/postgresql:17.5-8
+  # NOTE: Yes I know everything is called *-17-*, even though the version is now higher
+  # That was an oversight when first making the cluster, but I don't care enough to fix it now
+  imageName: ghcr.io/cloudnative-pg/postgresql:18.1-standard-trixie@sha256:bbefe420af6ba639167cf6b5ea385a5a5816db47cfaa8c6b1fecc2c503b8df81
   logLevel: warning
+  plugins:
+    - name: barman-cloud.cloudnative-pg.io
+      isWALArchiver: true
+      parameters:
+        barmanObjectName: pg-cluster-garage-object-store
+        # NOTE: serverName version needs to be incremented
+        # when recovering from an existing cnpg cluster
+        serverName: postgres-17-cluster-v2
+
   storage:
-    size: 8Gi
+    size: 16Gi
     storageClass: longhorn-single-replica
   enableSuperuserAccess: true
   superuserSecret:
@@ -28,23 +39,3 @@ spec:
         action: replace
       - regex: cluster
         action: labeldrop
-  backup:
-    retentionPolicy: 30d
-    barmanObjectStore:
-      endpointURL: https://garage-tc.laboratory.casa
-      s3Credentials:
-        accessKeyId:
-          name: cloudnative-pg
-          key: aws-access-key-id
-        secretAccessKey:
-          name: cloudnative-pg
-          key: aws-secret-access-key
-      destinationPath: s3://cloudnative-pg/v17
-      data:
-        compression: bzip2
-      wal:
-        compression: bzip2
-        maxParallel: 4
-      # NOTE: serverName version needs to be incremented
-      # when recovering from an existing cnpg cluster
-      serverName: postgres-17-cluster-v2

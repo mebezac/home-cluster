@@ -15,7 +15,7 @@ spec:
       ref: garage-repo
     - repoURL: ghcr.io/bjw-s-labs/helm
       chart: app-template
-      targetRevision: 4.4.0
+      targetRevision: 4.5.0
       helm:
         releaseName: garage
         valueFiles:
@@ -26,7 +26,7 @@ spec:
       ref: webui-repo
     - repoURL: ghcr.io/bjw-s-labs/helm
       chart: app-template
-      targetRevision: 4.4.0
+      targetRevision: 4.5.0
       helm:
         releaseName: garage-webui
         valueFiles:

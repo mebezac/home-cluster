@@ -1,0 +1,50 @@
+defaultPodOptions:
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1001
+    runAsGroup: 1001
+    fsGroup: 1001
+    fsGroupChangePolicy: OnRootMismatch
+    seccompProfile: { type: RuntimeDefault }
+
+controllers:
+  formbricks:
+    annotations:
+      reloader.stakater.com/auto: "true"
+    initContainers:
+      init-db:
+        image:
+          repository: ghcr.io/home-operations/postgres-init
+          tag: 18.1
+          pullPolicy: IfNotPresent
+        envFrom: &envFrom
+          - secretRef:
+              name: formbricks-secret
+    containers:
+      app:
+        image:
+          repository: ghcr.io/formbricks/formbricks
+          tag: 4.5.0@sha256:87cb54bfbc5143e6ce9f9a3c1229dfc869fb930a032200036082f73d1d9f5365
+        envFrom: *envFrom
+        resources:
+          requests:
+            cpu: 15m
+            memory: 256M
+          limits:
+            memory: 2048M
+service:
+  app:
+    controller: formbricks
+    ports:
+      http:
+        port: 3000
+ingress:
+  app:
+    className: internal
+    hosts:
+      - host: forms.heremag.free
+        paths:
+          - path: /
+            service:
+              identifier: app
+              port: http

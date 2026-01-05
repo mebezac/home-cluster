@@ -16,7 +16,7 @@ controllers:
       init-db:
         image:
           repository: ghcr.io/home-operations/postgres-init
-          tag: 17.6
+          tag: 18.1
           pullPolicy: IfNotPresent
         envFrom: &envFrom
           - secretRef:
@@ -25,10 +25,9 @@ controllers:
       app:
         image:
           repository: ghcr.io/umami-software/umami
-          tag: postgresql-v2.19.0
+          tag: 3.0.3@sha256:28f263fe06f79ebffa5a6a6e9bd33b7a278e9342a88e0bdac812416c9f9e4361
         env:
           TZ: America/New_York
-          DATABASE_TYPE: postgresql
           DISABLE_TELEMETRY: "true"
           IGNORE_IP: "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,127.0.0.1/32"
         envFrom: *envFrom
@@ -41,7 +40,7 @@ controllers:
                 path: /api/heartbeat
                 port: &port 3000
               initialDelaySeconds: 0
-              periodSeconds: 10
+              periodSeconds: 30
               timeoutSeconds: 1
               failureThreshold: 3
           readiness: *probes

@@ -1,0 +1,71 @@
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-production-heremag-free
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: admin@heremag.free
+    privateKeySecretRef:
+      name: letsencrypt-production-heremag-free
+    solvers:
+      - dns01:
+          cloudflare:
+            apiTokenSecretRef:
+              name: cert-manager-secret
+              key: heremag-free-api-token
+        selector:
+          dnsZones:
+            - heremag.free
+sops:
+  age:
+    - recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
+      enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBBMmxuWVh2YzF0NUVqSXZq
+        YzdBTVBVZGF1bUoxcERGby9vMWF1bnlSVENzCk9kWWtMamcvMGszdXlxN2daRVpz
+        ZDlIUWJFdkV1dWNxNXdaT2g4UVZ5WTgKLS0tIGc0ekp4dWY2NXVmb3hjMis5NTFO
+        c0l1bHMxL25KT21kankrTUE5TGNqVFUKJEI/KpDELQdjFTo9kkZwN+ts7Rexkvmm
+        sSP/L7XD7wDXyWaeY5M5tPfCsnFPvStz1A/V45NGMdS1F3GWctJm5g==
+        -----END AGE ENCRYPTED FILE-----
+  lastmodified: "2025-12-30T15:02:24Z"
+  mac: ENC[AES256_GCM,data:ZfAbwzGD2e0qgT6/cxsaFqXGct8xJH6PkLhbGw6+0+q65r6RfSNmQPTev0TNZag8Ucfa5W8iYCANPrAx1Pdj81vCcCXKopZzJKBiAM+U7If0cZNlktW5K5WgvMcJM7nuJ1mQmUEbWQMNp6UwIq/nwJimcG97c451o1Uy51gnxVI=,iv:RbhmiJ5rxEGYYj6M1y2NxZERUoM2Lb16PMOLaqFjcUI=,tag:LEAwqdcYEW5DtN2Fvffvuw==,type:str]
+  encrypted_regex: ^(data|stringData)$
+  mac_only_encrypted: true
+  version: 3.11.0
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-staging-heremag-free
+spec:
+  acme:
+    server: https://acme-staging-v02.api.letsencrypt.org/directory
+    email: admin@heremag.free
+    privateKeySecretRef:
+      name: letsencrypt-staging-heremag-free
+    solvers:
+      - dns01:
+          cloudflare:
+            apiTokenSecretRef:
+              name: cert-manager-secret
+              key: heremag-free-api-token
+        selector:
+          dnsZones:
+            - heremag.free
+sops:
+  age:
+    - recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
+      enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBBMmxuWVh2YzF0NUVqSXZq
+        YzdBTVBVZGF1bUoxcERGby9vMWF1bnlSVENzCk9kWWtMamcvMGszdXlxN2daRVpz
+        ZDlIUWJFdkV1dWNxNXdaT2g4UVZ5WTgKLS0tIGc0ekp4dWY2NXVmb3hjMis5NTFO
+        c0l1bHMxL25KT21kankrTUE5TGNqVFUKJEI/KpDELQdjFTo9kkZwN+ts7Rexkvmm
+        sSP/L7XD7wDXyWaeY5M5tPfCsnFPvStz1A/V45NGMdS1F3GWctJm5g==
+        -----END AGE ENCRYPTED FILE-----
+  lastmodified: "2025-12-30T15:02:24Z"
+  mac: ENC[AES256_GCM,data:ZfAbwzGD2e0qgT6/cxsaFqXGct8xJH6PkLhbGw6+0+q65r6RfSNmQPTev0TNZag8Ucfa5W8iYCANPrAx1Pdj81vCcCXKopZzJKBiAM+U7If0cZNlktW5K5WgvMcJM7nuJ1mQmUEbWQMNp6UwIq/nwJimcG97c451o1Uy51gnxVI=,iv:RbhmiJ5rxEGYYj6M1y2NxZERUoM2Lb16PMOLaqFjcUI=,tag:LEAwqdcYEW5DtN2Fvffvuw==,type:str]
+  encrypted_regex: ^(data|stringData)$
+  mac_only_encrypted: true
+  version: 3.11.0
