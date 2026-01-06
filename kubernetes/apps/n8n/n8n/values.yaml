@@ -1,0 +1,111 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/app-template-4.5.0/charts/other/app-template/values.schema.json
+
+controllers:
+  n8n:
+    annotations:
+      reloader.stakater.com/auto: "true"
+    initContainers:
+      init-db:
+        image:
+          repository: ghcr.io/home-operations/postgres-init
+          tag: 18.1@sha256:866f15038ed5185a2b8118821f470bb7ca0df8c4231b8e277446e681ebb1ed84
+        envFrom: &envFrom
+          - secretRef:
+              name: n8n-secret
+    pod:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+    containers:
+      app:
+        image:
+          repository: ghcr.io/n8n-io/n8n
+          tag: 2.3.0@sha256:86818ab591423129251677c49e290ea0b9d2c757dc150a16d15ec207e09b102d
+        env:
+          DB_TYPE: postgresdb
+          DB_POSTGRESDB_SCHEMA: public
+          EXECUTIONS_DATA_PRUNE: true
+          EXECUTIONS_DATA_MAX_AGE: 7
+          EXECUTIONS_DATA_PRUNE_MAX_COUNT: 50000
+          GENERIC_TIMEZONE: America/New_York
+          N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS: false
+          N8N_PROTOCOL: https
+          N8N_PORT: &port 8080
+          N8N_HOST: n8n.laboratory.casa
+          N8N_LOG_LEVEL: info
+          N8N_LOG_OUTPUT: console
+          N8N_RUNNERS_ENABLED: false
+          N8N_BLOCK_ENV_ACCESS_IN_NODE: false
+          N8N_GIT_NODE_DISABLE_BARE_REPOS: true
+          WEBHOOK_URL: https://n8n.laboratory.casa
+          N8N_PROXY_HOPS: 1
+        envFrom: *envFrom
+        probes:
+          startup:
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /healthz
+                port: *port
+              initialDelaySeconds: 10
+              periodSeconds: 5
+              timeoutSeconds: 3
+              failureThreshold: 30
+          liveness:
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /healthz
+                port: *port
+              initialDelaySeconds: 30
+              periodSeconds: 30
+              timeoutSeconds: 5
+              failureThreshold: 3
+          readiness:
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /healthz
+                port: *port
+              initialDelaySeconds: 10
+              periodSeconds: 10
+              timeoutSeconds: 5
+              failureThreshold: 3
+        resources:
+          requests:
+            cpu: 5m
+            memory: 128Mi
+          limits:
+            memory: 1Gi
+
+service:
+  app:
+    controller: n8n
+    ports:
+      http:
+        port: *port
+
+ingress:
+  app:
+    className: internal
+    hosts:
+      - host: n8n.laboratory.casa
+        paths:
+          - path: /
+            service:
+              identifier: app
+              port: http
+
+persistence:
+  data:
+    type: persistentVolumeClaim
+    storageClass: longhorn
+    accessMode: ReadWriteOnce
+    size: 1Gi
+    globalMounts:
+      - path: /home/node/.n8n
