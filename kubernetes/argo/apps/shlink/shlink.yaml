@@ -14,7 +14,7 @@ spec:
       ref: shlink-repo
     - repoURL: ghcr.io/bjw-s-labs/helm
       chart: app-template
-      targetRevision: 4.5.0
+      targetRevision: 4.6.0
       helm:
         releaseName: shlink
         valueFiles:
