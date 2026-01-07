@@ -40,7 +40,7 @@ controllers:
           N8N_BLOCK_ENV_ACCESS_IN_NODE: false
           N8N_GIT_NODE_DISABLE_BARE_REPOS: true
           WEBHOOK_URL: https://n8n.laboratory.casa
-          N8N_PROXY_HOPS: 1
+          N8N_PROXY_HOPS: 2
         envFrom: *envFrom
         probes:
           startup:
