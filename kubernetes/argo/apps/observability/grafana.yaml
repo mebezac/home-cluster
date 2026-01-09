@@ -14,7 +14,7 @@ spec:
       ref: grafana-repo
     - repoURL: ghcr.io/grafana/helm-charts
       chart: grafana
-      targetRevision: 10.5.4
+      targetRevision: 10.5.5
       helm:
         releaseName: grafana
         valueFiles:
