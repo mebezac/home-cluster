@@ -1,0 +1,60 @@
+---
+defaultPodOptions:
+  securityContext:
+    runAsUser: 3000
+    runAsGroup: 3000
+    fsGroup: 3000
+    fsGroupChangePolicy: "OnRootMismatch"
+
+controllers:
+  main:
+    replicas: 1
+    containers:
+      main:
+        image:
+          repository: ghcr.io/anomalyco/opencode
+          tag: 1.1.15@sha256:3f013fb9b91d8e433f8b91af2d32580aae7150cb760536aab4a1539010fc3922
+        env:
+          HOME: /data
+        args:
+          - serve
+          - --port
+          - "3000"
+          - --hostname
+          - 0.0.0.0
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            memory: 1Gi
+
+service:
+  main:
+    controller: main
+    ports:
+      http:
+        port: 3000
+
+ingress:
+  main:
+    enabled: true
+    className: internal
+    hosts:
+      - host: opencode.laboratory.casa
+        paths:
+          - path: /
+            pathType: Prefix
+            service:
+              identifier: main
+              port: http
+
+persistence:
+  data:
+    enabled: true
+    type: persistentVolumeClaim
+    storageClass: longhorn
+    accessMode: ReadWriteOnce
+    size: 1Gi
+    globalMounts:
+      - path: /data
