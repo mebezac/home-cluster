@@ -1,0 +1,71 @@
+---
+defaultPodOptions:
+  securityContext:
+    runAsUser: 1000
+    runAsGroup: 1000
+    fsGroup: 1000
+    fsGroupChangePolicy: "OnRootMismatch"
+
+controllers:
+  main:
+    replicas: 1
+    containers:
+      main:
+        image:
+          repository: ghcr.io/mebezac/opencode-manager
+          tag: 0.2.0-baseline
+        env:
+          NODE_ENV: production
+          HOST: 0.0.0.0
+          PORT: "5003"
+          OPENCODE_SERVER_PORT: "5551"
+          DATABASE_PATH: /app/data/opencode.db
+          WORKSPACE_PATH: /workspace
+          PROCESS_START_WAIT_MS: "20000"
+          PROCESS_VERIFY_WAIT_MS: "10000"
+          HEALTH_CHECK_INTERVAL_MS: "50000"
+          HEALTH_CHECK_TIMEOUT_MS: "300000"
+          MAX_FILE_SIZE_MB: "50"
+          MAX_UPLOAD_SIZE_MB: "50"
+          SANDBOX_TTL_HOURS: "24"
+          CLEANUP_INTERVAL_MINUTES: "60"
+          DEBUG: "true"
+        resources:
+          requests:
+            cpu: 100m
+            memory: 1Gi
+          limits:
+            memory: 8Gi
+
+service:
+  main:
+    controller: main
+    ports:
+      http:
+        port: 5003
+
+ingress:
+  main:
+    enabled: true
+    className: internal
+    hosts:
+      - host: opencode.laboratory.casa
+        paths:
+          - path: /
+            pathType: Prefix
+            service:
+              identifier: main
+              port: http
+
+persistence:
+  data:
+    enabled: true
+    type: persistentVolumeClaim
+    storageClass: longhorn
+    accessMode: ReadWriteOnce
+    size: 10Gi
+    globalMounts:
+      - path: /app/data
+        subPath: data
+      - path: /workspace
+        subPath: workspace
