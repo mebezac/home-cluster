@@ -13,7 +13,7 @@ controllers:
       main:
         image:
           repository: ghcr.io/anomalyco/opencode
-          tag: 1.1.15@sha256:3f013fb9b91d8e433f8b91af2d32580aae7150cb760536aab4a1539010fc3922
+          tag: 1.1.16@sha256:b24b588d150966a9bf1c4fa7a20f79030de47e21b61ac20e4b472867f828429e
         env:
           HOME: /data
         args:
