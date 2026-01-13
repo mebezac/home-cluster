@@ -2,7 +2,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: opencode
+  name: opencode-manager
   namespace: argo-system
   annotations:
     argocd.argoproj.io/sync-wave: "0"
@@ -10,19 +10,19 @@ spec:
   project: kubernetes
   sources:
     - repoURL: https://github.com/mebezac/home-cluster.git
-      path: kubernetes/apps/opencode/opencode
+      path: kubernetes/apps/opencode-manager/opencode-manager
       targetRevision: main
       ref: repo
     - repoURL: ghcr.io/bjw-s-labs/helm
       chart: app-template
       targetRevision: 4.6.0
       helm:
-        releaseName: opencode
+        releaseName: opencode-manager
         valueFiles:
-          - $repo/kubernetes/apps/opencode/opencode/values.yaml
+          - $repo/kubernetes/apps/opencode-manager/opencode-manager/values.yaml
   destination:
     name: in-cluster
-    namespace: opencode
+    namespace: opencode-manager
   syncPolicy:
     automated:
       allowEmpty: true
