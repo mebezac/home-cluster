@@ -1,10 +1,9 @@
 ---
-defaultPodOptions:
-  securityContext:
-    runAsUser: 3000
-    runAsGroup: 3000
-    fsGroup: 3000
-    fsGroupChangePolicy: "OnRootMismatch"
+#   securityContext:
+#     runAsUser: 3000
+#     runAsGroup: 3000
+#     fsGroup: 3000
+#     fsGroupChangePolicy: "OnRootMismatch"
 
 controllers:
   main:
@@ -14,6 +13,7 @@ controllers:
         image:
           repository: ghcr.io/anomalyco/opencode
           tag: 1.1.16@sha256:b24b588d150966a9bf1c4fa7a20f79030de47e21b61ac20e4b472867f828429e
+        workingDir: /data
         env:
           HOME: /data
         args:
