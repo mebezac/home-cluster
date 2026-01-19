@@ -1,0 +1,100 @@
+crds:
+  enabled: false
+
+# Enable Prometheus CRD conversion for smooth migration
+victoria-metrics-operator:
+  operator:
+    disable_prometheus_converter: false
+    enable_converter_ownership: true
+
+# VMSingle - replaces Prometheus + Thanos
+vmsingle:
+  enabled: true
+  spec:
+    retentionPeriod: "30d"
+    storage:
+      storageClassName: longhorn-single-replica
+      resources:
+        requests:
+          storage: 20Gi
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        memory: 1Gi
+  ingress:
+    enabled: true
+    ingressClassName: internal
+    hosts:
+      - vmsingle.laboratory.casa
+
+# VMAgent - replaces Prometheus scraping + Alloy
+vmagent:
+  enabled: true
+  spec:
+    selectAllByDefault: true
+    scrapeInterval: 30s
+    podAntiAffinity: hard
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        memory: 512Mi
+
+# VMAlert - replaces Prometheus alerting rules engine
+vmalert:
+  enabled: true
+  spec:
+    selectAllByDefault: true
+    evaluationInterval: 30s
+    datasource:
+      url: http://vmsingle-victoria-metrics-stack.observability.svc:8429
+    remoteWrite:
+      url: http://vmsingle-victoria-metrics-stack.observability.svc:8429
+    remoteRead:
+      url: http://vmsingle-victoria-metrics-stack.observability.svc:8429
+    notifier:
+      url: http://vmalertmanager-victoria-metrics-stack.observability.svc:9093
+
+# VMAlertmanager - replaces AlertManager
+vmalertmanager:
+  enabled: true
+  spec:
+    replicaCount: 1
+    storage:
+      storageClassName: longhorn-single-replica
+      resources:
+        requests:
+          storage: 1Gi
+  ingress:
+    enabled: true
+    ingressClassName: internal
+    hosts:
+      - alertmanager.laboratory.casa
+
+# Exporters - keep existing, disable here
+prometheus-node-exporter:
+  enabled: false
+
+kube-state-metrics:
+  enabled: false
+
+# Disable built-in Grafana, use existing
+grafana:
+  enabled: false
+
+# Default scrape configs for K8s components
+defaultRules:
+  create: true
+  rules:
+    kubeScheduler: true
+    kubeControllerManager: true
+    kubeEtcd: true
+    kubeProxy: false
+
+kubelet:
+  enabled: true
+  spec:
+    interval: 30s

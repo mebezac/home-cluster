@@ -79,6 +79,8 @@ plugins:
   - vonage-status-panel
   - https://github.com/panodata/panodata-map-panel/releases/download/0.16.0/panodata-map-panel-0.16.0.zip;grafana-worldmap-panel-ng
   - redis-datasource
+  - victoriametrics-datasource
+  - victoriametrics-logs-datasource
 sidecar:
   datasources:
     enabled: true
@@ -103,7 +105,7 @@ datasources:
         type: prometheus
         access: proxy
         url: http://thanos-query.observability.svc.cluster.local:10902
-        isDefault: true
+        isDefault: false
         jsonData:
           timeInterval: 30s
       - name: Loki
@@ -116,9 +118,23 @@ datasources:
       - name: Alertmanager
         type: alertmanager
         access: proxy
-        url: http://alertmanager-operated.observability.svc.cluster.local:9093
+        url: http://vmalertmanager-victoria-metrics-stack.observability.svc:9093
         jsonData:
           implementation: prometheus
+      - name: VictoriaMetrics
+        type: prometheus
+        access: proxy
+        url: http://vmsingle-victoria-metrics-stack.observability.svc:8429
+        isDefault: true
+        jsonData:
+          timeInterval: 30s
+      - name: VictoriaLogs
+        type: loki
+        uid: victorialogs
+        access: proxy
+        url: http://victoria-logs.observability.svc:9428
+        jsonData:
+          maxLines: 250
 dashboardProviders:
   dashboardproviders.yaml:
     apiVersion: 1
