@@ -1,5 +1,5 @@
 crds:
-  enabled: false
+  enabled: true
 
 # Enable Prometheus CRD conversion for smooth migration
 victoria-metrics-operator:
@@ -63,6 +63,9 @@ vmalertmanager:
   enabled: true
   spec:
     replicaCount: 1
+    configSecret: vmalertmanager-config
+    secrets:
+      - alertmanager-secret
     storage:
       storageClassName: longhorn-single-replica
       resources:

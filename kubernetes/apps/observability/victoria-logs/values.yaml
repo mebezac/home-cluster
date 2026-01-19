@@ -1,12 +1,13 @@
-replicaCount: 1
-
 server:
+  enabled: true
+  
+  # Data retention period (14 days same as Loki)
+  retentionPeriod: 14d
+  
   persistentVolume:
     enabled: true
-    storageClass: longhorn-single-replica
+    storageClassName: longhorn-single-replica
     size: 30Gi
-
-  retentionPeriod: 14d
 
   resources:
     requests:
@@ -15,12 +16,14 @@ server:
     limits:
       memory: 512Mi
 
-  extraEnv:
-    - name: VICTORIA_LOGS_PERSISTENT_QUEUE_ENABLED
-      value: "true"
+  ingress:
+    enabled: true
+    ingressClassName: internal
+    hosts:
+      - name: victorialogs.laboratory.casa
+        path:
+          - /
+        port: http
 
-ingress:
-  enabled: true
-  ingressClassName: internal
-  hosts:
-    - victorialogs.laboratory.casa
+  serviceMonitor:
+    enabled: true

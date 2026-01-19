@@ -129,7 +129,7 @@ datasources:
         jsonData:
           timeInterval: 30s
       - name: VictoriaLogs
-        type: loki
+        type: victoriametrics-logs-datasource
         uid: victorialogs
         access: proxy
         url: http://victoria-logs.observability.svc:9428
