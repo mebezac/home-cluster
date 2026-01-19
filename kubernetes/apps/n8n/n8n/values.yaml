@@ -8,7 +8,7 @@ controllers:
       init-db:
         image:
           repository: ghcr.io/home-operations/postgres-init
-          tag: 18.1@sha256:866f15038ed5185a2b8118821f470bb7ca0df8c4231b8e277446e681ebb1ed84
+          tag: 18.1@sha256:3c54d39f19fdb82ed5b3f286450e4071133cc6025bd0e25856bc2c522f8fc030
         envFrom: &envFrom
           - secretRef:
               name: n8n-secret
@@ -22,7 +22,7 @@ controllers:
       app:
         image:
           repository: ghcr.io/n8n-io/n8n
-          tag: 2.4.0@sha256:55864da7c574d641e42552ad6e9ef40ae3207109028600e6d8a8e9a3eed1a071
+          tag: 2.4.4@sha256:69226d5f1eb13bc303418730939799239fa96545513f571f2890442b77c7a522
         env:
           DB_TYPE: postgresdb
           DB_POSTGRESDB_SCHEMA: public
