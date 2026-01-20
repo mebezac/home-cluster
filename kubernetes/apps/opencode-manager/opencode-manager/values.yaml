@@ -30,6 +30,9 @@ controllers:
           SANDBOX_TTL_HOURS: "24"
           CLEANUP_INTERVAL_MINUTES: "60"
           DEBUG: "true"
+        envFrom:
+          - secretRef:
+              name: opencode-manager-secret
         resources:
           requests:
             cpu: 100m
