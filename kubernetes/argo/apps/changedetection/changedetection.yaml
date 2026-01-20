@@ -1,0 +1,31 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: changedetection
+  namespace: argo-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: kubernetes
+  sources:
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/apps/changedetection/changedetection
+      targetRevision: main
+      ref: changedetection-repo
+    - repoURL: ghcr.io/bjw-s-labs/helm
+      chart: app-template
+      targetRevision: 4.6.2
+      helm:
+        releaseName: changedetection
+        valueFiles:
+          - $changedetection-repo/kubernetes/apps/changedetection/changedetection/values.yaml
+  destination:
+    name: in-cluster
+    namespace: changedetection
+  syncPolicy:
+    automated:
+      allowEmpty: true
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
