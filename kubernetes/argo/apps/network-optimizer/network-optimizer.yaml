@@ -1,0 +1,32 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: network-optimizer
+  namespace: argo-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: kubernetes
+  sources:
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/apps/network-optimizer/network-optimizer
+      targetRevision: main
+      ref: network-optimizer-repo
+    - repoURL: ghcr.io/bjw-s-labs/helm
+      chart: app-template
+      targetRevision: 4.6.2
+      helm:
+        releaseName: network-optimizer
+        valueFiles:
+          - $network-optimizer-repo/kubernetes/apps/network-optimizer/network-optimizer/values.yaml
+  destination:
+    name: in-cluster
+    namespace: network-optimizer
+  syncPolicy:
+    automated:
+      allowEmpty: true
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
