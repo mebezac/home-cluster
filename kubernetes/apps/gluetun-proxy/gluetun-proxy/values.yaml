@@ -9,13 +9,6 @@ controllers:
   main:
     annotations:
       reloader.stakater.com/auto: "true"
-    pod:
-      securityContext:
-        runAsUser: 1000
-        runAsGroup: 1000
-        fsGroup: 1000
-        fsGroupChangePolicy: "OnRootMismatch"
-
     containers:
       gluetun:
         image:
@@ -25,10 +18,11 @@ controllers:
           VPN_SERVICE_PROVIDER: windscribe
           VPN_TYPE: openvpn
           FIREWALL: "on"
+          FIREWALL_INPUT_PORTS: "8000,8888"
           HTTPPROXY: "on"
           HTTPPROXY_LISTENING_ADDRESS: ":8888"
           HTTPPROXY_STEALTH: "on"
-          SERVER_REGIONS: US Central, US East, US West
+          SERVER_REGIONS: US East, US Central, US West
         envFrom:
           - secretRef:
               name: gluetun-proxy-secret
@@ -75,18 +69,6 @@ service:
     ports:
       http:
         port: 8888
-
-ingress:
-  gluetun:
-    enabled: true
-    className: internal
-    hosts:
-      - host: gluetun-proxy.laboratory.casa
-        paths:
-          - path: /
-            service:
-              identifier: gluetun
-              port: http
 
 persistence:
   config:
