@@ -1,0 +1,31 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: gluetun-proxy
+  namespace: argo-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: kubernetes
+  sources:
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/apps/gluetun-proxy/gluetun-proxy
+      targetRevision: main
+      ref: gluetun-proxy-repo
+    - repoURL: ghcr.io/bjw-s-labs/helm
+      chart: app-template
+      targetRevision: 4.6.2
+      helm:
+        releaseName: gluetun-proxy
+        valueFiles:
+          - $gluetun-proxy-repo/kubernetes/apps/gluetun-proxy/gluetun-proxy/values.yaml
+  destination:
+    name: in-cluster
+    namespace: gluetun-proxy
+  syncPolicy:
+    automated:
+      allowEmpty: true
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

@@ -1,0 +1,93 @@
+defaultPodOptions:
+  automountServiceAccountToken: false
+  dnsConfig:
+    options:
+      - name: ndots
+        value: "1"
+
+controllers:
+  main:
+    annotations:
+      reloader.stakater.com/auto: "true"
+    pod:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: "OnRootMismatch"
+
+    containers:
+      gluetun:
+        image:
+          repository: ghcr.io/qdm12/gluetun
+          tag: v3.41.0@sha256:6b54856716d0de56e5bb00a77029b0adea57284cf5a466f23aad5979257d3045
+        env:
+          VPN_SERVICE_PROVIDER: windscribe
+          VPN_TYPE: openvpn
+          FIREWALL: "on"
+          HTTPPROXY: "on"
+          HTTPPROXY_LISTENING_ADDRESS: ":8888"
+          HTTPPROXY_STEALTH: "on"
+          SERVER_REGIONS: US Central, US East, US West
+        envFrom:
+          - secretRef:
+              name: gluetun-proxy-secret
+        securityContext:
+          capabilities:
+            add:
+              - NET_ADMIN
+
+  ip-rotator:
+    type: cronjob
+    cronjob:
+      schedule: "15 * * * *"
+      successfulJobsHistory: 1
+      failedJobsHistory: 1
+    containers:
+      rotate:
+        image:
+          repository: curlimages/curl
+          tag: 8.18.0@sha256:d94d07ba9e7d6de898b6d96c1a072f6f8266c687af78a74f380087a0addf5d17
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            echo "Rotating IP..."
+            curl -s -X PUT http://gluetun-proxy-main:8000/v1/vpn/status -H "Content-Type: application/json" -d '{"status":"stopped"}'
+            sleep 5
+            curl -s -X PUT http://gluetun-proxy-main:8000/v1/vpn/status -H "Content-Type: application/json" -d '{"status":"running"}'
+            echo "IP rotation complete"
+        securityContext:
+          runAsUser: 1000
+          runAsGroup: 1000
+          runAsNonRoot: true
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+        resources:
+          requests:
+            cpu: 10m
+            memory: 16Mi
+          limits:
+            memory: 64Mi
+
+service:
+  gluetun:
+    controller: main
+    ports:
+      http:
+        port: 8888
+
+ingress:
+  gluetun:
+    enabled: true
+    className: internal
+    hosts:
+      - host: gluetun-proxy.laboratory.casa
+        paths:
+          - path: /
+            service:
+              identifier: gluetun
+              port: http
+
+persistence:
+  config:
+    type: emptyDir

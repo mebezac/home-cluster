@@ -1,0 +1,55 @@
+controllers:
+  changedetection:
+    annotations:
+      reloader.stakater.com/auto: "true"
+    containers:
+      app:
+        image:
+          repository: ghcr.io/dgtlmoon/changedetection.io
+          tag: 0.52.9@sha256:e95931043d68da46e90498ce74ad317b392caade07186dc06bdfa1710901bf90
+        env:
+          TZ: America/New_York
+          PORT: &port 5000
+          USE_X_SETTINGS: 1
+          PLAYWRIGHT_DRIVER_URL: ws://localhost:3000/?stealth=1&--disable-web-security=true&--user-data-dir=~/browserless-cache-123
+      browser:
+        image:
+          repository: ghcr.io/browserless/chrome
+          tag: v2.38.3@sha256:a299ba3f59c5142d275d4cc68fe9aba8f1d528d32e4bd811f8198bb26198312e
+          pullPolicy: IfNotPresent
+        env:
+          SCREEN_WIDTH: "1920"
+          SCREEN_HEIGHT: "1024"
+          SCREEN_DEPTH: "16"
+          ENABLE_DEBUGGER: "false"
+          PREBOOT_CHROME: "true"
+          CONNECTION_TIMEOUT: "300000"
+          MAX_CONCURRENT_SESSIONS: "10"
+          CHROME_REFRESH_TIME: "600000"
+          DEFAULT_BLOCK_ADS: "true"
+          DEFAULT_STEALTH: "true"
+service:
+  app:
+    controller: changedetection
+    ports:
+      http:
+        port: *port
+ingress:
+  app:
+    enabled: true
+    className: internal
+    hosts:
+      - host: changedetection.laboratory.casa
+        paths:
+          - path: /
+            service:
+              identifier: app
+              port: http
+persistence:
+  config:
+    type: persistentVolumeClaim
+    storageClass: longhorn
+    accessMode: ReadWriteOnce
+    size: 512Mi
+    globalMounts:
+      - path: /datastore

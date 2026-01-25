@@ -126,3 +126,84 @@ Key differences from Flux:
 - No need to add Helm repositories in the repositories directory as they're referenced directly in the Application
 - Standardizes on `laboratory.casa` domain with appropriate subdomains
 - Only preserves nginx-specific annotations in ingress configurations
+
+7. For persistence configuration:
+
+   Most apps require persistent storage. The standard pattern is to create a PVC using Longhorn with ReadWriteOnce access mode.
+
+   A. Basic PVC with Longhorn (most common):
+
+   ```yaml
+   persistence:
+     <name>:
+       type: persistentVolumeClaim
+       storageClass: longhorn
+       accessMode: ReadWriteOnce
+       size: <size>  # e.g., 1Gi, 5Gi
+       suffix: <name>  # Optional: appended to PVC name for clarity
+       globalMounts:
+         - path: /mount/path
+           subPath: subfolder  # Optional: creates subfolder in PVC
+   ```
+
+   B. emptyDir (for temporary data that doesn't need persistence):
+
+   ```yaml
+   persistence:
+     <name>:
+       type: emptyDir
+       globalMounts:
+         - path: /tmp
+   ```
+
+   C. Mounting secrets as files (for sensitive configuration):
+
+   ```yaml
+   persistence:
+     <name>:
+       type: secret
+       name: <secret-name>
+       globalMounts:
+         - path: /path/to/file
+           subPath: <key-name>  # The secret key to mount as file
+           readOnly: true
+   ```
+
+   D. Mounting ConfigMaps as files:
+
+   ```yaml
+   persistence:
+     <name>:
+       type: configMap
+       name: <configmap-name>
+       globalMounts:
+         - path: /path/to/file
+           subPath: <key-name>
+           readOnly: true
+   ```
+
+   E. Advanced mounts (per-controller/per-container):
+
+   Use `advancedMounts` instead of `globalMounts` when you need different mounts for different containers:
+
+   ```yaml
+   persistence:
+     <name>:
+       type: persistentVolumeClaim
+       storageClass: longhorn
+       accessMode: ReadWriteOnce
+       size: 1Gi
+       advancedMounts:
+         <controller-name>:
+           <container-name>:
+             - path: /path
+               subPath: subfolder
+               readOnly: true
+               mountPropagation: HostToContainer  # Optional: for host path access
+   ```
+
+   Notes:
+   - Always use `storageClass: longhorn` and `accessMode: ReadWriteOnce` unless specifically required otherwise
+   - Use `suffix` to make PVC names more descriptive (e.g., `suffix: config` → `appname-config`)
+   - Use `subPath` to organize data within a single PVC
+   - Multiple persistence entries can be defined for different data types (e.g., `config`, `data`, `cache`)
