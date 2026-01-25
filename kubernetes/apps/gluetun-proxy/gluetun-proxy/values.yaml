@@ -3,34 +3,32 @@ defaultPodOptions:
   dnsConfig:
     options:
       - name: ndots
-        value: '1'
+        value: "1"
 
 controllers:
   main:
     annotations:
-      reloader.stakater.com/auto: 'true'
+      reloader.stakater.com/auto: "true"
     pod:
       securityContext:
         runAsUser: 1000
         runAsGroup: 1000
         fsGroup: 1000
-        fsGroupChangePolicy: 'OnRootMismatch'
+        fsGroupChangePolicy: "OnRootMismatch"
 
     containers:
       gluetun:
         image:
           repository: ghcr.io/qdm12/gluetun
-          tag: v3.42.0
+          tag: v3.41.0@sha256:6b54856716d0de56e5bb00a77029b0adea57284cf5a466f23aad5979257d3045
         env:
           VPN_SERVICE_PROVIDER: windscribe
           VPN_TYPE: openvpn
-          SERVER_REGIONS: ${WINDSCRIBE_REGION}
-          FIREWALL: 'on'
-          HTTPPROXY: 'on'
-          HTTPPROXY_LISTENING_ADDRESS: ':8888'
-          HTTPPROXY_STEALTH: 'on'
-          HTTPPROXY_LOGIN: '${HTTPPROXY_USER}'
-          HTTPPROXY_PASSWORD: '${HTTPPROXY_PASSWORD}'
+          FIREWALL: "on"
+          HTTPPROXY: "on"
+          HTTPPROXY_LISTENING_ADDRESS: ":8888"
+          HTTPPROXY_STEALTH: "on"
+          SERVER_REGIONS: US Central, US East, US West
         envFrom:
           - secretRef:
               name: gluetun-proxy-secret
@@ -42,19 +40,21 @@ controllers:
   ip-rotator:
     type: cronjob
     cronjob:
-      schedule: "0 * * * *"
+      schedule: "15 * * * *"
       successfulJobsHistory: 1
       failedJobsHistory: 1
     containers:
       rotate:
-        image: ghcr.io/curlimages/curl:8.5.0
+        image:
+          repository: curlimages/curl
+          tag: 8.18.0@sha256:d94d07ba9e7d6de898b6d96c1a072f6f8266c687af78a74f380087a0addf5d17
         command: ["/bin/sh", "-c"]
         args:
           - |
             echo "Rotating IP..."
-            curl -s -X PUT http://gluetun-proxy-main:8000/v1/openvpn/status -H "Content-Type: application/json" -d '{"status":"stopped"}'
+            curl -s -X PUT http://gluetun-proxy-main:8000/v1/vpn/status -H "Content-Type: application/json" -d '{"status":"stopped"}'
             sleep 5
-            curl -s -X PUT http://gluetun-proxy-main:8000/v1/openvpn/status -H "Content-Type: application/json" -d '{"status":"running"}'
+            curl -s -X PUT http://gluetun-proxy-main:8000/v1/vpn/status -H "Content-Type: application/json" -d '{"status":"running"}'
             echo "IP rotation complete"
         securityContext:
           runAsUser: 1000
