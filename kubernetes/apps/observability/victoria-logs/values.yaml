@@ -1,0 +1,29 @@
+server:
+  enabled: true
+  
+  # Data retention period (14 days same as Loki)
+  retentionPeriod: 14d
+  
+  persistentVolume:
+    enabled: true
+    storageClassName: longhorn-single-replica
+    size: 30Gi
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 512Mi
+
+  ingress:
+    enabled: true
+    ingressClassName: internal
+    hosts:
+      - name: victorialogs.laboratory.casa
+        path:
+          - /
+        port: http
+
+  serviceMonitor:
+    enabled: true
