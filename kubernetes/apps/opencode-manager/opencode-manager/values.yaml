@@ -72,3 +72,9 @@ persistence:
         subPath: data
       - path: /workspace
         subPath: workspace
+  kubeconfig:
+    type: secret
+    name: opencode-manager-secret
+    globalMounts:
+      - path: /workspace/.kube/kubeconfig
+        subPath: kubeconfig
