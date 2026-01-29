@@ -5,7 +5,7 @@ This directory contains the RBAC resources required for OpenCode Manager to inte
 ## Resources Created
 
 - **ServiceAccount**: `opencode-manager`
-- **Role**: Permissions for pods, services, pod logs, and pod exec operations
+- **Role**: Permissions for pods, services, pod logs, pod exec, and ingresses
 - **RoleBinding**: Binds the ServiceAccount to the Role
 
 ## Getting the ServiceAccount Token
@@ -13,7 +13,7 @@ This directory contains the RBAC resources required for OpenCode Manager to inte
 After applying these resources (via Argo CD sync), generate a long-lived token for OpenCode Manager to use:
 
 ```bash
-kubectl create token opencode-manager -n opencode-manager --duration=8760h
+kubectl create token opencode-manager -n opencode-testing --duration=8760h
 ```
 
 Copy this token - you'll use it to configure OpenCode Manager in its Kubernetes settings.
@@ -22,7 +22,7 @@ Copy this token - you'll use it to configure OpenCode Manager in its Kubernetes 
 
 1. Go to **Settings → Kubernetes**
 2. Toggle "Enable Kubernetes" to ON
-3. Set namespace to: `opencode-manager`
+3. Set namespace to: `opencode-testing`
 4. Use your kubeconfig or create a minimal kubeconfig file:
 
 ```yaml
@@ -48,7 +48,7 @@ users:
 ## Security
 
 The RBAC follows the principle of least privilege:
-- Only pod and service operations are allowed
-- Limited to the `opencode-manager` namespace
+- Only pod, service, and ingress operations are allowed
+- Limited to the `opencode-testing` namespace
 - No cluster-wide permissions
 - No access to secrets, configmaps, or other sensitive resources
