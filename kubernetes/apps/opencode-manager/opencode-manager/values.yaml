@@ -8,6 +8,8 @@ defaultPodOptions:
 
 controllers:
   main:
+    annotations:
+      reloader.stakater.com/auto: "true"
     replicas: 1
     containers:
       main:
