@@ -15,7 +15,7 @@ controllers:
       main:
         image:
           repository: ghcr.io/mebezac/opencode-manager
-          tag: pr-60-baseline@sha256:d5c4e0ff5d926b8a600fa7189e0aeb7ea77989fe38ff3a72ee01c3b5210ff2dc
+          tag: pr-60-baseline@sha256:b4c701a0d93961d29cc94687c6cd04548b4d6458f38484e76d8a6688178bdba6
         env:
           NODE_ENV: production
           HOST: 0.0.0.0
@@ -32,6 +32,7 @@ controllers:
           SANDBOX_TTL_HOURS: "24"
           CLEANUP_INTERVAL_MINUTES: "60"
           DEBUG: "true"
+          NODE_EXTRA_CA_CERTS: "/workspace/.kube/ca.crt"
         envFrom:
           - secretRef:
               name: opencode-manager-secret
@@ -70,14 +71,25 @@ service:
     ports:
       http:
         port: 5003
+      websocket:
+        port: 5004
 
 ingress:
   main:
     enabled: true
     className: internal
+    annotations:
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+      nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+      nginx.ingress.io/proxy-connect-timeout: "3600"
     hosts:
       - host: opencode.laboratory.casa
         paths:
+          - path: /ws/kubernetes
+            pathType: Prefix
+            service:
+              identifier: main
+              port: websocket
           - path: /
             pathType: Prefix
             service:
@@ -96,9 +108,11 @@ persistence:
         subPath: data
       - path: /workspace
         subPath: workspace
-  kubeconfig:
+  secrets:
     type: secret
     name: opencode-manager-secret
     globalMounts:
       - path: /workspace/.kube/kubeconfig
         subPath: kubeconfig
+      - path: /workspace/.kube/ca.crt
+        subPath: ca.crt
