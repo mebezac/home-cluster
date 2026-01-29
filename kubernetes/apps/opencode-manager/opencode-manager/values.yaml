@@ -13,7 +13,7 @@ controllers:
       main:
         image:
           repository: ghcr.io/mebezac/opencode-manager
-          tag: pr-60-baseline
+          tag: pr-60-baseline@sha256:1dab747defd5725db9d7a7a76fdd9f01b3d3e9bb32c49ed8a2753665e13e2233
         env:
           NODE_ENV: production
           HOST: 0.0.0.0
@@ -21,10 +21,10 @@ controllers:
           OPENCODE_SERVER_PORT: "5551"
           DATABASE_PATH: /app/data/opencode.db
           WORKSPACE_PATH: /workspace
-          PROCESS_START_WAIT_MS: "20000"
-          PROCESS_VERIFY_WAIT_MS: "10000"
-          HEALTH_CHECK_INTERVAL_MS: "50000"
-          HEALTH_CHECK_TIMEOUT_MS: "300000"
+          PROCESS_START_WAIT_MS: "2000"
+          PROCESS_VERIFY_WAIT_MS: "1000"
+          HEALTH_CHECK_INTERVAL_MS: "5000"
+          HEALTH_CHECK_TIMEOUT_MS: "30000"
           MAX_FILE_SIZE_MB: "50"
           MAX_UPLOAD_SIZE_MB: "50"
           SANDBOX_TTL_HOURS: "24"
@@ -33,6 +33,28 @@ controllers:
         envFrom:
           - secretRef:
               name: opencode-manager-secret
+        probes:
+          startup:
+            enabled: true
+            spec:
+              initialDelaySeconds: 30
+              periodSeconds: 10
+              timeoutSeconds: 5
+              failureThreshold: 30
+          liveness:
+            enabled: true
+            spec:
+              initialDelaySeconds: 0
+              periodSeconds: 30
+              timeoutSeconds: 10
+              failureThreshold: 3
+          readiness:
+            enabled: true
+            spec:
+              initialDelaySeconds: 0
+              periodSeconds: 10
+              timeoutSeconds: 5
+              failureThreshold: 3
         resources:
           requests:
             cpu: 100m
