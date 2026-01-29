@@ -13,7 +13,7 @@ controllers:
       main:
         image:
           repository: ghcr.io/mebezac/opencode-manager
-          tag: pr-60-baseline
+          tag: pr-60-baseline@sha256:d5c4e0ff5d926b8a600fa7189e0aeb7ea77989fe38ff3a72ee01c3b5210ff2dc
         env:
           NODE_ENV: production
           HOST: 0.0.0.0
@@ -33,6 +33,28 @@ controllers:
         envFrom:
           - secretRef:
               name: opencode-manager-secret
+        probes:
+          startup:
+            enabled: true
+            spec:
+              initialDelaySeconds: 30
+              periodSeconds: 10
+              timeoutSeconds: 5
+              failureThreshold: 30
+          liveness:
+            enabled: true
+            spec:
+              initialDelaySeconds: 0
+              periodSeconds: 30
+              timeoutSeconds: 10
+              failureThreshold: 3
+          readiness:
+            enabled: true
+            spec:
+              initialDelaySeconds: 0
+              periodSeconds: 10
+              timeoutSeconds: 5
+              failureThreshold: 3
         resources:
           requests:
             cpu: 100m
