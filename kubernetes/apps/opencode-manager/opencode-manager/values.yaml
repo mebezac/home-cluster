@@ -13,7 +13,7 @@ controllers:
       main:
         image:
           repository: ghcr.io/mebezac/opencode-manager
-          tag: pr-60-baseline
+          tag: pr-60-baseline@sha256:1dab747defd5725db9d7a7a76fdd9f01b3d3e9bb32c49ed8a2753665e13e2233
         env:
           NODE_ENV: production
           HOST: 0.0.0.0
