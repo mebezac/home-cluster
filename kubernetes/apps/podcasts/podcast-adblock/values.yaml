@@ -1,0 +1,97 @@
+---
+defaultPodOptions:
+  securityContext:
+    runAsUser: 3000
+    runAsGroup: 3000
+    fsGroup: 3000
+    fsGroupChangePolicy: "OnRootMismatch"
+
+controllers:
+  main:
+    annotations:
+      reloader.stakater.com/auto: "true"
+    replicas: 1
+    containers:
+      main:
+        image:
+          repository: ghcr.io/mebezac/podcast-adblock
+          tag: 2.5.2
+          pullPolicy: IfNotPresent
+        resources:
+          requests:
+            cpu: 100m
+            memory: 2Gi
+          limits:
+            cpu: 3000m
+            memory: 8Gi
+        env:
+          PUID: "3000"
+          PGID: "3000"
+          CUDA_VISIBLE_DEVICES: "-1"
+          SERVER_THREADS: "3"
+          GROQ_WHISPER_MODEL: whisper-large-v3-turbo
+          GROQ_MAX_RETRIES: "3"
+          WHISPER_TYPE: groq
+        envFrom:
+          - secretRef:
+              name: podcast-adblock-secret
+        probes:
+          liveness: &probes
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /
+                port: 5001
+              initialDelaySeconds: 10
+              periodSeconds: 30
+              timeoutSeconds: 10
+              failureThreshold: 3
+          readiness: *probes
+          startup:
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /
+                port: 5001
+              initialDelaySeconds: 10
+              periodSeconds: 10
+              timeoutSeconds: 10
+              failureThreshold: 30
+
+service:
+  main:
+    controller: main
+    ports:
+      http:
+        port: 5001
+
+ingress:
+  main:
+    enabled: true
+    className: external
+    annotations:
+      external-dns.alpha.kubernetes.io/target: external.laboratory.casa
+    hosts:
+      - host: pcab.laboratory.casa
+        paths:
+          - path: /
+            pathType: Prefix
+            service:
+              identifier: main
+              port: http
+
+persistence:
+  data:
+    enabled: true
+    type: persistentVolumeClaim
+    storageClass: longhorn-single-replica
+    accessMode: ReadWriteOnce
+    size: 10Gi
+    globalMounts:
+      - path: /app/src/instance
+  cache:
+    type: emptyDir
+    globalMounts:
+      - path: /.cache
