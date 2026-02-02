@@ -108,6 +108,14 @@ persistence:
         subPath: data
       - path: /workspace
         subPath: workspace
+  workspace-new:
+    enabled: true
+    type: persistentVolumeClaim
+    storageClass: longhorn
+    accessMode: ReadWriteMany
+    size: 10Gi
+    globalMounts:
+      - path: /workspace-new
   secrets:
     type: secret
     name: opencode-manager-secret
