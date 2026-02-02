@@ -97,25 +97,18 @@ ingress:
               port: http
 
 persistence:
-  data:
-    enabled: true
-    type: persistentVolumeClaim
-    storageClass: longhorn
-    accessMode: ReadWriteOnce
-    size: 10Gi
-    globalMounts:
-      - path: /app/data
-        subPath: data
-      - path: /workspace
-        subPath: workspace
   workspace-new:
     enabled: true
     type: persistentVolumeClaim
     storageClass: longhorn
     accessMode: ReadWriteMany
     size: 10Gi
+    suffix: workspace-new
     globalMounts:
-      - path: /workspace-new
+      - path: /app/data
+        subPath: data
+      - path: /workspace
+        subPath: workspace
   secrets:
     type: secret
     name: opencode-manager-secret
