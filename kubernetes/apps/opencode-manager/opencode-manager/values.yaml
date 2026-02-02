@@ -15,7 +15,7 @@ controllers:
       main:
         image:
           repository: ghcr.io/mebezac/opencode-manager
-          tag: 1.2.0-baseline@sha256:e2a2429bbabb6836a2c6852e66ab89ea450e3ee22a9d8478716980de1c471622
+          tag: 1.2.2-baseline@sha256:b6a1da6e4c4096890e43d19474d2ea1d55375b51a8582077dfe56e70f66557a5
         env:
           NODE_ENV: production
           HOST: 0.0.0.0
