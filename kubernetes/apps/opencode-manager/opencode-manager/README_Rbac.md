@@ -13,7 +13,7 @@ This directory contains the RBAC resources required for OpenCode Manager to inte
 After applying these resources (via Argo CD sync), generate a long-lived token for OpenCode Manager to use:
 
 ```bash
-kubectl create token opencode-manager -n opencode-testing --duration=8760h
+kubectl create token opencode-manager -n opencode-manager --duration=8760h
 ```
 
 Copy this token - you'll use it to configure OpenCode Manager in its Kubernetes settings.
@@ -22,7 +22,7 @@ Copy this token - you'll use it to configure OpenCode Manager in its Kubernetes 
 
 1. Go to **Settings → Kubernetes**
 2. Toggle "Enable Kubernetes" to ON
-3. Set namespace to: `opencode-testing`
+3. Set namespace to: `opencode-manager`
 4. Use your kubeconfig or create a minimal kubeconfig file:
 
 ```yaml
@@ -49,6 +49,6 @@ users:
 
 The RBAC follows the principle of least privilege:
 - Only pod, service, and ingress operations are allowed
-- Limited to the `opencode-testing` namespace
+- Limited to the `opencode-manager` namespace
 - No cluster-wide permissions
 - No access to secrets, configmaps, or other sensitive resources
