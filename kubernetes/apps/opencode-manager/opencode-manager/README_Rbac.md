@@ -5,7 +5,7 @@ This directory contains the RBAC resources required for OpenCode Manager to inte
 ## Resources Created
 
 - **ServiceAccount**: `opencode-manager`
-- **Role**: Permissions for pods, services, pod logs, pod exec, and ingresses
+- **Role**: Full access to all namespaced resources (including secrets)
 - **RoleBinding**: Binds the ServiceAccount to the Role
 
 ## Getting the ServiceAccount Token
@@ -47,8 +47,12 @@ users:
 
 ## Security
 
-The RBAC follows the principle of least privilege:
-- Only pod, service, and ingress operations are allowed
-- Limited to the `opencode-manager` namespace
+The RBAC is scoped to the namespace and fully permissive:
+- All API groups and resources are allowed
+- Includes secrets
 - No cluster-wide permissions
-- No access to secrets, configmaps, or other sensitive resources
+
+## Security Implications
+
+This Role grants full control over everything in the namespace, including secrets.
+Do not place sensitive workloads or data in the `opencode-manager` namespace.
