@@ -6,8 +6,13 @@ defaultPodOptions:
     fsGroup: 1000
     fsGroupChangePolicy: "OnRootMismatch"
 
+serviceAccount:
+  opencode-manager: {}
+
 controllers:
   main:
+    serviceAccount:
+      identifier: opencode-manager
     annotations:
       reloader.stakater.com/auto: "true"
     replicas: 1
