@@ -97,16 +97,21 @@ ingress:
               port: http
 
 persistence:
-  workspace-new:
+  app-data:
+    enabled: true
+    type: persistentVolumeClaim
+    storageClass: longhorn
+    accessMode: ReadWriteOnce
+    size: 128Mi
+    globalMounts:
+      - path: /app/data
+  workspace:
     enabled: true
     type: persistentVolumeClaim
     storageClass: longhorn
     accessMode: ReadWriteMany
     size: 10Gi
-    suffix: workspace-new
     globalMounts:
-      - path: /app/data
-        subPath: data
       - path: /workspace
         subPath: workspace
   secrets:
