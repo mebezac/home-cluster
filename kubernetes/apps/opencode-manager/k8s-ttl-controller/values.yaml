@@ -1,0 +1,41 @@
+---
+defaultPodOptions:
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 65534
+    runAsGroup: 65534
+    seccompProfile:
+      type: RuntimeDefault
+
+serviceAccount:
+  k8s-ttl-controller:
+    labels:
+      app.kubernetes.io/name: k8s-ttl-controller
+      app.kubernetes.io/instance: k8s-ttl-controller
+
+controllers:
+  main:
+    serviceAccount:
+      identifier: k8s-ttl-controller
+    annotations:
+      reloader.stakater.com/auto: "true"
+    replicas: 1
+    containers:
+      app:
+        image:
+          repository: ghcr.io/twin/k8s-ttl-controller
+          tag: 1.4.1@sha256:a45012350ce4ff082000d16d7855b397ddfb1ba34141d11b3d339ae4ba7a7f9c
+        env:
+          TZ: America/New_York
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+              - ALL
+        resources:
+          requests:
+            cpu: 10m
+            memory: 64Mi
+          limits:
+            memory: 256Mi
