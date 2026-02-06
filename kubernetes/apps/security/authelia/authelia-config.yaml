@@ -218,9 +218,9 @@ identity_providers:
         access_token_signed_response_alg: "none"
         userinfo_signed_response_alg: "none"
         # pcab
-      - client_id: "gl6Z~vkcZLeoTh0TiMf8xV0PpcGumStzrLNbcSj_AhUKEIt2CgXi.-NR0U8Cs1_pQJHqCr1e"
+      - client_id: "vhgmgEbo_H_j27QSNDnQG7YuwihZvr1qnZ_dS2moZa0eDMPLwulMdjb5wgDf92l.Giek9zCI"
         client_name: "pcab"
-        client_secret: "$pbkdf2-sha512$310000$iK0beMwNqrrNbU4yxZCDwQ$IWRqhyE.RCrKHyY8WVWXxZJnEzq91sdYGyKTGcleeaAQkxNp9EgUEXhlzBABm32lxzgyHUCmlAik1yPUpvvnOA"
+        client_secret: "$pbkdf2-sha512$310000$v08Ww/VwiK1pLHZ/r91rxg$LqAuMlDuVS84r.ktO3bM/ErGqYCc5vJ/WbGqN0D9CdiymAhstgoUkgfYdpxjwhQwkj4f.3h8xwomF2jR4/FFgg"
         public: false
         authorization_policy: "one_factor"
         require_pkce: true
