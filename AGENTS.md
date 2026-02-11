@@ -8,14 +8,15 @@ This document provides comprehensive guidelines for developing, deploying, and m
 
 ## Important: GitOps Workflow
 
-**This cluster uses a GitOps approach with Argo CD.** 
+**This cluster uses a GitOps approach with Argo CD.**
 
 - **NEVER** attempt to deploy changes directly to the Kubernetes cluster (no `kubectl apply`, `helm install`, etc.)
-- **NEVER** run commands that interact with the cluster API
+- You **MAY** however use the kubernetes mcp to interact with the cluster to investigate issues when directed to
 - All changes are made by editing files in the repository, committing, and pushing
 - Argo CD automatically detects changes and reconciles the cluster state
 
 **Workflow:**
+
 1. Edit the necessary files (values.yaml, Application definitions, secrets, etc.)
 2. Commit the changes to Git
 3. Push to the repository
@@ -51,11 +52,13 @@ kubernetes/argo/apps/<namespace>/<app-name>.yaml  # Argo CD Application definiti
 ```
 
 **Notes:**
+
 - Each app typically has its own namespace with the same name as the app (e.g., `mealie` app in `mealie` namespace)
 - Apps can be grouped by function (e.g., `homeassistant/`, `database/`, `security/`, `network/`)
 - The inner directory name should match the app name
 
 **Examples:**
+
 - Simple app: `kubernetes/apps/mealie/mealie/`
 - Grouped apps: `kubernetes/apps/homeassistant/zigbee2mqtt/`
 - System apps: `kubernetes/apps/security/authelia/`
@@ -101,6 +104,7 @@ spec:
 ```
 
 **Key points:**
+
 - Always use `ghcr.io/bjw-s-labs/helm` as the chart repository (NOT `https://bjw-s.github.io/helm-charts/`)
 - Standard app-template version is **4.6.2**
 - The `ref` name must match the pattern `<app-name>-repo`
@@ -124,16 +128,16 @@ defaultPodOptions:
     seccompProfile: { type: RuntimeDefault }
 
 controllers:
-  <controller-name>:  # Usually 'main' or the app name
+  <controller-name>: # Usually 'main' or the app name
     annotations:
-      reloader.stakater.com/auto: "true"  # Auto-reload on secret/configmap changes
+      reloader.stakater.com/auto: "true" # Auto-reload on secret/configmap changes
     containers:
-      app:  # Container name, usually 'app' or 'main'
+      app: # Container name, usually 'app' or 'main'
         image:
           repository: ghcr.io/example/app
-          tag: 1.0.0@sha256:abc123...  # Pin with SHA for reproducibility
+          tag: 1.0.0@sha256:abc123... # Pin with SHA for reproducibility
         env:
-          TZ: America/New_York  # Always use explicit timezone, not variables
+          TZ: America/New_York # Always use explicit timezone, not variables
         resources:
           requests:
             cpu: 10m
@@ -191,14 +195,18 @@ image:
 ### Environment Variables
 
 **DO:**
+
 - Use explicit values for timezone: `TZ: America/New_York`
 - Reference secrets via `envFrom`:
+
   ```yaml
   envFrom:
     - secretRef:
         name: <app-name>-secret
   ```
+
 - Use YAML anchors for reuse:
+
   ```yaml
   envFrom: &envFrom
     - secretRef:
@@ -208,6 +216,7 @@ image:
   ```
 
 **DON'T:**
+
 - Use variable substitution like `${TIMEZONE}` or `${VOLSYNC_CLAIM}` - these are Flux patterns
 - Hardcode secrets in values.yaml
 
@@ -236,6 +245,7 @@ service:
 When an app needs secrets, create these files:
 
 **1. kustomization.yaml:**
+
 ```yaml
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
@@ -244,6 +254,7 @@ generators:
 ```
 
 **2. secret-generator.yaml:**
+
 ```yaml
 apiVersion: viaduct.ai/v1
 kind: ksops
@@ -258,6 +269,7 @@ files:
 ```
 
 **3. <app-name>-secret.sops.yaml:** (encrypted with SOPS)
+
 ```yaml
 apiVersion: v1
 kind: Secret
@@ -270,6 +282,7 @@ stringData:
 ```
 
 **Important:** When creating new secrets:
+
 - Create the secret file with plaintext values as a template
 - **Leave the SOPS encryption to the user** - never run or suggest running `sops --encrypt` commands
 - The user will encrypt the file themselves using their own age keys
@@ -387,7 +400,7 @@ persistence:
     storageClass: longhorn
     accessMode: ReadWriteOnce
     size: 1Gi
-    suffix: data  # Optional: creates PVC named <app>-data
+    suffix: data # Optional: creates PVC named <app>-data
     globalMounts:
       - path: /data
 ```
@@ -483,12 +496,12 @@ persistence:
 
 ### Storage Classes
 
-| Storage Class | Use Case |
-|---------------|----------|
-| `longhorn` | Default for all persistent data (replicated) |
-| `longhorn-single-replica` | Less critical data, saves space |
-| `openebs-hostpath` | High-performance local storage (e.g., transcodes) |
-| `freenas-api-nfs` | NFS-backed storage from TrueNAS |
+| Storage Class             | Use Case                                          |
+| ------------------------- | ------------------------------------------------- |
+| `longhorn`                | Default for all persistent data (replicated)      |
+| `longhorn-single-replica` | Less critical data, saves space                   |
+| `openebs-hostpath`        | High-performance local storage (e.g., transcodes) |
+| `freenas-api-nfs`         | NFS-backed storage from TrueNAS                   |
 
 ---
 
@@ -522,12 +535,12 @@ containers:
 
 ### Common User IDs
 
-| UID | Use Case |
-|-----|----------|
-| 3000 | Default for most apps |
-| 568 | Apps from k8s-at-home/bjw-s ecosystem |
-| 1000 | Generic unprivileged user |
-| 65534 | nobody user (most restrictive) |
+| UID   | Use Case                              |
+| ----- | ------------------------------------- |
+| 3000  | Default for most apps                 |
+| 568   | Apps from k8s-at-home/bjw-s ecosystem |
+| 1000  | Generic unprivileged user             |
+| 65534 | nobody user (most restrictive)        |
 
 ### Privileged Containers
 
@@ -577,7 +590,7 @@ controllers:
         image:
           repository: ghcr.io/example/app
           tag: 1.0.0
-      browser:  # Sidecar container
+      browser: # Sidecar container
         image:
           repository: ghcr.io/browserless/chrome
           tag: v2.38.3
@@ -664,7 +677,7 @@ Enable automatic pod restarts when secrets/configmaps change:
 controllers:
   main:
     annotations:
-      reloader.stakater.com/auto: "true"  # Auto-detect all secrets/configmaps
+      reloader.stakater.com/auto: "true" # Auto-detect all secrets/configmaps
       # OR be specific:
       secret.reloader.stakater.com/reload: <secret-name>
       configmap.reloader.stakater.com/reload: <configmap-name>
@@ -677,6 +690,7 @@ controllers:
 ### 1. Flux Variable Substitution
 
 **Bad:**
+
 ```yaml
 env:
   TZ: ${TIMEZONE}
@@ -686,6 +700,7 @@ persistence:
 ```
 
 **Good:**
+
 ```yaml
 env:
   TZ: America/New_York
@@ -700,11 +715,13 @@ persistence:
 ### 2. Old Helm Chart Repository
 
 **Bad:**
+
 ```yaml
 repoURL: https://bjw-s.github.io/helm-charts/
 ```
 
 **Good:**
+
 ```yaml
 repoURL: ghcr.io/bjw-s-labs/helm
 ```
@@ -712,6 +729,7 @@ repoURL: ghcr.io/bjw-s-labs/helm
 ### 3. Missing Security Context
 
 **Bad:**
+
 ```yaml
 controllers:
   main:
@@ -722,6 +740,7 @@ controllers:
 ```
 
 **Good:**
+
 ```yaml
 defaultPodOptions:
   securityContext:
@@ -734,12 +753,14 @@ defaultPodOptions:
 ### 4. Hardcoded Secrets
 
 **Bad:**
+
 ```yaml
 env:
   DATABASE_PASSWORD: mysecretpassword
 ```
 
 **Good:**
+
 ```yaml
 envFrom:
   - secretRef:
@@ -749,6 +770,7 @@ envFrom:
 ### 5. Missing Resource Limits
 
 **Bad:**
+
 ```yaml
 containers:
   app:
@@ -757,6 +779,7 @@ containers:
 ```
 
 **Good:**
+
 ```yaml
 containers:
   app:
@@ -772,6 +795,7 @@ containers:
 ### 6. Inconsistent Naming
 
 **Bad:**
+
 ```yaml
 service:
   myservice:
@@ -780,10 +804,11 @@ ingress:
   myingress:
     # ...
     service:
-      identifier: differentname  # Doesn't match
+      identifier: differentname # Doesn't match
 ```
 
 **Good:**
+
 ```yaml
 service:
   app:
@@ -792,7 +817,7 @@ ingress:
   app:
     # ...
     service:
-      identifier: app  # Matches service name
+      identifier: app # Matches service name
 ```
 
 ---
@@ -800,5 +825,5 @@ ingress:
 ## Additional Resources
 
 - See `.agents/workflows/translate-flux-to-argo.md` for migrating Flux apps
-- bjw-s app-template documentation: https://bjw-s-labs.github.io/helm-charts/
-- Argo CD documentation: https://argo-cd.readthedocs.io/
+- bjw-s app-template documentation: <https://bjw-s-labs.github.io/helm-charts/>
+- Argo CD documentation: <https://argo-cd.readthedocs.io/>
