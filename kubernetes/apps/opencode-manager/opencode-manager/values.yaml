@@ -135,7 +135,7 @@ ingress:
               port: http
 
 persistence:
-  app-data:
+  app-data-new:
     enabled: true
     type: persistentVolumeClaim
     storageClass: longhorn
@@ -143,13 +143,13 @@ persistence:
     size: 150Mi
     globalMounts:
       - path: /app/data
-  app-data-new:
+  app-data:
     enabled: true
     type: persistentVolumeClaim
     storageClass: longhorn
     accessMode: ReadWriteOnce
     size: 150Mi
-  workspace:
+  workspace-new:
     enabled: true
     type: persistentVolumeClaim
     storageClass: longhorn
@@ -158,7 +158,7 @@ persistence:
     globalMounts:
       - path: /workspace
         subPath: workspace
-  workspace-new:
+  workspace:
     enabled: true
     type: persistentVolumeClaim
     storageClass: longhorn
