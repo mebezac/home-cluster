@@ -16,6 +16,7 @@ ingress:
 persistence:
   defaultClassReplicaCount: 2
   defaultDataLocality: best-effort
+  volumeBindingMode: WaitForFirstConsumer
 preUpgradeChecker:
   jobEnabled: false
 service:
