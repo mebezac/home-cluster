@@ -1,9 +1,9 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/budimanjojo/talhelper/master/pkg/config/schemas/talconfig.json
 ---
 # renovate: datasource=docker depName=ghcr.io/siderolabs/installer
-talosVersion: v1.12.2
+talosVersion: v1.11.5
 # renovate: datasource=docker depName=ghcr.io/siderolabs/kubelet
-kubernetesVersion: v1.35.0
+kubernetesVersion: v1.34.2
 
 clusterName: kubernetes
 endpoint: https://10.25.30.116:6443
@@ -164,6 +164,26 @@ nodes:
         dhcp: false
         addresses:
           - "10.25.30.40/24"
+        routes:
+          - network: "0.0.0.0/0"
+            gateway: "10.25.30.1"
+        mtu: 1500
+
+  - hostname: "gamecrate2-talos-worker-05"
+    ipAddress: "10.25.30.41"
+    installDisk: "/dev/sda"
+    nodeLabels:
+      workload.laboratory.casa/high-performance: "true"
+    machineSpec:
+      secureboot: false
+    talosImageURL: factory.talos.dev/installer/65cf8364cd0de4cf7b851dc7067a2db83d0ba04f11d8635c6cd3334be6ffb825
+    controlPlane: false
+    networkInterfaces:
+      - deviceSelector:
+          hardwareAddr: "00:15:5d:1e:0c:0d"
+        dhcp: false
+        addresses:
+          - "10.25.30.41/24"
         routes:
           - network: "0.0.0.0/0"
             gateway: "10.25.30.1"
