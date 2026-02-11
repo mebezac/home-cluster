@@ -143,6 +143,12 @@ persistence:
     size: 150Mi
     globalMounts:
       - path: /app/data
+  app-data-new:
+    enabled: true
+    type: persistentVolumeClaim
+    storageClass: longhorn
+    accessMode: ReadWriteOnce
+    size: 150Mi
   workspace:
     enabled: true
     type: persistentVolumeClaim
@@ -152,6 +158,12 @@ persistence:
     globalMounts:
       - path: /workspace
         subPath: workspace
+  workspace-new:
+    enabled: true
+    type: persistentVolumeClaim
+    storageClass: longhorn
+    accessMode: ReadWriteMany
+    size: 11Gi
   secrets:
     type: secret
     name: opencode-manager-secret
