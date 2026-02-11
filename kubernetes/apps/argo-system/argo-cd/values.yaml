@@ -44,7 +44,7 @@ configs:
       g, apps_admin, role:admin
       g, zac, role:readonly
 controller:
-  replicas: 2
+  replicas: 1
   metrics:
     enabled: true
     applicationLabels:
@@ -61,7 +61,7 @@ redis:
       additionalLabels:
         release: kube-prometheus-stack
 server:
-  replicas: 2
+  replicas: 1
   allowAnyNamespace: true
   ingress:
     enabled: true
@@ -76,7 +76,7 @@ server:
       additionalLabels:
         release: kube-prometheus-stack
 notifications:
-  replicas: 2
+  replicas: 1
   metrics:
     enabled: true
     serviceMonitor:
@@ -84,7 +84,7 @@ notifications:
       additionalLabels:
         release: kube-prometheus-stack
 repoServer:
-  replicas: 2
+  replicas: 1
   serviceAccount:
     create: true
     name: argocd-repo-server
