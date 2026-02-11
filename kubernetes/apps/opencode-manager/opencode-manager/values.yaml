@@ -140,7 +140,7 @@ persistence:
     type: persistentVolumeClaim
     storageClass: longhorn
     accessMode: ReadWriteOnce
-    size: 128Mi
+    size: 150Mi
     globalMounts:
       - path: /app/data
   workspace:
@@ -148,7 +148,7 @@ persistence:
     type: persistentVolumeClaim
     storageClass: longhorn
     accessMode: ReadWriteMany
-    size: 10Gi
+    size: 11Gi
     globalMounts:
       - path: /workspace
         subPath: workspace
