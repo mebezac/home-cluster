@@ -14,7 +14,7 @@ spec:
       ref: redis-exporter-repo
     - repoURL: ghcr.io/prometheus-community/charts
       chart: prometheus-redis-exporter
-      targetRevision: 6.20.1
+      targetRevision: 6.21.0
       helm:
         releaseName: prometheus-redis-exporter
         valueFiles:
