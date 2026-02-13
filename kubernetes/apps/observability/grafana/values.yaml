@@ -2,7 +2,7 @@ annotations:
   secret.reloader.stakater.com/reload: grafana-secret
 extraInitContainers:
   - name: init-db
-    image: ghcr.io/home-operations/postgres-init:18.1
+    image: ghcr.io/home-operations/postgres-init:18.2
     envFrom:
       - secretRef:
           name: grafana-secret
