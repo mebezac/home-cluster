@@ -14,6 +14,18 @@ controllers:
     labels:
       reloader.stakater.com/auto: "true"
 
+    pod:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              preference:
+                matchExpressions:
+                  - key: workload.laboratory.casa/high-performance
+                    operator: In
+                    values:
+                      - "true"
+
     initContainers:
       postgres-init:
         image:
