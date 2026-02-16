@@ -1,6 +1,12 @@
 ---
 csi:
   storageMinimalAvailablePercentage: 15
+image:
+  longhorn:
+    manager:
+      tag: v1.11.0-hotfix-1
+    instanceManager:
+      tag: v1.11.0-hotfix-1
 defaultBackupStore:
   backupTarget: "cifs://10.25.30.36/longhorn-backup"
   backupTargetCredentialSecret: backup-secret
@@ -19,6 +25,7 @@ persistence:
   volumeBindingMode: WaitForFirstConsumer
 preUpgradeChecker:
   jobEnabled: false
+  upgradeVersionCheck: false
 service:
   ui:
     type: ClusterIP
