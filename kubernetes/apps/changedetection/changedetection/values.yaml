@@ -6,7 +6,7 @@ controllers:
       app:
         image:
           repository: ghcr.io/dgtlmoon/changedetection.io
-          tag: 0.52.9@sha256:e95931043d68da46e90498ce74ad317b392caade07186dc06bdfa1710901bf90
+          tag: 0.53.2@sha256:b39f758d91ca6f00846d6328d85712b830d1b7c6ce1ed704c003a651483f3062
         env:
           TZ: America/New_York
           PORT: &port 5000
