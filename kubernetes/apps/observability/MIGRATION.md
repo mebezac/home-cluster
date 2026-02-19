@@ -36,8 +36,11 @@ This migration replaces the existing Grafana LGTM stack (Prometheus + Thanos + L
 
 1. **Deploy victoria-metrics-stack**
    ```bash
-   kubectl apply -f kubernetes/argo/apps/observability/victoria-metrics-stack.yaml
+   git add kubernetes/argo/apps/observability/victoria-metrics-stack.yaml kubernetes/apps/observability/victoria-metrics-stack
+   git commit -m "feat: add victoria metrics stack for observability migration"
+   git push
    ```
+   - Argo CD will reconcile automatically
    - VMSingle will start collecting metrics
    - VMOperator will convert existing ServiceMonitors and PrometheusRules
    - VMAlert will evaluate alerting rules
@@ -45,8 +48,11 @@ This migration replaces the existing Grafana LGTM stack (Prometheus + Thanos + L
 
 2. **Deploy victoria-logs**
    ```bash
-   kubectl apply -f kubernetes/argo/apps/observability/victoria-logs.yaml
+   git add kubernetes/argo/apps/observability/victoria-logs.yaml kubernetes/apps/observability/victoria-logs
+   git commit -m "feat: add victoria logs for observability migration"
+   git push
    ```
+   - Argo CD will reconcile automatically
    - VictoriaLogs will be ready to receive logs
 
 3. **Verify Grafana datasources**
@@ -89,49 +95,54 @@ Once validation is complete:
 
 1. **Remove Thanos** (no longer needed)
    ```bash
-   kubectl delete -f kubernetes/argo/apps/observability/thanos.yaml
+   git rm kubernetes/argo/apps/observability/thanos.yaml
+   git commit -m "chore: remove thanos after victoria migration"
+   git push
    ```
 
 2. **Remove kube-prometheus-stack** (replaced by VM stack)
    ```bash
-   kubectl delete -f kubernetes/argo/apps/observability/kube-prometheus-stack.yaml
+   git rm kubernetes/argo/apps/observability/kube-prometheus-stack.yaml
+   git commit -m "chore: remove kube-prometheus-stack after victoria migration"
+   git push
    ```
 
 3. **Remove prometheus-operator-crds** (VM operator handles them)
    ```bash
-   kubectl delete -f kubernetes/argo/apps/observability/prometheus-operator-crds.yaml
+   git rm kubernetes/argo/apps/observability/prometheus-operator-crds.yaml
+   git commit -m "chore: remove prometheus operator crds after victoria migration"
+   git push
    ```
 
 4. **Remove Loki** (replaced by VictoriaLogs)
    ```bash
-   kubectl delete -f kubernetes/argo/apps/observability/loki.yaml
+   git rm kubernetes/argo/apps/observability/loki.yaml
+   git commit -m "chore: remove loki after victoria logs migration"
+   git push
    ```
 
 5. **Remove Alloy** (replaced by VMAgent)
    ```bash
-   kubectl delete -f kubernetes/argo/apps/observability/alloy.yaml
+   git rm kubernetes/argo/apps/observability/alloy.yaml
+   git commit -m "chore: remove alloy after vmagent migration"
+   git push
    ```
 
 ## Important Notes
 
 ### AlertManager Configuration Migration
 
-The existing AlertManager configuration needs to be migrated to VMAlertmanager format. The main differences:
+The existing AlertManager configuration can be reused by VMAlertmanager. The main differences in this repo are:
 
-- AlertManager uses `matchers`, VMAlertmanager uses `match`
-- Both support the same Pushover integration
-- Config file format is nearly identical
+- We provide raw `alertmanager.yaml` via `configSecret` (`vmalertmanager-config`)
+- `matchers` syntax is supported and should be kept for current Alertmanager versions
+- Pushover integration is unchanged (using `user_key_file` / `token_file` from mounted secret)
+- VMAlert notifier endpoints are chart-managed via `alertmanager.enabled: true`
 
-Example migration:
+Example matcher syntax (valid for VMAlertmanager config):
 ```yaml
-# AlertManager (old)
+# Alertmanager route matcher
 matchers:
-  - name: alertname
-    value: InfoInhibitor|Watchdog
-    matchType: =~
-
-# VMAlertmanager (new)
-match:
   - alertname =~ "InfoInhibitor|Watchdog"
 ```
 

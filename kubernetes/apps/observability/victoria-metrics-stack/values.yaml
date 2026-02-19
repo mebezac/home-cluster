@@ -55,11 +55,15 @@ vmalert:
       url: http://vmsingle-victoria-metrics-stack.observability.svc:8429
     remoteRead:
       url: http://vmsingle-victoria-metrics-stack.observability.svc:8429
-    notifier:
-      url: http://vmalertmanager-victoria-metrics-stack.observability.svc:9093
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        memory: 256Mi
 
 # VMAlertmanager - replaces AlertManager
-vmalertmanager:
+alertmanager:
   enabled: true
   spec:
     replicaCount: 1
@@ -71,6 +75,12 @@ vmalertmanager:
       resources:
         requests:
           storage: 1Gi
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        memory: 256Mi
   ingress:
     enabled: true
     ingressClassName: internal
@@ -99,5 +109,6 @@ defaultRules:
 
 kubelet:
   enabled: true
-  spec:
-    interval: 30s
+  vmScrape:
+    spec:
+      interval: 30s
