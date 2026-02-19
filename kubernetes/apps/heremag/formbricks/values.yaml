@@ -24,7 +24,7 @@ controllers:
       app:
         image:
           repository: ghcr.io/formbricks/formbricks
-          tag: 4.6.1@sha256:4efad8394d9847f8772bb0124fc3e33c65b34d99d9c64da7cb6b67f0d7773132
+          tag: 4.7.2@sha256:7574513873c903b02102bc2f6c83f483c42d8316fb5fa3ea8f25fcbd7cad606e
         env:
           EMAIL_VERIFICATION_DISABLED: "1"
         envFrom: *envFrom
