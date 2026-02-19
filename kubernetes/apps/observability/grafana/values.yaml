@@ -72,14 +72,9 @@ grafana.ini:
 plugins:
   - pr0ps-trackmap-panel
   - grafana-clock-panel
-  - grafana-piechart-panel
-  - grafana-worldmap-panel
-  - natel-discrete-panel
-  - natel-plotly-panel
   - vonage-status-panel
-  - https://github.com/panodata/panodata-map-panel/releases/download/0.16.0/panodata-map-panel-0.16.0.zip;grafana-worldmap-panel-ng
   - redis-datasource
-  - victoriametrics-datasource
+  - victoriametrics-metrics-datasource
   - victoriametrics-logs-datasource
 sidecar:
   datasources:
@@ -104,8 +99,8 @@ datasources:
       - name: Prometheus
         type: prometheus
         access: proxy
-        url: http://thanos-query.observability.svc.cluster.local:10902
-        isDefault: false
+        url: http://vmsingle-victoria-metrics-stack.observability.svc:8428
+        isDefault: true
         jsonData:
           timeInterval: 30s
       - name: Loki
@@ -122,10 +117,10 @@ datasources:
         jsonData:
           implementation: prometheus
       - name: VictoriaMetrics
-        type: prometheus
+        type: victoriametrics-metrics-datasource
         access: proxy
-        url: http://vmsingle-victoria-metrics-stack.observability.svc:8429
-        isDefault: true
+        url: http://vmsingle-victoria-metrics-stack.observability.svc:8428
+        isDefault: false
         jsonData:
           timeInterval: 30s
       - name: VictoriaLogs
@@ -185,36 +180,6 @@ dashboards:
   kubernetes:
     argo:
       url: https://raw.githubusercontent.com/argoproj/argo-cd/refs/heads/master/examples/dashboard.json
-      datasource: Prometheus
-    api-server:
-      # renovate: depName="Kubernetes / System / API Server"
-      gnetId: 15761
-      revision: 19
-      datasource: Prometheus
-    coredns:
-      # renovate: depName="Kubernetes / System / CoreDNS"
-      gnetId: 15762
-      revision: 20
-      datasource: Prometheus
-    global:
-      # renovate: depName="Kubernetes / Views / Global"
-      gnetId: 15757
-      revision: 43
-      datasource: Prometheus
-    namespaces:
-      # renovate: depName="Kubernetes / Views / Namespaces"
-      gnetId: 15758
-      revision: 42
-      datasource: Prometheus
-    nodes:
-      # renovate: depName="Kubernetes / Views / Nodes"
-      gnetId: 15759
-      revision: 37
-      datasource: Prometheus
-    pods:
-      # renovate: depName="Kubernetes / Views / Pods"
-      gnetId: 15760
-      revision: 36
       datasource: Prometheus
     volumes:
       # renovate: depName="K8s / Storage / Volumes / Cluster"

@@ -56,7 +56,7 @@ This migration replaces the existing Grafana LGTM stack (Prometheus + Thanos + L
    - VictoriaLogs will be ready to receive logs
 
 3. **Verify Grafana datasources**
-   - VictoriaMetrics datasource added: `http://vmsingle-victoria-metrics-stack.observability.svc:8429`
+   - VictoriaMetrics datasource added: `http://vmsingle-victoria-metrics-stack.observability.svc:8428`
    - VictoriaLogs datasource added: `http://victoria-logs.observability.svc:9428`
    - VMAlertmanager datasource added: `http://vmalertmanager-victoria-metrics-stack.observability.svc:9093`
 

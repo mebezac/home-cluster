@@ -1,17 +1,31 @@
 crds:
   enabled: true
 
+fullnameOverride: victoria-metrics-stack
+
+defaultDashboards:
+  dashboards:
+    node-exporter-full:
+      enabled: false
+
 # Enable Prometheus CRD conversion for smooth migration
 victoria-metrics-operator:
   operator:
     disable_prometheus_converter: false
     enable_converter_ownership: true
+  admissionWebhooks:
+    policy: Ignore
 
 # VMSingle - replaces Prometheus + Thanos
 vmsingle:
   enabled: true
   spec:
     retentionPeriod: "30d"
+    extraArgs:
+      maxLabelsPerTimeseries: "120"
+      search.maxConcurrentRequests: "4"
+      search.maxMemoryPerQuery: "134217728"
+      search.cacheTimestampOffset: 15m
     storage:
       storageClassName: longhorn-single-replica
       resources:
@@ -20,9 +34,9 @@ vmsingle:
     resources:
       requests:
         cpu: 100m
-        memory: 256Mi
-      limits:
         memory: 1Gi
+      limits:
+        memory: 4Gi
   ingress:
     enabled: true
     ingressClassName: internal
@@ -35,7 +49,8 @@ vmagent:
   spec:
     selectAllByDefault: true
     scrapeInterval: 30s
-    podAntiAffinity: hard
+    externalLabels:
+      cluster: home-cluster
     resources:
       requests:
         cpu: 50m
@@ -47,14 +62,20 @@ vmagent:
 vmalert:
   enabled: true
   spec:
-    selectAllByDefault: true
+    selectAllByDefault: false
+    ruleSelector:
+      matchExpressions:
+        - key: app.kubernetes.io/instance
+          operator: NotIn
+          values:
+            - kube-prometheus-stack
     evaluationInterval: 30s
     datasource:
-      url: http://vmsingle-victoria-metrics-stack.observability.svc:8429
+      url: http://vmsingle-victoria-metrics-stack.observability.svc:8428
     remoteWrite:
-      url: http://vmsingle-victoria-metrics-stack.observability.svc:8429
+      url: http://vmsingle-victoria-metrics-stack.observability.svc:8428/api/v1/write
     remoteRead:
-      url: http://vmsingle-victoria-metrics-stack.observability.svc:8429
+      url: http://vmsingle-victoria-metrics-stack.observability.svc:8428/api/v1/read
     resources:
       requests:
         cpu: 50m
@@ -69,12 +90,16 @@ alertmanager:
     replicaCount: 1
     configSecret: vmalertmanager-config
     secrets:
-      - alertmanager-secret
+      - victoria-metrics-alertmanager-secret
     storage:
-      storageClassName: longhorn-single-replica
-      resources:
-        requests:
-          storage: 1Gi
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          storageClassName: longhorn-single-replica
+          resources:
+            requests:
+              storage: 1Gi
     resources:
       requests:
         cpu: 50m
@@ -102,13 +127,29 @@ grafana:
 defaultRules:
   create: true
   rules:
-    kubeScheduler: true
-    kubeControllerManager: true
+    kubeScheduler: false
+    kubeControllerManager: false
     kubeEtcd: true
     kubeProxy: false
+
+kubeControllerManager:
+  enabled: false
+
+kubeScheduler:
+  enabled: false
 
 kubelet:
   enabled: true
   vmScrape:
     spec:
       interval: 30s
+      metricRelabelConfigs:
+        - action: labeldrop
+          regex: (feature_node_kubernetes_io_.+|extensions_talos_dev_.+|gpu_.+|intel_feature_node_kubernetes_io_.+|beta_kubernetes_io_.+)
+      relabelConfigs:
+        - sourceLabels: [__meta_kubernetes_node_name]
+          targetLabel: node
+        - sourceLabels: [__metrics_path__]
+          targetLabel: metrics_path
+        - targetLabel: job
+          replacement: kubelet

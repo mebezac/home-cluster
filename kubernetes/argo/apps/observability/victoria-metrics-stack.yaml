@@ -22,6 +22,18 @@ spec:
   destination:
     name: in-cluster
     namespace: observability
+  ignoreDifferences:
+    - group: admissionregistration.k8s.io
+      kind: ValidatingWebhookConfiguration
+      name: victoria-metrics-stack-victoria-metrics-operator-admission
+      jqPathExpressions:
+        - .webhooks[]?.clientConfig.caBundle
+    - group: ""
+      kind: Secret
+      name: victoria-metrics-stack-victoria-metrics-operator-validation
+      namespace: observability
+      jsonPointers:
+        - /data
   syncPolicy:
     automated:
       allowEmpty: true

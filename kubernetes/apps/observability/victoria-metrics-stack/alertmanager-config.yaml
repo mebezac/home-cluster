@@ -60,5 +60,5 @@ stringData:
               {{- end }}
             url_title: View in Alertmanager
             expire: 86400s
-            user_key_file: /etc/vm/secrets/alertmanager-secret/PUSHOVER_USER_KEY
-            token_file: /etc/vm/secrets/alertmanager-secret/PUSHOVER_ALERTMANAGER_KEY
+            user_key_file: /etc/vm/secrets/victoria-metrics-alertmanager-secret/PUSHOVER_USER_KEY
+            token_file: /etc/vm/secrets/victoria-metrics-alertmanager-secret/PUSHOVER_ALERTMANAGER_KEY
