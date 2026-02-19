@@ -1,0 +1,104 @@
+defaultPodOptions:
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 3000
+    runAsGroup: 3000
+    fsGroup: 3000
+    fsGroupChangePolicy: OnRootMismatch
+    seccompProfile: { type: RuntimeDefault }
+  imagePullSecrets:
+    - name: ghcr-secret
+
+controllers:
+  pcab:
+    annotations:
+      reloader.stakater.com/auto: "true"
+    initContainers:
+      init-db:
+        image:
+          repository: ghcr.io/home-operations/postgres-init
+          tag: 18.2
+        envFrom: &envFrom
+          - secretRef:
+              name: pcab-secret
+    containers:
+      app:
+        image:
+          repository: ghcr.io/mebezac/pcab
+          tag: v1.1.0
+        env:
+          TZ: America/New_York
+          PORT: "4000"
+        envFrom: *envFrom
+        probes:
+          startup:
+            enabled: true
+            spec:
+              httpGet:
+                path: /health
+                port: 4000
+              initialDelaySeconds: 30
+              periodSeconds: 10
+              timeoutSeconds: 5
+              failureThreshold: 30
+          liveness:
+            enabled: true
+            spec:
+              httpGet:
+                path: /health
+                port: 4000
+              initialDelaySeconds: 0
+              periodSeconds: 30
+              timeoutSeconds: 10
+              failureThreshold: 3
+          readiness:
+            enabled: true
+            spec:
+              httpGet:
+                path: /health
+                port: 4000
+              initialDelaySeconds: 0
+              periodSeconds: 10
+              timeoutSeconds: 5
+              failureThreshold: 3
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            memory: 4Gi
+
+service:
+  app:
+    controller: pcab
+    ports:
+      http:
+        port: 4000
+
+ingress:
+  app:
+    enabled: true
+    className: external
+    annotations:
+      external-dns.alpha.kubernetes.io/target: external.laboratory.casa
+    hosts:
+      - host: pcab.laboratory.casa
+        paths:
+          - path: /
+            service:
+              identifier: app
+              port: http
+
+persistence:
+  storage:
+    type: persistentVolumeClaim
+    storageClass: longhorn
+    accessMode: ReadWriteOnce
+    size: 10Gi
+    suffix: storage
+    globalMounts:
+      - path: /app/priv/storage
+  tmp:
+    type: emptyDir
+    globalMounts:
+      - path: /tmp

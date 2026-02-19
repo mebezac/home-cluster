@@ -1,0 +1,14 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "kubernetes": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "kubernetes-mcp-server@latest",
+        "--kubeconfig=/Users/zac/projects/lab_casa/home-cluster/kubeconfig",
+      ],
+    },
+  },
+}

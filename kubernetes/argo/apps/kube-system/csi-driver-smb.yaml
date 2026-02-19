@@ -15,7 +15,7 @@ spec:
       ref: repo
     - repoURL: https://raw.githubusercontent.com/kubernetes-csi/csi-driver-smb/master/charts
       chart: csi-driver-smb
-      targetRevision: 1.19.1
+      targetRevision: 1.20.0
       helm:
         releaseName: csi-driver-smb
         valueFiles:

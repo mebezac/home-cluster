@@ -22,7 +22,7 @@ controllers:
       db18:
         image:
           repository: ghcr.io/immich-app/postgres
-          tag: 18-vectorchord0.5.3-pgvector0.8.1@sha256:6d942cbad4043b4eb0d316612c5b108e47c525bb69c5d1fb00b981be5a021a85
+          tag: 18-vectorchord0.5.3-pgvector0.8.1@sha256:3884b46c478e7fc924c231be3f07a2d5265150d1c7caf2ecf9dc509384d53cde
         env:
           POSTGRES_INITDB_ARGS: --data-checksums
           PGDATA: /var/lib/postgresql18/data
@@ -40,7 +40,7 @@ controllers:
       metrics:
         image:
           repository: quay.io/prometheuscommunity/postgres-exporter
-          tag: v0.18.1@sha256:fb96c4413985d4b23ab02b19022b3d70a86c8e0a62f41ab15ebb6f4673781a5d
+          tag: v0.19.0@sha256:e8a170b85eab07c75c2b0f3aa2806be5c2fe5bba46fd0336914e1f36572cde08
         env:
           DATA_SOURCE_URI: localhost:5432/postgres?sslmode=disable
         envFrom:

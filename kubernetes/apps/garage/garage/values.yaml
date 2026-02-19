@@ -17,7 +17,7 @@ controllers:
       main:
         image:
           repository: dxflrs/garage
-          tag: v2.1.0@sha256:4c9b34c113e61358466e83fd6e7d66e6d18657ede14b776eb78a93ee8da7cf6a
+          tag: v2.2.0@sha256:45a61ce3f7c9c24fc23d9ed2b09b27ed560ab87b34605d175d5c588f539c24e4
         env:
           TZ: America/Detroit
         resources:
@@ -29,7 +29,7 @@ controllers:
       tailscale:
         image:
           repository: ghcr.io/tailscale/tailscale
-          tag: v1.92.5@sha256:4a0aaacee6f28e724c1f80c986e5776c9c979d8f7e19274c2cae2d495cc8d625
+          tag: v1.94.2@sha256:95e528798bebe75f39b10e74e7051cf51188ee615934f232ba7ad06a3390ffa1
         securityContext:
           privileged: true
           runAsUser: 0
@@ -55,7 +55,7 @@ controllers:
       rclone:
         image:
           repository: rclone/rclone
-          tag: 1.72.0@sha256:0eb18825ac9732c21c11d654007170572bbd495352bb6dbb624f18e4f462c496
+          tag: 1.73.1@sha256:c08f5e100e1c4fa4deb1315b56a47c0cc0e765222b7c0834bc93305f2e4d85c0
         command:
           - /bin/sh
           - -c

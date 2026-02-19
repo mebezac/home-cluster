@@ -6,14 +6,32 @@ defaultPodOptions:
     fsGroup: 1000
     fsGroupChangePolicy: "OnRootMismatch"
 
+serviceAccount:
+  opencode-manager: {}
+
 controllers:
   main:
+    serviceAccount:
+      identifier: opencode-manager
+    annotations:
+      reloader.stakater.com/auto: "true"
     replicas: 1
+    pod:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              preference:
+                matchExpressions:
+                  - key: workload.laboratory.casa/high-performance
+                    operator: In
+                    values:
+                      - "true"
     containers:
       main:
         image:
           repository: ghcr.io/mebezac/opencode-manager
-          tag: 0.8.0-baseline
+          tag: 2.0.2
         env:
           NODE_ENV: production
           HOST: 0.0.0.0
@@ -30,10 +48,58 @@ controllers:
           SANDBOX_TTL_HOURS: "24"
           CLEANUP_INTERVAL_MINUTES: "60"
           DEBUG: "true"
+          NODE_EXTRA_CA_CERTS: "/workspace/.kube/ca.crt"
+        envFrom:
+          - secretRef:
+              name: opencode-manager-secret
+        probes:
+          startup:
+            enabled: true
+            spec:
+              initialDelaySeconds: 30
+              periodSeconds: 10
+              timeoutSeconds: 5
+              failureThreshold: 30
+          liveness:
+            enabled: true
+            spec:
+              initialDelaySeconds: 0
+              periodSeconds: 30
+              timeoutSeconds: 10
+              failureThreshold: 3
+          readiness:
+            enabled: true
+            spec:
+              initialDelaySeconds: 0
+              periodSeconds: 10
+              timeoutSeconds: 5
+              failureThreshold: 3
         resources:
           requests:
             cpu: 100m
             memory: 1Gi
+          limits:
+            memory: 4Gi
+      browserless:
+        image:
+          repository: ghcr.io/browserless/chrome
+          tag: v2.41.0@sha256:30aab4a8421294f2868025fba07ff7df5c5645433a83fbb863c7b03d904337ac
+        env:
+          SCREEN_WIDTH: "1920"
+          SCREEN_HEIGHT: "1080"
+          SCREEN_DEPTH: "16"
+          ENABLE_DEBUGGER: "true"
+          PREBOOT_CHROME: "true"
+          CONNECTION_TIMEOUT: "300000"
+          MAX_CONCURRENT_SESSIONS: "5"
+          CHROME_REFRESH_TIME: "600000"
+        envFrom:
+          - secretRef:
+              name: opencode-manager-secret
+        resources:
+          requests:
+            cpu: 100m
+            memory: 2Gi
           limits:
             memory: 8Gi
 
@@ -43,14 +109,25 @@ service:
     ports:
       http:
         port: 5003
+      websocket:
+        port: 5004
 
 ingress:
   main:
     enabled: true
     className: internal
+    annotations:
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+      nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+      nginx.ingress.io/proxy-connect-timeout: "3600"
     hosts:
       - host: opencode.laboratory.casa
         paths:
+          - path: /ws/kubernetes
+            pathType: Prefix
+            service:
+              identifier: main
+              port: websocket
           - path: /
             pathType: Prefix
             service:
@@ -58,14 +135,28 @@ ingress:
               port: http
 
 persistence:
-  data:
+  app-data-new:
     enabled: true
     type: persistentVolumeClaim
     storageClass: longhorn
     accessMode: ReadWriteOnce
-    size: 10Gi
+    size: 150Mi
     globalMounts:
       - path: /app/data
-        subPath: data
+  workspace-new:
+    enabled: true
+    type: persistentVolumeClaim
+    storageClass: longhorn
+    accessMode: ReadWriteMany
+    size: 11Gi
+    globalMounts:
       - path: /workspace
         subPath: workspace
+  secrets:
+    type: secret
+    name: opencode-manager-secret
+    globalMounts:
+      - path: /workspace/.kube/kubeconfig
+        subPath: kubeconfig
+      - path: /workspace/.kube/ca.crt
+        subPath: ca.crt

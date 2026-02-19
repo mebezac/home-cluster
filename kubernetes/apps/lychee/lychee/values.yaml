@@ -8,7 +8,7 @@ controllers:
       init-db:
         image:
           repository: ghcr.io/home-operations/postgres-init
-          tag: 18.1
+          tag: 18.2
           pullPolicy: IfNotPresent
         envFrom: &envFrom
           - secretRef:
@@ -17,7 +17,7 @@ controllers:
       app:
         image:
           repository: lycheeorg/lychee
-          tag: v7.1.2@sha256:6819e9b393d80446fd697ba77426c3b98ae9ffd4faf118678efcfde3d39d167e
+          tag: v7.3.3@sha256:36a6b842913d03b6aa073d0862de0fe8a3f046a92e0282ca55ace1f5ab48f948
         resources:
           requests:
             cpu: 100m

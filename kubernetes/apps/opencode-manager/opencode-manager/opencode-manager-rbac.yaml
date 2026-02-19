@@ -1,0 +1,24 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: opencode-manager
+  namespace: opencode-manager
+rules:
+- apiGroups: ["*"]
+  resources: ["*"]
+  verbs: ["*"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: opencode-manager
+  namespace: opencode-manager
+subjects:
+- kind: ServiceAccount
+  name: opencode-manager
+  namespace: opencode-manager
+roleRef:
+  kind: Role
+  name: opencode-manager
+  apiGroup: rbac.authorization.k8s.io

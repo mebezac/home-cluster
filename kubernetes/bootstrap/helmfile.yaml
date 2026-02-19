@@ -18,7 +18,7 @@ releases:
   - name: prometheus-operator-crds
     namespace: observability
     chart: oci://ghcr.io/prometheus-community/charts/prometheus-operator-crds
-    version: 26.0.0
+    version: 27.0.0
 
   - name: cilium
     namespace: kube-system
@@ -32,7 +32,7 @@ releases:
   - name: coredns
     namespace: kube-system
     chart: coredns/coredns
-    version: 1.45.0
+    version: 1.45.2
     values:
       - ../apps/kube-system/coredns/values.yaml
     needs:
@@ -41,7 +41,7 @@ releases:
   - name: argo-cd
     namespace: argo-system
     chart: oci://ghcr.io/argoproj/argo-helm/argo-cd
-    version: 9.3.4
+    version: 9.4.3
     secrets:
       - ../apps/argo-system/argo-cd/values.sops.yaml
     needs:
