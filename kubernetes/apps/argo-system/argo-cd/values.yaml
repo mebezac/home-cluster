@@ -52,14 +52,16 @@ controller:
     serviceMonitor:
       enabled: true
       additionalLabels:
-        release: kube-prometheus-stack
+        release: victoria-metrics-stack
 redis:
+  exporter:
+    enabled: true
   metrics:
     enabled: true
     serviceMonitor:
       enabled: true
       additionalLabels:
-        release: kube-prometheus-stack
+        release: victoria-metrics-stack
 server:
   replicas: 1
   allowAnyNamespace: true
@@ -74,7 +76,7 @@ server:
     serviceMonitor:
       enabled: true
       additionalLabels:
-        release: kube-prometheus-stack
+        release: victoria-metrics-stack
 notifications:
   replicas: 1
   metrics:
@@ -82,7 +84,7 @@ notifications:
     serviceMonitor:
       enabled: true
       additionalLabels:
-        release: kube-prometheus-stack
+        release: victoria-metrics-stack
 repoServer:
   replicas: 1
   serviceAccount:

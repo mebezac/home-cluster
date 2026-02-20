@@ -177,6 +177,120 @@ dashboardProviders:
         options:
           path: /var/lib/grafana/dashboards/database
 dashboards:
+  default:
+    victorialogs-namespace-starter:
+      json: |
+        {
+          "title": "VictoriaLogs - Namespace Logs",
+          "uid": "victorialogs-namespace-logs",
+          "schemaVersion": 41,
+          "version": 1,
+          "editable": true,
+          "tags": ["victorialogs", "logs", "kubernetes"],
+          "time": {
+            "from": "now-1h",
+            "to": "now"
+          },
+          "templating": {
+            "list": [
+              {
+                "allValue": "*",
+                "current": {
+                  "text": "All",
+                  "value": ["$__all"]
+                },
+                "datasource": {
+                  "type": "victoriametrics-logs-datasource",
+                  "uid": "victorialogs"
+                },
+                "definition": "* | fields namespace",
+                "includeAll": true,
+                "multi": true,
+                "name": "namespace",
+                "options": [],
+                "query": {
+                  "type": "fieldValue",
+                  "field": "namespace",
+                  "query": "* | fields namespace",
+                  "limit": 500,
+                  "refId": "VictoriaLogsVariableQueryEditor-namespace"
+                },
+                "refresh": 1,
+                "sort": 1,
+                "type": "query"
+              }
+            ]
+          },
+          "panels": [
+            {
+              "id": 1,
+              "title": "Log Volume by Pod",
+              "type": "timeseries",
+              "datasource": {
+                "type": "victoriametrics-logs-datasource",
+                "uid": "victorialogs"
+              },
+              "gridPos": {
+                "h": 8,
+                "w": 24,
+                "x": 0,
+                "y": 0
+              },
+              "targets": [
+                {
+                  "refId": "A",
+                  "editorMode": "code",
+                  "queryType": "statsRange",
+                  "expr": "namespace:in($namespace) | stats by (pod) count() as logs"
+                }
+              ],
+              "options": {
+                "legend": {
+                  "displayMode": "table",
+                  "placement": "right",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "mode": "multi",
+                  "sort": "desc"
+                }
+              }
+            },
+            {
+              "id": 2,
+              "title": "Raw Logs",
+              "type": "logs",
+              "datasource": {
+                "type": "victoriametrics-logs-datasource",
+                "uid": "victorialogs"
+              },
+              "gridPos": {
+                "h": 14,
+                "w": 24,
+                "x": 0,
+                "y": 8
+              },
+              "targets": [
+                {
+                  "refId": "A",
+                  "editorMode": "code",
+                  "queryType": "instant",
+                  "expr": "namespace:in($namespace) | limit 500"
+                }
+              ],
+              "options": {
+                "showLabels": true,
+                "showCommonLabels": false,
+                "showTime": true,
+                "sortOrder": "Descending",
+                "wrapLogMessage": true,
+                "enableLogDetails": true,
+                "prettifyLogMessage": false,
+                "dedupStrategy": "none"
+              }
+            }
+          ]
+        }
   kubernetes:
     argo:
       url: https://raw.githubusercontent.com/argoproj/argo-cd/refs/heads/master/examples/dashboard.json

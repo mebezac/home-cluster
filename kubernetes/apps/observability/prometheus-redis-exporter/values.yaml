@@ -8,11 +8,11 @@ redisAddress: redis://valkey.valkey.svc.cluster.local:6379
 serviceMonitor:
   enabled: true
   labels:
-    release: kube-prometheus-stack
+    release: victoria-metrics-stack
 prometheusRule:
   enabled: true
   labels:
-    release: kube-prometheus-stack
+    release: victoria-metrics-stack
   rules:
     - alert: RedisExporterAbsent
       annotations:

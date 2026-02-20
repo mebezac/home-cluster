@@ -48,6 +48,18 @@ vmagent:
   enabled: true
   spec:
     selectAllByDefault: true
+    serviceScrapeSelector:
+      matchExpressions:
+        - key: release
+          operator: NotIn
+          values:
+            - kube-prometheus-stack
+    podScrapeSelector:
+      matchExpressions:
+        - key: release
+          operator: NotIn
+          values:
+            - kube-prometheus-stack
     scrapeInterval: 30s
     externalLabels:
       cluster: home-cluster
@@ -112,12 +124,12 @@ alertmanager:
     hosts:
       - alertmanager.laboratory.casa
 
-# Exporters - keep existing, disable here
+# Exporters - enabled after kube-prometheus-stack removal
 prometheus-node-exporter:
-  enabled: false
+  enabled: true
 
 kube-state-metrics:
-  enabled: false
+  enabled: true
 
 # Disable built-in Grafana, use existing
 grafana:
@@ -137,6 +149,21 @@ kubeControllerManager:
 
 kubeScheduler:
   enabled: false
+
+kubeEtcd:
+  enabled: true
+  endpoints:
+    - 10.25.30.39
+    - 10.25.30.45
+    - 10.25.30.46
+  service:
+    port: 2381
+    targetPort: 2381
+  vmScrape:
+    spec:
+      endpoints:
+        - port: http-metrics
+          scheme: http
 
 kubelet:
   enabled: true

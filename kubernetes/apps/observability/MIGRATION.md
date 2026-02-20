@@ -20,7 +20,7 @@ This migration replaces the existing Grafana LGTM stack (Prometheus + Thanos + L
 | Thanos (all components) | Built-in VMSingle retention | Removed |
 | AlertManager | VMAlertmanager | Included in stack |
 | loki | victoria-logs | `victoria-logs` |
-| alloy | VMAgent (unified metrics + logs) | Included in stack |
+| alloy | victoria-logs-collector (vlagent) | `victoria-logs-collector` |
 
 ## Resource Comparison
 
@@ -57,7 +57,7 @@ This migration replaces the existing Grafana LGTM stack (Prometheus + Thanos + L
 
 3. **Verify Grafana datasources**
    - VictoriaMetrics datasource added: `http://vmsingle-victoria-metrics-stack.observability.svc:8428`
-   - VictoriaLogs datasource added: `http://victoria-logs.observability.svc:9428`
+   - VictoriaLogs datasource added: `http://victoria-logs-victoria-logs-single-server.observability.svc.cluster.local:9428`
    - VMAlertmanager datasource added: `http://vmalertmanager-victoria-metrics-stack.observability.svc:9093`
 
 ### Phase 2: Validation
@@ -76,12 +76,12 @@ Update Alloy config to push logs to VictoriaLogs:
 ```alloy
 loki.write "default" {
   endpoint {
-    url = "http://victoria-logs.observability.svc:9428/insert/loki/api/v1/push"
+    url = "http://victoria-logs-victoria-logs-single-server.observability.svc.cluster.local:9428/insert/loki/api/v1/push"
   }
 }
 ```
 
-Or migrate to VMAgent for unified collection (recommended).
+Or replace Alloy with `victoria-logs-collector` (`vlagent`) for native VictoriaLogs collection (recommended).
 
 ### Phase 4: Cutover
 
@@ -121,10 +121,10 @@ Once validation is complete:
    git push
    ```
 
-5. **Remove Alloy** (replaced by VMAgent)
+5. **Remove Alloy** (replaced by victoria-logs-collector)
    ```bash
    git rm kubernetes/argo/apps/observability/alloy.yaml
-   git commit -m "chore: remove alloy after vmagent migration"
+     git commit -m "chore: remove alloy after victoria logs collector migration"
    git push
    ```
 
@@ -174,7 +174,7 @@ loki.write "loki" {
 
 loki.write "victorialogs" {
   endpoint {
-    url = "http://victoria-logs.observability.svc:9428/insert/loki/api/v1/push"
+     url = "http://victoria-logs-victoria-logs-single-server.observability.svc.cluster.local:9428/insert/loki/api/v1/push"
   }
 }
 

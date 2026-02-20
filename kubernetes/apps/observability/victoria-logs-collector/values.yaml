@@ -1,0 +1,32 @@
+fullnameOverride: victoria-logs-collector
+
+remoteWrite:
+  - url: http://victoria-logs-victoria-logs-single-server.observability.svc.cluster.local:9428
+    headers:
+      VL-Extra-Fields:
+        cluster: home-cluster
+      VL-Ignore-Fields:
+        - file
+        - kubernetes.node_annotations*
+        - kubernetes.node_labels*
+        - kubernetes.namespace_labels*
+        - kubernetes.pod_annotations*
+        - kubernetes.pod_labels*
+
+collector:
+  msgField:
+    - message
+    - msg
+    - log
+    - _msg
+  includePodLabels: false
+  includePodAnnotations: false
+  includeNodeLabels: false
+  includeNodeAnnotations: false
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    memory: 512Mi

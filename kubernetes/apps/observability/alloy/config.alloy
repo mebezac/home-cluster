@@ -133,6 +133,6 @@ loki.process "cluster_events" {
 
 loki.write "default" {
   endpoint {
-    url = "http://victoria-logs-victoria-logs-single-server.observability.svc.cluster.local:9428/insert/loki/api/v1/push"
+    url = "http://victoria-logs-victoria-logs-single-server.observability.svc.cluster.local:9428/insert/loki/api/v1/push?_stream_fields=cluster,namespace,app,job,node,pod,container"
   }
 }

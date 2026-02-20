@@ -28,8 +28,7 @@ spec:
       name: victoria-metrics-stack-victoria-metrics-operator-admission
       jqPathExpressions:
         - .webhooks[]?.clientConfig.caBundle
-    - group: ""
-      kind: Secret
+    - kind: Secret
       name: victoria-metrics-stack-victoria-metrics-operator-validation
       namespace: observability
       jsonPointers:
