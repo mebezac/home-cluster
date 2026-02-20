@@ -8,18 +8,10 @@ metadata:
     argocd.argoproj.io/sync-wave: "0"
 spec:
   project: kubernetes
-  sources:
-    - repoURL: https://github.com/mebezac/home-cluster.git
-      path: kubernetes/apps/podcasts/podly-pure-podcasts
-      targetRevision: main
-      ref: repo
-    - repoURL: ghcr.io/bjw-s-labs/helm
-      chart: app-template
-      targetRevision: 4.6.2
-      helm:
-        releaseName: podly-pure-podcasts
-        valueFiles:
-          - $repo/kubernetes/apps/podcasts/podly-pure-podcasts/values.yaml
+  source:
+    repoURL: https://github.com/mebezac/home-cluster.git
+    path: kubernetes/apps/observability/decommissioned-empty
+    targetRevision: main
   destination:
     name: in-cluster
     namespace: podcasts

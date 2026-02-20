@@ -8,18 +8,10 @@ metadata:
     argocd.argoproj.io/sync-wave: "0"
 spec:
   project: kubernetes
-  sources:
-    - repoURL: https://github.com/mebezac/home-cluster.git
-      path: kubernetes/apps/ghost
-      targetRevision: main
-      ref: repo
-    - repoURL: registry-1.docker.io/bitnamicharts
-      chart: ghost
-      targetRevision: 25.0.4
-      helm:
-        releaseName: ghost
-        valueFiles:
-          - $repo/kubernetes/apps/ghost/values.sops.yaml
+  source:
+    repoURL: https://github.com/mebezac/home-cluster.git
+    path: kubernetes/apps/observability/decommissioned-empty
+    targetRevision: main
   destination:
     name: in-cluster
     namespace: ghost
