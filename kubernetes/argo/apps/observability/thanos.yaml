@@ -7,18 +7,10 @@ metadata:
     argocd.argoproj.io/sync-wave: "1"
 spec:
   project: kubernetes
-  sources:
-    - repoURL: https://github.com/mebezac/home-cluster.git
-      path: kubernetes/apps/observability/thanos
-      targetRevision: main
-      ref: thanos-repo
-    - repoURL: ghcr.io/stevehipwell/helm-charts
-      chart: thanos
-      targetRevision: 1.22.1
-      helm:
-        releaseName: thanos
-        valueFiles:
-          - $thanos-repo/kubernetes/apps/observability/thanos/values.yaml
+  source:
+    repoURL: https://github.com/mebezac/home-cluster.git
+    path: kubernetes/apps/observability/decommissioned-empty
+    targetRevision: main
   destination:
     name: in-cluster
     namespace: observability
