@@ -7,18 +7,10 @@ metadata:
     argocd.argoproj.io/sync-wave: "0"
 spec:
   project: kubernetes
-  sources:
-    - repoURL: https://github.com/mebezac/home-cluster.git
-      path: kubernetes/apps/observability/loki
-      targetRevision: main
-      ref: loki-repo
-    - repoURL: ghcr.io/grafana/helm-charts
-      chart: loki
-      targetRevision: 6.53.0
-      helm:
-        releaseName: loki
-        valueFiles:
-          - $loki-repo/kubernetes/apps/observability/loki/values.yaml
+  source:
+    repoURL: https://github.com/mebezac/home-cluster.git
+    path: kubernetes/apps/observability/decommissioned-empty
+    targetRevision: main
   destination:
     name: in-cluster
     namespace: observability
