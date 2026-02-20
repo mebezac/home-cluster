@@ -127,7 +127,7 @@ datasources:
         type: victoriametrics-logs-datasource
         uid: victorialogs
         access: proxy
-        url: http://victoria-logs.observability.svc:9428
+        url: http://victoria-logs-victoria-logs-single-server.observability.svc.cluster.local:9428
         jsonData:
           maxLines: 250
 dashboardProviders:
