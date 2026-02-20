@@ -138,6 +138,9 @@ grafana:
 # Default scrape configs for K8s components
 defaultRules:
   create: true
+  groups:
+    vmcluster:
+      create: false
   rules:
     kubeScheduler: false
     kubeControllerManager: false
