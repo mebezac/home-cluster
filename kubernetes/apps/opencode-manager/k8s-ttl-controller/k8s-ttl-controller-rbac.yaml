@@ -1,9 +1,8 @@
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
+kind: ClusterRole
 metadata:
   name: k8s-ttl-controller
-  namespace: opencode-manager
   labels:
     app.kubernetes.io/name: k8s-ttl-controller
     app.kubernetes.io/instance: k8s-ttl-controller
@@ -25,10 +24,9 @@ rules:
       - "create"
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
+kind: ClusterRoleBinding
 metadata:
   name: k8s-ttl-controller
-  namespace: opencode-manager
   labels:
     app.kubernetes.io/name: k8s-ttl-controller
     app.kubernetes.io/instance: k8s-ttl-controller
@@ -37,6 +35,6 @@ subjects:
     name: k8s-ttl-controller
     namespace: opencode-manager
 roleRef:
-  kind: Role
+  kind: ClusterRole
   name: k8s-ttl-controller
   apiGroup: rbac.authorization.k8s.io
