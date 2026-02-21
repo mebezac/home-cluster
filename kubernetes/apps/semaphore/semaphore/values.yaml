@@ -24,7 +24,7 @@ controllers:
       app:
         image:
           repository: semaphoreui/semaphore
-          tag: v2.17.12@sha256:54a0da58674b5bf44934be907d517d7ffb77fd459770bf1b4397252eb2a95161
+          tag: v2.17.14@sha256:a10d001b3dbabd30b68b8a38976f05e5405f72a960aabf26dd3f5bbe03221f38
         env:
           SEMAPHORE_PLAYBOOK_PATH: /tmp/semaphore/
           SEMAPHORE_PORT: &port 3000
