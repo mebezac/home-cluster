@@ -26,3 +26,5 @@ wiki
 /config.yaml
 
 !AGENTS.md
+!.agents/
+!.agents/**
