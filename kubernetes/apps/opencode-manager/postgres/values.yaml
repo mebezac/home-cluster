@@ -1,0 +1,65 @@
+---
+controllers:
+  main:
+    annotations:
+      reloader.stakater.com/auto: "true"
+    replicas: 1
+    strategy: Recreate
+    containers:
+      app:
+        image:
+          repository: docker.io/library/postgres
+          tag: "18.2"
+        env:
+          POSTGRES_DB: postgres
+          PGDATA: /var/lib/postgresql/data/pgdata
+        envFrom:
+          - secretRef:
+              name: postgres-secret
+        resources:
+          requests:
+            cpu: 50m
+            memory: 256Mi
+          limits:
+            memory: 1Gi
+        probes:
+          liveness:
+            enabled: true
+            custom: true
+            spec:
+              exec:
+                command:
+                  - pg_isready
+                  - -U
+                  - postgres
+              initialDelaySeconds: 10
+              periodSeconds: 10
+              failureThreshold: 5
+          readiness:
+            enabled: true
+            custom: true
+            spec:
+              exec:
+                command:
+                  - pg_isready
+                  - -U
+                  - postgres
+              initialDelaySeconds: 5
+              periodSeconds: 5
+              failureThreshold: 5
+
+service:
+  app:
+    controller: main
+    ports:
+      postgres:
+        port: 5432
+
+persistence:
+  data:
+    type: persistentVolumeClaim
+    storageClass: longhorn-single-replica
+    accessMode: ReadWriteOnce
+    size: 5Gi
+    globalMounts:
+      - path: /var/lib/postgresql/data

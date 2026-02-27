@@ -1,0 +1,31 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: opencode-manager-postgres
+  namespace: argo-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: kubernetes
+  sources:
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/apps/opencode-manager/postgres
+      targetRevision: main
+      ref: opencode-manager-postgres-repo
+    - repoURL: ghcr.io/bjw-s-labs/helm
+      chart: app-template
+      targetRevision: 4.6.2
+      helm:
+        releaseName: opencode-manager-postgres
+        valueFiles:
+          - $opencode-manager-postgres-repo/kubernetes/apps/opencode-manager/postgres/values.yaml
+  destination:
+    name: in-cluster
+    namespace: opencode-manager
+  syncPolicy:
+    automated:
+      allowEmpty: true
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
