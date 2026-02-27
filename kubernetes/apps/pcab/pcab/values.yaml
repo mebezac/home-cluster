@@ -17,7 +17,7 @@ controllers:
       init-db:
         image:
           repository: ghcr.io/home-operations/postgres-init
-          tag: 18.2
+          tag: 18.3
         envFrom: &envFrom
           - secretRef:
               name: pcab-secret

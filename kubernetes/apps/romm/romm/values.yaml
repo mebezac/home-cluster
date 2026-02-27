@@ -30,7 +30,7 @@ controllers:
       postgres-init:
         image:
           repository: ghcr.io/home-operations/postgres-init
-          tag: 18.2
+          tag: 18.3
         envFrom: &envFrom
           - secretRef:
               name: romm-secret
