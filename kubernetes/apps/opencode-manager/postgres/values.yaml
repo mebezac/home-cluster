@@ -9,7 +9,7 @@ controllers:
       app:
         image:
           repository: docker.io/library/postgres
-          tag: "18.2"
+          tag: "18.3"
         env:
           POSTGRES_DB: postgres
           PGDATA: /var/lib/postgresql/data/pgdata
