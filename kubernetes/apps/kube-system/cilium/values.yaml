@@ -10,13 +10,22 @@ cgroup:
   automount:
     enabled: false
   hostRoot: /sys/fs/cgroup
+dashboards:
+  enabled: true
 # NOTE: devices might need to be set if you have more than one active NIC on your hosts
 # devices: eno+ eth+
 endpointRoutes:
   enabled: true
 envoy:
-  enabled: false
-dashboards:
+  rollOutPods: true
+  prometheus:
+    # TODO: figure out why the cilium-agent in the cilium pods
+    # is listenting on port 9964 for envoy, and therefore conflicting with the
+    # default port this tries to do
+    port: "9965"
+    serviceMonitor:
+      enabled: true
+gatewayAPI:
   enabled: true
 hubble:
   enabled: true

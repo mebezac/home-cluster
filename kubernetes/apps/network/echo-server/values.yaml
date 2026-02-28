@@ -8,7 +8,7 @@ controllers:
           tag: 39
         env:
           DISABLE_REQUEST_LOGS: true
-          HTTP_PORT: 8080
+          HTTP_PORT: &port 8080
           LOG_WITHOUT_NEWLINE: true
           LOG_IGNORE_PATH: /healthz
           PROMETHEUS_ENABLED: true
@@ -19,7 +19,7 @@ controllers:
             spec:
               httpGet:
                 path: /healthz
-                port: 8080
+                port: *port
               initialDelaySeconds: 0
               periodSeconds: 10
               timeoutSeconds: 1
@@ -58,6 +58,19 @@ serviceMonitor:
         path: /metrics
         interval: 1m
         scrapeTimeout: 10s
+route:
+  app:
+    hostnames:
+      - echo-gateway.laboratory.casa
+    parentRefs:
+      - name: internal
+        namespace: kube-system
+        sectionName: https
+    rules:
+      - backendRefs:
+          - identifier: app
+            port: *port
+
 ingress:
   app:
     className: external
