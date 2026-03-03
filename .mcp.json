@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "kubernetes-mcp-server": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "kubernetes-mcp-server@latest",
+        "--read-only"
+      ],
+      "env": {
+        "KUBECONFIG": "/Users/zac/projects/lab_casa/home-cluster/kubeconfig"
+      }
+    }
+  }
+}
