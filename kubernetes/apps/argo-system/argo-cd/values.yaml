@@ -1,5 +1,7 @@
 crds:
   install: true
+  annotations:
+    argocd.argoproj.io/sync-options: Replace=false,ServerSideApply=true
 global:
   domain: argo.laboratory.casa
   logging:
