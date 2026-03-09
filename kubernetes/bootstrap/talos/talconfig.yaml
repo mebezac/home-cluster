@@ -224,6 +224,23 @@ nodes:
           - network: "0.0.0.0/0"
             gateway: "10.25.30.1"
         mtu: 1500
+  - hostname: "talmac-03"
+    ipAddress: "10.25.30.44"
+    installDisk: "/dev/nvme0n1"
+    machineSpec:
+      secureboot: false
+    talosImageURL: factory.talos.dev/installer/2385c7daef21b71bfd59f74b96cdccfebe5003bcef3cee5b56b1add17a8f4817
+    controlPlane: false
+    networkInterfaces:
+      - deviceSelector:
+          hardwareAddr: "3c:cd:36:69:f8:de"
+        dhcp: false
+        addresses:
+          - "10.25.30.44/24"
+        routes:
+          - network: "0.0.0.0/0"
+            gateway: "10.25.30.1"
+        mtu: 1500
 
 # Global patches
 patches:
