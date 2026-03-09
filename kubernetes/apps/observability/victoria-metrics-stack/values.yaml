@@ -156,7 +156,7 @@ kubeScheduler:
 kubeEtcd:
   enabled: true
   endpoints:
-    - 10.25.30.39
+    - 10.25.30.35
     - 10.25.30.45
     - 10.25.30.46
   service:
