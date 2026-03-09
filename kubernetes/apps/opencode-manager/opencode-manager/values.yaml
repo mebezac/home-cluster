@@ -16,17 +16,6 @@ controllers:
     annotations:
       reloader.stakater.com/auto: "true"
     replicas: 1
-    pod:
-      affinity:
-        nodeAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-            - weight: 100
-              preference:
-                matchExpressions:
-                  - key: workload.laboratory.casa/high-performance
-                    operator: In
-                    values:
-                      - "true"
     containers:
       main:
         image:
