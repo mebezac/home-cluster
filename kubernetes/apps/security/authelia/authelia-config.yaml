@@ -259,6 +259,27 @@ identity_providers:
         access_token_signed_response_alg: "none"
         userinfo_signed_response_alg: "none"
         token_endpoint_auth_method: "client_secret_basic"
+      # AdventureLog
+      - client_id: "FO3XcIuQapm5eHduebu.htvUthO.cdd8ynv15AHx6Rz5kOpJZ8RqGykPCWz8Goy0ArwdtNE_"
+        client_name: "AdventureLog"
+        client_secret: "$pbkdf2-sha512$310000$B2ovaeH.Czfxv3FZb1h6Sg$95RNAmcMIyMUGpntXPBA0B.AuUsFiT8TZ.xDy.5aUXfvl8FWAGiAaZ0TrsNoqpXSHaV9DQnwh2FRK61qtx8BOg"
+        public: false
+        authorization_policy: "one_factor"
+        consent_mode: "implicit"
+        require_pkce: false
+        redirect_uris:
+          - "https://adventurelog-api.laboratory.casa/accounts/oidc/adventurelog/login/callback/"
+        scopes:
+          - "openid"
+          - "email"
+          - "profile"
+        response_types:
+          - "code"
+        grant_types:
+          - "authorization_code"
+        access_token_signed_response_alg: "none"
+        userinfo_signed_response_alg: "none"
+        token_endpoint_auth_method: "client_secret_basic"
       # Romm
       - client_id: ".VBSb-hcpa9r3odp1o~1VreQRYpwUWpb1Dzw5dDkEcr08duvBx2TZ6tAIO-gFJ92q2rPZ-Y8"
         client_name: "Romm"
