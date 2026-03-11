@@ -92,6 +92,14 @@ persistence:
       backend:
         app:
           - path: /code/media
+  initdb:
+    type: configMap
+    name: adventurelog-initdb
+    advancedMounts:
+      backend:
+        init-db:
+          - path: /initdb
+            readOnly: true
   tmp:
     type: emptyDir
     globalMounts:

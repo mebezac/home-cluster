@@ -18,6 +18,14 @@ spec:
         # when recovering from an existing cnpg cluster
         serverName: postgres-17-cluster-v2
 
+  postgresql:
+    extensions:
+      - name: postgis
+        image:
+          reference: ghcr.io/cloudnative-pg/postgis-extension:3.6.2-18-trixie@sha256:b6a84752393f6cf970c9e0aceb5b16c494c662ce5e2dfe825ae641ed7caeffde
+        ld_library_path:
+          - system
+
   storage:
     size: 16Gi
     storageClass: longhorn-single-replica
