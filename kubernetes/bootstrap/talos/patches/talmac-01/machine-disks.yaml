@@ -1,0 +1,5 @@
+machine:
+  disks:
+    - device: /dev/disk/by-id/usb-Sabrent_SSD_830720240913000A-0:0
+      partitions:
+        - mountpoint: /var/mnt/longhorn-usb
