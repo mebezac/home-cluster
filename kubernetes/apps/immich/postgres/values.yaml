@@ -22,7 +22,7 @@ controllers:
       db18:
         image:
           repository: ghcr.io/immich-app/postgres
-          tag: 18-vectorchord0.5.3-pgvector0.8.1@sha256:7d36e5fab4651a195afc5274f35ef6207d37340d9343c175165d0a056592f505
+          tag: 18-vectorchord0.5.3-pgvector0.8.1@sha256:20b902bb2669deec7101eeb142124887b477396efc1a308b779a19ffc6c5bebe
         env:
           POSTGRES_INITDB_ARGS: --data-checksums
           PGDATA: /var/lib/postgresql18/data
