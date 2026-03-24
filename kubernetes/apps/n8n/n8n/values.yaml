@@ -92,7 +92,9 @@ service:
 
 ingress:
   app:
-    className: internal
+    className: external
+    annotations:
+      external-dns.alpha.kubernetes.io/target: external.laboratory.casa
     hosts:
       - host: n8n.laboratory.casa
         paths:
