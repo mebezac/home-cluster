@@ -160,6 +160,8 @@ nodes:
       secureboot: false
     talosImageURL: factory.talos.dev/installer/2385c7daef21b71bfd59f74b96cdccfebe5003bcef3cee5b56b1add17a8f4817
     controlPlane: false
+    patches:
+      - "@./patches/talmac-02/machine-disks.yaml"
     networkInterfaces:
       - deviceSelector:
           hardwareAddr: "3c:cd:36:69:f8:ce"
@@ -177,6 +179,8 @@ nodes:
       secureboot: false
     talosImageURL: factory.talos.dev/installer/2385c7daef21b71bfd59f74b96cdccfebe5003bcef3cee5b56b1add17a8f4817
     controlPlane: false
+    patches:
+      - "@./patches/talmac-03/machine-disks.yaml"
     networkInterfaces:
       - deviceSelector:
           hardwareAddr: "3c:cd:36:69:f8:de"
