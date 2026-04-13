@@ -4,6 +4,7 @@ kind: Cluster
 metadata:
   name: postgres-17-cluster
 spec:
+  primaryUpdateMethod: switchover
   instances: 3
   # NOTE: Yes I know everything is called *-17-*, even though the version is now higher
   # That was an oversight when first making the cluster, but I don't care enough to fix it now
