@@ -20,7 +20,7 @@ controllers:
       main:
         image:
           repository: ghcr.io/immich-app/immich-server
-          tag: v2.6.2@sha256:1521a1c8c1727ec240e57585db7bf90a3b067066d4847baeb80f353d721f4d5a
+          tag: v2.7.5@sha256:c15bff75068effb03f4355997d03dc7e0fc58720c2b54ad6f7f10d1bc57efaa5
         env:
           TZ: America/New_York
           IMMICH_CONFIG_FILE: /config/immich-config.json
@@ -74,7 +74,7 @@ controllers:
       main:
         image:
           repository: ghcr.io/immich-app/immich-server
-          tag: v2.6.2@sha256:1521a1c8c1727ec240e57585db7bf90a3b067066d4847baeb80f353d721f4d5a
+          tag: v2.7.5@sha256:c15bff75068effb03f4355997d03dc7e0fc58720c2b54ad6f7f10d1bc57efaa5
         envFrom:
           - secretRef:
               name: *secret
@@ -113,7 +113,7 @@ controllers:
       main:
         image:
           repository: ghcr.io/immich-app/immich-machine-learning
-          tag: v2.6.2@sha256:2d2d56d12d32b904a86952dd048224d117251d10ed10a4d75279e080e79002b7
+          tag: v2.7.5@sha256:a2501141440f10516d329fdfba2c68082e19eb9ba6016c061ac80d23beadf7f3
         env:
           TZ: America/New_York
           IMMICH_CONFIG_FILE: /config/immich-config.json
