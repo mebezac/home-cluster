@@ -73,7 +73,7 @@ controllers:
       app:
         image:
           repository: ghcr.io/ozark-connect/speedtest
-          tag: 1.15.7
+          tag: 1.15.8
         env:
           TZ: America/New_York
           HOST_NAME: network-optimizer.laboratory.casa
