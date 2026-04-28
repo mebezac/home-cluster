@@ -13,7 +13,7 @@ controllers:
       main:
         image:
           repository: ghcr.io/advplyr/audiobookshelf
-          tag: 2.33.2
+          tag: 2.34.0
         resources:
           requests:
             cpu: 100m
