@@ -72,7 +72,7 @@ controllers:
       browserless:
         image:
           repository: ghcr.io/browserless/chrome
-          tag: v2.47.0@sha256:d4d2b7cf6f038d815fb5a296c42928ce84a80106847189ad1a7a10f4c7827503
+          tag: v2.48.1@sha256:39838f51c19446af25d078cdbf58e03a5907e4f558f700c972c888d2d7968737
         env:
           SCREEN_WIDTH: "1920"
           SCREEN_HEIGHT: "1080"
