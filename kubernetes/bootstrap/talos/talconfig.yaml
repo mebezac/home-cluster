@@ -3,7 +3,7 @@
 # renovate: datasource=docker depName=ghcr.io/siderolabs/installer
 talosVersion: v1.13.0
 # renovate: datasource=docker depName=ghcr.io/siderolabs/kubelet
-kubernetesVersion: v1.36.0
+kubernetesVersion: v1.35.4
 
 clusterName: kubernetes
 endpoint: https://10.25.30.116:6443
@@ -126,6 +126,8 @@ nodes:
     controlPlane: false
     patches:
       - "@./patches/talmac-01/machine-disks.yaml"
+      # Pinned to v1.12.4 — v1.13.0 boot-loops on the 2018 Mac mini (T2)
+      - "@./patches/talmac-01/machine-install.yaml"
     networkInterfaces:
       - deviceSelector:
           hardwareAddr: "3c:cd:36:69:f7:f8"
@@ -145,6 +147,8 @@ nodes:
     controlPlane: false
     patches:
       - "@./patches/talmac-02/machine-disks.yaml"
+      # Pinned to v1.12.4 — v1.13.0 boot-loops on the 2018 Mac mini (T2)
+      - "@./patches/talmac-02/machine-install.yaml"
     networkInterfaces:
       - deviceSelector:
           hardwareAddr: "3c:cd:36:69:f8:ce"
@@ -164,6 +168,8 @@ nodes:
     controlPlane: false
     patches:
       - "@./patches/talmac-03/machine-disks.yaml"
+      # Pinned to v1.12.4 — v1.13.0 boot-loops on the 2018 Mac mini (T2)
+      - "@./patches/talmac-03/machine-install.yaml"
     networkInterfaces:
       - deviceSelector:
           hardwareAddr: "3c:cd:36:69:f8:de"
