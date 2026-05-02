@@ -15,7 +15,7 @@ run = "uv pip install -r requirements.txt"
 python = "3.14.4"
 uv = "0.11.8"
 # Operations tools
-"aqua:argoproj/argo-cd" = "3.3.8"
+"aqua:argoproj/argo-cd" = "3.3.9"
 "aqua:budimanjojo/talhelper" = "3.1.9"
 "aqua:cloudflare/cloudflared" = "2026.3.0"
 "aqua:derailed/k9s" = "0.50.18"
