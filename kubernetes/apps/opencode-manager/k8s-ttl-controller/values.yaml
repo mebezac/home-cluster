@@ -1,5 +1,9 @@
 ---
+global:
+  createDefaultServiceAccount: false
+
 defaultPodOptions:
+  automountServiceAccountToken: true
   securityContext:
     runAsNonRoot: true
     runAsUser: 65534

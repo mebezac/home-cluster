@@ -1,5 +1,6 @@
 ---
 defaultPodOptions:
+  automountServiceAccountToken: true
   terminationGracePeriodSeconds: 30
   securityContext:
     runAsUser: 568
