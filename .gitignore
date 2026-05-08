@@ -28,3 +28,5 @@ wiki
 !AGENTS.md
 !.agents/
 !.agents/**
+!.planning/
+!.planning/**
