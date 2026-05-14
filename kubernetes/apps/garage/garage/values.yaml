@@ -113,6 +113,11 @@ service:
     ports:
       metrics:
         port: 3903
+  s3-web:
+    controller: main
+    ports:
+      s3-web:
+        port: 3902
 
 ingress:
   main:
@@ -126,6 +131,23 @@ ingress:
             service:
               identifier: s3
               port: s3
+  files:
+    enabled: true
+    className: external
+    annotations:
+      external-dns.alpha.kubernetes.io/target: external.heremag.free
+    hosts:
+      - host: files.heremag.free
+        paths:
+          - path: /
+            pathType: Prefix
+            service:
+              identifier: s3-web
+              port: s3-web
+    tls:
+      - hosts:
+          - files.heremag.free
+        secretName: heremag-free-production-tls
 
 persistence:
   config:
