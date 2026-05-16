@@ -19,7 +19,7 @@ controllers:
       app:
         image:
           repository: ghcr.io/squat/generic-device-plugin
-          tag: latest@sha256:7f3d4b64e1a4353b843be0d66aa7289f9228e7d6da0fa6ed8302548bb7a4769e
+          tag: latest@sha256:dc192e164c69b03f156765793a1be62ca437709ae477b27ca7d8f3dcf5021576
         args:
           - --log-level=info
           - --config=/config/config.yaml
