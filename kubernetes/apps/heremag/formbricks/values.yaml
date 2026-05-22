@@ -27,6 +27,7 @@ controllers:
           tag: 4.9.5@sha256:d0d01e45c0c3a720c2c1abafacdcd5b7200c1dccbd463df8d78a810a5443520c
         env:
           EMAIL_VERIFICATION_DISABLED: "1"
+          DANGEROUSLY_ALLOW_WEBHOOK_INTERNAL_URLS: "1"
         envFrom: *envFrom
         resources:
           requests:
