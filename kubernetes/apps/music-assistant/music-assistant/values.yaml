@@ -15,7 +15,7 @@ controllers:
       main:
         image:
           repository: ghcr.io/music-assistant/server
-          tag: 2.8.9@sha256:7c322702905d55a5cdc4ca2dcb4ea951150bd0169f81a09a30f0ac67b31f7285
+          tag: 2.9.1@sha256:d2fc378b591c83943025df64d7d5bfa722075f02a67e71fc157bed893a5fed6e
         env:
           TZ: America/New_York
           LOG_LEVEL: info
