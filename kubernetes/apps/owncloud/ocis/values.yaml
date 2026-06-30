@@ -14,7 +14,7 @@ controllers:
       init-config:
         image:
           repository: docker.io/owncloud/ocis
-          tag: 8.0.5@sha256:63ec10196ba27f1742ecca2dd1ae9110f897e80b22ac611df23303fad5eaced0
+          tag: 8.0.5@sha256:8897feebddfdfab88e3cdcb6547ed178e85b5b27bf47186432acaa415bf41bf2
         command:
           - /bin/sh
           - -c
