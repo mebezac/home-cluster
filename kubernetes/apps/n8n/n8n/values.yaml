@@ -22,7 +22,7 @@ controllers:
       app:
         image:
           repository: ghcr.io/n8n-io/n8n
-          tag: 2.25.7@sha256:761374d4eb841b0a22771d6bd68f0e8d827b4979ae4e490045517b13fc1259dd
+          tag: 2.29.2@sha256:1357982c594730263f0dedf9e1770075b78cac9417775d30531a3c00a72b2a58
         env:
           DB_TYPE: postgresdb
           DB_POSTGRESDB_SCHEMA: public
