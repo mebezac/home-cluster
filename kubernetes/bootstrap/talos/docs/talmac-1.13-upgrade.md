@@ -38,13 +38,53 @@ max) is fully supported against a 1.35 API server. Kubelet walks up with Talos, 
 
 ## Node facts (talmac-02, verified live)
 
-- IP `10.25.30.43`, hostname `talmac-02`, install disk `/dev/nvme0n1` (Apple SSD).
-- Also has a USB Longhorn disk mounted at `/var/mnt/longhorn-usb`.
+- IP `10.25.30.43`, hostname `talmac-02`.
+- **Two disks — know which is which before wiping anything:**
+
+  | Role | Device | Transport | Identity | Stable by-id |
+  |-|-|-|-|-|
+  | **OS / install** | `nvme0n1` | nvme | Apple SSD AP0256M, 251 GB | `nvme-APPLE_SSD_AP0256M_<serial>` |
+  | **Longhorn** | `sda` | **usb** | Intel 670p 1 TB in Sabrent enclosure | `usb-Sabrent_SSD_<serial>-0:0`, mounted `/var/mnt/longhorn-usb` |
+
+  The Longhorn NVMe bridges over **USB** (`sda`), not as a native NVMe — so the internal
+  Apple SSD is the **only** `nvme` device and `/dev/nvme0n1` is unambiguous. (If a talmac
+  ever shows the external disk as a real `nvme1n1`, the disk-by-id pin below becomes
+  mandatory, not just insurance.) Verify per node with `talosctl -n <ip> get disks` and
+  `talosctl -n <ip> get systemdisk` before touching disks.
 - Factory schematic `2385c7daef21b71bfd59f74b96cdccfebe5003bcef3cee5b56b1add17a8f4817`
   = extensions `i915, intel-ucode, iscsi-tools, thunderbolt, util-linux-tools`
   + kernel args `intel_iommu=on iommu=pt pcie_ports=compat`.
   `pcie_ports=compat` is what makes the Apple NVMe usable — it must be present at every
   step. Using the same schematic for every install/upgrade image keeps it consistent.
+
+## Tooling: talhelper + Taskfile (read before running commands)
+
+This repo drives Talos through **talhelper** wrapped in `.taskfiles/talos`. Normal ops:
+
+| Task | What it runs |
+|-|-|
+| `task talos:generate-config` | `talhelper genconfig` → `clusterconfig/` |
+| `task talos:apply-node IP=<ip>` | `talhelper gencommand apply --node <ip> --extra-flags '--mode=auto' \| bash` |
+| `task talos:upgrade-node IP=<ip>` | `talhelper gencommand upgrade` with `--image=factory.../<schematic>:<ver> --preserve` |
+| `task talos:upgrade-k8s` | `talhelper gencommand upgrade-k8s --to <ver>` |
+| `task talos:reset` | `talhelper gencommand reset --system-labels-to-wipe STATE,EPHEMERAL` |
+
+`TALOSCONFIG` = `clusterconfig/talosconfig`, secret file = `talsecret.sops.yaml`, config =
+`talconfig.yaml` — all exported by the root `Taskfile.yaml`. Run tasks from repo root; if
+you invoke `talosctl`/`talhelper` directly, `export TALOSCONFIG=$(pwd)/kubernetes/bootstrap/talos/clusterconfig/talosconfig` first.
+
+**This runbook deliberately deviates from those tasks in three spots — do not "simplify"
+them back to the tasks:**
+
+1. **`upgrade-node` / `upgrade-k8s` read the *global* `.talosVersion` / `.kubernetesVersion`**
+   (v1.13.5 / v1.35.6). Running them would jump straight to v1.13.5 and defeat the ladder.
+   The intermediate rungs therefore drive `talhelper gencommand ... --config-file /tmp/talconfig.step.yaml`
+   (a temp copy pinned to each rung) or raw `talosctl upgrade --image ...:<rung>`.
+2. **The repo's `reset` only wipes STATE+EPHEMERAL**, leaving the EFI/UKI partition — a Mac
+   could then re-boot the old install instead of the USB. Phase 2 uses full
+   `--system-disk-wipe-spec all` on purpose.
+3. **Maintenance-mode apply needs `--insecure`** (the `apply-node` task's preconditions
+   assume a live node with an issued cert). Phase 3 calls it explicitly.
 
 ## Version ladder (sequential — do not skip minors)
 
@@ -107,15 +147,25 @@ Security Utility). Secure Boot stays off — the schematic is `secureboot: false
 
 ### Phase 2 — Wipe the UKI install & boot v1.9.6
 
+> **Unplug the Longhorn USB enclosure (`sda`) before this step.** Its replicas are
+> already evacuated (0 replicas after Phase 0), so its contents are disposable, and
+> unplugging it makes it *physically impossible* for the reset/installer to touch the
+> wrong disk. Reconnect it only in Phase 6. Belt-and-suspenders on top of the by-id pin.
+
 ```bash
-# Wipe the existing v1.12.4 UKI system so the Mac can't boot back into it
-talosctl -n $N reset --system-labels-to-wipe STATE,EPHEMERAL --reboot --graceful=false
-# (or full wipe: --system-disk-wipe-spec all)
+# Wipe ONLY the system disk so the Mac can't boot back into the old v1.12.4 UKI.
+# --system-disk-wipe-spec all wipes the internal Apple SSD; it does NOT touch user disks.
+# Do NOT pass --user-disks-to-wipe (that would wipe the Longhorn sda).
+talosctl -n $N reset --system-disk-wipe-spec all --reboot --graceful=false
 ```
 
 Boot the USB: power on holding **Option (⌥)** → pick **EFI Boot**. The node comes up in
 **maintenance mode** and DHCPs. Find its address (DHCP lease / console) and call it
-`$M`.
+`$M`. Confirm only the internal disk is present (enclosure unplugged):
+
+```bash
+talosctl -n $M get disks --insecure     # expect nvme0n1 (Apple SSD) only; no sda
+```
 
 ### Phase 3 — Install v1.9.6 with kubelet 1.32 (via talhelper)
 
@@ -129,13 +179,24 @@ cp talconfig.yaml /tmp/talconfig.step.yaml
 #   talosVersion: v1.9.6
 #   kubernetesVersion: v1.32.x         # newest 1.32 patch Talos 1.9.6 supports
 # (leave the talmac-02 talosImageURL = the schematic; talhelper appends :v1.9.6)
+#
+# RECOMMENDED: pin the install disk by stable id instead of /dev/nvme0n1, so the
+# installer can only ever target the internal Apple SSD:
+#   nodes[talmac-02].installDiskSelector:
+#     model: "APPLE SSD AP0256M"        # or: serial: "<Apple SSD serial>"
+# With the enclosure unplugged this is redundant, but it protects against a stray
+# reconnect and against any node whose external disk enumerates as a real nvme.
 
-talhelper genconfig -c /tmp/talconfig.step.yaml   # -> clusterconfig/kubernetes-talmac-02.yaml
-talosctl apply-config --insecure -n $M --file clusterconfig/kubernetes-talmac-02.yaml
+# Generate + apply via talhelper (mirrors `task talos:generate-config` + `apply-node`,
+# but against the temp config and in INSECURE maintenance mode):
+talhelper genconfig --config-file /tmp/talconfig.step.yaml \
+  --secret-file talsecret.sops.yaml --out-dir clusterconfig
+talhelper gencommand apply --node $M --config-file /tmp/talconfig.step.yaml \
+  --out-dir clusterconfig --extra-flags '--insecure' | bash
 ```
 
-The node installs v1.9.6 to `/dev/nvme0n1` with **GRUB**, reboots onto the static
-`10.25.30.43`, and joins the cluster (kubelet 1.32). Verify:
+The node installs v1.9.6 to the internal Apple SSD (`nvme0n1`) with **GRUB**, reboots
+onto the static `10.25.30.43`, and joins the cluster (kubelet 1.32). Verify:
 
 ```bash
 talosctl -n $N version                              # Talos v1.9.6
@@ -162,7 +223,8 @@ talosctl -n $N get securitystate | grep -i uki       # MUST stay bootedWithUKI: 
 
 # bump kubelet to this release's max: edit kubernetesVersion in /tmp/talconfig.step.yaml
 # (keep talosVersion == the rung just installed), then:
-talhelper genconfig -c /tmp/talconfig.step.yaml
+talhelper genconfig --config-file /tmp/talconfig.step.yaml \
+  --secret-file talsecret.sops.yaml --out-dir clusterconfig
 talosctl -n $N apply-config --file clusterconfig/kubernetes-talmac-02.yaml
 kubectl get node $H                                   # kubelet -> v1.33 / v1.34 / v1.35.6
 ```
@@ -177,7 +239,7 @@ version pin (Phase 7) so it tracks the global version — then:
 
 ```bash
 cd kubernetes/bootstrap/talos
-talhelper genconfig                                  # real talconfig -> v1.13.5 / v1.35.6
+task talos:generate-config                           # real talconfig -> v1.13.5 / v1.35.6
 talosctl -n $N apply-config --file clusterconfig/kubernetes-talmac-02.yaml
 talosctl -n $N upgrade \
   --image factory.talos.dev/installer/2385c7daef21b71bfd59f74b96cdccfebe5003bcef3cee5b56b1add17a8f4817:v1.13.5 \
@@ -193,12 +255,37 @@ talosctl -n $N get securitystate | grep -i uki       # bootedWithUKI: false (GRU
 kubectl get node $H                                   # Ready, v1.35.6
 ```
 
-### Phase 6 — Restore workloads & Longhorn
+### Phase 6 — Reconnect + wipe the Longhorn disk, restore workloads
+
+The node is on v1.13.5. **Now reconnect the Longhorn USB enclosure.** It still holds the
+old, evacuated replica data + `longhorn-disk.cfg` — wipe it so Longhorn re-adds it as a
+clean disk with a fresh UUID (avoids re-adopting orphaned replica folders).
 
 ```bash
+# 1. Confirm the enclosure is back and identify it (should be sda / usb transport)
+talosctl -n $N get disks | grep -i usb          # Intel/Sabrent 1TB on sda
+
+# 2. Wipe it (Talos >=1.10 has `wipe disk`; the node is on v1.13.5 here so this works).
+#    This clears the filesystem, longhorn-disk.cfg, and orphaned replica dirs.
+talosctl -n $N wipe disk sda --method=fast       # NEVER pass nvme0n1 (that's the OS disk)
+
+# 3. machine-disks.yaml re-partitions/mounts it at /var/mnt/longhorn-usb on next config
+#    reconcile (already in the applied config). Confirm the mount is present:
+talosctl -n $N get mounts | grep longhorn-usb
+```
+
+Clean up the stale Longhorn disk record and re-enable scheduling:
+
+```bash
+# The nodes.longhorn.io/talmac-02 CR still lists the OLD disk UUID(s) as failed. Let
+# Longhorn re-detect the fresh disk at /var/mnt/longhorn-usb, or remove the stale entry
+# via the Longhorn UI (Node > talmac-02 > Edit Disks) before re-enabling.
 kubectl uncordon $H
 kubectl -n longhorn-system patch nodes.longhorn.io $H --type=merge \
   -p '{"spec":{"allowScheduling":true,"evictionRequested":false}}'
+
+# Verify the disk is Schedulable and volumes settle
+kubectl -n longhorn-system get nodes.longhorn.io $H -o yaml | grep -A3 diskStatus | head
 kubectl -n longhorn-system get volumes.longhorn.io -o wide | grep -iv healthy   # expect empty
 ```
 
