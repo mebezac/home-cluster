@@ -10,6 +10,18 @@
       "env": {
         "KUBECONFIG": "/Users/zac/projects/lab_casa/home-cluster/kubeconfig"
       }
+    },
+    "argocd-mcp": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "argocd-mcp@latest",
+        "stdio"
+      ],
+      "env": {
+        "ARGOCD_BASE_URL": "https://argo.laboratory.casa",
+        "ARGOCD_API_TOKEN": "${ARGOCD_API_TOKEN}"
+      }
     }
   }
 }

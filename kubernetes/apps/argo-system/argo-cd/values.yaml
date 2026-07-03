@@ -36,6 +36,8 @@ configs:
     resource.compareoptions: |
       ignoreAggregatedRoles: true
       ignoreResourceStatusField: crd
+    # Local service account for the argocd-mcp server (token auth only, no UI login)
+    accounts.mcp: apiKey
   rbac:
     create: true
     policy.default: role:none
@@ -45,6 +47,7 @@ configs:
       g, apps_readonly, role:readonly
       g, apps_admin, role:admin
       g, zac, role:readonly
+      g, mcp, role:admin
 controller:
   replicas: 1
   metrics:
