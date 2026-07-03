@@ -154,7 +154,7 @@ repoServer:
       name: helm-secrets-private-keys
   initContainers:
     - name: gitops-tools
-      image: ajaykumar4/gitops-tools:2026.6.0
+      image: ajaykumar4/gitops-tools:2026.7.0
       imagePullPolicy: Always
       command:
         - sh
