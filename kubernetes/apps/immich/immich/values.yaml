@@ -113,6 +113,7 @@ controllers:
       main:
         image:
           repository: ghcr.io/immich-app/immich-machine-learning
+          # changelog: GH releases immich-app/immich (PR body only has compare links). v3 note: migration guide at immich.app/blog/v3-migration; watch ffmpeg config enum changes (libopus→opus)
           tag: v3.0.1@sha256:cb2128c5cbc554fdaa2a036fb4419c808a9f3e0f27170e569dd9e727243da909
         env:
           TZ: America/New_York

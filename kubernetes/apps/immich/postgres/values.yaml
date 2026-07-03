@@ -3,22 +3,6 @@ controllers:
   main:
     replicas: 1
     containers:
-      main:
-        image:
-          repository: ghcr.io/immich-app/postgres
-          tag: 16-vectorchord0.3.0-pgvectors0.3.0
-        env:
-          POSTGRES_INITDB_ARGS: --data-checksums
-        envFrom:
-          - secretRef:
-              name: immich-db-secret
-        resources:
-          requests:
-            cpu: 1000m
-            memory: 250Mi
-          limits:
-            memory: 2Gi
-
       db18:
         image:
           repository: ghcr.io/immich-app/postgres
@@ -43,7 +27,7 @@ controllers:
           # changelog: GH releases prometheus-community/postgres_exporter (not in PR body)
           tag: v0.20.0@sha256:215b8299a47328078dabb751d2ffc1fd9a0aad3aa8c7daed36c567d2bd83a8a1
         env:
-          DATA_SOURCE_URI: localhost:5432/postgres?sslmode=disable
+          DATA_SOURCE_URI: localhost:5433/postgres?sslmode=disable
         envFrom:
           - secretRef:
               name: immich-db-secret
@@ -59,10 +43,6 @@ controllers:
           readiness:
             enabled: true
 service:
-  main:
-    ports:
-      postgres:
-        port: 5432
   db18:
     ports:
       postgres:
@@ -80,18 +60,6 @@ serviceMonitor:
       - port: metrics
 
 persistence:
-  data:
-    enabled: true
-    type: persistentVolumeClaim
-    storageClass: longhorn
-    accessMode: ReadWriteOnce
-    suffix: data
-    size: 5Gi
-    advancedMounts:
-      main:
-        main:
-          - path: /var/lib/postgresql/data
-            subPath: postgresql-data
   data-18:
     enabled: true
     type: persistentVolumeClaim
