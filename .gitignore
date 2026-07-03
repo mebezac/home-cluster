@@ -30,3 +30,7 @@ wiki
 !.agents/**
 !.planning/
 !.planning/**
+!.claude/
+!.claude/**
+# ...but keep personal machine-local settings out
+.claude/settings.local.json
