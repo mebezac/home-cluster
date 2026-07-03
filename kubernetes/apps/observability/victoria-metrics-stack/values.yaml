@@ -138,14 +138,20 @@ grafana:
 # Default scrape configs for K8s components
 defaultRules:
   enabled: true
+  # NOTE: 0.85 restructured defaultRules — `rules:` is now per-individual-rule
+  # overrides (maps), and group enable/disable moved to `groups.<name>.enabled`
+  # with renamed keys. etcd rules are on by default (groups.etcd). We disable the
+  # scheduler + controller-manager rule groups since Talos doesn't expose those
+  # components (kubeProxy has no rule group in 0.85).
   groups:
     vmcluster:
       enabled: false
-  rules:
-    kubeScheduler: false
-    kubeControllerManager: false
-    kubeEtcd: true
-    kubeProxy: false
+    kube-scheduler.rules:
+      enabled: false
+    kubernetes-system-scheduler:
+      enabled: false
+    kubernetes-system-controller-manager:
+      enabled: false
 
 kubeControllerManager:
   enabled: false
