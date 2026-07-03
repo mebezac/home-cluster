@@ -147,27 +147,36 @@ Security Utility). Secure Boot stays off — the schematic is `secureboot: false
 
 ### Phase 2 — Wipe the UKI install & boot v1.9.6
 
-> **Unplug the Longhorn USB enclosure (`sda`) before this step.** Its replicas are
-> already evacuated (0 replicas after Phase 0), so its contents are disposable, and
-> unplugging it makes it *physically impossible* for the reset/installer to touch the
-> wrong disk. Reconnect it only in Phase 6. Belt-and-suspenders on top of the by-id pin.
+> **Leave the Longhorn USB enclosure (`sda`) PLUGGED IN for the reset.** ⚠️ Learned the
+> hard way: `machine.disks` references the enclosure, and Talos reset's volume-teardown
+> phase **blocks/locks** (`sequence not started: locked`) if that disk is absent — the
+> reset fails. Keep it plugged through the reset; you unplug it later, in maintenance mode
+> (Phase 3), before the install. The reset only wipes the **system disk**, so the plugged
+> enclosure is never at risk here.
 
 ```bash
-# Wipe ONLY the system disk so the Mac can't boot back into the old v1.12.4 UKI.
-# --system-disk-wipe-spec all wipes the internal Apple SSD; it does NOT touch user disks.
-# Do NOT pass --user-disks-to-wipe (that would wipe the Longhorn sda).
-talosctl -n $N reset --system-disk-wipe-spec all --reboot --graceful=false
+# Wipe ONLY the system disk (the internal Apple SSD) so the Mac can't boot back into the
+# old v1.12.4 UKI. --wipe-mode system-disk leaves ALL user disks (incl. the Longhorn sda)
+# untouched. Do NOT use --wipe-mode all or --user-disks-to-wipe.
+# ⚠️ Do NOT wrap this in `timeout` — the client abort signal interrupts the reset and
+#    leaves the node in a half-reset LOCKED state.
+talosctl -n $N reset --wipe-mode system-disk --reboot --graceful=false
 ```
 
-Boot the USB: power on holding **Option (⌥)** → pick **EFI Boot**. The node comes up in
-**maintenance mode** and DHCPs. Find its address (DHCP lease / console) and call it
-`$M`. Confirm only the internal disk is present (enclosure unplugged):
-
-```bash
-talosctl -n $M get disks --insecure     # expect nvme0n1 (Apple SSD) only; no sda
-```
+Boot the USB: power on holding **Option (⌥)** (keep holding until the boot picker appears)
+→ pick **EFI Boot** (the USB icon; if two appear, either works). The node comes up in
+**maintenance mode** and DHCPs (the static `10.25.30.43` was wiped). Find its address
+(DHCP lease / console) and call it `$M`.
 
 ### Phase 3 — Install v1.9.6 with kubelet 1.32 (via talhelper)
+
+> **Now unplug the Longhorn USB enclosure (`sda`)** — you're in maintenance mode, which
+> has no config referencing it, so nothing blocks. This makes it physically impossible for
+> the install to touch the wrong disk. Reconnect only in Phase 6. Confirm it's gone:
+>
+> ```bash
+> talosctl -n $M get disks --insecure     # expect nvme0n1 (Apple SSD) + the USB stick only; no 1TB sda
+> ```
 
 Use a **temporary talconfig override** so all global patches (Cilium `cni: none`,
 network, sysctls, disks, longhorn label) are preserved:
