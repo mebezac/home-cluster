@@ -40,6 +40,7 @@ controllers:
       metrics:
         image:
           repository: quay.io/prometheuscommunity/postgres-exporter
+          # changelog: GH releases prometheus-community/postgres_exporter (not in PR body)
           tag: v0.20.0@sha256:215b8299a47328078dabb751d2ffc1fd9a0aad3aa8c7daed36c567d2bd83a8a1
         env:
           DATA_SOURCE_URI: localhost:5432/postgres?sslmode=disable

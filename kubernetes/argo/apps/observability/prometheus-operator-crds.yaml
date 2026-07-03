@@ -11,6 +11,7 @@ spec:
   sources:
     - repoURL: ghcr.io/prometheus-community/charts
       chart: prometheus-operator-crds
+      # changelog: prometheus-operator GH releases (chart-major = operator CRD bump; PR body thin)
       targetRevision: 30.0.1
       helm:
         releaseName: prometheus-operator-crds

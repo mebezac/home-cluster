@@ -9,6 +9,7 @@ controllers:
       app:
         image:
           repository: docker.io/library/postgres
+          # changelog: postgresql.org/docs/release (official image, not in PR body)
           tag: "18.4"
         env:
           POSTGRES_DB: postgres

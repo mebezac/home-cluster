@@ -18,6 +18,7 @@ releases:
   - name: prometheus-operator-crds
     namespace: observability
     chart: oci://ghcr.io/prometheus-community/charts/prometheus-operator-crds
+    # changelog: prometheus-operator GH releases (chart-major = operator CRD bump; PR body thin)
     version: 30.0.1
 
   - name: cilium
