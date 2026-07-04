@@ -39,8 +39,11 @@ controllers:
             enabled: true
             custom: true
             spec:
-              httpGet:
-                path: /api/health
+              # tcpSocket, not httpGet: the app 302-redirects all HTTP to HTTPS
+              # (Kestrel UseHttpsRedirection), which floods events with harmless
+              # "Probe terminated redirects" warnings. A TCP check gives the same
+              # real signal (Kestrel accepting connections) without the noise.
+              tcpSocket:
                 port: 8042
               initialDelaySeconds: 40
               periodSeconds: 30
@@ -49,8 +52,11 @@ controllers:
             enabled: true
             custom: true
             spec:
-              httpGet:
-                path: /api/health
+              # tcpSocket, not httpGet: the app 302-redirects all HTTP to HTTPS
+              # (Kestrel UseHttpsRedirection), which floods events with harmless
+              # "Probe terminated redirects" warnings. A TCP check gives the same
+              # real signal (Kestrel accepting connections) without the noise.
+              tcpSocket:
                 port: 8042
               initialDelaySeconds: 40
               periodSeconds: 30
@@ -59,8 +65,11 @@ controllers:
             enabled: true
             custom: true
             spec:
-              httpGet:
-                path: /api/health
+              # tcpSocket, not httpGet: the app 302-redirects all HTTP to HTTPS
+              # (Kestrel UseHttpsRedirection), which floods events with harmless
+              # "Probe terminated redirects" warnings. A TCP check gives the same
+              # real signal (Kestrel accepting connections) without the noise.
+              tcpSocket:
                 port: 8042
               initialDelaySeconds: 40
               periodSeconds: 10
