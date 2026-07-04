@@ -171,12 +171,16 @@ nodes:
     installDisk: "/dev/nvme0n1"
     machineSpec:
       secureboot: false
-    talosImageURL: factory.talos.dev/installer/2385c7daef21b71bfd59f74b96cdccfebe5003bcef3cee5b56b1add17a8f4817
+    # Custom GCC-linked installer (github.com/mebezac/talos-mac-installer) — stock Talos
+    # 1.13 hangs at cold boot on the T2 Mac (LLD EFI stub, siderolabs/talos#13579).
+    # In-place `talosctl upgrade` to this image works but reports a non-fatal error
+    # ("failed to create boot entry: BootFFFF ... overruns available data") — Apple's
+    # EFI NVRAM is malformed; systemd-boot still boots the new UKI. talhelper appends
+    # :${talosVersion} (v1.13.5). Migrated in place 2026-07-04.
+    talosImageURL: ghcr.io/mebezac/talos-mac/installer
     controlPlane: false
     patches:
       - "@./patches/talmac-03/machine-disks.yaml"
-      # Pinned to v1.12.4 — v1.13.0 boot-loops on the 2018 Mac mini (T2)
-      - "@./patches/talmac-03/machine-install.yaml"
     networkInterfaces:
       - deviceSelector:
           hardwareAddr: "3c:cd:36:69:f8:de"

@@ -120,8 +120,14 @@ Then in `talconfig.yaml`: set that node's `talosImageURL` to the custom installe
 delete its `patches/talmac-0X/machine-install.yaml` pin.
 
 - **talmac-01** — migrated 2026-07-04 via this in-place path (Ready on v1.13.5).
-- **talmac-03** — its USB Longhorn enclosure was physically unplugged for a while; plug
-  it back before upgrading so the `machine-disks.yaml` mount resolves.
+- **talmac-03** — migrated 2026-07-04 via this in-place path (Ready on v1.13.5). Its USB
+  Longhorn enclosure had been unplugged for a while and, once replugged, the old mount
+  was stale (`/var/mnt/longhorn-usb` bound to a dead `/dev/sda1`, `input/output error`
+  reading `longhorn-disk.cfg`, Longhorn disk `Ready: False`). **The upgrade's reboot
+  fixed it** — Talos re-resolved the `by-id` mount to the re-enumerated device and
+  Longhorn re-adopted both disks automatically (on-disk `diskUUID` still matched the node
+  CR, so no disable/remove/re-add dance was needed). All three talmacs are now on the
+  custom installer with no version pins.
 - A full **USB ISO reinstall** (Phase 1-3 above) is only needed to recover a node that's
   already bricked on a non-booting stock v1.13.x (as talmac-02 was) — not for a normal
   migration off a working v1.12.x.
