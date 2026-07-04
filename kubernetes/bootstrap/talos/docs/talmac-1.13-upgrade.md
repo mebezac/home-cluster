@@ -92,14 +92,39 @@ kubectl -n longhorn-system patch nodes.longhorn.io $H --type=merge \
 kubectl -n longhorn-system get volumes.longhorn.io -o wide | grep -iv healthy   # -> empty
 ```
 
-## Roll out to talmac-01 / talmac-03
+## Roll out to talmac-01 / talmac-03 (in-place upgrade — no USB needed)
 
-For each: drain + evacuate Longhorn (see below) → flash/boot the ISO OR
-`talosctl -n <ip> upgrade --image ghcr.io/mebezac/talos-mac/installer:v1.13.5 --preserve`
-(kexec upgrade is fine once already on the custom image; a first migration off stock
-UKI needs the ISO reinstall). Then in `talconfig.yaml`: set that node's `talosImageURL`
-to the custom installer and delete its `patches/talmac-0X/machine-install.yaml` pin.
-talmac-01 has a smarthome USB adapter — account for it.
+A working node (e.g. on v1.12.4) can be upgraded **in place** — no USB, no wipe, no
+Longhorn disk re-adoption (`--preserve` keeps the disks, so replicas survive the
+reboot):
+
+```bash
+N=<ip> ; H=talmac-0X
+kubectl cordon $H
+kubectl -n longhorn-system patch nodes.longhorn.io $H --type=merge \
+  -p '{"spec":{"allowScheduling":false,"evictionRequested":false}}'   # NO eviction — preserve keeps replicas
+kubectl drain $H --ignore-daemonsets --delete-emptydir-data --timeout=15m
+talosctl -n $N upgrade --image ghcr.io/mebezac/talos-mac/installer:v1.13.5 --preserve
+```
+
+**Expect a non-fatal error.** The upgrade reports:
+`failed to install bootloader: failed to create boot entry: ... BootFFFF: declared
+length of FilePath (166) overruns available data (165)` and exits 1 — Apple's EFI NVRAM
+has a malformed `BootFFFF` variable that Talos's boot-entry enumeration can't parse.
+This is **cosmetic**: the new v1.13.5 UKI is written to the ESP and systemd-boot (already
+the installed boot manager) boots it. Verify the node actually came up on v1.13.5
+(`talosctl -n $N version` → v1.13.5, kernel `6.18.36-talos`) — it will have, despite the
+error — then `kubectl uncordon $H` + restore Longhorn scheduling.
+
+Then in `talconfig.yaml`: set that node's `talosImageURL` to the custom installer and
+delete its `patches/talmac-0X/machine-install.yaml` pin.
+
+- **talmac-01** — migrated 2026-07-04 via this in-place path (Ready on v1.13.5).
+- **talmac-03** — its USB Longhorn enclosure was physically unplugged for a while; plug
+  it back before upgrading so the `machine-disks.yaml` mount resolves.
+- A full **USB ISO reinstall** (Phase 1-3 above) is only needed to recover a node that's
+  already bricked on a non-booting stock v1.13.x (as talmac-02 was) — not for a normal
+  migration off a working v1.12.x.
 
 Evacuate before touching a node:
 
