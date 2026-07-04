@@ -1,4 +1,15 @@
 fullnameOverride: smartctl-exporter
+# Skip the T2 Mac nodes — their disks (USB-bridged /dev/sda, T2-mediated nvme)
+# don't pass SMART and only produce errors. A separate smartctl-exporter-talmac
+# release monitors just their nvme. See kubernetes/apps/observability/smartctl-exporter-talmac.
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: NotIn
+              values: ["talmac-01", "talmac-02", "talmac-03"]
 serviceMonitor:
   enabled: true
 prometheusRules:
