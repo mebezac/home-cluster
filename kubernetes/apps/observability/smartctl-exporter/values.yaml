@@ -1,7 +1,8 @@
 fullnameOverride: smartctl-exporter
-# Skip the T2 Mac nodes — their disks (USB-bridged /dev/sda, T2-mediated nvme)
-# don't pass SMART and only produce errors. A separate smartctl-exporter-talmac
-# release monitors just their nvme. See kubernetes/apps/observability/smartctl-exporter-talmac.
+# Skip the T2 Mac nodes (talmac-*). Their disks cannot be SMART-monitored at all:
+# the USB-bridged SSDs (/dev/sd*) don't pass SMART, and the T2-mediated internal
+# NVMe rejects standard SMART log pages (Invalid Log Page 0x109) — yielding zero
+# usable metrics and constant errors. So we don't run the exporter there.
 affinity:
   nodeAffinity:
     requiredDuringSchedulingIgnoredDuringExecution:
