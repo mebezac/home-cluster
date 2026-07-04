@@ -7,20 +7,40 @@ Clang+LLD EFI stub that Apple's Intel firmware refuses to hand off to
 (siderolabs/talos#13579). An in-place `talosctl upgrade` *appears* to work because it
 kexecs the new kernel — but the box never survives a real power cycle.
 
-**The earlier GRUB-ladder idea in this doc's history was wrong** (Talos GRUB 2.14 also
-uses EFI hand-off, so it hangs too). The working fix is a **custom installer** built
-with the kernel linked by GNU ld instead of LLD:
+### Do NOT do the GRUB version ladder
+
+An earlier version of this doc proposed reinstalling from Talos **v1.9.6** (the last
+GRUB-defaulting release) and laddering the version up minor-by-minor, on the theory
+that GRUB's legacy boot path dodges the hang. **Do not do this — it does not work and
+it is pure downside:**
+
+1. **It doesn't actually fix the hang.** The hang is the *kernel's* Clang+LLD EFI stub
+   being rejected by Apple's firmware at hand-off. Talos's GRUB (2.14) hands off to that
+   *same* kernel/EFI stub, so a GRUB-booted v1.13 kernel hangs too. The bootloader was
+   never the problem — the kernel linkage is.
+2. **It can't survive a cold boot even if it seemed to.** An in-place `talosctl upgrade`
+   *looks* like it works because Talos **kexecs** the new kernel (bypassing firmware) —
+   but the box never survives a real power cycle. Any "it booted!" result mid-ladder is
+   a kexec false-positive, not proof the firmware can boot it.
+3. **It's slow, fragile, and destructive for nothing.** Five sequential reinstalls/
+   upgrades (v1.9.6 → 1.10 → 1.11 → 1.12 → 1.13), each a full node wipe + Longhorn
+   replica rebuild + config-schema migration, versus a single `talosctl upgrade` onto
+   the custom image. More reboots, more evacuations, more chances to brick a node — to
+   arrive at a kernel that still hangs on cold boot.
+
+The **only** thing that fixes it is a kernel linked by **GNU ld instead of LLD**, which
+Apple's firmware accepts. So we use a **custom installer** built with exactly that:
 
 - Repo: `github.com/mebezac/talos-mac-installer` (builds via GitHub Actions on tag push)
 - Installer image: `ghcr.io/mebezac/talos-mac/installer:<talos-version>`
 - USB ISO: attached to the matching GitHub Release (`metal-amd64.iso`)
 
 A GCC-linked kernel cold-boots fine under UKI/systemd-boot, so **no GRUB, no version
-ladder** — the Mac upgrades like any other node once it's on the custom image.
+ladder, no downgrade** — the Mac upgrades like any other node once it's on the custom
+image.
 
-`talconfig.yaml` already points **talmac-02** at `ghcr.io/mebezac/talos-mac/installer`
-(talhelper appends `:${talosVersion}`). talmac-01/03 remain on their v1.12.4 pins until
-migrated the same way.
+All three talmacs (talmac-01/02/03) now point at `ghcr.io/mebezac/talos-mac/installer`
+in `talconfig.yaml` (talhelper appends `:${talosVersion}`) with no version pins.
 
 ## Recover talmac-02 (10.25.30.43) — currently down on a non-booting stock v1.13.5
 
