@@ -14,13 +14,12 @@ spec:
   secretTemplate:
     annotations:
       reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
-      reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces: heremag
+      reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces: heremag,garage
       reflector.v1.k8s.emberstack.com/reflection-auto-enabled: "true"
-      reflector.v1.k8s.emberstack.com/reflection-auto-namespaces: heremag
+      reflector.v1.k8s.emberstack.com/reflection-auto-namespaces: heremag,garage
 sops:
   age:
-    - recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
-      enc: |
+    - enc: |
         -----BEGIN AGE ENCRYPTED FILE-----
         YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBYMjVxcDU3UjIzd2U3MzNZ
         Nkc5c0xyZmxMVGV3eTZiK1JHeEh6blVxNEJjCmQ4bkJMOWFRYVE2a2lEV1YzdHNj
@@ -28,8 +27,9 @@ sops:
         N0pONHBPTVd1SUxRZVZvcFFQNEo3YmsKrfvsQxw1xzX8lcYNjH6aN8XOybQhHiyf
         oQZg63IuXrooeHyUJMEufczVcqq+xQkq6r3VLcs5w1kCowJYv3XvDQ==
         -----END AGE ENCRYPTED FILE-----
-  lastmodified: "2026-01-05T21:07:05Z"
-  mac: ENC[AES256_GCM,data:cKdwOcVniQhJYmHP/tXRDO2H05ThXDjVYII3bYkoY6kblxpsuP8AlrIkm1yiN87H36hMnDwuFXYRCuzvHkRYa9PHsBgzUF3jhaIcwHxf1iNCER6vgEZuK5lx2ev5AcBRrzkZWjIjFTZYbxu58/EukhTAi6Ft4Lz90FnNpp4GFl0=,iv:0yqfgn/rb17t2Fj1VJY4ucTtLxX/1wIxvaKEqigrrVU=,tag:TKGUUVL9OTQUBoUO+JxpPg==,type:str]
+      recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
   encrypted_regex: ^(data|stringData)$
+  lastmodified: "2026-07-04T21:18:00Z"
+  mac: ENC[AES256_GCM,data:0PzkL6v0UuvDV9/eNeguE77usASewWsx+bXj8Uu53WKbyWa9nzFmlVl8NOmAFpRtyKzstpYVxrn/P51Sg8U1Q8JQarqH13M7TYfC52GtZANf1CHG1d7L5p5EiXa42HDtjbrAcOzdqvjDmLrR0xFoMaZFcri03X0DkVkHYC7Tlww=,iv:M0hs7pdqedO9i4MyfiwU08f6F5XcT3uHau4zAp9D74M=,tag:xAAFV4XAbov2Wsg2HpilAw==,type:str]
   mac_only_encrypted: true
   version: 3.11.0
