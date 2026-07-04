@@ -75,6 +75,11 @@ server:
     ingressClassName: external
     annotations:
       external-dns.alpha.kubernetes.io/target: external.laboratory.casa
+      # argocd-server serves plaintext h2c (server.insecure: true); tell nginx to
+      # speak gRPC/HTTP2 to the backend so the argocd CLI and argocd-mcp (native
+      # gRPC clients) work. Without this nginx proxies HTTP/1.1 and every gRPC
+      # call hangs; REST/UI keep working since argo-server multiplexes on one port.
+      nginx.ingress.kubernetes.io/backend-protocol: "GRPC"
     hostname: argo.laboratory.casa
   metrics:
     enabled: true
