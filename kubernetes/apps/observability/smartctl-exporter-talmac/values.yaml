@@ -3,8 +3,11 @@ fullnameOverride: smartctl-exporter-talmac
 # (USB-SATA bridge doesn't pass SMART), so restrict scanning to the internal
 # nvme device — this eliminates the "Smartctl open device: /dev/sda failed"
 # error spam while keeping NVMe temperature/health metrics.
+# device-include matches the SHORT device name (e.g. "nvme0"), not the /dev path.
+# Pin to the internal T2 NVMe only; the USB-bridged disks enumerate unstably as
+# sd[b-e] and can't be SMART-read.
 extraArgs:
-  smartctl.device-include: "^/dev/nvme[0-9]+$"
+  smartctl.device-include: "^nvme[0-9]+$"
 affinity:
   nodeAffinity:
     requiredDuringSchedulingIgnoredDuringExecution:
