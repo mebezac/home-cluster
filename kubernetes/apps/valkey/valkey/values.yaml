@@ -21,7 +21,7 @@ controllers:
             cpu: 5m
             memory: 16Mi
           limits:
-            memory: 256Mi
+            memory: 640Mi
         securityContext:
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
