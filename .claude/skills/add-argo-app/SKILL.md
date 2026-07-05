@@ -7,9 +7,11 @@ description: >-
   README / project URL to "run this in the cluster", or translate a Flux
   HelmRelease / docker-compose / plain manifests into this repo's GitOps layout,
   or says "add <app> to argo" / "deploy <app>" / "I want to run <app>" / "make
-  an app for <x>". Reads the upstream project's README/compose/chart to derive
-  the image, ports, env, volumes, and DB deps, then scaffolds the full directory
-  (values.yaml + Argo Application,
+  an app for <x>". Spawns subagents to deep-read the upstream project's FULL
+  README/docs (installation, every env/config knob, and optional add-ons that
+  fit this repo's style), presents the optional choices via the question tool
+  for a fully-fleshed-out — not bare-bones — deploy, then scaffolds the full
+  directory (values.yaml + Argo Application,
   plus ksops secret files when needed), wires the house patterns (internal
   ingress on laboratory.casa, Longhorn persistence, runAs 3000 security context,
   central Postgres init-container, central valkey), pins images to tag@sha256,
@@ -55,33 +57,60 @@ in order, stopping at the first rung that answers it:
 Note in your reasoning which rung answered each unknown, so the user can see
 what was derived vs. what was assumed.
 
-## Phase 0a — Ingest the source project
+## Phase 0a — Deep-read the source (ALWAYS via subagents)
 
-When given a GitHub repo, README, project URL, or image name, derive the runtime
-shape before scaffolding. Assume a **container image exists** (this repo only
-runs containers) — if you truly can't find one, that's a stop-and-ask.
+The goal is a **fully fleshed-out** app on the first go, not a bare-bones one.
+Bare-minimum installs that miss the optional-but-obvious config (SSO, metrics,
+a second volume the app really wants) are a failure of this skill.
 
-Read the upstream README / `docker-compose.yml` / `Dockerfile` / example k8s
-manifests / official Helm chart and extract:
+Assume a **container image exists** (this repo only runs containers) — if you
+truly can't find one, that's a stop-and-ask.
 
-- **Image** — registry + repo (prefer the project's official/`ghcr.io` image).
-  Pick a concrete released version tag, then resolve its **sha256 digest**.
-- **Ports** the container listens on (compose `ports:`, Dockerfile `EXPOSE`,
-  docs).
-- **Env vars** — required + notable optional. Split into non-secret (→ `env:`)
-  vs secret (→ ksops). Note the exact key names.
-- **Volumes / paths** that must persist (compose `volumes:`, docs "data
-  directory") → `persistence`.
-- **Backing services** — Postgres/MySQL/redis/etc. Map Postgres → central CNPG
-  init pattern (Phase 3), redis → central valkey. Flag any *other* datastore
-  (Mongo, a message queue) as a decision for the user.
-- **Health endpoint**, run-as-user quirks, and any "must run as root / needs
-  cap" warnings.
+**Always spawn subagents** to read the FULL documentation — not just the first
+screen of the README. Fan out (single message, parallel `Agent` calls) with
+**three research tracks**; give each the project URL/repo and this repo's house
+patterns (`AGENTS.md` + the Repo-facts table above) so they know what "fits our
+style" means:
 
-Fetch the README/compose with WebFetch or the tavily-extract skill. Use the
-escalation ladder above for anything the docs leave ambiguous. Summarize the
-derived shape (image, ports, env, volumes, deps) back to the user before
-scaffolding, marking anything you had to assume.
+1. **Installation** — the complete run story: official image(s) + registry, all
+   exposed **ports**, every **volume/path** that must persist, required
+   **backing services** (Postgres/redis/etc.), health endpoint, run-as-user /
+   capability requirements, and any first-run/bootstrap steps. Read the README
+   end-to-end plus `docker-compose.yml` / `Dockerfile` / `helm/` / `docs/`.
+2. **Env vars / config** — the EXHAUSTIVE list of configuration knobs (env vars,
+   config-file keys, CLI flags). For each: name, purpose, default, required vs
+   optional, and secret vs non-secret. Chase the dedicated config/reference doc,
+   not just the quickstart.
+3. **Optional configs / add-ons that fit THIS repo** — features worth enabling
+   given our conventions: Authelia/OIDC SSO, Prometheus metrics + ServiceMonitor,
+   external-vs-internal ingress, central Postgres/valkey instead of bundled,
+   extra persistence, sidecars, cron/maintenance jobs, backups. The subagent
+   should return each as a concrete "we could also enable X (needs Y)" option
+   with the config it requires.
+
+Tell each subagent: read the FULL docs (follow links into `docs/`), and return a
+compact structured brief — **outcomes not process, under ~2000 chars**. Cite
+where each fact came from. If a subagent hits an unknown, it climbs the
+escalation ladder (repo → context7/tavily/git-grep) before giving up.
+
+Then resolve the **image version → sha256 digest** yourself (subagents may not
+have registry access) and merge the three briefs into one derived shape:
+image, ports, env (secret vs not), volumes, backing services, plus the menu of
+optional add-ons.
+
+## Phase 0a.1 — Present options, get the user's call
+
+Do NOT silently pick the fleshed-out config — surface the choices. Use the
+**AskUserQuestion** tool to let the user opt into the add-ons track #3 surfaced
+(and any genuine forks: which optional datastore, SSO or not, expose externally
+or keep internal, which optional volumes). Group related toggles; offer a
+sensible default per the Repo-facts patterns. Anything the docs left ambiguous
+that research couldn't settle goes here too.
+
+Bare essentials (image/ports/required env/required volumes/required DB) don't
+need a question — they're mandatory. Ask only about the **optional** dimensions,
+so the user shapes how fleshed-out it gets. Then carry their answers into
+Phase 0b.
 
 ## Repo facts (verify before trusting — some drift)
 
@@ -105,7 +134,8 @@ recurses `kubernetes/argo/apps/**` and auto-syncs — dropping a new
 
 ## Phase 0b — Settle the deployment decisions
 
-With the runtime shape from 0a in hand, pin down the repo-side choices:
+With the runtime shape from 0a and the user's add-on choices from 0a.1 in hand,
+pin down the repo-side choices:
 
 1. **App name + namespace.** Namespace = app name unless it belongs to an
    existing functional group (e.g. `observability/`, `security/`, `media/`,
@@ -114,12 +144,25 @@ With the runtime shape from 0a in hand, pin down the repo-side choices:
    the app ships its own upstream Helm chart the user prefers, note its
    repoURL + chart + version (see the multi-source note below) — but most apps
    here use app-template even for third-party images.
-3. **Image pin.** Turn 0a's image + version into `tag: X.Y.Z@sha256:...` (global
-   rule — never `latest`; only fall back to `latest@sha256:` if the image
-   publishes no versioned tags).
+3. **Image pin.** ALWAYS an explicit released version — **never `latest`** (or
+   any moving tag) if it can be avoided. Where possible **pin the digest too**:
+   `tag: X.Y.Z@sha256:...`. Only fall back to `latest@sha256:` if the image
+   publishes no versioned tags at all. Resolve the digest yourself.
 4. **Ingress?** internal (default) vs external vs external+authelia; pick a
    subdomain by function. Map 0a's port to the service/ingress.
-5. **Persistence.** Turn 0a's volume paths into `persistence` entries + sizes.
+5. **Persistence.** Turn 0a's volume paths into `persistence` entries. Almost
+   always **Longhorn** (`storageClass: longhorn`, `ReadWriteOnce`) — reach for
+   anything else only with a specific reason (see the storage-class table in
+   `AGENTS.md`: `longhorn-single-replica` for throwaway data, `openebs-hostpath`
+   for hot local scratch, NFS for bulk media).
+   **Size small — smaller than you think.** Expanding a Longhorn PVC later is
+   trivial; shrinking is not. Plenty of apps here live happily on 128Mi. Size by
+   what's actually stored:
+   - config / SQLite / small state → `128Mi`–`1Gi`
+   - app data that grows slowly (docs, uploads) → a few Gi
+   - media / recordings / backups → tens of Gi+, and consider NFS instead of
+     Longhorn for genuinely large bulk data.
+   When unsure, pick the smaller number.
 6. **Secrets.** 0a's secret env → ksops (Phase 2); non-secret env → `env:`.
 7. **Database.** 0a's Postgres dep → **central PG init pattern** (Phase 3), not
    a bundled DB. redis → central valkey. Any other datastore → confirm with user.
@@ -180,7 +223,7 @@ persistence:                              # omit if stateless
     type: persistentVolumeClaim
     storageClass: longhorn
     accessMode: ReadWriteOnce
-    size: 1Gi
+    size: 1Gi                              # right-size DOWN; easy to expand, not shrink (128Mi is common)
     globalMounts:
       - path: /data
 ```
@@ -353,7 +396,11 @@ For redis, don't deploy one — point the app at
   add the `external-dns` target annotation + `className: external` instead.
 - **No Flux-isms.** No `${TIMEZONE}` / `${VOLSYNC_CLAIM}` substitution, no
   `existingClaim` templating — use literal values.
-- **Pin images** `tag@sha256:` — bare `latest` breaks Renovate + rollbacks.
+- **Pin images** to an explicit version, digest too where possible
+  (`tag: X.Y.Z@sha256:...`) — bare `latest`/moving tags break Renovate + rollbacks.
+- **Right-size PVCs DOWN.** Longhorn by default; start small (128Mi is common),
+  grow later. Expanding is easy, shrinking isn't — never over-provision "to be
+  safe". Size by content: config = tiny, media/recordings = big (or NFS).
 - **Unconsumed `ref:` panics the app-controller** — only include it when a
   second source references `$<app>-repo`.
 - **Encrypt secrets before committing.** You have SOPS access
