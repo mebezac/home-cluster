@@ -283,9 +283,22 @@ stringData:
 
 **Important:** When creating new secrets:
 
-- Create the secret file with plaintext values as a template
-- **Leave the SOPS encryption to the user** - never run or suggest running `sops --encrypt` commands
-- The user will encrypt the file themselves using their own age keys
+- Create the secret file with the real plaintext values, then **encrypt it in
+  place yourself**:
+  ```bash
+  sops --encrypt --in-place kubernetes/apps/<namespace>/<app>/<app>-secret.sops.yaml
+  ```
+  `.sops.yaml`'s creation rules auto-match `kubernetes/**/*.sops.yaml` (age
+  recipient + `encrypted_regex: ^(data|stringData)$`) and `SOPS_AGE_KEY_FILE`
+  is exported via mise, so no flags are needed. Editing/reading an existing
+  secret: `sops <file>`, `sops set <file> '["stringData"]["KEY"]' '"value"'`,
+  or `sops decrypt <file>`.
+- **NEVER commit a plaintext secret.** Encrypt before `git add` and verify the
+  `stringData` values show `ENC[...]` (`grep -q 'ENC\[' <file>`).
+- **NEVER commit the age private key** (`age.key`, `*.agekey`, `*.key`) or any
+  decrypted key material. These are gitignored — keep it that way; never paste a
+  private key into a tracked file, and never push one to GitHub. Only the
+  **public** age recipient belongs in `.sops.yaml`.
 
 ### Multiple Secrets
 

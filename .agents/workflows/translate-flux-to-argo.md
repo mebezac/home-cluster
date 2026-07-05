@@ -47,7 +47,7 @@ C. Include the secret generator in a `kustomization.yaml` file:
     `
 
 This pattern is used throughout the cluster for managing sensitive configuration data securely.
-Don't run or attempt to run, or suggest to run the sops encryption, leave that up to the user to do on their own.
+Write the secret file with plaintext values, then encrypt it yourself in place with `sops --encrypt --in-place <file>.sops.yaml` before committing (`.sops.yaml` creation rules + `SOPS_AGE_KEY_FILE` via mise mean no flags are needed). NEVER commit a plaintext secret, and NEVER commit/push the age private key (`age.key`/`*.key`) — only the public recipient lives in `.sops.yaml`.
 Also note whenever you see https://bjw-s.github.io/helm-charts/ change it to ghcr.io/bjw-s-labs/helm
 
 4. Create Argo CD Application definition:
