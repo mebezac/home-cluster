@@ -26,6 +26,8 @@ wiki
 /config.yaml
 
 !AGENTS.md
+# CLAUDE.md is ignored by the global gitignore; keep it tracked in THIS repo
+!CLAUDE.md
 !.agents/
 !.agents/**
 !.planning/
