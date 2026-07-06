@@ -143,6 +143,12 @@ defaultRules:
   # with renamed keys. etcd rules are on by default (groups.etcd). We disable the
   # scheduler + controller-manager rule groups since Talos doesn't expose those
   # components (kubeProxy has no rule group in 0.85).
+  rules:
+    # count:up0 counts DOWN scrape targets, so it legitimately produces zero
+    # samples whenever every target is healthy — which trips RecordingRulesNoData
+    # (a severity=info false-positive that also drags in InfoInhibitor). Disable it.
+    RecordingRulesNoData:
+      enabled: false
   groups:
     vmcluster:
       enabled: false
