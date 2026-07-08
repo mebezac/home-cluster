@@ -78,10 +78,13 @@ notifier:
       skip_verify: false
       minimum_version: TLS1.2
 
-# Disable some stuff for now
 totp:
   disable: false
-  issuer: authelia.com
+  issuer: laboratory.casa
+  algorithm: sha1
+  digits: 6
+  period: 30
+  skew: 1
 webauthn:
   disable: true
 duo_api:
@@ -121,7 +124,7 @@ identity_providers:
         client_name: "Argo CD"
         client_secret: "$pbkdf2-sha512$310000$i4Ya6f5hnMVkT1K9goEDMw$SmXN5XUB3yVY5n7UTXA15lcI0yWDuhZSn6y6jUC3UAZZY6MnTRje/Gr352voZL7P5202.Yj5ieLiLC1RfXuZIw"
         public: false
-        authorization_policy: "one_factor"
+        authorization_policy: "two_factor"
         consent_mode: "implicit"
         require_pkce: false
         redirect_uris:
@@ -211,7 +214,7 @@ identity_providers:
         client_name: "pgAdmin"
         client_secret: "$pbkdf2-sha512$310000$mW.OvQaOY78b4afaoGtyMA$ROU1LSObbw48vu.EE2SuN/iqnK5abuTf0FYpSnXiSGobwbzFpXjLIIdyfswhpuOyUXLYonCFfXpbZzHE/VkCHA"
         public: false
-        authorization_policy: "one_factor"
+        authorization_policy: "two_factor"
         require_pkce: true
         pkce_challenge_method: "S256"
         redirect_uris:
@@ -288,7 +291,7 @@ identity_providers:
         client_name: "Chatto"
         client_secret: "$pbkdf2-sha512$310000$wJH1gG0vyUIl0//w.AD/vQ$hJdR4W.g7ajewVj5zhh6LGuGbsuWhx.dDb9uio3glMnIGSgHWv7k99TEmMOOdd3Rwyjwdx.72RMKRYSNPcoXrg"
         public: false
-        authorization_policy: "one_factor"
+        authorization_policy: "two_factor"
         consent_mode: "implicit"
         require_pkce: true
         pkce_challenge_method: "S256"
