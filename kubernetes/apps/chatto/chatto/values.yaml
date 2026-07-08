@@ -28,7 +28,7 @@ controllers:
           CHATTO_LOG_LEVEL: info
           # --- registration: closed, OAuth/invite only ---
           CHATTO_AUTH_DIRECT_REGISTRATION: "false"
-          CHATTO_OWNERS_EMAILS: claude@zac.pizza
+          CHATTO_OWNERS_EMAILS: zac@laboratory.casa
           # --- datastore: embedded NATS/JetStream on the /data PVC ---
           CHATTO_NATS_EMBEDDED_ENABLED: "true"
           CHATTO_NATS_EMBEDDED_DATA_DIR: /data
