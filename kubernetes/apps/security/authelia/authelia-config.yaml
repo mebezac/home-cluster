@@ -88,13 +88,14 @@ totp:
 webauthn:
   disable: false
   enable_passkey_login: true
+  experimental_enable_passkey_uv_two_factors: true
   display_name: laboratory.casa
   attestation_conveyance_preference: indirect
   timeout: 60s
   selection_criteria:
     attachment: ''
     discoverability: preferred
-    user_verification: preferred
+    user_verification: required
 duo_api:
   disable: true
 
