@@ -26,9 +26,11 @@ controllers:
           CHATTO_WEBSERVER_ALLOWED_ORIGINS: https://chat.laboratory.casa
           CHATTO_LOG_FORMAT: json
           CHATTO_LOG_LEVEL: info
-          # --- registration: closed, OAuth/invite only ---
+          # --- registration: closed; Authelia (LLDAP) is the invite list ---
           CHATTO_AUTH_DIRECT_REGISTRATION: "false"
           CHATTO_OWNERS_EMAILS: zac@laboratory.casa
+          # --- operator CLI (kubectl exec ... /chatto operator user ...) ---
+          CHATTO_OPERATOR_API_ENABLED: "true"
           # --- datastore: embedded NATS/JetStream on the /data PVC ---
           CHATTO_NATS_EMBEDDED_ENABLED: "true"
           CHATTO_NATS_EMBEDDED_DATA_DIR: /data
@@ -61,17 +63,17 @@ controllers:
           CHATTO_AUTH_PROVIDERS_0_TYPE: github
           CHATTO_AUTH_PROVIDERS_0_LABEL: GitHub
           CHATTO_AUTH_PROVIDERS_0_REQUEST_EMAIL: "true"
-          CHATTO_AUTH_PROVIDERS_0_AUTO_PROVISION: "true"
+          CHATTO_AUTH_PROVIDERS_0_AUTO_PROVISION: "false"
           CHATTO_AUTH_PROVIDERS_1_ID: google
           CHATTO_AUTH_PROVIDERS_1_TYPE: google
           CHATTO_AUTH_PROVIDERS_1_LABEL: Google
           CHATTO_AUTH_PROVIDERS_1_REQUEST_EMAIL: "true"
-          CHATTO_AUTH_PROVIDERS_1_AUTO_PROVISION: "true"
+          CHATTO_AUTH_PROVIDERS_1_AUTO_PROVISION: "false"
           CHATTO_AUTH_PROVIDERS_2_ID: discord
           CHATTO_AUTH_PROVIDERS_2_TYPE: discord
           CHATTO_AUTH_PROVIDERS_2_LABEL: Discord
           CHATTO_AUTH_PROVIDERS_2_REQUEST_EMAIL: "true"
-          CHATTO_AUTH_PROVIDERS_2_AUTO_PROVISION: "true"
+          CHATTO_AUTH_PROVIDERS_2_AUTO_PROVISION: "false"
           CHATTO_AUTH_PROVIDERS_3_ID: authelia
           CHATTO_AUTH_PROVIDERS_3_TYPE: oidc
           CHATTO_AUTH_PROVIDERS_3_LABEL: Authelia
