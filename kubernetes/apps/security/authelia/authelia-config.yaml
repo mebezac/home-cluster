@@ -283,3 +283,21 @@ identity_providers:
           - "groups"
         userinfo_signed_response_alg: "none"
         token_endpoint_auth_method: "client_secret_post"
+      # Chatto
+      - client_id: "QAvQduhemujJfXhx2hXZkRI9DcA-zDZRddUAlEBJeICRUpVdoRMlE~QWzyXtw0tyYcgP2AT2"
+        client_name: "Chatto"
+        client_secret: "$pbkdf2-sha512$310000$wJH1gG0vyUIl0//w.AD/vQ$hJdR4W.g7ajewVj5zhh6LGuGbsuWhx.dDb9uio3glMnIGSgHWv7k99TEmMOOdd3Rwyjwdx.72RMKRYSNPcoXrg"
+        public: false
+        authorization_policy: "one_factor"
+        consent_mode: "implicit"
+        require_pkce: true
+        pkce_challenge_method: "S256"
+        redirect_uris:
+          - "https://chat.laboratory.casa/auth/providers/authelia/callback"
+        scopes:
+          - "openid"
+          - "email"
+          - "profile"
+          - "groups"
+        userinfo_signed_response_alg: "none"
+        token_endpoint_auth_method: "client_secret_basic"
