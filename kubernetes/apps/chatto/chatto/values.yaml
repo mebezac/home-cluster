@@ -36,10 +36,13 @@ controllers:
           CHATTO_NATS_EMBEDDED_DATA_DIR: /data
           # --- assets: offload to in-cluster Garage S3 (message data stays in NATS) ---
           CHATTO_CORE_ASSETS_STORAGE_BACKEND: s3
-          CHATTO_CORE_ASSETS_S3_ENDPOINT: http://garage-s3.garage.svc.cluster.local:3900
+          # public-resolvable host so browser presigned URLs work (svc DNS isn't
+          # browser-resolvable); k8s-gateway resolves it in-cluster so uploads
+          # stay off the tunnel. See garage s3api ingress.
+          CHATTO_CORE_ASSETS_S3_ENDPOINT: https://s3.laboratory.casa
           CHATTO_CORE_ASSETS_S3_BUCKET: chatto
           CHATTO_CORE_ASSETS_S3_REGION: us-east-1
-          CHATTO_CORE_ASSETS_S3_USE_SSL: "false"
+          CHATTO_CORE_ASSETS_S3_USE_SSL: "true"
           CHATTO_CORE_ASSETS_S3_PATH_STYLE: "true"
           # --- video transcoding (ffmpeg baked into image) ---
           CHATTO_VIDEO_ENABLED: "true"

@@ -131,6 +131,26 @@ ingress:
             service:
               identifier: s3
               port: s3
+      - host: s3.laboratory.casa
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            service:
+              identifier: s3
+              port: s3
+  s3api:
+    enabled: true
+    className: external
+    annotations:
+      external-dns.alpha.kubernetes.io/target: external.laboratory.casa
+    hosts:
+      - host: s3.laboratory.casa
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            service:
+              identifier: s3
+              port: s3
   files:
     enabled: true
     className: external
