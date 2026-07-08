@@ -36,10 +36,9 @@ controllers:
           N8N_HOST: n8n.laboratory.casa
           N8N_LOG_LEVEL: info
           N8N_LOG_OUTPUT: console
-          N8N_RUNNERS_ENABLED: false
           N8N_BLOCK_ENV_ACCESS_IN_NODE: false
           N8N_GIT_NODE_DISABLE_BARE_REPOS: true
-          WEBHOOK_URL: https://n8n.laboratory.casa
+          N8N_WEBHOOK_URL: https://n8n.laboratory.casa
           N8N_PROXY_HOPS: 2
         envFrom: *envFrom
         probes:
