@@ -66,7 +66,7 @@ persistence:
     storageClass: longhorn
     accessMode: ReadWriteOnce
     suffix: data-18
-    size: 5Gi
+    size: 10Gi
     advancedMounts:
       main:
         db18:
