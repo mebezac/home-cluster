@@ -36,7 +36,7 @@ controllers:
           CHATTO_CORE_ASSETS_STORAGE_BACKEND: s3
           CHATTO_CORE_ASSETS_S3_ENDPOINT: http://garage-s3.garage.svc.cluster.local:3900
           CHATTO_CORE_ASSETS_S3_BUCKET: chatto
-          CHATTO_CORE_ASSETS_S3_REGION: garage
+          CHATTO_CORE_ASSETS_S3_REGION: us-east-1
           CHATTO_CORE_ASSETS_S3_USE_SSL: "false"
           CHATTO_CORE_ASSETS_S3_PATH_STYLE: "true"
           # --- video transcoding (ffmpeg baked into image) ---
