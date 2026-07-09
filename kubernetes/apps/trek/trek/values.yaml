@@ -1,4 +1,6 @@
 # TREK — self-hosted collaborative travel planner (SQLite, self-contained)
+# Upstream image (mauriceboe/trek); OIDC support is now merged upstream, so we
+# no longer need the mebezac fork build.
 # Image entrypoint starts as root and drops to the `node` user (UID 1000) via
 # `gosu`, so we intentionally do NOT force a non-root securityContext here —
 # doing so would break the entrypoint's privilege-drop and chown of the volumes.
@@ -9,8 +11,8 @@ controllers:
     containers:
       app:
         image:
-          repository: ghcr.io/mebezac/trek
-          tag: pr-2
+          repository: mauriceboe/trek
+          tag: 3.2.1@sha256:4487220f57870b83856f5d3f3ba7a80725df73f76036c37fe425e1e9168b45f7
         env:
           TZ: America/New_York
           NODE_ENV: production
