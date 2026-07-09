@@ -4,7 +4,7 @@ controllers:
       app:
         image:
           repository: ghcr.io/krelltunez/lastglance
-          tag: 1.13.2@sha256:1db952dd6b8b15fe06b0d1192aa32e2b8ad3d62b9e46cc6dec84f03e55cda24a
+          tag: 1.13.3@sha256:a19b97cc79982d4fe24c3b2f6d379ea7e0cf108c20cc1728e214eecfbe139eeb
         env:
           TZ: America/New_York
         resources:
