@@ -1,6 +1,9 @@
 ---
 log:
   level: warn
+# Pre-select passkey/WebAuthn as the second factor so the portal skips the
+# "Methods" picker and goes straight to the passkey prompt on login.
+default_2fa_method: webauthn
 # Take from https://github.com/lldap/lldap/blob/main/example_configs/authelia_config.yml
 authentication_backend:
   # Password reset through authelia works normally.
