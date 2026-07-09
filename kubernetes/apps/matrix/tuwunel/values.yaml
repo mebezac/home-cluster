@@ -25,6 +25,11 @@ controllers:
           TUWUNEL_DATABASE_PATH: /data/db
           TUWUNEL_MAX_REQUEST_SIZE: "104857600"   # 100 MiB (match ingress proxy-body-size)
           TUWUNEL_LOG: info
+          # behind Cloudflare → nginx: resolve the real client IP from CF's header
+          # so rate-limiting / logging aren't defeated (else every client = proxy IP)
+          TUWUNEL_IP_SOURCE: cf_connecting_ip
+          # lock down RFC-7591 dynamic OIDC client registration (public endpoint);
+          # token in the secret. Does not affect the Authelia SSO login flow.
           # --- serve client well-known so Element autodiscovery + login work ---
           TUWUNEL_WELL_KNOWN__CLIENT: https://matrix.laboratory.casa
           # --- private trial: no federation with the public Matrix network ---
