@@ -46,6 +46,10 @@ controllers:
           TUWUNEL_NEW_USER_DISPLAYNAME_SUFFIX: ""
           # auto-join new users to these rooms (must exist + be public first)
           TUWUNEL_AUTO_JOIN_ROOMS: '["#announcements:matrix.laboratory.casa", "#general:matrix.laboratory.casa"]'
+          # enable link previews for all public URLs ("*" = allow-all; empty = off).
+          # SSRF to internal hosts is blocked by the default ip_range_denylist
+          # (RFC1918/loopback), enforced on the resolved IP.
+          TUWUNEL_URL_PREVIEW_DOMAIN_CONTAINS_ALLOWLIST: '["*"]'
           # --- Authelia OIDC (external identity provider, index 0) ---
           # client_secret lives in the secret; client_id is embedded in the callback URL anyway
           TUWUNEL_IDENTITY_PROVIDER__0__NAME: Authelia
