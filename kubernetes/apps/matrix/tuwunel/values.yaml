@@ -109,6 +109,11 @@ ingress:
       # ip_source=cf_connecting_ip can resolve it (else it errors / sees only nginx).
       nginx.ingress.kubernetes.io/configuration-snippet: |
         proxy_set_header CF-Connecting-IP $http_cf_connecting_ip;
+        add_header X-Dbg-Cfip "[$http_cf_connecting_ip]" always;
+        add_header X-Dbg-Xff "[$http_x_forwarded_for]" always;
+        add_header X-Dbg-Realip "[$http_x_real_ip]" always;
+        add_header X-Dbg-Trueclient "[$http_true_client_ip]" always;
+        add_header X-Dbg-Remote "[$remote_addr]" always;
     hosts:
       - host: matrix.laboratory.casa
         paths:
