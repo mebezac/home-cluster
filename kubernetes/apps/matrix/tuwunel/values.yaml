@@ -44,6 +44,8 @@ controllers:
           TUWUNEL_ALLOW_GUEST_REGISTRATION: "false"
           # default appends "💕" to new users' display names — disable it
           TUWUNEL_NEW_USER_DISPLAYNAME_SUFFIX: ""
+          # auto-join new users to these rooms (must exist + be public first)
+          TUWUNEL_AUTO_JOIN_ROOMS: '["#announcements:matrix.laboratory.casa"]'
           # --- Authelia OIDC (external identity provider, index 0) ---
           # client_secret lives in the secret; client_id is embedded in the callback URL anyway
           TUWUNEL_IDENTITY_PROVIDER__0__NAME: Authelia
