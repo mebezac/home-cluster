@@ -316,3 +316,18 @@ identity_providers:
           - "groups"
         userinfo_signed_response_alg: "none"
         token_endpoint_auth_method: "client_secret_basic"
+      # Tuwunel (Matrix)
+      - client_id: "5nFMycu4rhrkCR89fxcpN3AqHBtzd5q2ucBtBVTKbtKU5XBRMUkfDgx9rxuWJkzWUZ4BWTxT"
+        client_name: "Tuwunel (Matrix)"
+        client_secret: "$pbkdf2-sha512$310000$PUFeSjU6tZV7RUEfYc6oFw$xGaBn9C9vDrnfAfDKJzK/PT0lr/hIyX7syReiT7huizOPM6vgdKKWZi7wPQMpX/1UeGh8M49AnBh9B7MIwySLQ"
+        public: false
+        authorization_policy: "two_factor"
+        consent_mode: "implicit"
+        redirect_uris:
+          - "https://matrix.laboratory.casa/_matrix/client/unstable/login/sso/callback/5nFMycu4rhrkCR89fxcpN3AqHBtzd5q2ucBtBVTKbtKU5XBRMUkfDgx9rxuWJkzWUZ4BWTxT"
+        scopes:
+          - "openid"
+          - "email"
+          - "profile"
+        userinfo_signed_response_alg: "none"
+        token_endpoint_auth_method: "client_secret_basic"
