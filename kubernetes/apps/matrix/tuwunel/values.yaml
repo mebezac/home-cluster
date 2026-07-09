@@ -42,6 +42,8 @@ controllers:
           TUWUNEL_ALLOW_REGISTRATION: "true"        # gated by TUWUNEL_REGISTRATION_TOKEN (secret)
           TUWUNEL_GRANT_ADMIN_TO_FIRST_USER: "true"
           TUWUNEL_ALLOW_GUEST_REGISTRATION: "false"
+          # default appends "💕" to new users' display names — disable it
+          TUWUNEL_NEW_USER_DISPLAYNAME_SUFFIX: ""
           # --- Authelia OIDC (external identity provider, index 0) ---
           # client_secret lives in the secret; client_id is embedded in the callback URL anyway
           TUWUNEL_IDENTITY_PROVIDER__0__NAME: Authelia
