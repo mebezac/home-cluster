@@ -25,11 +25,13 @@ controllers:
           TUWUNEL_DATABASE_PATH: /data/db
           TUWUNEL_MAX_REQUEST_SIZE: "104857600"   # 100 MiB (match ingress proxy-body-size)
           TUWUNEL_LOG: info
-          # Real client IP: Cloudflare sets CF-Connecting-IP; the ingress forwards it
-          # to the pod (see ingress configuration-snippet) so rate-limiting/logging
-          # see the true client rather than the nginx/cloudflared hop. (XFF rightmost
-          # would only yield the proxy IP here, and Tuwunel has no leftmost option.)
-          TUWUNEL_IP_SOURCE: cf_connecting_ip
+          # Real client IP for rate-limiting/logging. This host is split-horizon:
+          # on the LAN it resolves straight to the nginx LB (Cloudflare is NOT in the
+          # path), so CF-Connecting-IP doesn't exist. nginx always sets X-Forwarded-For,
+          # whose rightmost entry is the real LAN client (or the cloudflared hop on the
+          # rarer internet path) — so this never fails to resolve. Matches Tuwunel's
+          # documented nginx guidance.
+          TUWUNEL_IP_SOURCE: rightmost_x_forwarded_for
           # OIDC dynamic client registration is locked down via
           # TUWUNEL_OIDC_REGISTRATION_ACCESS_TOKEN in the secret.
           # --- serve client well-known so Element autodiscovery + login work ---
@@ -105,15 +107,6 @@ ingress:
     annotations:
       external-dns.alpha.kubernetes.io/target: external.laboratory.casa
       nginx.ingress.kubernetes.io/proxy-body-size: "100m"
-      # Forward Cloudflare's real-client-IP header to the pod so Tuwunel's
-      # ip_source=cf_connecting_ip can resolve it (else it errors / sees only nginx).
-      nginx.ingress.kubernetes.io/configuration-snippet: |
-        proxy_set_header CF-Connecting-IP $http_cf_connecting_ip;
-        add_header X-Dbg-Cfip "[$http_cf_connecting_ip]" always;
-        add_header X-Dbg-Xff "[$http_x_forwarded_for]" always;
-        add_header X-Dbg-Realip "[$http_x_real_ip]" always;
-        add_header X-Dbg-Trueclient "[$http_true_client_ip]" always;
-        add_header X-Dbg-Remote "[$remote_addr]" always;
     hosts:
       - host: matrix.laboratory.casa
         paths:
