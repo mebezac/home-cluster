@@ -25,11 +25,13 @@ controllers:
           TUWUNEL_DATABASE_PATH: /data/db
           TUWUNEL_MAX_REQUEST_SIZE: "104857600"   # 100 MiB (match ingress proxy-body-size)
           TUWUNEL_LOG: info
-          # behind Cloudflare → nginx: resolve the real client IP from CF's header
-          # so rate-limiting / logging aren't defeated (else every client = proxy IP)
+          # Real client IP: Cloudflare sets CF-Connecting-IP; the ingress forwards it
+          # to the pod (see ingress configuration-snippet) so rate-limiting/logging
+          # see the true client rather than the nginx/cloudflared hop. (XFF rightmost
+          # would only yield the proxy IP here, and Tuwunel has no leftmost option.)
           TUWUNEL_IP_SOURCE: cf_connecting_ip
-          # lock down RFC-7591 dynamic OIDC client registration (public endpoint);
-          # token in the secret. Does not affect the Authelia SSO login flow.
+          # OIDC dynamic client registration is locked down via
+          # TUWUNEL_OIDC_REGISTRATION_ACCESS_TOKEN in the secret.
           # --- serve client well-known so Element autodiscovery + login work ---
           TUWUNEL_WELL_KNOWN__CLIENT: https://matrix.laboratory.casa
           # --- private trial: no federation with the public Matrix network ---
@@ -103,6 +105,10 @@ ingress:
     annotations:
       external-dns.alpha.kubernetes.io/target: external.laboratory.casa
       nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+      # Forward Cloudflare's real-client-IP header to the pod so Tuwunel's
+      # ip_source=cf_connecting_ip can resolve it (else it errors / sees only nginx).
+      nginx.ingress.kubernetes.io/configuration-snippet: |
+        proxy_set_header CF-Connecting-IP $http_cf_connecting_ip;
     hosts:
       - host: matrix.laboratory.casa
         paths:
