@@ -50,13 +50,15 @@ persistence:
     globalMounts:
       - path: /config
   data:
-    type: persistentVolumeClaim
-    storageClass: longhorn
-    accessMode: ReadWriteOnce
-    suffix: data
-    size: 50Gi
+    # db, cache, logs, models — kept on Longhorn (SQLite needs durability + safe locking)
+    existingClaim: birdnet-go-data-v2
     globalMounts:
       - path: /data
+  clips:
+    # audio recordings — bulk, non-critical data on TrueNAS NFS (no replication needed)
+    existingClaim: birdnet-go-clips
+    globalMounts:
+      - path: /data/clips
   hls:
     type: emptyDir
     medium: Memory
