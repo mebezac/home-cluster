@@ -273,11 +273,28 @@ do you move on.
 
 ## Mac (talmac) notes
 
-- **The BootFFFF "failure" is cosmetic.** In-place upgrade of a talmac reports
-  `failed to create boot entry: BootFFFF: declared length of FilePath … overruns
-  available data` and exits 1 — Apple's EFI NVRAM has a malformed variable Talos
-  can't parse. The new UKI IS written and systemd-boot boots it. Always re-check
-  `talosctl -n $N version` → it upgraded despite the error.
+- **The BootFFFF "failure" is cosmetic — but the node does NOT reboot itself, you
+  must powercycle it.** In-place upgrade of a talmac reports `failed to create boot
+  entry: BootFFFF: declared length of FilePath … overruns available data` and exits
+  1 — Apple's EFI NVRAM has a malformed variable Talos can't parse. Crucially, the
+  installer fails at the *last* step (writing the EFI boot-entry variable), so the
+  upgrade sequence **aborts before rebooting** — unlike a GRUB node, it does NOT
+  cordon/reboot on its own. The new `Talos-v<ver>.efi` UKI and `BOOTX64.efi` ARE
+  written to disk (confirm the `copying … Talos-v<ver>.efi` line in the log), so the
+  fix is simply to reboot through firmware yourself:
+  ```bash
+  # after the BootFFFF exit-1, the node is still on the OLD version, drained/cordoned.
+  # force a full firmware reboot (NOT a kexec, which would re-boot the old kernel):
+  talosctl -e <endpoint> -n $N reboot --mode=powercycle
+  ```
+  systemd-boot then boots the newest on-disk UKI = the new version. **After issuing
+  powercycle, wait for the node to go UNREACHABLE before trusting any version read**
+  — the hardware reset takes ~15-20s to actually trigger, and a version check in
+  that window returns the *old* version from the still-running node (false
+  "BOOTED_OLD"). Poll: wait-for-unreachable → wait-for-reachable → then read version
+  (expect the new one at ~60-120s). Longhorn disks come back `Ready:False` for
+  ~10-50s post-boot while instance-manager restarts, then flip to Ready — that's
+  normal, not the diskUUID gotcha.
 - **USB ISO reinstall is only for a talmac already bricked** on a non-booting
   stock 1.13.x. Flash `metal-amd64.iso` from the matching
   `mebezac/talos-mac-installer` GitHub release, boot holding ⌥ → EFI Boot,
