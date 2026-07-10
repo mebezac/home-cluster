@@ -5,7 +5,10 @@
       "args": [
         "-y",
         "kubernetes-mcp-server@latest",
-        "--read-only"
+        "--read-only",
+        "--cluster-provider",
+        "kubeconfig",
+        "--disable-multi-cluster"
       ],
       "env": {
         "KUBECONFIG": "/Users/zac/projects/lab_casa/home-cluster/kubeconfig"

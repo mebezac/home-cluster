@@ -38,7 +38,7 @@ consequences that shape everything below:
   `helm upgrade`, or edits to live resources. You **may** *read* the live
   cluster through the kubernetes MCP (`mcp__kubernetes-mcp-server__*`) to check
   what's actually running (step 4) and through the ArgoCD MCP
-  (`mcp__argocd-mcp__*`) to confirm a merge synced and went healthy (step 6).
+  (`mcp__argocd-mcp__*`) to confirm a merge synced and went healthy (step 7).
   Read-only, always — the ArgoCD MCP exposes write verbs (`sync_application`,
   `run_resource_action`, `update_application`, `delete_application`); those are
   off-limits, same as `kubectl apply`. ArgoCD auto-syncs `main` on its own; you
@@ -49,9 +49,11 @@ Renovate is the PR author. Filter with `--author "app/renovate"`.
 ## Workflow
 
 Work the phases in order. Phases 1–4 are research and produce a briefing; phase
-5 is the interactive merge session with the user; phase 6 confirms each merge
-actually deployed. Do all the research *before* talking the user through
-decisions — they should never wait on a changelog fetch mid-conversation.
+5 presents an up-front, PR-by-PR summary of *what changed* (features, fixes,
+improvements worth knowing about); phase 6 is the interactive merge session where
+you classify by danger and the user decides; phase 7 confirms each merge actually
+deployed. Do all the research *before* talking the user through decisions — they
+should never wait on a changelog fetch mid-conversation.
 
 For any non-trivial batch (say 8+ PRs), the research in phases 2–4 is
 per-PR and independent — fan it out with parallel subagents (one per PR or per
@@ -150,10 +152,22 @@ it alongside any other change the PR needs, and let the user commit it per their
 workflow. If a `# changelog:` comment is already there and still accurate, leave
 it; refresh it only if the project moved where it publishes notes.
 
-Distil each changelog to what matters for *us*: breaking changes, removed or
-renamed config options, new required settings, changed defaults, deprecations,
-and DB/schema migrations. Skip the noise (dependency bumps inside the upstream
-project, CI changes, typo fixes).
+Distil each changelog along **two** lenses — you're reading it anyway, so
+capture both:
+
+1. **Impact on us** (drives the merge decision in phase 6): breaking changes,
+   removed or renamed config options, new required settings, changed defaults,
+   deprecations, and DB/schema migrations.
+2. **What's new that the user might actually want** (drives the summary in phase
+   5): notable new features, improvements, and bug fixes — especially anything
+   that lines up with how the user runs this cluster (a new config knob for an
+   app we deploy, a fixed bug we've hit, a performance/UX win, a new integration
+   worth turning on). Don't editorialize every line item — surface the two or
+   three things a user would be glad to know shipped, and say plainly when a bump
+   is purely internal ("no user-facing changes").
+
+Skip the noise for both lenses (dependency bumps inside the upstream project, CI
+changes, typo fixes).
 
 ### 3. Scan our repo for required changes
 
@@ -204,7 +218,35 @@ kubernetes MCP (read-only) for these, e.g.:
 Don't reflexively hit the cluster for every PR — only when it materially changes
 the recommendation. A digest bump of a leaf app never needs it.
 
-### 5. Classify by danger, then triage interactively
+### 5. Present the change summary up front (PR by PR)
+
+You went to the trouble of chasing down every changelog — so before any
+merge-or-defer talk, give the user the payoff: a **complete, PR-by-PR summary of
+what actually changed.** This is a *what shipped* readout, not a *should we merge
+it* readout — that comes next, in phase 6. Keep the two separate so the user gets
+the interesting part (new capabilities they can now turn on) without it being
+buried under risk classification.
+
+Present it as a walk through **every** PR/group, in a sensible reading order
+(group members together; roughly most-interesting or most-substantial first is
+fine — danger ordering is phase 6's job, not this one's). For each PR give:
+
+- package, `current → new`, update type
+- **What changed** — 2–4 bullets from the "what's new" lens in phase 2: the
+  notable new features, improvements, and bug fixes. Call out explicitly
+  anything that could be **useful to the user** given how they run this cluster
+  (a new setting for an app we deploy, a bug we've plausibly hit, a UX/perf win,
+  a new integration worth enabling). Prefix those with **💡** so they're easy to
+  spot.
+- If a bump is purely internal, say so in one line ("digest refresh, no
+  user-facing changes") rather than padding it.
+
+Keep each PR's entry tight — this is a scannable digest of twenty changelogs, not
+twenty full changelogs. The point is that the user learns everything worth
+knowing that shipped this week in one pass, *then* moves into the merge
+decisions with that context already in hand.
+
+### 6. Classify by danger, then triage interactively
 
 Rank every PR (and group) into impact tiers. Impact is **semver × blast
 radius** — a *minor* bump of cluster-wide infra can be riskier than a *major*
@@ -221,12 +263,15 @@ bump of a single leaf app.
   repo change before it's mergeable, anything with a DB/schema migration. See
   `references/repo-map.md` for which components are platform-critical.
 
-Present the briefing tightest-first: lead with a one-line-per-PR overview
-grouped by tier, flag every grouped dependency explicitly, then go **one PR (or
-group) at a time**, giving for each:
+Now that the user has the full change summary from phase 5, this phase is about
+*safety and decisions*. Present it tightest-first: lead with a one-line-per-PR
+overview grouped by tier, flag every grouped dependency explicitly, then go
+**one PR (or group) at a time**, giving for each:
 
 - package, `current → new`, update type, tier
-- the changelog distilled to what affects us (2–4 bullets, not a wall)
+- the changelog distilled to **what affects us** (the impact lens — breaking
+  changes, config overlap, migrations; 2–4 bullets, not a wall). Don't re-narrate
+  the feature list from phase 5 — reference it briefly and focus here on risk.
 - **whether we need a repo change** and if so exactly what
 - your recommendation (merge / merge-the-minor-first / defer / needs-work) with
   the reason
@@ -237,7 +282,7 @@ it for them. Support at least these outcomes:
 - **Merge it** → `gh pr merge <n> --squash`. This repo squash-merges Renovate
   PRs (preserves the semantic-commit title with the PR number) and auto-deletes
   the branch. Merging ships it via ArgoCD — confirm before merging anything 🛑.
-  After merging, verify the deploy actually landed — see step 6. Watch closely
+  After merging, verify the deploy actually landed — see step 7. Watch closely
   for anything ⚠️/🛑 or with a schema migration; a quick spot-check is enough for
   the ✅ batch.
   - A merge can fail on a **conflict** (`Pull Request has merge conflicts`),
@@ -255,7 +300,7 @@ it for them. Support at least these outcomes:
 Batch-merging several ✅ PRs at once is fine when the user says so — do it in one
 go and report back.
 
-### 6. Verify the deploy landed (post-merge, via the ArgoCD MCP)
+### 7. Verify the deploy landed (post-merge, via the ArgoCD MCP)
 
 A merge is only half the story — in GitOps the deploy happens *after*, when
 ArgoCD syncs `main`. Merging then walking away means you never learn whether the

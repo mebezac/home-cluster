@@ -193,13 +193,38 @@ upgrade leaves the node in a half-reset LOCKED state. Background it and poll.
 `--preserve` keeps EPHEMERAL/etcd data across the reboot. Talos cordons/drains,
 reboots into the new UKI, then auto-uncordons the k8s node itself.
 
+**Watch the logs while it pulls — the image pull is the flaky part.** The first
+thing the upgrade does is pull the installer image, and the on-node DNS resolver
+(`10.25.30.38`) flakes intermittently. A failed pull is a **safe no-op** — the
+node hasn't touched its disk yet — so it's always safe to just re-run the same
+`upgrade` command. Tail the node while the upgrade runs so you can see the pull
+succeed (or fail on DNS) instead of guessing:
+
+```bash
+# in a backgrounded shell, follow the node's kernel/service log during the upgrade:
+talosctl -e <endpoint> -n $N dmesg --follow &          # or: talosctl -e <endpoint> -n $N logs machined -f
+```
+What you're looking for:
+- `failed to pull image ... lookup ... server misbehaving` / `i/o timeout` /
+  `no such host` → **DNS flake. Re-run the exact same `upgrade` command.** Nothing
+  was changed on disk; retry is free. It usually succeeds on the 2nd or 3rd try.
+- Pull succeeds → you'll see it unpack, write the new UKI, and reboot. From here
+  it's committed; move to step 5 and wait for it back.
+- A burst of DNS/NTP timeouts in the log *after* the reboot (first boot) is also
+  normal and self-recovers in 1-2 min — don't panic-reinstall over it.
+
 ### 5. Wait for it back, then verify
 
 ```bash
-until talosctl -e <endpoint> -n $N version 2>/dev/null | grep -A1 Server | grep -q <version>; do sleep 6; done
+# NOTE: the `Tag:` line sits TWO lines below `Server:` (Server → NODE → Tag), so the
+# match must span at least `-A2` AND grep the Tag line — `grep -A1 Server | grep -q <version>`
+# never matches and loops until timeout (looks like the node is stuck when it's actually fine).
+until talosctl -e <endpoint> -n $N version 2>/dev/null | grep -A2 Server | grep Tag | grep -q <version>; do sleep 6; done
 talosctl -e <endpoint> -n $N version | grep -A2 Server | grep Tag   # <version>
 kubectl get node $H -o wide                                         # Ready, Talos (<version>), kernel 6.18.x
 ```
+
+> When wrapping this wait in a `Monitor`/background poll, use the **same** `grep -A2 Server | grep Tag | grep -q <version>` predicate — a too-narrow `-A1` context is the classic "stuck waiting for NODE_BACK" bug.
 
 **Control-plane extra check — etcd must be fully healthy before the next CP:**
 ```bash
@@ -310,7 +335,9 @@ attribution trailer).
 - **Talmac BootFFFF error is non-fatal.** Verify version, don't reinstall.
 - **etcd: leader last, verify 3 healthy converged members between CP nodes**, use
   a different `-e` endpoint when the node being rebooted is itself an endpoint.
-- **factory DNS (node resolver 10.25.30.38) is flaky** — a failed image pull is a
-  safe no-op, just retry. First boot after an install can log a burst of DNS/NTP
-  timeouts and look stalled for 1-2 min, then self-recovers; don't reinstall.
+- **Node DNS resolver (10.25.30.38) is flaky — watch the upgrade's image pull and
+  retry on DNS failure.** The pull is the failure-prone step; a failed pull hasn't
+  touched disk, so re-running the same `upgrade` is a safe no-op (see step 4).
+  First boot after the reboot can also log a burst of DNS/NTP timeouts and look
+  stalled for 1-2 min, then self-recovers; don't reinstall over it.
 - **This layer isn't ArgoCD-managed** — talhelper/bootstrap, applied by hand.
