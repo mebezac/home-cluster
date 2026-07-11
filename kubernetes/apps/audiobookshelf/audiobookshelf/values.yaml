@@ -39,6 +39,11 @@ ingress:
     className: external
     annotations:
       external-dns.alpha.kubernetes.io/target: external.laboratory.casa
+      bothy.dev/enabled: "true"
+      bothy.dev/name: "Audiobookshelf"
+      bothy.dev/description: "Audiobooks & podcasts"
+      bothy.dev/section: "Media"
+      bothy.dev/icon: "sh:audiobookshelf"
     hosts:
       - host: audiobookshelf.laboratory.casa
         paths:

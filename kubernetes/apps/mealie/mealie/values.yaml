@@ -54,6 +54,12 @@ ingress:
   app:
     enabled: true
     className: internal
+    annotations:
+      bothy.dev/enabled: "true"
+      bothy.dev/name: "Mealie"
+      bothy.dev/description: "Recipe manager & meal planner"
+      bothy.dev/section: "Home"
+      bothy.dev/icon: "sh:mealie"
     hosts:
       - host: mealie.laboratory.casa
         paths:

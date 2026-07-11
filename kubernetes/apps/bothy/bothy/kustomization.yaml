@@ -1,0 +1,11 @@
+# Kustomization for the Bothy app dir. Contributes the read-only cross-namespace
+# RBAC and, via the ksops generator, the SOPS-decrypted Secrets (OIDC client
+# secret + session key, and the ghcr imagePullSecret). The app-template release
+# itself is delivered by the ArgoCD Application's Helm source, not from here.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: bothy
+resources:
+  - rbac.yaml
+generators:
+  - secret-generator.yaml

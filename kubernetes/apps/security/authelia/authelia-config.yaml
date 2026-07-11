@@ -118,6 +118,8 @@ identity_providers:
           ]
       jotty:
         id_token: [preferred_username, email]
+      bothy:
+        id_token: [groups, email, email_verified, preferred_username, name]
     jwks:
       # https://www.authelia.com/reference/guides/generating-secure-values/#generating-an-rsa-keypair
       # openssl genrsa -out authelia_oidc_private_key.pem 2048
@@ -335,3 +337,24 @@ identity_providers:
           - "groups"
         userinfo_signed_response_alg: "none"
         token_endpoint_auth_method: "client_secret_post"
+      # Bothy — homelab dashboard (mebezac/bothy-claude). claims_policy hydrates
+      # groups/email/preferred_username/name into the id_token, which Bothy reads
+      # for visibility gating. PKCE S256 + confidential client (secret via SOPS).
+      - client_id: "aSOYqZrzGL1Pe2FyOofDkO8iOZRR4djp_JuqK6MaojhlZ7kAl3Uh-fpMicn3V2cIpQ1tCGtE"
+        client_name: "Bothy"
+        client_secret: "$pbkdf2-sha512$310000$XSEjC56H8SGGSjoHwgAsSA$WMWsQJqC3m9EWMAZexwajxry6jnbN5ZRQjTnnRnXEGFvnJ76i3yUJ6hluw4dwrY5YIxoc3GS3pvjqvw1F4t.gA"
+        claims_policy: "bothy"
+        public: false
+        authorization_policy: "one_factor"
+        consent_mode: "implicit"
+        require_pkce: true
+        pkce_challenge_method: "S256"
+        redirect_uris:
+          - "https://bothy.laboratory.casa/oauth2/callback"
+        scopes:
+          - "openid"
+          - "profile"
+          - "email"
+          - "groups"
+        userinfo_signed_response_alg: "none"
+        token_endpoint_auth_method: "client_secret_basic"
