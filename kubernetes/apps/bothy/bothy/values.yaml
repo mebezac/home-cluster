@@ -93,7 +93,7 @@ persistence:
       - path: /data
   config:
     type: configMap
-    name: bothy-config
+    identifier: config # binds to the chart-managed configMaps.config (resolves its real name)
     globalMounts:
       - path: /config
   tmp:
