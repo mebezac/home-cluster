@@ -15,8 +15,8 @@ controllers:
       app:
         image:
           repository: ghcr.io/mebezac/bothy-claude
-          # Immutable digest pin of the v0.1.1 signed multi-arch release index.
-          tag: v0.1.1@sha256:200e468828b8b59c9461117809eae8030f0710c5aaa8c15b368ff98d38c635a9
+          # Immutable digest pin of the v0.1.3 signed multi-arch release index.
+          tag: v0.1.3@sha256:cb15a1a54e89769ea91fbaa285d3016bd204720d283c64d11a2282219e3afd88
         env:
           # main defaults -config to /config/config.yaml and -addr to :8080, so
           # the ConfigMap mount below (key config.yaml → /config) needs no args.
