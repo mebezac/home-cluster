@@ -53,6 +53,10 @@ controllers:
           requests: { cpu: 10m, memory: 64Mi }
           limits: { memory: 256Mi }
 defaultPodOptions:
+  # Bothy builds an in-cluster client-go client to watch ingresses/services, so
+  # it needs its ServiceAccount token mounted. app-template 5.x defaults this to
+  # false (hardening), so opt back in explicitly.
+  automountServiceAccountToken: true
   # Private ghcr package — pull via the ksops-generated dockerconfigjson secret.
   imagePullSecrets:
     - name: bothy-ghcr-pull
