@@ -134,7 +134,7 @@ configMaps:
             enabled: true
             cacheDir: /data/icons
         oidc:
-          issuer: https://auth.laboratory.casa
+          issuer: https://login.laboratory.casa
           clientID: "aSOYqZrzGL1Pe2FyOofDkO8iOZRR4djp_JuqK6MaojhlZ7kAl3Uh-fpMicn3V2cIpQ1tCGtE"
           redirectURL: https://bothy.laboratory.casa/oauth2/callback
           scopes: [openid, profile, email, groups]
