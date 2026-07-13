@@ -80,8 +80,11 @@ controllers:
           GITEA__queue__TYPE: redis
           # --- Forgejo Actions (server side; runner is a separate workload added later) ---
           GITEA__actions__ENABLED: "true"
-          # --- object storage: packages + repo-archive + actions_artifacts in one Garage bucket,
-          #     each under its own dir. Common S3 conn in [storage]; only these three opt into minio. ---
+          # keep 90 days of job logs; [cron.cleanup_actions] (on by default, nightly) deletes
+          # expired runs' logs + DB rows together. ARTIFACT_RETENTION_DAYS already defaults to 90.
+          GITEA__actions__LOG_RETENTION_DAYS: "90"
+          # --- object storage: packages + repo-archive + actions_artifacts + actions_log in one
+          #     Garage bucket, each under its own dir. Common S3 conn in [storage]; these opt into minio. ---
           GITEA__storage__MINIO_ENDPOINT: garage-s3.garage.svc.cluster.local:3900
           GITEA__storage__MINIO_BUCKET: forgejo
           GITEA__storage__MINIO_LOCATION: us-east-1
@@ -94,6 +97,8 @@ controllers:
           GITEA__storage_0X2E_repo-archive__MINIO_BASE_PATH: repo-archive/
           GITEA__storage_0X2E_actions_artifacts__STORAGE_TYPE: minio
           GITEA__storage_0X2E_actions_artifacts__MINIO_BASE_PATH: actions_artifacts/
+          GITEA__storage_0X2E_actions_log__STORAGE_TYPE: minio
+          GITEA__storage_0X2E_actions_log__MINIO_BASE_PATH: actions_log/
         envFrom: *envFrom
         probes:
           startup:
