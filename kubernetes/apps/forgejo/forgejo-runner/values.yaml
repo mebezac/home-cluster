@@ -64,6 +64,7 @@ runnerConfig: |
     labels:
       - ubuntu-latest:k8s:/config/podspec-default.yaml
       - default:k8s:/config/podspec-default.yaml
+      - mise:k8s:/config/podspec-mise.yaml            # runs-on: mise -> any toolchain via mise install
     timeout: 3h
     shutdown_timeout: 3m
 
@@ -78,6 +79,27 @@ podSpecs:
         env:
           - name: DEBIAN_FRONTEND
             value: noninteractive
+        resources:
+          requests:
+            cpu: 100m
+            memory: 1Gi
+          limits:
+            memory: 16Gi
+    restartPolicy: Never
+  # `runs-on: mise` — generic toolchain runner. The jdx/mise image already sets
+  # MISE_DATA_DIR=/mise and puts /mise/shims on PATH, so a workflow just runs
+  # `mise install` (reads the repo's mise.toml/.tool-versions) and the tools are
+  # then on PATH directly. MISE_YES=1 auto-trusts the repo config in CI.
+  # NOTE: binary tools (node/go/deno/python/terraform) install fast; compile-from-source
+  # langs (erlang/elixir, ruby) build each run (minutes) since job pods are ephemeral.
+  podspec-mise.yaml: |
+    containers:
+      - name: main
+        image: ghcr.io/jdx/mise:2026.7.5@sha256:3511d21606638b7285e545f83756e993bfaa67cbe7d9b4eeeec8ad87230a0eff
+        imagePullPolicy: IfNotPresent
+        env:
+          - name: MISE_YES
+            value: "1"
         resources:
           requests:
             cpu: 100m
