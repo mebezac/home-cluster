@@ -13,7 +13,7 @@ controllers:
       app:
         image:
           repository: ghcr.io/ozark-connect/network-optimizer
-          tag: 2.0.1
+          tag: 2.0.1@sha256:825beef2696b7ef3355d107a4102ee035a8690e18b4a526db6a7564da6c25c5a
         env:
           TZ: America/New_York
           BIND_LOCALHOST_ONLY: "false"
@@ -82,7 +82,7 @@ controllers:
       app:
         image:
           repository: ghcr.io/ozark-connect/speedtest
-          tag: 2.0.1
+          tag: 2.0.1@sha256:d915e9124705ab98e2b5d30865affae7e685a83a4c65011b5aa7b68be2ac7d49
         env:
           TZ: America/New_York
           HOST_NAME: network-optimizer.laboratory.casa
