@@ -83,6 +83,5 @@ podSpecs:
             cpu: 100m
             memory: 1Gi
           limits:
-            cpu: "2"
-            memory: 4Gi
+            memory: 16Gi
     restartPolicy: Never
