@@ -49,7 +49,9 @@ controllers:
           # --- private instance: SSO-only registration, sign-in required to view ---
           FORGEJO__service__DISABLE_REGISTRATION: "false"
           FORGEJO__service__ALLOW_ONLY_EXTERNAL_REGISTRATION: "true"
-          FORGEJO__service__REQUIRE_SIGNIN_VIEW: "true"
+          # false = allow anonymous view of PUBLIC content (repos, users, and
+          # public packages/registry pulls). Private content still requires auth.
+          FORGEJO__service__REQUIRE_SIGNIN_VIEW: "false"
           FORGEJO__service__ENABLE_NOTIFY_MAIL: "true"
           FORGEJO__service__DEFAULT_KEEP_EMAIL_PRIVATE: "true"
           FORGEJO__openid__ENABLE_OPENID_SIGNIN: "false"
