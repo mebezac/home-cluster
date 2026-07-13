@@ -1,0 +1,178 @@
+defaultPodOptions:
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 3000
+    runAsGroup: 3000
+    fsGroup: 3000
+    fsGroupChangePolicy: OnRootMismatch
+    seccompProfile: { type: RuntimeDefault }
+
+controllers:
+  forgejo:
+    annotations:
+      reloader.stakater.com/auto: "true"
+    initContainers:
+      init-db:
+        image:
+          repository: ghcr.io/home-operations/postgres-init
+          tag: 18.4@sha256:ebd9d30add17acdf935d73eb004758c7dfd9388aaa605fda70ad74378ab92aec
+          pullPolicy: IfNotPresent
+        envFrom: &envFrom
+          - secretRef:
+              name: forgejo-secret
+    containers:
+      app:
+        image:
+          repository: codeberg.org/forgejo/forgejo
+          tag: 15.0.4-rootless@sha256:aea6847e7e18130f173616a92433e47e00813bbe7b42e3732cbbb5f237164096
+        env:
+          TZ: America/New_York
+          USER: git
+          # --- server / reverse proxy (git.laboratory.casa, TLS terminated at ingress) ---
+          GITEA__server__DOMAIN: git.laboratory.casa
+          GITEA__server__ROOT_URL: https://git.laboratory.casa/
+          GITEA__server__HTTP_PORT: "3000"
+          GITEA__server__SSH_DOMAIN: git.laboratory.casa
+          GITEA__server__START_SSH_SERVER: "true"
+          GITEA__server__SSH_PORT: "22"          # advertised in clone URLs (LB listens on 22)
+          GITEA__server__SSH_LISTEN_PORT: "2222" # built-in ssh server inside the container
+          GITEA__server__LFS_START_SERVER: "true"
+          GITEA__security__REVERSE_PROXY_LIMIT: "1"
+          GITEA__security__REVERSE_PROXY_TRUSTED_PROXIES: "*"
+          GITEA__security__INSTALL_LOCK: "true"
+          # --- database (central CNPG) ---
+          GITEA__database__DB_TYPE: postgres
+          GITEA__database__HOST: postgres-17-cluster-rw.database.svc.cluster.local:5432
+          GITEA__database__NAME: forgejo
+          GITEA__database__USER: forgejo
+          GITEA__database__SSL_MODE: disable
+          # --- private instance: SSO-only registration, sign-in required to view ---
+          GITEA__service__DISABLE_REGISTRATION: "false"
+          GITEA__service__ALLOW_ONLY_EXTERNAL_REGISTRATION: "true"
+          GITEA__service__REQUIRE_SIGNIN_VIEW: "true"
+          GITEA__service__ENABLE_NOTIFY_MAIL: "true"
+          GITEA__service__DEFAULT_KEEP_EMAIL_PRIVATE: "true"
+          GITEA__openid__ENABLE_OPENID_SIGNIN: "false"
+          GITEA__openid__ENABLE_OPENID_SIGNUP: "false"
+          # --- OIDC SSO via Authelia (source itself added post-boot via `forgejo admin auth add-oauth`) ---
+          GITEA__oauth2_client__ENABLE_AUTO_REGISTRATION: "true"
+          GITEA__oauth2_client__ACCOUNT_LINKING: auto
+          GITEA__oauth2_client__USERNAME: nickname
+          GITEA__oauth2_client__UPDATE_AVATAR: "true"
+          GITEA__oauth2_client__REGISTER_EMAIL_CONFIRM: "false"
+          # --- repository defaults ---
+          GITEA__repository__DEFAULT_BRANCH: main
+          # --- mailer (Fastmail relay) ---
+          GITEA__mailer__ENABLED: "true"
+          GITEA__mailer__PROTOCOL: smtp+starttls
+          GITEA__mailer__SMTP_ADDR: smtp.fastmail.com
+          GITEA__mailer__SMTP_PORT: "587"
+          GITEA__mailer__FROM: Forgejo <git@laboratory.casa>
+          # --- prometheus metrics (scraped on the main http port at /metrics) ---
+          GITEA__metrics__ENABLED: "true"
+          GITEA__metrics__ENABLE_ISSUE_BY_LABEL: "true"
+          GITEA__metrics__ENABLE_ISSUE_BY_REPOSITORY: "true"
+          # --- central valkey for cache / session / queue ---
+          GITEA__cache__ENABLED: "true"
+          GITEA__cache__ADAPTER: redis
+          GITEA__cache__HOST: redis://valkey.valkey.svc.cluster.local:6379/10
+          GITEA__session__PROVIDER: redis
+          GITEA__session__PROVIDER_CONFIG: redis://valkey.valkey.svc.cluster.local:6379/11
+          GITEA__queue__TYPE: redis
+          GITEA__queue__CONN_STR: redis://valkey.valkey.svc.cluster.local:6379/12
+          # --- Forgejo Actions (server side; runner is a separate workload added later) ---
+          GITEA__actions__ENABLED: "true"
+          # --- object storage: packages + repo-archive + actions_artifacts in one Garage bucket,
+          #     each under its own dir. Common S3 conn in [storage]; only these three opt into minio. ---
+          GITEA__storage__MINIO_ENDPOINT: garage-s3.garage.svc.cluster.local:3900
+          GITEA__storage__MINIO_BUCKET: forgejo
+          GITEA__storage__MINIO_LOCATION: us-east-1
+          GITEA__storage__MINIO_USE_SSL: "false"
+          GITEA__storage__MINIO_BUCKET_LOOKUP: path
+          GITEA__storage__MINIO_CHECKSUM_ALGORITHM: md5
+          GITEA__storage_0X2E_packages__STORAGE_TYPE: minio
+          GITEA__storage_0X2E_packages__MINIO_BASE_PATH: packages/
+          GITEA__storage_0X2E_repo-archive__STORAGE_TYPE: minio
+          GITEA__storage_0X2E_repo-archive__MINIO_BASE_PATH: repo-archive/
+          GITEA__storage_0X2E_actions_artifacts__STORAGE_TYPE: minio
+          GITEA__storage_0X2E_actions_artifacts__MINIO_BASE_PATH: actions_artifacts/
+        envFrom: *envFrom
+        probes:
+          startup:
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /api/healthz
+                port: 3000
+              periodSeconds: 5
+              failureThreshold: 40   # allow up to ~3.5m for first-run migrations
+          liveness:
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /api/healthz
+                port: 3000
+              periodSeconds: 30
+              failureThreshold: 5
+          readiness:
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /api/healthz
+                port: 3000
+              periodSeconds: 15
+              failureThreshold: 3
+        resources:
+          requests: { cpu: 50m, memory: 384Mi }
+          limits: { memory: 1536Mi }
+
+service:
+  app:
+    controller: forgejo
+    ports:
+      http:
+        port: 3000
+  ssh:
+    controller: forgejo
+    type: LoadBalancer
+    annotations:
+      lbipam.cilium.io/ips: 10.25.30.58
+    externalTrafficPolicy: Cluster
+    ports:
+      ssh:
+        port: 22
+        targetPort: 2222
+
+ingress:
+  app:
+    className: internal
+    hosts:
+      - host: git.laboratory.casa
+        paths:
+          - path: /
+            service:
+              identifier: app
+              port: http
+
+serviceMonitor:
+  app:
+    serviceName: forgejo
+    endpoints:
+      - port: http
+        path: /metrics
+
+persistence:
+  data:
+    type: persistentVolumeClaim
+    storageClass: longhorn
+    accessMode: ReadWriteOnce
+    size: 10Gi
+    globalMounts:
+      - path: /var/lib/gitea
+  tmp:
+    type: emptyDir
+    globalMounts:
+      - path: /tmp

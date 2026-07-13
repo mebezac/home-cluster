@@ -358,3 +358,24 @@ identity_providers:
           - "groups"
         userinfo_signed_response_alg: "none"
         token_endpoint_auth_method: "client_secret_basic"
+      # Forgejo — git forge (OIDC source "authelia" added post-boot via
+      # `forgejo admin auth add-oauth`). claims_policy "all" hydrates groups
+      # into the id_token so Forgejo can map an admin group. PKCE disabled to
+      # match Forgejo's OIDC client behaviour (mirrors Argo CD).
+      - client_id: "U36OqB~9r89pSzAKCYr8OUYSTIoGnSo4VuwoMskqH5zB-bLDQOJAJZnkZhdXZZkfF1ktfR8J"
+        client_name: "Forgejo"
+        client_secret: "$pbkdf2-sha512$310000$0SZa5WR9kcNIAuztD/NaQA$ocwGmjXXkDfZndq1RgmMs719bMpxRkdtL7X6GrB.6qb.GRU2sgdzV/qs5AmvY/cvBWgMY/QzL7i3kHWt5gdujg"
+        claims_policy: "all"
+        public: false
+        authorization_policy: "one_factor"
+        consent_mode: "implicit"
+        require_pkce: false
+        redirect_uris:
+          - "https://git.laboratory.casa/user/oauth2/authelia/callback"
+        scopes:
+          - "openid"
+          - "profile"
+          - "email"
+          - "groups"
+        userinfo_signed_response_alg: "none"
+        token_endpoint_auth_method: "client_secret_basic"
