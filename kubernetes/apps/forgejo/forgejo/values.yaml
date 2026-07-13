@@ -29,76 +29,76 @@ controllers:
           TZ: America/New_York
           USER: git
           # --- server / reverse proxy (git.laboratory.casa, TLS terminated at ingress) ---
-          GITEA__server__DOMAIN: git.laboratory.casa
-          GITEA__server__ROOT_URL: https://git.laboratory.casa/
-          GITEA__server__HTTP_PORT: "3000"
-          GITEA__server__SSH_DOMAIN: git.laboratory.casa
-          GITEA__server__START_SSH_SERVER: "true"
-          GITEA__server__SSH_PORT: "22"          # advertised in clone URLs (LB listens on 22)
-          GITEA__server__SSH_LISTEN_PORT: "2222" # built-in ssh server inside the container
-          GITEA__server__LFS_START_SERVER: "true"
-          GITEA__security__REVERSE_PROXY_LIMIT: "1"
-          GITEA__security__REVERSE_PROXY_TRUSTED_PROXIES: "*"
-          GITEA__security__INSTALL_LOCK: "true"
+          FORGEJO__server__DOMAIN: git.laboratory.casa
+          FORGEJO__server__ROOT_URL: https://git.laboratory.casa/
+          FORGEJO__server__HTTP_PORT: "3000"
+          FORGEJO__server__SSH_DOMAIN: git.laboratory.casa
+          FORGEJO__server__START_SSH_SERVER: "true"
+          FORGEJO__server__SSH_PORT: "22"          # advertised in clone URLs (LB listens on 22)
+          FORGEJO__server__SSH_LISTEN_PORT: "2222" # built-in ssh server inside the container
+          FORGEJO__server__LFS_START_SERVER: "true"
+          FORGEJO__security__REVERSE_PROXY_LIMIT: "1"
+          FORGEJO__security__REVERSE_PROXY_TRUSTED_PROXIES: "*"
+          FORGEJO__security__INSTALL_LOCK: "true"
           # --- database (central CNPG) ---
-          GITEA__database__DB_TYPE: postgres
-          GITEA__database__HOST: postgres-17-cluster-rw.database.svc.cluster.local:5432
-          GITEA__database__NAME: forgejo
-          GITEA__database__USER: forgejo
-          GITEA__database__SSL_MODE: disable
+          FORGEJO__database__DB_TYPE: postgres
+          FORGEJO__database__HOST: postgres-17-cluster-rw.database.svc.cluster.local:5432
+          FORGEJO__database__NAME: forgejo
+          FORGEJO__database__USER: forgejo
+          FORGEJO__database__SSL_MODE: disable
           # --- private instance: SSO-only registration, sign-in required to view ---
-          GITEA__service__DISABLE_REGISTRATION: "false"
-          GITEA__service__ALLOW_ONLY_EXTERNAL_REGISTRATION: "true"
-          GITEA__service__REQUIRE_SIGNIN_VIEW: "true"
-          GITEA__service__ENABLE_NOTIFY_MAIL: "true"
-          GITEA__service__DEFAULT_KEEP_EMAIL_PRIVATE: "true"
-          GITEA__openid__ENABLE_OPENID_SIGNIN: "false"
-          GITEA__openid__ENABLE_OPENID_SIGNUP: "false"
+          FORGEJO__service__DISABLE_REGISTRATION: "false"
+          FORGEJO__service__ALLOW_ONLY_EXTERNAL_REGISTRATION: "true"
+          FORGEJO__service__REQUIRE_SIGNIN_VIEW: "true"
+          FORGEJO__service__ENABLE_NOTIFY_MAIL: "true"
+          FORGEJO__service__DEFAULT_KEEP_EMAIL_PRIVATE: "true"
+          FORGEJO__openid__ENABLE_OPENID_SIGNIN: "false"
+          FORGEJO__openid__ENABLE_OPENID_SIGNUP: "false"
           # --- OIDC SSO via Authelia (source itself added post-boot via `forgejo admin auth add-oauth`) ---
-          GITEA__oauth2_client__ENABLE_AUTO_REGISTRATION: "true"
-          GITEA__oauth2_client__ACCOUNT_LINKING: auto
-          GITEA__oauth2_client__USERNAME: nickname
-          GITEA__oauth2_client__UPDATE_AVATAR: "true"
-          GITEA__oauth2_client__REGISTER_EMAIL_CONFIRM: "false"
+          FORGEJO__oauth2_client__ENABLE_AUTO_REGISTRATION: "true"
+          FORGEJO__oauth2_client__ACCOUNT_LINKING: auto
+          FORGEJO__oauth2_client__USERNAME: nickname
+          FORGEJO__oauth2_client__UPDATE_AVATAR: "true"
+          FORGEJO__oauth2_client__REGISTER_EMAIL_CONFIRM: "false"
           # --- repository defaults ---
-          GITEA__repository__DEFAULT_BRANCH: main
+          FORGEJO__repository__DEFAULT_BRANCH: main
           # --- mailer (Fastmail relay) ---
-          GITEA__mailer__ENABLED: "true"
-          GITEA__mailer__PROTOCOL: smtp+starttls
-          GITEA__mailer__SMTP_ADDR: smtp.fastmail.com
-          GITEA__mailer__SMTP_PORT: "587"
-          GITEA__mailer__FROM: Forgejo <git@laboratory.casa>
+          FORGEJO__mailer__ENABLED: "true"
+          FORGEJO__mailer__PROTOCOL: smtp+starttls
+          FORGEJO__mailer__SMTP_ADDR: smtp.fastmail.com
+          FORGEJO__mailer__SMTP_PORT: "587"
+          FORGEJO__mailer__FROM: Forgejo <git@laboratory.casa>
           # --- prometheus metrics (scraped on the main http port at /metrics) ---
-          GITEA__metrics__ENABLED: "true"
-          GITEA__metrics__ENABLE_ISSUE_BY_LABEL: "true"
-          GITEA__metrics__ENABLE_ISSUE_BY_REPOSITORY: "true"
+          FORGEJO__metrics__ENABLED: "true"
+          FORGEJO__metrics__ENABLE_ISSUE_BY_LABEL: "true"
+          FORGEJO__metrics__ENABLE_ISSUE_BY_REPOSITORY: "true"
           # --- central valkey for cache / session / queue ---
           # (connection strings carry the valkey password -> in forgejo-secret)
-          GITEA__cache__ENABLED: "true"
-          GITEA__cache__ADAPTER: redis
-          GITEA__session__PROVIDER: redis
-          GITEA__queue__TYPE: redis
+          FORGEJO__cache__ENABLED: "true"
+          FORGEJO__cache__ADAPTER: redis
+          FORGEJO__session__PROVIDER: redis
+          FORGEJO__queue__TYPE: redis
           # --- Forgejo Actions (server side; runner is a separate workload added later) ---
-          GITEA__actions__ENABLED: "true"
+          FORGEJO__actions__ENABLED: "true"
           # keep 90 days of job logs; [cron.cleanup_actions] (on by default, nightly) deletes
           # expired runs' logs + DB rows together. ARTIFACT_RETENTION_DAYS already defaults to 90.
-          GITEA__actions__LOG_RETENTION_DAYS: "90"
+          FORGEJO__actions__LOG_RETENTION_DAYS: "90"
           # --- object storage: packages + repo-archive + actions_artifacts + actions_log in one
           #     Garage bucket, each under its own dir. Common S3 conn in [storage]; these opt into minio. ---
-          GITEA__storage__MINIO_ENDPOINT: garage-s3.garage.svc.cluster.local:3900
-          GITEA__storage__MINIO_BUCKET: forgejo
-          GITEA__storage__MINIO_LOCATION: us-east-1
-          GITEA__storage__MINIO_USE_SSL: "false"
-          GITEA__storage__MINIO_BUCKET_LOOKUP: path
-          GITEA__storage__MINIO_CHECKSUM_ALGORITHM: md5
-          GITEA__storage_0X2E_packages__STORAGE_TYPE: minio
-          GITEA__storage_0X2E_packages__MINIO_BASE_PATH: packages/
-          GITEA__storage_0X2E_repo-archive__STORAGE_TYPE: minio
-          GITEA__storage_0X2E_repo-archive__MINIO_BASE_PATH: repo-archive/
-          GITEA__storage_0X2E_actions_artifacts__STORAGE_TYPE: minio
-          GITEA__storage_0X2E_actions_artifacts__MINIO_BASE_PATH: actions_artifacts/
-          GITEA__storage_0X2E_actions_log__STORAGE_TYPE: minio
-          GITEA__storage_0X2E_actions_log__MINIO_BASE_PATH: actions_log/
+          FORGEJO__storage__MINIO_ENDPOINT: garage-s3.garage.svc.cluster.local:3900
+          FORGEJO__storage__MINIO_BUCKET: forgejo
+          FORGEJO__storage__MINIO_LOCATION: us-east-1
+          FORGEJO__storage__MINIO_USE_SSL: "false"
+          FORGEJO__storage__MINIO_BUCKET_LOOKUP: path
+          FORGEJO__storage__MINIO_CHECKSUM_ALGORITHM: md5
+          FORGEJO__storage_0X2E_packages__STORAGE_TYPE: minio
+          FORGEJO__storage_0X2E_packages__MINIO_BASE_PATH: packages/
+          FORGEJO__storage_0X2E_repo-archive__STORAGE_TYPE: minio
+          FORGEJO__storage_0X2E_repo-archive__MINIO_BASE_PATH: repo-archive/
+          FORGEJO__storage_0X2E_actions_artifacts__STORAGE_TYPE: minio
+          FORGEJO__storage_0X2E_actions_artifacts__MINIO_BASE_PATH: actions_artifacts/
+          FORGEJO__storage_0X2E_actions_log__STORAGE_TYPE: minio
+          FORGEJO__storage_0X2E_actions_log__MINIO_BASE_PATH: actions_log/
         envFrom: *envFrom
         probes:
           startup:
