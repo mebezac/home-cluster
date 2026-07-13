@@ -73,13 +73,11 @@ controllers:
           GITEA__metrics__ENABLE_ISSUE_BY_LABEL: "true"
           GITEA__metrics__ENABLE_ISSUE_BY_REPOSITORY: "true"
           # --- central valkey for cache / session / queue ---
+          # (connection strings carry the valkey password -> in forgejo-secret)
           GITEA__cache__ENABLED: "true"
           GITEA__cache__ADAPTER: redis
-          GITEA__cache__HOST: redis://valkey.valkey.svc.cluster.local:6379/10
           GITEA__session__PROVIDER: redis
-          GITEA__session__PROVIDER_CONFIG: redis://valkey.valkey.svc.cluster.local:6379/11
           GITEA__queue__TYPE: redis
-          GITEA__queue__CONN_STR: redis://valkey.valkey.svc.cluster.local:6379/12
           # --- Forgejo Actions (server side; runner is a separate workload added later) ---
           GITEA__actions__ENABLED: "true"
           # --- object storage: packages + repo-archive + actions_artifacts in one Garage bucket,
