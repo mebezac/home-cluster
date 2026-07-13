@@ -7,7 +7,17 @@
 forgejo:
   # in-cluster Forgejo HTTP service (svc/forgejo-app in this namespace)
   url: http://forgejo-app.forgejo.svc.cluster.local:3000
-  existingSecret: forgejo-runner-secret   # ksops-generated: keys `token` + `uuid`
+  # ksops-generated secret (forgejo-runner-secret.sops.yaml), keys `token` + `uuid`.
+  # This is Forgejo OFFLINE shared-secret registration, NOT a UI "Create new Runner"
+  # token. To (re)provision:
+  #   SECRET=$(openssl rand -hex 20)                       # 40-hex shared secret -> `token`
+  #   UUID from: forgejo-runner create-runner-file --secret $SECRET  (reads .runner)
+  #   register on Forgejo (idempotent), secret via stdin:
+  #     kubectl -n forgejo exec -i <forgejo-pod> -c app -- \
+  #       forgejo forgejo-cli actions register --secret-stdin --scope "" \
+  #       --name forgejo-runner-k8s --labels "ubuntu-latest,default"
+  # The daemon then auths as: --uuid <uuid> --token-url file://<token>.
+  existingSecret: forgejo-runner-secret
 
 # Runner image (the eleboucher fork that speaks the k8s plugin protocol).
 image:
