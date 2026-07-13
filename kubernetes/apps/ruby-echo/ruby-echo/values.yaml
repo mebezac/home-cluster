@@ -1,0 +1,72 @@
+# ruby-echo — throwaway test app: a tiny dependency-free Ruby stdlib HTTP echo
+# server (see zac/test-repo ruby-echo/). Built & pushed to the Forgejo registry by
+# CI (kaniko). Stateless: no DB, no secrets, no persistence. The image is pulled
+# anonymously from git.laboratory.casa (public package; instance allows anon view),
+# so no imagePullSecret is needed.
+defaultPodOptions:
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 3000
+    runAsGroup: 3000
+    fsGroup: 3000
+    seccompProfile: { type: RuntimeDefault }
+
+controllers:
+  ruby-echo:
+    containers:
+      app:
+        image:
+          repository: git.laboratory.casa/zac/ruby-echo
+          tag: 809ac5fd4c04d929b5fbfa244d50236a63df8835@sha256:b71dc7ad4a9840bb7eb39543d61b9c0f52e4846c8ed32a03a393c5ee4acd4953
+        env:
+          TZ: America/New_York
+          # image already defaults HOST=0.0.0.0 PORT=8080; set explicitly for clarity
+          HOST: 0.0.0.0
+          PORT: "8080"
+        probes:
+          liveness:
+            enabled: true
+            custom: true
+            spec:
+              httpGet: { path: /health, port: 8080 }
+              initialDelaySeconds: 3
+              periodSeconds: 10
+          readiness:
+            enabled: true
+            custom: true
+            spec:
+              httpGet: { path: /health, port: 8080 }
+              initialDelaySeconds: 3
+              periodSeconds: 10
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities: { drop: ["ALL"] }
+        resources:
+          requests: { cpu: 10m, memory: 32Mi }
+          limits: { memory: 128Mi }
+
+persistence:
+  # server.rb writes nothing, but keep the root fs read-only and give Ruby a /tmp.
+  tmp:
+    type: emptyDir
+    globalMounts:
+      - path: /tmp
+
+service:
+  app:
+    controller: ruby-echo
+    ports:
+      http:
+        port: 8080
+
+ingress:
+  app:
+    className: internal
+    hosts:
+      - host: ruby-echo.laboratory.casa
+        paths:
+          - path: /
+            service:
+              identifier: app
+              port: http
