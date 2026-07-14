@@ -10,7 +10,7 @@ controllers:
       app:
         image:
           repository: ghcr.io/tphakala/birdnet-go
-          tag: nightly@sha256:92614c8a805beaabf160d965e0c7a86aacbd4265b681accef1c8b5d5f18a40ca
+          tag: nightly@sha256:b02ab3a3037ebe06541ad703f1146eb157f5ec6c1ae1185bd24fccab8fe4ee03
         env:
           TZ: America/New_York
           BIRDNET_UID: "1000"
