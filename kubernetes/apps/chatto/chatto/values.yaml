@@ -15,7 +15,7 @@ controllers:
       app:
         image:
           repository: ghcr.io/chattocorp/chatto
-          tag: 0.4.9@sha256:643c5188353783dcfde74b886669c834250a942818712193271a5e4de21c1077
+          tag: 0.4.12@sha256:ddb1c5079c9fb2544f582c59a8d85b3bf754c24d3f1f19e15bec0647db377bd0
         env:
           TZ: America/New_York
           PUID: "3000"
