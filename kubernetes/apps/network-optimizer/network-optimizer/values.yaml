@@ -13,7 +13,7 @@ controllers:
       app:
         image:
           repository: ghcr.io/ozark-connect/network-optimizer
-          tag: 2.0.1@sha256:825beef2696b7ef3355d107a4102ee035a8690e18b4a526db6a7564da6c25c5a
+          tag: 2.0.2@sha256:2d66635c9b3e159cf52f120e21b3476884e512d31c365667a7f3f0a31dc77abc
         env:
           TZ: America/New_York
           BIND_LOCALHOST_ONLY: "false"
