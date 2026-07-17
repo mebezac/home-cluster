@@ -72,6 +72,20 @@ gh pr list --author "app/renovate" --state open --limit 100 \
   --json number,title,labels,headRefName,createdAt,isDraft
 ```
 
+**Drop anything labeled `on-hold` before you do anything else with the list.**
+The user applies `on-hold` to Renovate PRs they already know about but aren't
+ready to work on yet — parking them deliberately. Filter these out at the source
+so they never reach grouping, changelog research, the phase-5 summary, or the
+phase-6 merge session; spending subagent time researching a PR the user has
+already set aside is wasted work, and surfacing it invites a decision they've
+told you they don't want to make right now. `gh` has no exclude-label flag, so
+filter client-side on the `labels` array you just fetched (keep only PRs whose
+labels don't include `on-hold`). Don't silently disappear them, though: once, up
+front, note how many you skipped and why (e.g. "Skipping 2 on-hold PRs: #123
+argo-cd, #145 cilium"), so the user can see their parked items were recognized
+and correct you if one is actually ready. If, after this filter, there are no
+PRs left to triage, say so and stop.
+
 Read the **update type straight off the title/labels** — this repo's Renovate
 config encodes it deterministically, so you don't have to guess from version
 numbers:
