@@ -1,0 +1,88 @@
+# bjw-s app-template values for Reckage — personal media/collection tracker
+# (git.laboratory.casa/zac/reckage). Go binary, listens on :8080, health at
+# /health/live + /health/ready. State lives entirely in central Postgres, so the
+# workload is stateless (no PVC). Login is the app's own Authelia OIDC.
+defaultPodOptions:
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 3000
+    runAsGroup: 3000
+    fsGroup: 3000
+    fsGroupChangePolicy: OnRootMismatch
+    seccompProfile: { type: RuntimeDefault }
+
+controllers:
+  reckage:
+    annotations:
+      reloader.stakater.com/auto: "true" # restart on secret change
+    initContainers:
+      # Provisions the reckage database/role on the central CNPG cluster before
+      # the app starts. Reads INIT_POSTGRES_* from the ksops secret.
+      init-db:
+        image:
+          repository: ghcr.io/home-operations/postgres-init
+          tag: 18.4
+          pullPolicy: IfNotPresent
+        envFrom: &envFrom
+          - secretRef:
+              name: reckage-secret
+    containers:
+      app:
+        image:
+          repository: git.laboratory.casa/zac/reckage
+          tag: v1.0.4@sha256:c71b7efc6e90f1572fbb4777a70e33508e36d8eb99e4fcf1b26805b64acc039e
+        env:
+          TZ: America/New_York
+          TIMEZONE: America/New_York
+          HTTP_ADDR: ":8080"
+          LOG_LEVEL: info
+          REGION: US
+          # Absolute public URL; HTTPS so ALLOW_INSECURE_COOKIES stays off.
+          PUBLIC_URL: https://reckage.laboratory.casa
+          # Authelia OIDC. Issuer/discovery lives at login.laboratory.casa.
+          # OIDC_CLIENT_SECRET is a secret (see ksops secret).
+          OIDC_ISSUER_URL: https://login.laboratory.casa
+          OIDC_CLIENT_ID: reckage
+          # Notifications ship disabled; flip on via the secret's Pushover keys.
+          NOTIFICATIONS_ENABLED: "false"
+          MUSICBRAINZ_USER_AGENT: "Reckage/1.0 (https://reckage.laboratory.casa)"
+        # DB creds, OIDC client secret, and optional catalog/Pushover API keys.
+        envFrom: *envFrom
+        probes:
+          liveness:
+            enabled: true
+            custom: true
+            spec:
+              httpGet: { path: /health/live, port: 8080 }
+              initialDelaySeconds: 5
+              periodSeconds: 15
+          readiness:
+            enabled: true
+            custom: true
+            spec:
+              httpGet: { path: /health/ready, port: 8080 }
+              initialDelaySeconds: 5
+              periodSeconds: 15
+        resources:
+          requests: { cpu: 10m, memory: 128Mi }
+          limits: { memory: 512Mi }
+
+service:
+  app:
+    controller: reckage
+    ports:
+      http:
+        port: 8080
+
+ingress:
+  app:
+    className: external
+    annotations:
+      external-dns.alpha.kubernetes.io/target: external.laboratory.casa
+    hosts:
+      - host: reckage.laboratory.casa
+        paths:
+          - path: /
+            service:
+              identifier: app
+              port: http
