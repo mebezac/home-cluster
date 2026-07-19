@@ -30,7 +30,7 @@ controllers:
       app:
         image:
           repository: git.laboratory.casa/zac/reckage
-          tag: v1.0.4@sha256:c71b7efc6e90f1572fbb4777a70e33508e36d8eb99e4fcf1b26805b64acc039e
+          tag: v1.0.5@sha256:58e5b3a41ed747978240c5cebd636ab6c759575520045454d853285b63c4791d
         env:
           TZ: America/New_York
           TIMEZONE: America/New_York
