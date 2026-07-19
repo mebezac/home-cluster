@@ -42,7 +42,7 @@ controllers:
           # Authelia OIDC. Issuer/discovery lives at login.laboratory.casa.
           # OIDC_CLIENT_SECRET is a secret (see ksops secret).
           OIDC_ISSUER_URL: https://login.laboratory.casa
-          OIDC_CLIENT_ID: reckage
+          OIDC_CLIENT_ID: "kaAmxuYPrOYdslgGuQ5073gXb1-LyY~Z88LnypcJQPDOOV3FR_JanKfoBeoTonXg8QMwzQ9G"
           # Notifications ship disabled; flip on via the secret's Pushover keys.
           NOTIFICATIONS_ENABLED: "false"
           MUSICBRAINZ_USER_AGENT: "Reckage/1.0 (https://reckage.laboratory.casa)"

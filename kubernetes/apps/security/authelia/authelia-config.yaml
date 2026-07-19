@@ -379,3 +379,25 @@ identity_providers:
           - "groups"
         userinfo_signed_response_alg: "none"
         token_endpoint_auth_method: "client_secret_basic"
+      # Reckage — personal media/collection tracker (git.laboratory.casa/zac/reckage).
+      # Confidential client (secret via SOPS in reckage-secret), client_secret_basic
+      # + PKCE S256. Redirect + post-logout derive from PUBLIC_URL (/auth/callback,
+      # /login). Requests only openid/profile/email — the app reads no groups.
+      - client_id: "kaAmxuYPrOYdslgGuQ5073gXb1-LyY~Z88LnypcJQPDOOV3FR_JanKfoBeoTonXg8QMwzQ9G"
+        client_name: "Reckage"
+        client_secret: "$pbkdf2-sha512$310000$yVwZtPDJLVkd5pQrcH68pg$GRWmTx4PbIZrQnH1JavR4Bv6x.du9aoYZWmuyxbZyYGeApCPg5RT5NX8iSohKjZAGj8/zO5WUARMeworVFf5Tw"
+        public: false
+        authorization_policy: "one_factor"
+        consent_mode: "implicit"
+        require_pkce: true
+        pkce_challenge_method: "S256"
+        redirect_uris:
+          - "https://reckage.laboratory.casa/auth/callback"
+        post_logout_redirect_uris:
+          - "https://reckage.laboratory.casa/login"
+        scopes:
+          - "openid"
+          - "profile"
+          - "email"
+        userinfo_signed_response_alg: "none"
+        token_endpoint_auth_method: "client_secret_basic"
