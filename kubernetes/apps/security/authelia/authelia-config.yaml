@@ -393,8 +393,6 @@ identity_providers:
         pkce_challenge_method: "S256"
         redirect_uris:
           - "https://reckage.laboratory.casa/auth/callback"
-        post_logout_redirect_uris:
-          - "https://reckage.laboratory.casa/login"
         scopes:
           - "openid"
           - "profile"
