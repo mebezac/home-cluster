@@ -3,6 +3,9 @@ controller:
   service:
     annotations:
       lbipam.cilium.io/ips: 10.25.30.117
+      # Shares this IP with the forgejo `ssh` service (forgejo ns) on port 22.
+      lbipam.cilium.io/sharing-key: internal-ingress
+      lbipam.cilium.io/sharing-cross-namespace: forgejo
       tailscale.com/expose: "true"
     externalTrafficPolicy: Cluster
   ingressClassResource:

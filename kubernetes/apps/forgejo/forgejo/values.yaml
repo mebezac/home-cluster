@@ -35,7 +35,7 @@ controllers:
           FORGEJO__server__HTTP_PORT: "3000"
           FORGEJO__server__SSH_DOMAIN: git.laboratory.casa
           FORGEJO__server__START_SSH_SERVER: "true"
-          FORGEJO__server__SSH_PORT: "22"          # advertised in clone URLs (LB listens on 22)
+          FORGEJO__server__SSH_PORT: "22" # advertised in clone URLs (LB listens on 22)
           FORGEJO__server__SSH_LISTEN_PORT: "2222" # built-in ssh server inside the container
           FORGEJO__server__LFS_START_SERVER: "true"
           FORGEJO__security__REVERSE_PROXY_LIMIT: "1"
@@ -112,7 +112,7 @@ controllers:
                 path: /api/healthz
                 port: 3000
               periodSeconds: 5
-              failureThreshold: 40   # allow up to ~3.5m for first-run migrations
+              failureThreshold: 40 # allow up to ~3.5m for first-run migrations
           liveness:
             enabled: true
             custom: true
@@ -145,7 +145,13 @@ service:
     controller: forgejo
     type: LoadBalancer
     annotations:
-      lbipam.cilium.io/ips: 10.25.30.58
+      # Shares the internal ingress IP with ingress-nginx-internal (network ns).
+      # Ports don't collide: ingress holds 80/443, this holds 22. Keeps git SSH and
+      # HTTPS on one DNS name (git.laboratory.casa) so clients need no ssh_config
+      # HostName override — see the `fj` CLI breakage that motivated this.
+      lbipam.cilium.io/ips: 10.25.30.117
+      lbipam.cilium.io/sharing-key: internal-ingress
+      lbipam.cilium.io/sharing-cross-namespace: network
     externalTrafficPolicy: Cluster
     ports:
       ssh:
