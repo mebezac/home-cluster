@@ -12,6 +12,7 @@ controllers:
       app:
         image:
           repository: mauriceboe/trek
+          # changelog: GH releases github.com/mauriceboe/trek/releases (Docker Hub image; not in PR body)
           tag: 3.4.1@sha256:ce7fab639b89a6f62d484d1175a7d489a536a8c77291f56c03fec20608d4a3eb
         env:
           TZ: America/New_York
