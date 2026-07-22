@@ -25,7 +25,7 @@ controllers:
         image:
           repository: codeberg.org/forgejo/forgejo
           # changelog: codeberg raw branch forgejo/release-notes-published/<version>.md + forgejo.org blog for breaking changes (PR body is a stub)
-          tag: 15.0.5-rootless@sha256:c040958a31ef83643cc2f615150eda5992fb682d06084dc99b2211c9d357fc7e
+          tag: 16.0.1-rootless@sha256:71863f6b6c5837a27b3a2d133c3161c78a432aa878d57798d74b1d917ff842be
         env:
           TZ: America/New_York
           USER: git
