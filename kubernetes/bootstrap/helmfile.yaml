@@ -43,7 +43,7 @@ releases:
     namespace: argo-system
     chart: oci://ghcr.io/argoproj/argo-helm/argo-cd
     # changelog: helm pull oci://ghcr.io/argoproj/argo-helm/argo-cd --version X --untar, then diff the trees (PR body "Full Changelog" link points at the wrong tag lineage)
-    version: 10.1.4
+    version: 10.2.1
     secrets:
       - ../apps/argo-system/argo-cd/values.sops.yaml
     needs:
