@@ -82,7 +82,7 @@ controllers:
       app:
         image:
           repository: ghcr.io/ozark-connect/speedtest
-          tag: 2.3.0@sha256:756f1c2fa63fa2d059b1b2fd4cfb8ed48f0e6bb84efa32dd2e49d43e491f14a3
+          tag: 2.3.1@sha256:fd30a0a4b5b9b6e5470b12213414e3d21505f55fb8be30ff908bcf3841ae74d9
         env:
           TZ: America/New_York
           HOST_NAME: network-optimizer.laboratory.casa
