@@ -53,6 +53,27 @@ controllers:
           # hourly bucket sweep for storage-usage gauges (needs s3:ListBucket)
           BUZZ_STORAGE_METRICS: "on"
           # --- git-over-object-storage; the volume below is scratch only ---
+          # Buzz gates startup on an "A3 conformance probe" that races 32
+          # conditional writes (If-Match) and demands exactly one winner, because
+          # its git manifest-pointer protocol serializes writers via S3 CAS.
+          # Garage returns 2xx to ALL of them: it accepts If-Match/If-None-Match
+          # and silently ignores them. That is not a bug we can configure away —
+          # upstream calls conditional writes "structurally impossible" under
+          # Garage's weak-consistency replication model and has declined to
+          # implement them (known-issues.md; issue #1052).
+          #
+          # Consequence of disabling the gate: CONCURRENT pushes to the SAME
+          # buzz-hosted repo can silently lose a commit — every writer thinks it
+          # won the pointer CAS, and last-write-wins. Objects are immutable and
+          # content-addressed so nothing in the bucket corrupts, but the orphaned
+          # commits become unreachable. Sequential pushes are unaffected, and
+          # chat/rooms/media/search don't touch this path at all.
+          #
+          # Use Forgejo (git.laboratory.casa) for real git hosting; treat the
+          # buzz git server as demo-only. Note the probe is a startup gate, not a
+          # runtime guard — Garage's non-conformance exists either way, the probe
+          # only decides whether the relay refuses to boot over it.
+          BUZZ_GIT_CONFORMANCE_PROBE: "false"
           BUZZ_GIT_REPO_PATH: /var/lib/buzz/git
           BUZZ_GIT_PACK_CACHE_PATH: /var/cache/buzz/git-packs
           # 1 GiB cache in a 2 GiB emptyDir — leaves headroom for the cold-
