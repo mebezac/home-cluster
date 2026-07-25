@@ -1,0 +1,160 @@
+defaultPodOptions:
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 3000
+    runAsGroup: 3000
+    fsGroup: 3000
+    fsGroupChangePolicy: OnRootMismatch
+    seccompProfile: { type: RuntimeDefault }
+
+controllers:
+  buzz:
+    annotations:
+      reloader.stakater.com/auto: "true"
+    initContainers:
+      init-db:
+        image:
+          repository: ghcr.io/home-operations/postgres-init
+          tag: 18.4
+        envFrom: &envFrom
+          - secretRef:
+              name: buzz-secret
+    containers:
+      app:
+        image:
+          repository: ghcr.io/block/buzz
+          tag: 0.2.0@sha256:a0f67203d71d15d237fa7517788799957c30c8acdb81cbcff711e07e951c2710
+        env:
+          TZ: America/New_York
+          # --- listeners: 3000 = UI/REST/WS, 8080 = health, 9102 = metrics ---
+          BUZZ_BIND_ADDR: 0.0.0.0:3000
+          BUZZ_HEALTH_PORT: "8080"
+          BUZZ_METRICS_PORT: "9102"
+          # public wss:// URL — drives NIP-42 auth challenges, must match ingress
+          RELAY_URL: wss://buzz.laboratory.casa
+          BUZZ_MEDIA_BASE_URL: https://buzz.laboratory.casa/media
+          BUZZ_CORS_ORIGINS: https://buzz.laboratory.casa
+          # web UI (SPA) is baked in at /srv/buzz/web and BUZZ_WEB_DIR already
+          # points there in the image — no override needed.
+          # --- closed relay: owner + admitted members only ---
+          RELAY_OWNER_PUBKEY: 3ff90658ebb2e9d9baa7516828678b63607d0bab3a216e26092f4078f20b56ec
+          BUZZ_REQUIRE_AUTH_TOKEN: "true"
+          BUZZ_REQUIRE_RELAY_MEMBERSHIP: "true"
+          BUZZ_ALLOW_NIP_OA_AUTH: "true"
+          BUZZ_PUBKEY_ALLOWLIST: "false"
+          # --- schema migrations run in-process at startup (advisory-locked) ---
+          BUZZ_AUTO_MIGRATE: "true"
+          # --- media + git object storage: in-cluster Garage S3.
+          # buzz hardcodes path-style addressing, so Garage is a clean fit.
+          # Region MUST be us-east-1 or Garage rejects HeadBucket with a 400.
+          BUZZ_S3_ENDPOINT: http://garage-s3.garage.svc.cluster.local:3900
+          BUZZ_S3_BUCKET: buzz
+          BUZZ_S3_REGION: us-east-1
+          # hourly bucket sweep for storage-usage gauges (needs s3:ListBucket)
+          BUZZ_STORAGE_METRICS: "on"
+          # --- git-over-object-storage; the volume below is scratch only ---
+          BUZZ_GIT_REPO_PATH: /var/lib/buzz/git
+          BUZZ_GIT_PACK_CACHE_PATH: /var/cache/buzz/git-packs
+          # 1 GiB cache in a 2 GiB emptyDir — leaves headroom for the cold-
+          # population staging the cache writes alongside its live entries.
+          BUZZ_GIT_PACK_CACHE_MAX_BYTES: "1073741824"
+          # --- tuning ---
+          BUZZ_REDIS_POOL_SIZE: "16"
+          RUST_LOG: info
+        envFrom: *envFrom
+        probes:
+          liveness:
+            enabled: true
+            custom: true
+            spec:
+              httpGet: { path: /_liveness, port: 8080 }
+              initialDelaySeconds: 10
+              periodSeconds: 10
+              timeoutSeconds: 3
+              failureThreshold: 3
+          readiness:
+            enabled: true
+            custom: true
+            spec:
+              httpGet: { path: /_readiness, port: 8080 }
+              initialDelaySeconds: 5
+              periodSeconds: 5
+              timeoutSeconds: 3
+              failureThreshold: 3
+          startup:
+            enabled: true
+            custom: true
+            spec:
+              httpGet: { path: /_liveness, port: 8080 }
+              periodSeconds: 2
+              failureThreshold: 60
+        securityContext:
+          allowPrivilegeEscalation: false
+          # false: git hydration writes into the repo + pack-cache paths
+          readOnlyRootFilesystem: false
+          capabilities: { drop: ["ALL"] }
+        resources:
+          requests: { cpu: 100m, memory: 256Mi }
+          limits: { memory: 2Gi }
+
+service:
+  app:
+    controller: buzz
+    ports:
+      http:
+        port: 3000
+  metrics:
+    controller: buzz
+    ports:
+      metrics:
+        port: 9102
+
+ingress:
+  app:
+    className: internal
+    annotations:
+      # relay connections are long-lived WebSockets
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+      nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+      # media uploads: images 50M / video 500M / files 100M
+      nginx.ingress.kubernetes.io/proxy-body-size: "512m"
+    hosts:
+      - host: buzz.laboratory.casa
+        paths:
+          - path: /
+            service:
+              identifier: app
+              port: http
+
+serviceMonitor:
+  app:
+    enabled: true
+    serviceName: buzz-metrics
+    labels:
+      release: victoria-metrics-stack
+    endpoints:
+      - port: metrics
+        scheme: http
+        path: /metrics
+        interval: 30s
+
+persistence:
+  # scratch working space for git — Postgres + the S3 bucket are the sources of
+  # truth, this only saves re-hydrating repos from S3 after a pod restart
+  git:
+    type: persistentVolumeClaim
+    storageClass: longhorn
+    accessMode: ReadWriteOnce
+    size: 2Gi
+    globalMounts:
+      - path: /var/lib/buzz/git
+  # per-pod pack cache; bounded by BUZZ_GIT_PACK_CACHE_MAX_BYTES
+  pack-cache:
+    type: emptyDir
+    sizeLimit: 2Gi
+    globalMounts:
+      - path: /var/cache/buzz/git-packs
+  tmp:
+    type: emptyDir
+    globalMounts:
+      - path: /tmp
