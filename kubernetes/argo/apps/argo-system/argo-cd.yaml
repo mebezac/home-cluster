@@ -18,7 +18,7 @@ spec:
     - repoURL: ghcr.io/argoproj/argo-helm
       chart: argo-cd
       # changelog: helm pull oci://ghcr.io/argoproj/argo-helm/argo-cd --version X --untar, then diff the trees (PR body "Full Changelog" link points at the wrong tag lineage)
-      targetRevision: 10.1.4
+      targetRevision: 10.2.1
       helm:
         releaseName: argo-cd
         valueFiles:
