@@ -11,7 +11,7 @@ your grep key across `kubernetes/`.
 
 | PR kind (label) | What the title names | Where we set it |
 |-|-|-|
-| `renovate/container` | image repo, e.g. `ghcr.io/mealie-recipes/mealie` | `kubernetes/apps/<ns>/<app>/values.yaml` → `image.repository` + `tag` (pinned `tag@sha256:...`) |
+| `renovate/container` | image repo, e.g. `ghcr.io/hargata/lubelogger` | `kubernetes/apps/<ns>/<app>/values.yaml` → `image.repository` + `tag` (pinned `tag@sha256:...`) |
 | `renovate/helm` | chart name, e.g. `cert-manager`, `cloudnative-pg` | `targetRevision` in `kubernetes/argo/apps/<ns>/<app>.yaml`; chart config in that app's `values.yaml` |
 | `renovate/github-release` | tool, e.g. `getsops/sops`, `siderolabs/talos`, `helmfile/helmfile` | `kubernetes/bootstrap/` (talos), `helmfile.yaml`, `.github/workflows/*` |
 
@@ -60,7 +60,7 @@ merge a major without an explicit, informed go from the user.
 
 ### Leaf apps → tier by semver alone
 
-Everything else is a single self-contained app (mealie, jellyfin, immich,
+Everything else is a single self-contained app (jellyfin, immich,
 audiobookshelf, lubelog, shlink, romm, lastglance, esphome, zwave-js-ui, …). A
 break affects only that app, and rollback is a one-line revert. So:
 

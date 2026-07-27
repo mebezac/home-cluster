@@ -37,7 +37,7 @@
 - Backup: Barman Cloud plugin (`plugin-barman-cloud` Helm release) for WAL archival to S3
 
 **Example usage:**
-- Lubelog, Jotty, Mealie, Immich, and other apps use init containers to provision databases
+- Lubelog, Jotty, Immich, and other apps use init containers to provision databases
 - Connection string pattern: `postgres://app-user:password@postgres-17-cluster.database.svc.cluster.local:5432/app-name`
 
 **S3-Compatible Storage (Garage):**
@@ -109,7 +109,6 @@
 - Storage: S3 (Garage) or local PVC
 
 **Media Management:**
-- Mealie - Recipe/meal planning
 - Calibre-Web-Automated - eBook server with auto-sync
 - Audiobookshelf - Audiobook server
 - Lychee - Photo gallery

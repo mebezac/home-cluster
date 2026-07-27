@@ -12,7 +12,7 @@
 - Secret generators at `secret-generator.yaml` in application directory
 
 **Naming Conventions:**
-- Namespace and application share the same name (e.g., app `mealie` → namespace `mealie`)
+- Namespace and application share the same name (e.g., app `lubelog` → namespace `lubelog`)
 - ArgoCD Application resources stored in `kubernetes/argo/apps/<namespace>/<app-name>.yaml`
 - Multi-component apps (e.g., Garage: garage + webui) have separate subdirectories with individual Helm releases
 - Secret files named descriptively: `<app>-secret.sops.yaml`, `<app-initdb-secret.sops.yaml>`, etc.
@@ -39,14 +39,14 @@
   - `hosts[].paths[].service.identifier`: Service name (often `app`)
   - `hosts[].paths[].service.port`: Port name (often `http`)
 
-Example ingress pattern (`kubernetes/apps/mealie/mealie/values.yaml`):
+Example ingress pattern (`kubernetes/apps/changedetection/changedetection/values.yaml`):
 ```yaml
 ingress:
   app:
     enabled: true
     className: internal
     hosts:
-      - host: mealie.laboratory.casa
+      - host: changedetection.laboratory.casa
         paths:
           - path: /
             service:

@@ -53,13 +53,13 @@ kubernetes/argo/apps/<namespace>/<app-name>.yaml  # Argo CD Application definiti
 
 **Notes:**
 
-- Each app typically has its own namespace with the same name as the app (e.g., `mealie` app in `mealie` namespace)
+- Each app typically has its own namespace with the same name as the app (e.g., `lubelog` app in `lubelog` namespace)
 - Apps can be grouped by function (e.g., `homeassistant/`, `database/`, `security/`, `network/`)
 - The inner directory name should match the app name
 
 **Examples:**
 
-- Simple app: `kubernetes/apps/mealie/mealie/`
+- Simple app: `kubernetes/apps/lubelog/lubelog/`
 - Grouped apps: `kubernetes/apps/homeassistant/zigbee2mqtt/`
 - System apps: `kubernetes/apps/security/authelia/`
 
@@ -396,7 +396,7 @@ ingress:
 ### Domain Guidelines
 
 - Primary domain: `laboratory.casa`
-- Use descriptive subdomains: `mealie.laboratory.casa`, `ha.laboratory.casa`
+- Use descriptive subdomains: `lubelog.laboratory.casa`, `ha.laboratory.casa`
 - External services (like biglink.party) may have separate TLS configuration
 - Do NOT include TLS configuration for laboratory.casa - it's handled automatically
 

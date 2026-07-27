@@ -71,7 +71,7 @@ home-cluster/
 **kubernetes/apps/:**
 - Purpose: Application-specific configuration and secrets
 - Contains: Helm values, secret generators, encrypted SOPS files, Kustomization bases
-- Key subdirectories: One per namespace (lubelog, immich, mealie, etc.), and supporting infrastructure
+- Key subdirectories: One per namespace (lubelog, immich, jellyfin, etc.), and supporting infrastructure
 
 **kubernetes/bootstrap/:**
 - Purpose: One-time cluster initialization

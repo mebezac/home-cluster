@@ -129,7 +129,6 @@
 - Home Assistant ecosystem (zigbee2mqtt, esphome, zwave-js-ui, mosquitto)
 - Jellyfin + Pinchflat - Media streaming
 - Immich - Photo management
-- Mealie - Recipe management
 - Lubelog - Vehicle maintenance
 - Audiobookshelf - Audiobook server
 - Changedetection - Web monitoring

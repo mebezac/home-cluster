@@ -17,7 +17,7 @@
 ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
 │ Cluster Infra│     │   Database   │     │ Applications │
 │ kube-system  │     │  postgres    │     │   immich,    │
-│ cert-manager │     │   valkey     │     │  mealie,etc  │
+│ cert-manager │     │   valkey     │     │ lubelog,etc  │
 └──────────────┘     └──────────────┘     └──────────────┘
         │                      │                      │
         └──────────────────────┼──────────────────────┘
