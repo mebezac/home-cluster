@@ -38,6 +38,9 @@ cluster, break GitOps reconciliation, or corrupt data.
 
 - **argo-system / argo-cd** — the GitOps engine itself. If this breaks, nothing
   else syncs. Grouped bumps common here (Argo Operator group in renovate.json5).
+  Note the naming mismatch: the file is `argo-system/argo-cd.yaml` and the Helm
+  release is `argo-cd`, but **the Application is named `argo`** — that's the name
+  to use when verifying the sync.
 - **database** — central Postgres (CloudNativePG). Many apps init a DB against
   it via `postgres-init` init-containers. Major bumps can imply data migrations;
   check running version via the k8s MCP before adopting.

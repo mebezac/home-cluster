@@ -330,10 +330,25 @@ shortly rather than concluding it failed.
 
 What to look at:
 
-- **Find the app** — `mcp__argocd-mcp__list_applications`. The app name maps from
-  the repo path (`kubernetes/argo/apps/<ns>/<app>.yaml`), e.g. the argo-cd bump
-  is the `argo-cd` Application. For a self-managed component (argo-cd itself),
-  it manages its own Application — the sync still shows up here.
+- **Find the app** — the app name *usually* maps from the repo path
+  (`kubernetes/argo/apps/<ns>/<app>.yaml`), but **it does not always**, so don't
+  assume. The most important exception: **ArgoCD itself is the `argo`
+  Application, NOT `argo-cd`** — the file is `argo-system/argo-cd.yaml` and the
+  Helm release is `argo-cd`, but the Application is named `argo`. It's
+  self-managed, and its sync still shows up here.
+  - Querying a name that doesn't exist returns **`{"error":"permission denied","code":7}`**,
+    not a not-found. That looks like the `mcp` account's RBAC is broken and will
+    send you debugging the wrong thing — check the name first.
+  - `mcp__argocd-mcp__list_applications` returns ~90k chars and blows the
+    tool-result limit even with `search:` set (that param doesn't filter
+    server-side). To enumerate, use kubectl (read-only) instead:
+    `kubectl get applications.argoproj.io -n argo-system -o custom-columns='NAME:.metadata.name,SYNC:.status.sync.status,HEALTH:.status.health.status,REV:.status.sync.revisions[0]'`
+- **Chart bumps propagate in two hops.** `apps` (the app-of-apps) must sync first
+  to update the target app's `targetRevision`, and only then does that app pull
+  the new chart. So an app can read `Synced`/`Healthy` at your merge revision
+  while *still running the old chart version*. For a chart bump, verify the chart
+  itself, not just the revision:
+  `kubectl get application <app> -n argo-system -o jsonpath='{range .spec.sources[*]}{.chart}{" "}{.targetRevision}{"\n"}{end}'`
 - **Confirm it synced to your merge** — `mcp__argocd-mcp__get_application` for the
   app. Success = `sync.status: Synced` **at the revision of your merge commit**
   (check the synced revision matches, not just that it says Synced — it may still
