@@ -41,6 +41,13 @@ controllers:
           N8N_GIT_NODE_DISABLE_BARE_REPOS: true
           N8N_WEBHOOK_URL: https://n8n.laboratory.casa
           N8N_PROXY_HOPS: 2
+          # Pinned to the current defaults — upstream is lowering/flipping all four in a
+          # future release (deprecation warnings as of 2.33.0). Set explicitly so the
+          # change is a decision, not a silent inherit.
+          N8N_UNVERIFIED_PACKAGES_ENABLED: true
+          N8N_RUNNERS_TASK_TIMEOUT: 300
+          N8N_COMPRESSION_NODE_MAX_DECOMPRESSED_SIZE_BYTES: 2147483648
+          N8N_COMPRESSION_NODE_MAX_ZIP_ENTRIES: 5000
         envFrom: *envFrom
         probes:
           startup:
