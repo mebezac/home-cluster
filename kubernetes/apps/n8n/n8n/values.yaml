@@ -23,7 +23,7 @@ controllers:
         image:
           repository: ghcr.io/n8n-io/n8n
           # changelog: GH releases n8n-io/n8n tag "n8n@<version>" (PR body is a stub)
-          tag: 2.33.0@sha256:fd12b6c519101fa99b9efe731e3e7e06249e918a8df628e7e778123811b8c265
+          tag: 2.33.4@sha256:f9a15cc65378e4e5b6c3b1445c83985131938db8d8b5b1ab891d7d50196b2162
         env:
           DB_TYPE: postgresdb
           DB_POSTGRESDB_SCHEMA: public
