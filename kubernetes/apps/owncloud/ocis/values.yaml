@@ -28,7 +28,10 @@ controllers:
       ocis:
         image:
           repository: docker.io/owncloud/ocis
-          tag: 8.2.0
+          # changelog: GH releases owncloud/ocis. We use the BUILT-IN IdP + s3ng/Garage, so the
+          # PROXY_AUTOPROVISION_* / external-OIDC upgrade notes do not apply. Keep this digest in
+          # sync with the init-config container above - they must be the same build.
+          tag: 8.2.0@sha256:57a955178d226ead28ae6ed06ac4ceb5301cc21179c5b518986afa8611f9125c
         env:
           DEMO_USERS: false
           OCIS_LOG_COLOR: false
