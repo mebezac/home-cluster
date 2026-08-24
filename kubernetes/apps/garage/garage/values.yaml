@@ -55,6 +55,7 @@ controllers:
             devic.es/tun: "1"
       rclone:
         image:
+          # changelog: rclone.org/changelog (PR body is just a link). This mount IS garage's data_dir via FUSE - read the VFS/Mount/SFTP sections, and expect a garage restart (CNPG barman + forgejo + ocis) on every bump
           repository: rclone/rclone
           tag: 1.74.4@sha256:c61954aaa32328a5486715dd063a81c7879f5195ad3505cd362deddd509dc4a1
         command:

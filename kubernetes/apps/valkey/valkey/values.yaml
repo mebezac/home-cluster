@@ -15,6 +15,7 @@ controllers:
         command: ["valkey-server", "/config/valkey.conf"]
         image:
           repository: valkey/valkey
+          # changelog: digest-only bumps of the same tag are Alpine apk + binary rebuilds - diff the two image configs (crane config) rather than hunting for release notes; there are none
           tag: 9.1.1-alpine@sha256:de31910896150d5e754a07d57d227cfdde4e258ddd0d1aa4607f2d2f95843715
         resources:
           requests:

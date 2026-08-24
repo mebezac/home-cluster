@@ -7,6 +7,7 @@ controllers:
       app:
         image:
           repository: ghcr.io/koenkk/zigbee2mqtt
+          # changelog: CHANGELOG.md in repo root - check for a '! BREAKING CHANGES' block first, this project renames configuration.yaml keys often; our config is env-only (ZIGBEE2MQTT_CONFIG_*)
           tag: 2.13.0@sha256:4fb4db4d49a217bed6d0204f454ce809febc565bbe051b85c556ee2bcef73d8c
         env:
           TZ: America/Detroit

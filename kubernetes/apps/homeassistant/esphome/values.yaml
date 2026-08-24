@@ -7,7 +7,8 @@ controllers:
       app:
         image:
           repository: ghcr.io/esphome/esphome
-          tag: 2026.8.1
+          # changelog: esphome.io/changelog/<version>.html (note .html; /changelog/<ver>/ 404s). A bump changes the DASHBOARD only - devices keep old firmware until reflashed
+          tag: 2026.8.1@sha256:dda49fd0079ed818c2859b52ffeb2c07263349c2d3cc601a0539fd3a8f855d21
         env:
           - name: TZ
             value: "America/New_York"

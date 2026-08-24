@@ -15,6 +15,7 @@ spec:
       ref: repo
     - repoURL: https://kubernetes-sigs.github.io/metrics-server
       chart: metrics-server
+      # changelog: chart = CHANGELOG.md inside the metrics-server-*.tgz; app = GH releases kubernetes-sigs/metrics-server v0.x.y (PR body has no release notes)
       targetRevision: 3.14.0
       helm:
         releaseName: metrics-server

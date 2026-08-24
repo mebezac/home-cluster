@@ -15,6 +15,7 @@ spec:
       ref: repo
     - repoURL: https://pkgs.tailscale.com/helmcharts
       chart: tailscale-operator
+      # changelog: tailscale.com/changelog (GH release bodies and PR body are stubs); real diff = helm template tailscale-operator --version X then diff. Proxy image tag = chart appVersion unless proxyConfig.image is set
       targetRevision: 1.102.3
       helm:
         releaseName: tailscale-operator

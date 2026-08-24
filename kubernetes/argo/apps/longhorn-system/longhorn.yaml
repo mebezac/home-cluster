@@ -15,6 +15,7 @@ spec:
       ref: repo
     - repoURL: https://charts.longhorn.io/
       chart: longhorn
+      # changelog: GH releases longhorn/longhorn (chart repo release body is empty; real notes are on the longhorn/longhorn tag)
       targetRevision: 1.12.0
       helm:
         releaseName: longhorn

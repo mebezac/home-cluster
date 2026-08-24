@@ -4,6 +4,7 @@
 # renovate: datasource=docker depName=ghcr.io/siderolabs/installer
 talosVersion: v1.13.7
 # renovate: datasource=docker depName=ghcr.io/siderolabs/kubelet
+# changelog: kubernetes/kubernetes CHANGELOG-1.36.md (siderolabs/kubelet images ship no release notes and the PR body is always empty)
 kubernetesVersion: v1.36.4
 
 clusterName: kubernetes

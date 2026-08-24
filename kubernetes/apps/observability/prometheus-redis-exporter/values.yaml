@@ -1,6 +1,6 @@
 image:
   repository: oliver006/redis_exporter
-  tag: v1.89.0
+  tag: v1.89.0@sha256:fed773ffd2bb2eac706e0ed9cc2fff41651193ee4977e2a4f6919658ad2313f4
 env:
   - name: TZ
     value: America/New_York

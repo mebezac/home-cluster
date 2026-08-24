@@ -15,6 +15,7 @@ spec:
       ref: repo
     - repoURL: https://coredns.github.io/helm
       chart: coredns
+      # changelog: chart notes are thin - the real change is appVersion; diff Chart.yaml appVersion then read coredns/coredns GH releases for that range
       targetRevision: 1.47.0
       helm:
         releaseName: coredns
