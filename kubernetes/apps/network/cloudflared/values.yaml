@@ -8,7 +8,9 @@ controllers:
       app:
         image:
           repository: docker.io/cloudflare/cloudflared
-          tag: 2026.8.2
+          # changelog: GH releases cloudflare/cloudflared + repo CHANGES.md for breaking flags
+          # (PR body is checksums only). NB 2026.8.0/.1 were 'do not use' releases; .2 is the fix.
+          tag: 2026.8.2@sha256:0aa26e284f05e6c77ae375b8c9c11d9eb6a448fb7bcd8d40f31cb6176189eb38
         env:
           NO_AUTOUPDATE: true
           TUNNEL_CRED_FILE: /etc/cloudflared/creds/credentials.json
