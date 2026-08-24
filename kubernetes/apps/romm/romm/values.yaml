@@ -49,7 +49,7 @@ controllers:
         image:
           repository: ghcr.io/rommapp/romm
           # changelog: GH releases rommapp/romm. Alembic migrations run on startup; MariaDB-only warnings in the notes do NOT apply (we use ROMM_DB_DRIVER=postgresql)
-          tag: 5.0.0@sha256:91f6611eca5a4dafc4f4a1d72a1ed7dd66a11375d939f28410dc1d1de0b80b1b
+          tag: 5.2.0@sha256:3512f2ca455782f90247271bed23116e6bc675bc74e379be2c41696e607ab11e
 
         env:
           ENABLE_RESCAN_ON_FILESYSTEM_CHANGE: "true"
