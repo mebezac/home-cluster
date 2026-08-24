@@ -8,7 +8,7 @@ controllers:
         image:
           repository: ghcr.io/home-assistant/home-assistant
           # changelog: monthly release blog home-assistant.io/blog/YYYY/MM/DD/release-YYYYMM/ - the Breaking Changes section lives ONLY there; recorder DB is SQLite on this PVC
-          tag: 2026.7.4
+          tag: 2026.8.3
         env:
           - name: TZ
             value: "America/New_York"
