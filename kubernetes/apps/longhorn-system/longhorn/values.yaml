@@ -1,6 +1,11 @@
 ---
 csi:
   storageMinimalAvailablePercentage: 15
+# NOTE: manager/instanceManager were pinned to v1.11.0-hotfix-1 on 2026-02-15 for
+# longhorn/longhorn#12573 (runaway instance-manager memory on v1.11.0, stopgap images
+# built in #12576). That root bug is milestoned v1.12.0 and closed 2026-02-02, so the
+# fix is in every 1.12.x release and the pin is obsolete. Removed 2026-08-24; let the
+# chart set all component tags so they cannot drift apart again.
 defaultBackupStore:
   backupTarget: "cifs://10.25.30.36/longhorn-backup"
   backupTargetCredentialSecret: backup-secret
@@ -16,8 +21,10 @@ ingress:
 persistence:
   defaultClassReplicaCount: 2
   defaultDataLocality: best-effort
+  volumeBindingMode: WaitForFirstConsumer
 preUpgradeChecker:
   jobEnabled: false
+  upgradeVersionCheck: false
 service:
   ui:
     type: ClusterIP

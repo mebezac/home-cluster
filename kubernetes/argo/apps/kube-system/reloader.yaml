@@ -15,7 +15,8 @@ spec:
       ref: repo
     - repoURL: https://stakater.github.io/stakater-charts
       chart: reloader
-      targetRevision: 2.2.7
+      # changelog: GH releases stakater/Reloader - read the APP tags (v1.4.x); chart-vX.Y.Z tags carry no notes and PR-body compare links are empty
+      targetRevision: 2.2.16
       helm:
         releaseName: reloader
         valueFiles:

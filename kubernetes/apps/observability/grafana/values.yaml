@@ -2,7 +2,7 @@ annotations:
   secret.reloader.stakater.com/reload: grafana-secret
 extraInitContainers:
   - name: init-db
-    image: ghcr.io/home-operations/postgres-init:18.1
+    image: ghcr.io/home-operations/postgres-init:18.6@sha256:b6d3af974df781c673d37e49bdddfa14a6f5be28b18d2cb7713f0449bea4057b
     envFrom:
       - secretRef:
           name: grafana-secret
@@ -72,13 +72,10 @@ grafana.ini:
 plugins:
   - pr0ps-trackmap-panel
   - grafana-clock-panel
-  - grafana-piechart-panel
-  - grafana-worldmap-panel
-  - natel-discrete-panel
-  - natel-plotly-panel
   - vonage-status-panel
-  - https://github.com/panodata/panodata-map-panel/releases/download/0.16.0/panodata-map-panel-0.16.0.zip;grafana-worldmap-panel-ng
   - redis-datasource
+  - victoriametrics-metrics-datasource
+  - victoriametrics-logs-datasource
 sidecar:
   datasources:
     enabled: true
@@ -102,23 +99,30 @@ datasources:
       - name: Prometheus
         type: prometheus
         access: proxy
-        url: http://thanos-query.observability.svc.cluster.local:10902
+        url: http://vmsingle-victoria-metrics-stack.observability.svc:8428
         isDefault: true
         jsonData:
           timeInterval: 30s
-      - name: Loki
-        type: loki
-        uid: loki
-        access: proxy
-        url: http://loki-headless.observability.svc.cluster.local:3100
-        jsonData:
-          maxLines: 250
       - name: Alertmanager
         type: alertmanager
         access: proxy
-        url: http://alertmanager-operated.observability.svc.cluster.local:9093
+        url: http://vmalertmanager-victoria-metrics-stack.observability.svc:9093
         jsonData:
           implementation: prometheus
+      - name: VictoriaMetrics
+        type: victoriametrics-metrics-datasource
+        access: proxy
+        url: http://vmsingle-victoria-metrics-stack.observability.svc:8428
+        isDefault: false
+        jsonData:
+          timeInterval: 30s
+      - name: VictoriaLogs
+        type: victoriametrics-logs-datasource
+        uid: victorialogs
+        access: proxy
+        url: http://victoria-logs-victoria-logs-single-server.observability.svc.cluster.local:9428
+        jsonData:
+          maxLines: 250
 dashboardProviders:
   dashboardproviders.yaml:
     apiVersion: 1
@@ -166,39 +170,123 @@ dashboardProviders:
         options:
           path: /var/lib/grafana/dashboards/database
 dashboards:
+  default:
+    victorialogs-namespace-starter:
+      json: |
+        {
+          "title": "VictoriaLogs - Namespace Logs",
+          "uid": "victorialogs-namespace-logs",
+          "schemaVersion": 41,
+          "version": 1,
+          "editable": true,
+          "tags": ["victorialogs", "logs", "kubernetes"],
+          "time": {
+            "from": "now-1h",
+            "to": "now"
+          },
+          "templating": {
+            "list": [
+              {
+                "allValue": "*",
+                "current": {
+                  "text": "All",
+                  "value": ["$__all"]
+                },
+                "datasource": {
+                  "type": "victoriametrics-logs-datasource",
+                  "uid": "victorialogs"
+                },
+                "definition": "* | fields namespace",
+                "includeAll": true,
+                "multi": true,
+                "name": "namespace",
+                "options": [],
+                "query": {
+                  "type": "fieldValue",
+                  "field": "namespace",
+                  "query": "* | fields namespace",
+                  "limit": 500,
+                  "refId": "VictoriaLogsVariableQueryEditor-namespace"
+                },
+                "refresh": 1,
+                "sort": 1,
+                "type": "query"
+              }
+            ]
+          },
+          "panels": [
+            {
+              "id": 1,
+              "title": "Log Volume by Pod",
+              "type": "timeseries",
+              "datasource": {
+                "type": "victoriametrics-logs-datasource",
+                "uid": "victorialogs"
+              },
+              "gridPos": {
+                "h": 8,
+                "w": 24,
+                "x": 0,
+                "y": 0
+              },
+              "targets": [
+                {
+                  "refId": "A",
+                  "editorMode": "code",
+                  "queryType": "statsRange",
+                  "expr": "namespace:in($namespace) | stats by (pod) count() as logs"
+                }
+              ],
+              "options": {
+                "legend": {
+                  "displayMode": "table",
+                  "placement": "right",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "mode": "multi",
+                  "sort": "desc"
+                }
+              }
+            },
+            {
+              "id": 2,
+              "title": "Raw Logs",
+              "type": "logs",
+              "datasource": {
+                "type": "victoriametrics-logs-datasource",
+                "uid": "victorialogs"
+              },
+              "gridPos": {
+                "h": 14,
+                "w": 24,
+                "x": 0,
+                "y": 8
+              },
+              "targets": [
+                {
+                  "refId": "A",
+                  "editorMode": "code",
+                  "queryType": "instant",
+                  "expr": "namespace:in($namespace) | limit 500"
+                }
+              ],
+              "options": {
+                "showLabels": true,
+                "showCommonLabels": false,
+                "showTime": true,
+                "sortOrder": "Descending",
+                "wrapLogMessage": true,
+                "enableLogDetails": true,
+                "prettifyLogMessage": false,
+                "dedupStrategy": "none"
+              }
+            }
+          ]
+        }
   kubernetes:
     argo:
       url: https://raw.githubusercontent.com/argoproj/argo-cd/refs/heads/master/examples/dashboard.json
-      datasource: Prometheus
-    api-server:
-      # renovate: depName="Kubernetes / System / API Server"
-      gnetId: 15761
-      revision: 19
-      datasource: Prometheus
-    coredns:
-      # renovate: depName="Kubernetes / System / CoreDNS"
-      gnetId: 15762
-      revision: 20
-      datasource: Prometheus
-    global:
-      # renovate: depName="Kubernetes / Views / Global"
-      gnetId: 15757
-      revision: 43
-      datasource: Prometheus
-    namespaces:
-      # renovate: depName="Kubernetes / Views / Namespaces"
-      gnetId: 15758
-      revision: 42
-      datasource: Prometheus
-    nodes:
-      # renovate: depName="Kubernetes / Views / Nodes"
-      gnetId: 15759
-      revision: 37
-      datasource: Prometheus
-    pods:
-      # renovate: depName="Kubernetes / Views / Pods"
-      gnetId: 15760
-      revision: 36
       datasource: Prometheus
     volumes:
       # renovate: depName="K8s / Storage / Volumes / Cluster"

@@ -18,7 +18,7 @@ controllers:
       postgres-init:
         image:
           repository: ghcr.io/home-operations/postgres-init
-          tag: 18.1
+          tag: 18.6@sha256:b6d3af974df781c673d37e49bdddfa14a6f5be28b18d2cb7713f0449bea4057b
         envFrom: &envFrom
           - secretRef:
               name: romm-secret
@@ -48,7 +48,8 @@ controllers:
       app:
         image:
           repository: ghcr.io/rommapp/romm
-          tag: 4.5.0@sha256:79d2ab75ce6bdb8f0c7b1d8bb33a456566de5470d5d0e451fbc0919cc84679e8
+          # changelog: GH releases rommapp/romm. Alembic migrations run on startup; MariaDB-only warnings in the notes do NOT apply (we use ROMM_DB_DRIVER=postgresql)
+          tag: 5.2.0@sha256:3512f2ca455782f90247271bed23116e6bc675bc74e379be2c41696e607ab11e
 
         env:
           ENABLE_RESCAN_ON_FILESYSTEM_CHANGE: "true"

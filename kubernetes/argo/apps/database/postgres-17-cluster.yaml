@@ -12,7 +12,6 @@ spec:
     - repoURL: https://github.com/mebezac/home-cluster.git
       path: kubernetes/apps/database/postgres-17-cluster
       targetRevision: main
-      ref: postgres-17-cluster-repo
   destination:
     name: in-cluster
     namespace: database

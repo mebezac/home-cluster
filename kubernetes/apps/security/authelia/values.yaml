@@ -8,7 +8,7 @@ controllers:
       init-db:
         image:
           repository: ghcr.io/home-operations/postgres-init
-          tag: 18.1
+          tag: 18.6@sha256:b6d3af974df781c673d37e49bdddfa14a6f5be28b18d2cb7713f0449bea4057b
           pullPolicy: IfNotPresent
         envFrom:
           - secretRef:
@@ -29,7 +29,7 @@ controllers:
       app:
         image:
           repository: ghcr.io/authelia/authelia
-          tag: 4.39.15
+          tag: 4.39.20
         env:
           AUTHELIA_SERVER_ADDRESS: tcp://:80
           AUTHELIA_SERVER_DISABLE_HEALTHCHECK: "true"
@@ -105,27 +105,6 @@ ingress:
             service:
               identifier: app
               port: http
-  biglink-party:
-    className: external
-    annotations:
-      external-dns.alpha.kubernetes.io/target: external.biglink.party
-      nginx.ingress.kubernetes.io/configuration-snippet: |
-        add_header Cache-Control "no-store";
-        add_header Pragma "no-cache";
-        add_header X-Frame-Options "SAMEORIGIN";
-        add_header X-XSS-Protection "1; mode=block";
-    hosts:
-      - host: "login.biglink.party"
-        paths:
-          - path: /
-            service:
-              identifier: app
-              port: http
-    tls:
-      - hosts:
-          - login.biglink.party
-        secretName: biglink-party-production-tls
-
 persistence:
   private-key:
     type: secret

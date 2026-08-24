@@ -1,0 +1,33 @@
+# Read-only cross-namespace RBAC for Bothy's discovery reconciler (ADR-0002,
+# ADR-0012). Least-privilege: get/list/watch on exactly the two resources the
+# Reconciler + health prober read, cluster-wide.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: bothy
+  namespace: bothy
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: bothy-discovery
+rules:
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["ingresses"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["services"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: bothy-discovery
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: bothy-discovery
+subjects:
+  - kind: ServiceAccount
+    name: bothy
+    namespace: bothy

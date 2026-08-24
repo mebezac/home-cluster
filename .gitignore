@@ -12,6 +12,7 @@ talosconfig
 # Private
 .private
 .bin
+tmp/
 # Ansible
 .venv*
 # Taskfile
@@ -24,3 +25,15 @@ Brewfile.lock.json
 wiki
 # Bootstrap
 /config.yaml
+
+!AGENTS.md
+# CLAUDE.md is ignored by the global gitignore; keep it tracked in THIS repo
+!CLAUDE.md
+!.agents/
+!.agents/**
+!.planning/
+!.planning/**
+!.claude/
+!.claude/**
+# ...but keep personal machine-local settings out
+.claude/settings.local.json

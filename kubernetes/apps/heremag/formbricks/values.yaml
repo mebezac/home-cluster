@@ -15,7 +15,7 @@ controllers:
       init-db:
         image:
           repository: ghcr.io/home-operations/postgres-init
-          tag: 18.1
+          tag: 18.6@sha256:b6d3af974df781c673d37e49bdddfa14a6f5be28b18d2cb7713f0449bea4057b
           pullPolicy: IfNotPresent
         envFrom: &envFrom
           - secretRef:
@@ -24,13 +24,17 @@ controllers:
       app:
         image:
           repository: ghcr.io/formbricks/formbricks
-          tag: 4.5.0@sha256:87cb54bfbc5143e6ce9f9a3c1229dfc869fb930a032200036082f73d1d9f5365
+          tag: 4.9.7@sha256:eb19ee1fe2bbd559fdd463b3bd72a2c2f664402510b446779192f7ffd10ada5d
+        env:
+          EMAIL_VERIFICATION_DISABLED: "1"
+          DANGEROUSLY_ALLOW_WEBHOOK_INTERNAL_URLS: "1"
         envFrom: *envFrom
         resources:
           requests:
-            cpu: 15m
+            cpu: 500m
             memory: 256M
           limits:
+            cpu: 2000m
             memory: 2048M
 service:
   app:
@@ -40,7 +44,9 @@ service:
         port: 3000
 ingress:
   app:
-    className: internal
+    className: external
+    annotations:
+      external-dns.alpha.kubernetes.io/target: external.heremag.free
     hosts:
       - host: forms.heremag.free
         paths:
@@ -48,3 +54,7 @@ ingress:
             service:
               identifier: app
               port: http
+    tls:
+      - hosts:
+          - forms.heremag.free
+        secretName: heremag-free-production-tls

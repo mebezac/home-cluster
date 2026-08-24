@@ -20,7 +20,7 @@ controllers:
       main:
         image:
           repository: ghcr.io/immich-app/immich-server
-          tag: v2.4.1@sha256:e6a6298e67ae077808fdb7d8d5565955f60b0708191576143fc02d30ab1389d1
+          tag: v3.1.0@sha256:b434cb9287eea1471c9974845914d4dd328c9c2d652e446ed4930f99944f0ceb
         env:
           TZ: America/New_York
           IMMICH_CONFIG_FILE: /config/immich-config.json
@@ -74,7 +74,7 @@ controllers:
       main:
         image:
           repository: ghcr.io/immich-app/immich-server
-          tag: v2.4.1@sha256:e6a6298e67ae077808fdb7d8d5565955f60b0708191576143fc02d30ab1389d1
+          tag: v3.1.0@sha256:b434cb9287eea1471c9974845914d4dd328c9c2d652e446ed4930f99944f0ceb
         envFrom:
           - secretRef:
               name: *secret
@@ -113,7 +113,8 @@ controllers:
       main:
         image:
           repository: ghcr.io/immich-app/immich-machine-learning
-          tag: v2.4.1@sha256:b3deefd1826f113824e9d7bc30d905e7f823535887d03f869330946b6db3b44a
+          # changelog: GH releases immich-app/immich (PR body only has compare links). v3 note: migration guide at immich.app/blog/v3-migration; watch ffmpeg config enum changes (libopus→opus)
+          tag: v3.1.0@sha256:5a0839dc5303cd7215bcd2180a26aed3af41675aefb3e75e5157e9f10ad16e6e
         env:
           TZ: America/New_York
           IMMICH_CONFIG_FILE: /config/immich-config.json
@@ -174,6 +175,10 @@ ingress:
     className: external
     annotations:
       external-dns.alpha.kubernetes.io/target: external.laboratory.casa
+      # keep the long-lived mobile delta-sync stream (/api/sync/stream) alive;
+      # nginx's default 60s read timeout was cutting idle streams
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+      nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
     hosts:
       - host: photos.laboratory.casa
         paths:

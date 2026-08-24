@@ -15,7 +15,8 @@ spec:
       ref: repo
     - repoURL: https://helm.cilium.io
       chart: cilium
-      targetRevision: 1.18.4
+      # changelog: cilium GH releases per tag; BREAKING items live only in docs.cilium.io/en/vX.Y/operations/upgrade/#upgrade-notes, never the PR body
+      targetRevision: 1.20.1
       helm:
         releaseName: cilium
         valueFiles:

@@ -13,14 +13,13 @@ controllers:
       main:
         image:
           repository: ghcr.io/advplyr/audiobookshelf
-          tag: 2.32.1
+          tag: 2.36.0@sha256:180acad33d69c99ed208676465d8edcb268fa46967735579a7810859885b1a8e
         resources:
           requests:
             cpu: 100m
             memory: 150Mi
           limits:
-            cpu: 200m
-            memory: 300Mi
+            memory: 2Gi
         env:
           AUDIOBOOKSHELF_UID: 3000
           AUDIOBOOKSHELF_GID: 3000
@@ -31,20 +30,27 @@ service:
     controller: main
     ports:
       http:
-        port: &port 80
+        port: 80
 
-route:
+ingress:
   main:
-    hostnames:
-      - audiobookshelf.laboratory.casa
-    parentRefs:
-      - name: external
-        namespace: kube-system
-        sectionName: https
-    rules:
-      - backendRefs:
-          - identifier: main
-            port: *port
+    enabled: true
+    className: external
+    annotations:
+      external-dns.alpha.kubernetes.io/target: external.laboratory.casa
+      bothy.dev/enabled: "true"
+      bothy.dev/name: "Audiobookshelf"
+      bothy.dev/description: "Audiobooks & podcasts"
+      bothy.dev/section: "Media"
+      bothy.dev/icon: "sh:audiobookshelf"
+    hosts:
+      - host: audiobookshelf.laboratory.casa
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            service:
+              identifier: main
+              port: http
 
 persistence:
   config:

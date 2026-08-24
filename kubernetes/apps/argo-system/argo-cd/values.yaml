@@ -1,5 +1,7 @@
 crds:
   install: true
+  annotations:
+    argocd.argoproj.io/sync-options: Replace=false,ServerSideApply=true
 global:
   domain: argo.laboratory.casa
   logging:
@@ -34,6 +36,8 @@ configs:
     resource.compareoptions: |
       ignoreAggregatedRoles: true
       ignoreResourceStatusField: crd
+    # Local service account for the argocd-mcp server (token auth only, no UI login)
+    accounts.mcp: apiKey
   rbac:
     create: true
     policy.default: role:none
@@ -43,8 +47,9 @@ configs:
       g, apps_readonly, role:readonly
       g, apps_admin, role:admin
       g, zac, role:readonly
+      g, mcp, role:admin
 controller:
-  replicas: 2
+  replicas: 1
   metrics:
     enabled: true
     applicationLabels:
@@ -52,16 +57,18 @@ controller:
     serviceMonitor:
       enabled: true
       additionalLabels:
-        release: kube-prometheus-stack
+        release: victoria-metrics-stack
 redis:
+  exporter:
+    enabled: true
   metrics:
     enabled: true
     serviceMonitor:
       enabled: true
       additionalLabels:
-        release: kube-prometheus-stack
+        release: victoria-metrics-stack
 server:
-  replicas: 2
+  replicas: 1
   allowAnyNamespace: true
   ingress:
     enabled: true
@@ -74,17 +81,17 @@ server:
     serviceMonitor:
       enabled: true
       additionalLabels:
-        release: kube-prometheus-stack
+        release: victoria-metrics-stack
 notifications:
-  replicas: 2
+  replicas: 1
   metrics:
     enabled: true
     serviceMonitor:
       enabled: true
       additionalLabels:
-        release: kube-prometheus-stack
+        release: victoria-metrics-stack
 repoServer:
-  replicas: 2
+  replicas: 1
   serviceAccount:
     create: true
     name: argocd-repo-server
@@ -147,7 +154,7 @@ repoServer:
       name: helm-secrets-private-keys
   initContainers:
     - name: gitops-tools
-      image: ajaykumar4/gitops-tools:2025.11.0
+      image: ajaykumar4/gitops-tools:2026.8.0
       imagePullPolicy: Always
       command:
         - sh
@@ -157,6 +164,15 @@ repoServer:
           mkdir -p /custom-tools/
           cp -rf /gitops-tools/* /custom-tools
           chmod +x /custom-tools/*
+          # Helm 4 compatibility: helm-secrets' plugin.yaml declares BOTH
+          # `platformCommand` (CLI) and `downloaders`. Helm 4 classifies such a
+          # plugin as getter/v1 and never registers the `helm secrets`
+          # subcommand, so the /usr/local/sbin/helm wrapper fails with
+          # `unknown command "secrets"` and every sops-using app stops
+          # rendering. We use the wrapper, not the secrets:// downloader, so
+          # strip the downloaders block to make Helm load it as cli/v1.
+          # Remove once helm-secrets ships a Helm-4-native plugin manifest.
+          sed -i '/^downloaders:/,$d' /custom-tools/helm-plugins/helm-secrets/plugin.yaml
       volumeMounts:
         - mountPath: /custom-tools
           name: custom-tools

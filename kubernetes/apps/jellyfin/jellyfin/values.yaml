@@ -13,7 +13,7 @@ controllers:
       main:
         image:
           repository: ghcr.io/jellyfin/jellyfin
-          tag: 10.11.5
+          tag: 10.11.11
         resources:
           requests:
             cpu: 100m
@@ -34,6 +34,11 @@ ingress:
   main:
     annotations:
       external-dns.alpha.kubernetes.io/target: external.laboratory.casa
+      bothy.dev/enabled: "true"
+      bothy.dev/name: "Jellyfin"
+      bothy.dev/description: "Movies, shows & music"
+      bothy.dev/section: "Media"
+      bothy.dev/icon: "sh:jellyfin"
     enabled: true
     className: external
     hosts:

@@ -2,33 +2,31 @@
 # https://github.com/tailscale/tailscale/tree/main/cmd/k8s-operator/deploy/chart
 # OAuth credentials for Tailscale
 oauth:
-  clientId: ENC[AES256_GCM,data:QArt57cilDVfp4eTedqn23s=,iv:TvUmJaO1awlAgmvhI7cwlXiYRGEjV9s/xrqnEzxWVvQ=,tag:7Tv7oEO0jZcy9qEgw4plUw==,type:str]
-  clientSecret: ENC[AES256_GCM,data:iekkUsmdpt1Iqf3Qot2aLbKYTmkt4mfQt1ezc7PcLOM6r56sVbHxyUi7OEgEsxESTLwJFk/teaOhmB5zgkCumg==,iv:kZTNYEqGqw8oPVfsPkHIy4rfeVmQzLBQqiE9RJuqcdE=,tag:TD7bQFo4KKii+73KvCEUfQ==,type:str]
-resources:
-  requests:
-    cpu: 100m
-    memory: 128Mi
-  limits:
-    cpu: 500m
-    memory: 256Mi
+  clientId: ENC[AES256_GCM,data:tG1XmlmCF96fNbnef2aMcUM=,iv:LBKOTtcI7RbH/gx4dAbQQcNMSI0XZL1VyZqDtrnXGqk=,tag:j7fODOL7Bj+XelGAcOlzPw==,type:str]
+  clientSecret: ENC[AES256_GCM,data:6U8WE0H42rPoU6D6TF4lcYFFHL0rIUT9KP1IZ+dDFTw3Ic/1J5ead8ciAQlqr29CDAjgc9qcgSHGhArn5c/adg==,iv:cq6hCCEZwe4fYyjuLsG84NhBHl8qUYV7K6BeljN0PFA=,tag:APjurJp9V2jwJs1zJHYh1g==,type:str]
+# NOTE: must be nested under operatorConfig — the chart has no top-level `resources` key,
+# and Helm silently ignores unknown top-level values (operator ran BestEffort until 2026-08-24).
+operatorConfig:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
 sops:
-  kms: []
-  gcp_kms: []
-  azure_kv: []
-  hc_vault: []
   age:
-    - recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
-      enc: |
+    - enc: |
         -----BEGIN AGE ENCRYPTED FILE-----
-        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBSckhjVnZZd0l6ZUNFa0tV
-        aGJSd0g5SUVzcjh5akpXdU55MkNZQXlKbFFNCjVRYkRJUEMveDE0S09sYVUzTVlk
-        dlAvQTZtUDVTWnBGUlJOWjhmMnYwQk0KLS0tIEQzMjNFRnljTXpGTkxFNkI2Mmxs
-        UGxMcU85TW5lSkt1aVo3Y1FnSHpYcGsKZGOH/tuJUubrtQ87YJjO0+l349PzAS4Z
-        MjoeppQk39nh1woQy1hNOjVu80dNSfcBvVefVp88xQ3ciTGwMfz2kw==
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBYcHg3cXBNVFVvV1ZtMEds
+        bU9KY1htUDE2MXJQcG0xUUwzUmI3ejlRN1RzCk9DcXZhVE1pNnFxU1c4Q0t1dis0
+        c0dkUE5ZMUNsMWNEYTJWTGhoRkwwRXcKLS0tICtzRVA3UEVxSHlvVjVFYThQWFpk
+        L0xpR25WMU9pcG1yTEJ3TXlpQ2pJYUEK35/li+6CmNEkLaZRXTqv12QLbQD/G/3s
+        DMZiZ1ZzsP7OVwGBeRWx9Fe6zJcDmpA7zj0G5BRUw1lnlhcvAvctbQ==
         -----END AGE ENCRYPTED FILE-----
-  lastmodified: "2025-02-28T03:14:33Z"
-  mac: ENC[AES256_GCM,data:eyk/u2inIyogX5Mvh4QN3NdiaLwXwP9BwXL5ScZ/N47WxxJTfXiHKQZrq//HdTIRjVrwJJOgYXV3SkaicZ7AJEymmp13r/oy57pcbqH2Ue6IRfvH1pLQpGnPyLRWZ66Fn3WH9EVzePHFl/8CfQCbssNw45sUXmUASYGElB9ANxc=,iv:AsVbX2NOVXthFMsWnyCZoD8+6sVnIRQAdPmmiCFR2ng=,tag:bjVS4OJW10OAm4AR12JjnQ==,type:str]
-  pgp: []
+      recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
   encrypted_regex: (client.*)
+  lastmodified: "2026-08-24T17:08:29Z"
+  mac: ENC[AES256_GCM,data:HR+2EeBWa2Q+27Qy6525ZKDKOlQswiup1O2YPVAQ62E7zScILCWdmTsyY4xaU2IKq24b5UlR5+ImzHPZJOHZIg38zvJ+eG29L6MLCqI2XnqNKlVNj0Jw/1b+gAIy5Yu/0WMLWmjKr3dsLdsl4Y7NxbiSVSiQ45vU0nPG8afsdFI=,iv:wRvU0Dq4agu3ZFvqGndgI8oSDVqZqH+kASjbOj2lozY=,tag:S1PtWWnlIugrH5ay6j4jTQ==,type:str]
   mac_only_encrypted: true
-  version: 3.9.4
+  version: 3.13.3

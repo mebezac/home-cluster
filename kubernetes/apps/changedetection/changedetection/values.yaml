@@ -1,0 +1,56 @@
+controllers:
+  changedetection:
+    annotations:
+      reloader.stakater.com/auto: "true"
+    containers:
+      app:
+        image:
+          repository: ghcr.io/dgtlmoon/changedetection.io
+          tag: 0.55.8@sha256:5438423d5e906eff4e8f7886823482ad23f472bf7b8530ccaca89fb48c337882
+        env:
+          TZ: America/New_York
+          PORT: &port 5000
+          USE_X_SETTINGS: 1
+          PLAYWRIGHT_DRIVER_URL: ws://localhost:3000/?stealth=1&--disable-web-security=true&--user-data-dir=~/browserless-cache-123
+      browser:
+        image:
+          repository: ghcr.io/browserless/chrome
+          # changelog: GH releases browserless/browserless (NOT browserless/chrome - image name != repo name); Renovate embeds full notes
+          tag: v2.56.0@sha256:2f89b7c5106a3d9e31b6c597a7a37b964bb8cf95bfca4047e5e7f57354a9c0f6
+          pullPolicy: IfNotPresent
+        env:
+          SCREEN_WIDTH: "1920"
+          SCREEN_HEIGHT: "1024"
+          SCREEN_DEPTH: "16"
+          ENABLE_DEBUGGER: "false"
+          PREBOOT_CHROME: "true"
+          CONNECTION_TIMEOUT: "300000"
+          MAX_CONCURRENT_SESSIONS: "10"
+          CHROME_REFRESH_TIME: "600000"
+          DEFAULT_BLOCK_ADS: "true"
+          DEFAULT_STEALTH: "true"
+service:
+  app:
+    controller: changedetection
+    ports:
+      http:
+        port: *port
+ingress:
+  app:
+    enabled: true
+    className: internal
+    hosts:
+      - host: changedetection.laboratory.casa
+        paths:
+          - path: /
+            service:
+              identifier: app
+              port: http
+persistence:
+  config:
+    type: persistentVolumeClaim
+    storageClass: longhorn
+    accessMode: ReadWriteOnce
+    size: 512Mi
+    globalMounts:
+      - path: /datastore

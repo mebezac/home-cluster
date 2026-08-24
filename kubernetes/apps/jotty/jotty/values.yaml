@@ -15,7 +15,7 @@ controllers:
       app:
         image:
           repository: ghcr.io/fccview/jotty
-          tag: 1.15.1@sha256:f4e5bd300c9f308c66befab53a856e5ce0f7ce27f3c889a34590d59880f15175
+          tag: 1.26.1@sha256:20fce87deab74c3b1758126f288fb230a7982a024103b9d65bb8479cede2c405
         env:
           NODE_ENV: production
           PUID: 3000

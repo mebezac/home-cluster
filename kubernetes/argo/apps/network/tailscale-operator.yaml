@@ -15,7 +15,8 @@ spec:
       ref: repo
     - repoURL: https://pkgs.tailscale.com/helmcharts
       chart: tailscale-operator
-      targetRevision: 1.92.4
+      # changelog: tailscale.com/changelog (GH release bodies and PR body are stubs); real diff = helm template tailscale-operator --version X then diff. Proxy image tag = chart appVersion unless proxyConfig.image is set
+      targetRevision: 1.102.3
       helm:
         releaseName: tailscale-operator
         valueFiles:
@@ -28,5 +29,13 @@ spec:
       allowEmpty: true
       prune: true
       selfHeal: true
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: privileged
+        pod-security.kubernetes.io/enforce-version: latest
+        pod-security.kubernetes.io/audit: privileged
+        pod-security.kubernetes.io/audit-version: latest
+        pod-security.kubernetes.io/warn: privileged
+        pod-security.kubernetes.io/warn-version: latest
     syncOptions:
       - CreateNamespace=true

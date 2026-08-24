@@ -15,7 +15,8 @@ spec:
       ref: plugin-barman-cloud-repo
     - repoURL: https://cloudnative-pg.github.io/charts
       chart: plugin-barman-cloud
-      targetRevision: 0.3.1
+      # changelog: cloudnative-pg/charts GH releases (barman-cloud plugin; not in PR body)
+      targetRevision: 0.7.1
       helm:
         releaseName: cloudnative-pg
         valueFiles:

@@ -4,10 +4,11 @@ kind: Cluster
 metadata:
   name: postgres-17-cluster
 spec:
+  primaryUpdateMethod: switchover
   instances: 3
   # NOTE: Yes I know everything is called *-17-*, even though the version is now higher
   # That was an oversight when first making the cluster, but I don't care enough to fix it now
-  imageName: ghcr.io/cloudnative-pg/postgresql:18.1-standard-trixie@sha256:bbefe420af6ba639167cf6b5ea385a5a5816db47cfaa8c6b1fecc2c503b8df81
+  imageName: ghcr.io/cloudnative-pg/postgresql:18.3-standard-trixie@sha256:3a83f577034d7c9b5f41c60e753d8380b94360a2a7088f5d6a60ba8e09d30285
   logLevel: warning
   plugins:
     - name: barman-cloud.cloudnative-pg.io
@@ -17,6 +18,14 @@ spec:
         # NOTE: serverName version needs to be incremented
         # when recovering from an existing cnpg cluster
         serverName: postgres-17-cluster-v2
+
+  postgresql:
+    extensions:
+      - name: postgis
+        image:
+          reference: ghcr.io/cloudnative-pg/postgis-extension:3.6.2-18-trixie@sha256:b6a84752393f6cf970c9e0aceb5b16c494c662ce5e2dfe825ae641ed7caeffde
+        ld_library_path:
+          - system
 
   storage:
     size: 16Gi

@@ -18,12 +18,13 @@ releases:
   - name: prometheus-operator-crds
     namespace: observability
     chart: oci://ghcr.io/prometheus-community/charts/prometheus-operator-crds
-    version: 25.0.1
+    # changelog: prometheus-operator GH releases (chart-major = operator CRD bump; PR body thin)
+    version: 31.0.1
 
   - name: cilium
     namespace: kube-system
     chart: cilium/cilium
-    version: 1.18.4
+    version: 1.20.1
     values:
       - ../apps/kube-system/cilium/values.sops.yaml
     needs:
@@ -32,7 +33,7 @@ releases:
   - name: coredns
     namespace: kube-system
     chart: coredns/coredns
-    version: 1.45.0
+    version: 1.47.0
     values:
       - ../apps/kube-system/coredns/values.yaml
     needs:
@@ -41,7 +42,8 @@ releases:
   - name: argo-cd
     namespace: argo-system
     chart: oci://ghcr.io/argoproj/argo-helm/argo-cd
-    version: 9.2.3
+    # changelog: helm pull oci://ghcr.io/argoproj/argo-helm/argo-cd --version X --untar, then diff the trees (PR body "Full Changelog" link points at the wrong tag lineage)
+    version: 10.4.0
     secrets:
       - ../apps/argo-system/argo-cd/values.sops.yaml
     needs:

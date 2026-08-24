@@ -1,6 +1,9 @@
 image:
   repository: oliver006/redis_exporter
-  tag: v1.80.1
+  # NOTE: no @sha256 digest here, deliberately. This chart templates image.tag into the
+  # app.kubernetes.io/version LABEL, and a digest-bearing tag is an invalid label value
+  # (contains '@', >63 bytes) -- it hard-fails the sync. The chart exposes no image.digest key.
+  tag: v1.89.0
 env:
   - name: TZ
     value: America/New_York
@@ -8,11 +11,11 @@ redisAddress: redis://valkey.valkey.svc.cluster.local:6379
 serviceMonitor:
   enabled: true
   labels:
-    release: kube-prometheus-stack
+    release: victoria-metrics-stack
 prometheusRule:
   enabled: true
   labels:
-    release: kube-prometheus-stack
+    release: victoria-metrics-stack
   rules:
     - alert: RedisExporterAbsent
       annotations:

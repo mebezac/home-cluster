@@ -3,26 +3,10 @@ controllers:
   main:
     replicas: 1
     containers:
-      main:
-        image:
-          repository: ghcr.io/immich-app/postgres
-          tag: 16-vectorchord0.3.0-pgvectors0.3.0
-        env:
-          POSTGRES_INITDB_ARGS: --data-checksums
-        envFrom:
-          - secretRef:
-              name: immich-db-secret
-        resources:
-          requests:
-            cpu: 1000m
-            memory: 250Mi
-          limits:
-            memory: 2Gi
-
       db18:
         image:
           repository: ghcr.io/immich-app/postgres
-          tag: 18-vectorchord0.5.3-pgvector0.8.1@sha256:81d9261d3ff893d5e9b1c481c95c464e6992c38ec3ba1c1dc931020f139ab096
+          tag: 18-vectorchord0.5.3-pgvector0.8.1@sha256:828081a755d3911a2d94f0a2be9f98570c07d52cf080fd310a9d6e4b83b73aa5
         env:
           POSTGRES_INITDB_ARGS: --data-checksums
           PGDATA: /var/lib/postgresql18/data
@@ -40,9 +24,10 @@ controllers:
       metrics:
         image:
           repository: quay.io/prometheuscommunity/postgres-exporter
-          tag: v0.18.1@sha256:fb96c4413985d4b23ab02b19022b3d70a86c8e0a62f41ab15ebb6f4673781a5d
+          # changelog: GH releases prometheus-community/postgres_exporter (not in PR body)
+          tag: v0.20.1@sha256:ac5ec343104fae0e2d84a27bb8d69b38430a11910c5382cad85d478d2bab713e
         env:
-          DATA_SOURCE_URI: localhost:5432/postgres?sslmode=disable
+          DATA_SOURCE_URI: localhost:5433/postgres?sslmode=disable
         envFrom:
           - secretRef:
               name: immich-db-secret
@@ -58,10 +43,6 @@ controllers:
           readiness:
             enabled: true
 service:
-  main:
-    ports:
-      postgres:
-        port: 5432
   db18:
     ports:
       postgres:
@@ -79,25 +60,13 @@ serviceMonitor:
       - port: metrics
 
 persistence:
-  data:
-    enabled: true
-    type: persistentVolumeClaim
-    storageClass: longhorn
-    accessMode: ReadWriteOnce
-    suffix: data
-    size: 5Gi
-    advancedMounts:
-      main:
-        main:
-          - path: /var/lib/postgresql/data
-            subPath: postgresql-data
   data-18:
     enabled: true
     type: persistentVolumeClaim
     storageClass: longhorn
     accessMode: ReadWriteOnce
     suffix: data-18
-    size: 5Gi
+    size: 10Gi
     advancedMounts:
       main:
         db18:

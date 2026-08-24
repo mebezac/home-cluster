@@ -3,8 +3,8 @@ controllers:
     containers:
       app:
         image:
-          repository: crocodilestick/calibre-web-automated
-          tag: V3.1.4@sha256:577e846f104fd21453ef306eefb4a95dd95b3b9ddd2463a150944494284da0fd
+          repository: ghcr.io/crocodilestick/calibre-web-automated
+          tag: v4.0.6@sha256:c31a738b6d5ec6982c050063dd3f063b6943eb1051fc81144789f840d9093a8d
         env:
           CACHE_DIR: /cache
           PUID: 1000
@@ -16,12 +16,12 @@ controllers:
             custom: true
             spec:
               httpGet:
-                path: /login
+                path: /
                 port: &port 8083
-              initialDelaySeconds: 0
+              initialDelaySeconds: 120
               periodSeconds: 10
               timeoutSeconds: 1
-              failureThreshold: 3
+              failureThreshold: 10
           readiness: *probes
         securityContext:
           allowPrivilegeEscalation: false
@@ -36,7 +36,7 @@ service:
   app:
     ports:
       http:
-        port: 8083
+        port: *port
 
 ingress:
   app:

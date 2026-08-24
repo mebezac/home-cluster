@@ -1,5 +1,6 @@
 ---
 defaultPodOptions:
+  automountServiceAccountToken: true
   terminationGracePeriodSeconds: 30
   securityContext:
     runAsUser: 568
@@ -17,7 +18,7 @@ controllers:
       main:
         image:
           repository: dxflrs/garage
-          tag: v2.1.0@sha256:4c9b34c113e61358466e83fd6e7d66e6d18657ede14b776eb78a93ee8da7cf6a
+          tag: v2.3.0@sha256:866bd13ed2038ba7e7190e840482bc27234c4afaf77be8cfa439ae088c1e4690
         env:
           TZ: America/Detroit
         resources:
@@ -29,7 +30,7 @@ controllers:
       tailscale:
         image:
           repository: ghcr.io/tailscale/tailscale
-          tag: v1.92.4@sha256:d6734d69fd7d31b1861589e347463954aa6097f9a61aa4f8f763ba94bfe0e5b9
+          tag: v1.102.3@sha256:8c42c4574ab066384fcb72f69e086a2ff1dd3652eb6f56856cee34bcf0d2f680
         securityContext:
           privileged: true
           runAsUser: 0
@@ -51,11 +52,12 @@ controllers:
               name: tailscale-secret
         resources:
           limits:
-            squat.ai/tun: "1"
+            devic.es/tun: "1"
       rclone:
         image:
+          # changelog: rclone.org/changelog (PR body is just a link). This mount IS garage's data_dir via FUSE - read the VFS/Mount/SFTP sections, and expect a garage restart (CNPG barman + forgejo + ocis) on every bump
           repository: rclone/rclone
-          tag: 1.72.0@sha256:0eb18825ac9732c21c11d654007170572bbd495352bb6dbb624f18e4f462c496
+          tag: 1.75.0@sha256:b06aed988cf5967de7c25be5925240983981c757f4ed1ac9d2fa659d51d60548
         command:
           - /bin/sh
           - -c
@@ -95,7 +97,7 @@ controllers:
             cpu: 50m
             memory: 64Mi
           limits:
-            memory: 256Mi
+            memory: 1Gi
 service:
   s3:
     controller: main
@@ -112,6 +114,11 @@ service:
     ports:
       metrics:
         port: 3903
+  s3-web:
+    controller: main
+    ports:
+      s3-web:
+        port: 3902
 
 ingress:
   main:
@@ -125,6 +132,43 @@ ingress:
             service:
               identifier: s3
               port: s3
+      - host: s3.laboratory.casa
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            service:
+              identifier: s3
+              port: s3
+  s3api:
+    enabled: true
+    className: external
+    annotations:
+      external-dns.alpha.kubernetes.io/target: external.laboratory.casa
+    hosts:
+      - host: s3.laboratory.casa
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            service:
+              identifier: s3
+              port: s3
+  files:
+    enabled: true
+    className: external
+    annotations:
+      external-dns.alpha.kubernetes.io/target: external.heremag.free
+    hosts:
+      - host: files.heremag.free
+        paths:
+          - path: /
+            pathType: Prefix
+            service:
+              identifier: s3-web
+              port: s3-web
+    tls:
+      - hosts:
+          - files.heremag.free
+        secretName: heremag-free-production-tls
 
 persistence:
   config:

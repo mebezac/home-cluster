@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: bothy-ghcr-pull
+  namespace: bothy
+type: kubernetes.io/dockerconfigjson
+stringData:
+  .dockerconfigjson: ENC[AES256_GCM,data:yUeuwEThbYYUGAlblufJc2oN+znsoCmkZFXMidhEt3jFrWNzDrUtHGmSBkU0O8isrhjHgigrBSKQhhHnpNJ3X8I1Hb3KxfZUvFz0WNn3mbGcK+Vqb3WYCpGW7SpjRz82ZNtz4SssNnQW3L2zE23ResW4OE5zH2iBr8Y9cKswlIm2+VkSOVlwFkp6J7F/Wk1kLSM8SWypaSiWB8L8LFMxcvzcajQ0nGXFJUgsSg==,iv:ivO7e/IUsbMgmj4mYrS5bsLssSOZqNDa1JSw2MRkH9A=,tag:o0iqoqn1rPsY3E6hoLlzoQ==,type:str]
+sops:
+  age:
+    - enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBEZEdoZ3BtZ3VXY0tQMU55
+        VnA2elFvYWJMSFk1QWIweUZ3aWVoUVRoWXlzCmtkODI0TWNUQm1Vdi9UcmxjNTdE
+        M1N3alJZSXJxNkV0dGFmY0tmcTZBK0kKLS0tIGc0Qy9rcldxZmRqTXFwS2ordUdz
+        U0VFYVhreTdhSmJITnhncFpXaklKalkKHf+2Np/43NsOjeiUxnLo2A+LE/oJyPRl
+        58731igIIeoBpSpRV/7b/ercLhns9y2v+Fgc+Lmx7oVIhIzHQ24YEg==
+        -----END AGE ENCRYPTED FILE-----
+      recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
+  encrypted_regex: ^(data|stringData)$
+  lastmodified: "2026-07-11T04:36:25Z"
+  mac: ENC[AES256_GCM,data:E+rX1XJ6MrKD1caDoLF5WFGPnoY7xlDxIsz/W8A3wZ/X57FH4QNoyzHEgo8MnGHTRDJrRDuSZqmaPuENNhIRE37NjqCGQqazzzJ28SZpOQ4TBdJGWNN8JnW1di91TlQ9ZhJihjx+o1Um5DIY8KEoUSpInPe5VKY3c8oF0TLKVUA=,iv:oZhaMIiS7KnSNcQOr16+4Tk4GelkQQHlCc1KlzC7npc=,tag:aqdvIHvV/wBifKiLcKGD3g==,type:str]
+  mac_only_encrypted: true
+  version: 3.13.2

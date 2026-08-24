@@ -17,7 +17,8 @@ spec:
       ref: repo
     - repoURL: ghcr.io/argoproj/argo-helm
       chart: argo-cd
-      targetRevision: 9.2.3
+      # changelog: helm pull oci://ghcr.io/argoproj/argo-helm/argo-cd --version X --untar, then diff the trees (PR body "Full Changelog" link points at the wrong tag lineage)
+      targetRevision: 10.4.0
       helm:
         releaseName: argo-cd
         valueFiles:
@@ -33,3 +34,5 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      - ServerSideApply=true
+      - ClientSideApplyMigration=false

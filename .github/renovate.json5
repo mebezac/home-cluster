@@ -201,6 +201,16 @@
       matchPackageNames: ["ghcr.io/umami-software/umami"],
       versioning: "regex:^postgresql-v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$",
     },
+    {
+      description: [
+        "Override versioning for birdnet-go date-based release tags",
+        "Upstream publishes dated release builds (20260716); the floating nightly/latest tags point at the same digest.",
+        "Mapping Y/M/D to major/minor/patch keeps day-to-day bumps as fix(container) rather than a major every release.",
+      ],
+      matchDatasources: ["docker"],
+      matchPackageNames: ["ghcr.io/tphakala/birdnet-go"],
+      versioning: "regex:^(?<major>\\d{4})(?<minor>\\d{2})(?<patch>\\d{2})$",
+    },
   ],
   customManagers: [
     {

@@ -15,7 +15,7 @@ controllers:
       init-db:
         image:
           repository: ghcr.io/home-operations/postgres-init
-          tag: 18.1
+          tag: 18.6@sha256:b6d3af974df781c673d37e49bdddfa14a6f5be28b18d2cb7713f0449bea4057b
           pullPolicy: IfNotPresent
         envFrom: &envFrom
           - secretRef:
@@ -24,7 +24,10 @@ controllers:
       app:
         image:
           repository: ghcr.io/hargata/lubelogger
-          tag: v1.5.6
+          # changelog: GH releases hargata/lubelog - notes understate the diff; check the tag-to-tag
+          # compare for controller/routing changes (v1.7.1 moved /images,/documents,/translations,/temp
+          # from static middleware to an [Authorize] FilesController route).
+          tag: v1.7.1@sha256:678a5c4af387e525f06ef954b454efe536745f517f2078dc646ccce9332adb9d
         env:
           TZ: America/New_York
           LC_ALL: en_US.UTF-8

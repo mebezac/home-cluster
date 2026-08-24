@@ -100,6 +100,13 @@ services:
         port: 30188
         annotations:
           external-dns.alpha.kubernetes.io/target: external.laboratory.casa
+          nginx.ingress.kubernetes.io/enable-cors: "true"
+          nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+          nginx.ingress.kubernetes.io/cors-allow-methods: "GET, PUT, POST, DELETE, HEAD, OPTIONS"
+          nginx.ingress.kubernetes.io/cors-allow-headers: "DNT,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization,X-Amz-Date,X-Amz-Content-SHA256,X-Amz-Security-Token"
+          nginx.ingress.kubernetes.io/cors-expose-headers: "Content-Length,Content-Range,ETag,X-Amz-Request-Id"
+          nginx.ingress.kubernetes.io/cors-max-age: "3600"
+
     service_ports:
       - name: http
         port: 30188

@@ -8,7 +8,7 @@ controllers:
       init-db:
         image:
           repository: ghcr.io/home-operations/postgres-init
-          tag: 18.1
+          tag: 18.6@sha256:b6d3af974df781c673d37e49bdddfa14a6f5be28b18d2cb7713f0449bea4057b
           pullPolicy: IfNotPresent
         envFrom: &envFrom
           - secretRef:
@@ -17,7 +17,8 @@ controllers:
       app:
         image:
           repository: lycheeorg/lychee
-          tag: v7.0.1@sha256:c109a65be24498fca32c147970c4cd655ca60fb70141a2f795b0bab39fd76bf0
+          # changelog: GH releases LycheeOrg/Lychee (full notes in PR body). Laravel migrations run on container start; watch SECURITY_HEADER_* CSP env when notes touch CSP/WASM
+          tag: v7.7.5@sha256:c097f20b9fad9590e578e7c4770418ce9d1446d18c6e43feff9a3a214c52bfa9
         resources:
           requests:
             cpu: 100m

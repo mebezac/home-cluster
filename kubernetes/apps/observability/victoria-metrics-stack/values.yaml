@@ -1,0 +1,197 @@
+crds:
+  enabled: true
+
+fullnameOverride: victoria-metrics-stack
+
+defaultDashboards:
+  dashboards:
+    node-exporter-full:
+      enabled: false
+
+# Enable Prometheus CRD conversion for smooth migration
+victoria-metrics-operator:
+  operator:
+    disable_prometheus_converter: false
+    enable_converter_ownership: true
+  admissionWebhooks:
+    policy: Ignore
+
+# VMSingle - replaces Prometheus + Thanos
+vmsingle:
+  enabled: true
+  spec:
+    retentionPeriod: "30d"
+    extraArgs:
+      maxLabelsPerTimeseries: "120"
+      search.maxConcurrentRequests: "4"
+      search.maxMemoryPerQuery: "134217728"
+      search.cacheTimestampOffset: 15m
+    storage:
+      storageClassName: longhorn-single-replica
+      resources:
+        requests:
+          storage: 20Gi
+    resources:
+      requests:
+        cpu: 100m
+        memory: 1Gi
+      limits:
+        memory: 4Gi
+  ingress:
+    enabled: true
+    ingressClassName: internal
+    hosts:
+      - vmsingle.laboratory.casa
+
+# VMAgent - replaces Prometheus scraping + Alloy
+vmagent:
+  enabled: true
+  spec:
+    selectAllByDefault: true
+    serviceScrapeSelector:
+      matchExpressions:
+        - key: release
+          operator: NotIn
+          values:
+            - kube-prometheus-stack
+    podScrapeSelector:
+      matchExpressions:
+        - key: release
+          operator: NotIn
+          values:
+            - kube-prometheus-stack
+    scrapeInterval: 30s
+    externalLabels:
+      cluster: home-cluster
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        memory: 512Mi
+
+# VMAlert - replaces Prometheus alerting rules engine
+vmalert:
+  enabled: true
+  spec:
+    selectAllByDefault: false
+    ruleSelector:
+      matchExpressions:
+        - key: app.kubernetes.io/instance
+          operator: NotIn
+          values:
+            - kube-prometheus-stack
+    evaluationInterval: 30s
+    datasource:
+      url: http://vmsingle-victoria-metrics-stack.observability.svc:8428
+    remoteWrite:
+      url: http://vmsingle-victoria-metrics-stack.observability.svc:8428/api/v1/write
+    remoteRead:
+      url: http://vmsingle-victoria-metrics-stack.observability.svc:8428/api/v1/read
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        memory: 256Mi
+
+# VMAlertmanager - replaces AlertManager
+alertmanager:
+  enabled: true
+  spec:
+    replicaCount: 1
+    configSecret: vmalertmanager-config
+    secrets:
+      - victoria-metrics-alertmanager-secret
+    storage:
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          storageClassName: longhorn-single-replica
+          resources:
+            requests:
+              storage: 1Gi
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        memory: 256Mi
+  ingress:
+    enabled: true
+    ingressClassName: internal
+    hosts:
+      - alertmanager.laboratory.casa
+
+# Exporters - enabled after kube-prometheus-stack removal
+prometheus-node-exporter:
+  enabled: true
+
+kube-state-metrics:
+  enabled: true
+
+# Disable built-in Grafana, use existing
+grafana:
+  enabled: false
+
+# Default scrape configs for K8s components
+defaultRules:
+  enabled: true
+  # NOTE: 0.85 restructured defaultRules — `rules:` is now per-individual-rule
+  # overrides (maps), and group enable/disable moved to `groups.<name>.enabled`
+  # with renamed keys. etcd rules are on by default (groups.etcd). We disable the
+  # scheduler + controller-manager rule groups since Talos doesn't expose those
+  # components (kubeProxy has no rule group in 0.85).
+  rules:
+    # count:up0 counts DOWN scrape targets, so it legitimately produces zero
+    # samples whenever every target is healthy — which trips RecordingRulesNoData
+    # (a severity=info false-positive that also drags in InfoInhibitor). Disable it.
+    RecordingRulesNoData:
+      enabled: false
+  groups:
+    vmcluster:
+      enabled: false
+    kube-scheduler.rules:
+      enabled: false
+    kubernetes-system-scheduler:
+      enabled: false
+    kubernetes-system-controller-manager:
+      enabled: false
+
+kubeControllerManager:
+  enabled: false
+
+kubeScheduler:
+  enabled: false
+
+kubeEtcd:
+  enabled: true
+  endpoints:
+    - 10.25.30.35
+    - 10.25.30.45
+    - 10.25.30.46
+  service:
+    port: 2381
+    targetPort: 2381
+  vmScrape:
+    spec:
+      endpoints:
+        - port: http-metrics
+          scheme: http
+
+kubelet:
+  enabled: true
+  vmScrape:
+    spec:
+      interval: 30s
+      metricRelabelConfigs:
+        - action: labeldrop
+          regex: (feature_node_kubernetes_io_.+|extensions_talos_dev_.+|gpu_.+|intel_feature_node_kubernetes_io_.+|beta_kubernetes_io_.+)
+      relabelConfigs:
+        - sourceLabels: [__meta_kubernetes_node_name]
+          targetLabel: node
+        - sourceLabels: [__metrics_path__]
+          targetLabel: metrics_path
+        - targetLabel: job
+          replacement: kubelet

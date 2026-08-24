@@ -15,7 +15,8 @@ spec:
       ref: repo
     - repoURL: ghcr.io/spegel-org/helm-charts
       chart: spegel
-      targetRevision: 0.6.0
+      # changelog: GH releases spegel-org/spegel (not in PR body)
+      targetRevision: 0.7.4
       helm:
         releaseName: spegel
         valueFiles:
