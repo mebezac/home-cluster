@@ -11,8 +11,11 @@ data:
     ingress:
       - hostname: "laboratory.casa"
         service: &nginx-svc https://ingress-nginx-external-controller.network.svc.cluster.local:443
-      - hostname: "audiobookshelf.laboratory.casa"
-        service: &gateway-svc https://cilium-gateway-external.kube-system.svc.cluster.local
+      # Test host for the Cilium external Gateway (see the `external` route in
+      # kubernetes/apps/network/echo-server/values.yaml). Everything else still
+      # goes to ingress-nginx until this migration is proven out.
+      - hostname: "echo-gateway-external.laboratory.casa"
+        service: https://cilium-gateway-external.kube-system.svc.cluster.local
       - hostname: "*.laboratory.casa"
         service: *nginx-svc
       - service: http_status:404

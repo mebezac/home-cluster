@@ -17,12 +17,18 @@ dashboards:
 endpointRoutes:
   enabled: true
 envoy:
+  # Gateway API needs the L7 proxy. Run Envoy as its own DaemonSet rather than
+  # embedded in the agent (the 1.20 default for fresh installs) so that Envoy
+  # config churn from HTTPRoutes doesn't restart cilium-agent.
+  #
+  # NOTE: the old `envoy.prometheus.port: 9965` workaround is gone. It existed
+  # because cilium-agent used to serve the embedded Envoy's metrics on 9964 and
+  # collided with the standalone DaemonSet's hostPort. On 1.20 the agent drops
+  # `--proxy-prometheus-port` entirely when the DaemonSet is enabled, so 9964 is
+  # free and the chart default is correct.
+  enabled: true
   rollOutPods: true
   prometheus:
-    # TODO: figure out why the cilium-agent in the cilium pods
-    # is listenting on port 9964 for envoy, and therefore conflicting with the
-    # default port this tries to do
-    port: "9965"
     serviceMonitor:
       enabled: true
 gatewayAPI:

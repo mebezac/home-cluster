@@ -1,3 +1,7 @@
+---
+# Separate from network/laboratory-casa-production-tls because a Gateway's
+# certificateRefs have to resolve in the Gateway's own namespace. Cilium then
+# mirrors this Secret into `cilium-secrets` for Envoy.
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:

@@ -1,9 +1,15 @@
+---
 # yaml-language-server: $schema=https://github.com/datreeio/CRDs-catalog/raw/refs/heads/main/gateway.networking.k8s.io/gateway_v1.json
+# Gateway API equivalent of the `external` ingressClass (ingress-nginx-external
+# on 10.25.30.119), reached from the internet through the cloudflared tunnel.
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
   name: external
   annotations:
+    # external-dns' gateway-httproute source reads the target override off the
+    # *Gateway*, not off each HTTPRoute, so attached routes get CNAMEd at the
+    # tunnel rather than at the private LB IP.
     external-dns.alpha.kubernetes.io/target: external.laboratory.casa
 spec:
   gatewayClassName: cilium
@@ -12,7 +18,6 @@ spec:
       value: 10.25.30.122
   infrastructure:
     annotations:
-      external-dns.alpha.kubernetes.io/target: external.laboratory.casa
       tailscale.com/expose: "true"
   listeners:
     - name: http
