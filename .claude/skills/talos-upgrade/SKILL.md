@@ -246,8 +246,14 @@ import sys,json;d=json.load(sys.stdin)
 for n,st in d['status']['diskStatus'].items():
     print(n,{c['type']:c['status'] for c in st.get('conditions',[])})"   # Ready:True Schedulable:True
 ```
-Talos already uncordoned the k8s node. If you manually `kubectl cordon`'d and it
-didn't auto-uncordon, `kubectl uncordon $H`.
+Talos already uncordoned the k8s node **on the normal path** (where Talos itself
+drove the reboot). It does NOT on a **talmac you powercycled yourself** after the
+BootFFFF abort — that node returns `Ready,SchedulingDisabled`. Always check and
+uncordon explicitly:
+```bash
+kubectl get node $H --no-headers   # if it says Ready,SchedulingDisabled:
+kubectl uncordon $H
+```
 
 ### 7. Confirm cluster fully healthy — GATE before the next node
 
@@ -287,14 +293,59 @@ do you move on.
   # force a full firmware reboot (NOT a kexec, which would re-boot the old kernel):
   talosctl -e <endpoint> -n $N reboot --mode=powercycle
   ```
-  systemd-boot then boots the newest on-disk UKI = the new version. **After issuing
-  powercycle, wait for the node to go UNREACHABLE before trusting any version read**
-  — the hardware reset takes ~15-20s to actually trigger, and a version check in
-  that window returns the *old* version from the still-running node (false
-  "BOOTED_OLD"). Poll: wait-for-unreachable → wait-for-reachable → then read version
-  (expect the new one at ~60-120s). Longhorn disks come back `Ready:False` for
-  ~10-50s post-boot while instance-manager restarts, then flip to Ready — that's
-  normal, not the diskUUID gotcha.
+  systemd-boot then boots the newest on-disk UKI = the new version. The hardware
+  reset takes ~15-20s to actually trigger, so a version read in that window returns
+  the *old* version from the still-running node. **Do NOT handle that with a
+  "wait for UNREACHABLE" phase** — see the trap below. Just sleep past the reset
+  window, then poll for the target version with a single bounded, always-verbose
+  loop:
+  ```bash
+  TARGET=v1.13.9; EP=10.25.30.45; N=10.25.30.43
+  probe() { timeout 10 talosctl -e $EP -n $N version 2>/dev/null \
+              | grep -A2 Server | grep Tag | awk '{print $2}'; }
+  talosctl -e $EP -n $N reboot --mode=powercycle
+  sleep 45                      # ride out the 15-20s reset trigger + early boot
+  for i in $(seq 1 40); do      # hard bound: ~7 min
+    V=$(probe); echo "t=$((45+i*10))s version=${V:-unreachable}"   # print EVERY pass
+    [ "$V" = "$TARGET" ] && echo BOOTED_NEW && break
+    sleep 10
+  done
+  ```
+  Longhorn disks come back `Ready:False` for ~10-50s post-boot while
+  instance-manager restarts, then flip to Ready — normal, not the diskUUID gotcha.
+- **Never gate on "wait for the node to go UNREACHABLE".** A talmac powercycle can
+  come and go faster than the probe interval, so the unreachable window is often
+  missed entirely and that loop never breaks. Worse, the usual shape
+  (`for …; do sleep 5; [ -z "$(probe)" ] && break; done`) prints **nothing** while
+  it spins, so it burns its full bound — 40 iterations × (5s sleep + up to 10s
+  probe) ≈ 10 minutes of dead silence — and looks exactly like a hung node when the
+  machine is already up and healthy. Poll for the *target version* instead, sleep
+  past the reset window rather than trying to detect it, and **echo on every
+  iteration** so a stall is always distinguishable from a slow boot.
+- **`talosctl version` has NO `--timeout` flag.** Passing one makes the command
+  exit 1 with `unknown flag: --timeout` and print NOTHING to stdout — so a poll
+  loop that greps its output reads every iteration as "unreachable" and spins
+  until the loop bound while the node is actually up and healthy. This is the
+  classic fake-stuck-talmac bug; it also produces a bogus instant "UNREACHABLE at
+  t=5s" in the wait-for-unreachable phase. Wrap the whole call in the shell's
+  `timeout` instead (safe for a read-only `version`; still NEVER for
+  `upgrade`/`reset`):
+  ```bash
+  # reachability probe — note `timeout N talosctl`, NOT `talosctl --timeout`
+  probe() { timeout 10 talosctl -e <endpoint> -n $N version 2>/dev/null \
+              | grep -A2 Server | grep Tag | awk '{print $2}'; }
+  until [ -z "$(probe)" ]; do sleep 5; done          # gone down
+  until [ "$(probe)" = "<version>" ]; do sleep 10; done   # back up on the new version
+  ```
+  If a poll loop ever reports "unreachable" for more than ~3 min, STOP and run the
+  bare command by hand — confirm it's a real outage and not a bad flag swallowing
+  the output.
+- **A powercycled talmac does NOT get auto-uncordoned.** Talos only uncordons the
+  k8s node when *it* drove the reboot (the normal GRUB-node upgrade path). Because
+  the BootFFFF abort means you rebooted the node yourself, it comes back
+  `Ready,SchedulingDisabled` and stays there — you must `kubectl uncordon $H`
+  explicitly in step 6 alongside the Longhorn patch, or the node sits idle and
+  nothing reschedules onto it.
 - **USB ISO reinstall is only for a talmac already bricked** on a non-booting
   stock 1.13.x. Flash `metal-amd64.iso` from the matching
   `mebezac/talos-mac-installer` GitHub release, boot holding ⌥ → EFI Boot,
@@ -349,7 +400,25 @@ attribution trailer).
 - **Detached volume `robustness=unknown` is normal** (no attached workload) — not
   a fault. Only `degraded`/`faulted` are real problems.
 - **CNPG primary drain = automatic switchover.** Safe and expected.
-- **Talmac BootFFFF error is non-fatal.** Verify version, don't reinstall.
+- **Talmac BootFFFF error is non-fatal.** Verify version, don't reinstall. It does
+  mean you must `reboot --mode=powercycle` yourself AND `kubectl uncordon` after —
+  neither happens automatically on that path.
+- **Never pass `--timeout` to `talosctl version`** — the flag doesn't exist, the
+  command prints nothing, and version poll loops hang forever on a healthy node.
+  Use `timeout 10 talosctl … version` instead. Any "unreachable" streak longer
+  than ~3 min should be re-checked by hand before believing it.
+- **Every wait loop must echo on every iteration and carry a hard bound.** A
+  silent loop is indistinguishable from a hung node; a loop whose only exit is the
+  success condition will spin its whole budget when that condition never trips.
+  Never gate a reboot wait on "node goes unreachable" — poll for the target
+  version and sleep past the reset window instead.
+- **`talosctl` needs an absolute `$TALOSCONFIG`.** Exporting
+  `TALOSCONFIG="$PWD/clusterconfig/talosconfig"` breaks the moment anything `cd`s
+  elsewhere (editing this skill file will do it), and the failure reads as
+  `talos config file is empty`. Use the full
+  `/Users/zac/projects/lab_casa/home-cluster/kubernetes/bootstrap/talos/clusterconfig/talosconfig`
+  path in every command. That failure is a safe no-op — the upgrade never reached
+  the node — so just re-run it.
 - **etcd: leader last, verify 3 healthy converged members between CP nodes**, use
   a different `-e` endpoint when the node being rebooted is itself an endpoint.
 - **Node DNS resolver (10.25.30.38) is flaky — watch the upgrade's image pull and
