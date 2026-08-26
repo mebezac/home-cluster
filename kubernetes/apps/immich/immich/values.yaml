@@ -22,7 +22,11 @@ controllers:
           repository: ghcr.io/immich-app/immich-server
           tag: v3.1.0@sha256:b434cb9287eea1471c9974845914d4dd328c9c2d652e446ed4930f99944f0ceb
         env:
-          TZ: America/New_York
+          # MUST stay UTC: exiftool-vendored infers the tz of cameras that omit
+          # OffsetTimeOriginal (e.g. Panasonic LX10) from Panasonic:TimeStamp, but
+          # parses that UTC tag as process-local time — a non-UTC TZ here shifts
+          # every such photo by the server offset. Phone photos are unaffected.
+          TZ: Etc/UTC
           IMMICH_CONFIG_FILE: /config/immich-config.json
           IMMICH_SERVER_URL: http://immich-server.immich.svc.cluster.local:2283
           IMMICH_MACHINE_LEARNING_URL: http://immich-machine-learning.immich.svc.cluster.local:3003
@@ -79,7 +83,7 @@ controllers:
           - secretRef:
               name: *secret
         env:
-          TZ: America/New_York
+          TZ: Etc/UTC
           IMMICH_CONFIG_FILE: /config/immich-config.json
           IMMICH_SERVER_URL: http://immich-server.immich.svc.cluster.local:2283
           IMMICH_MACHINE_LEARNING_URL: http://immich-machine-learning.immich.svc.cluster.local:3003
@@ -116,7 +120,7 @@ controllers:
           # changelog: GH releases immich-app/immich (PR body only has compare links). v3 note: migration guide at immich.app/blog/v3-migration; watch ffmpeg config enum changes (libopus→opus)
           tag: v3.1.0@sha256:5a0839dc5303cd7215bcd2180a26aed3af41675aefb3e75e5157e9f10ad16e6e
         env:
-          TZ: America/New_York
+          TZ: Etc/UTC
           IMMICH_CONFIG_FILE: /config/immich-config.json
           IMMICH_SERVER_URL: http://immich-server.immich.svc.cluster.local:2283
           IMMICH_MACHINE_LEARNING_URL: http://immich-machine-learning.immich.svc.cluster.local:3003
