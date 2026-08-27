@@ -10,13 +10,28 @@ cgroup:
   automount:
     enabled: false
   hostRoot: /sys/fs/cgroup
+dashboards:
+  enabled: true
 # NOTE: devices might need to be set if you have more than one active NIC on your hosts
 # devices: eno+ eth+
 endpointRoutes:
   enabled: true
 envoy:
-  enabled: false
-dashboards:
+  # Gateway API needs the L7 proxy. Run Envoy as its own DaemonSet rather than
+  # embedded in the agent (the 1.20 default for fresh installs) so that Envoy
+  # config churn from HTTPRoutes doesn't restart cilium-agent.
+  #
+  # NOTE: the old `envoy.prometheus.port: 9965` workaround is gone. It existed
+  # because cilium-agent used to serve the embedded Envoy's metrics on 9964 and
+  # collided with the standalone DaemonSet's hostPort. On 1.20 the agent drops
+  # `--proxy-prometheus-port` entirely when the DaemonSet is enabled, so 9964 is
+  # free and the chart default is correct.
+  enabled: true
+  rollOutPods: true
+  prometheus:
+    serviceMonitor:
+      enabled: true
+gatewayAPI:
   enabled: true
 hubble:
   enabled: true

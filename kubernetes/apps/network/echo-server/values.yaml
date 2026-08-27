@@ -8,7 +8,7 @@ controllers:
           tag: 41
         env:
           DISABLE_REQUEST_LOGS: true
-          HTTP_PORT: 8080
+          HTTP_PORT: &port 8080
           LOG_WITHOUT_NEWLINE: true
           LOG_IGNORE_PATH: /healthz
           PROMETHEUS_ENABLED: true
@@ -19,7 +19,7 @@ controllers:
             spec:
               httpGet:
                 path: /healthz
-                port: 8080
+                port: *port
               initialDelaySeconds: 0
               periodSeconds: 10
               timeoutSeconds: 1
@@ -58,6 +58,100 @@ serviceMonitor:
         path: /metrics
         interval: 1m
         scrapeTimeout: 10s
+# echo-server is the test surface for the Cilium Gateway API migration. The
+# nginx `ingress` below stays as the control; these three HTTPRoutes cover the
+# three things we need to prove before moving real apps over.
+route:
+  # 1. Internal gateway, no auth. Proves the Gateway comes up, LB IPAM hands it
+  #    10.25.30.121, the wildcard cert is served, and k8s-gateway answers
+  #    internal DNS for an HTTPRoute (not just an Ingress).
+  internal:
+    hostnames:
+      - echo-gateway.laboratory.casa
+    parentRefs:
+      - name: internal
+        namespace: kube-system
+        sectionName: https
+    rules:
+      - backendRefs:
+          - identifier: app
+            port: *port
+
+  # 2. Internal gateway + Authelia. Proves GEP-1494 `ExternalAuth`, which is the
+  #    whole reason this PR waited on cilium/cilium#45739 (landed in v1.20.0):
+  #    it replaces the `nginx.ingress.kubernetes.io/auth-*` annotations below.
+  #
+  #    Cilium turns this into an Envoy `ext_authz` HTTP filter, which prepends
+  #    `http.path` to the client's path and calls Authelia. Authelia's ExtAuthz
+  #    endpoint rebuilds the original URL from Host + X-Forwarded-Proto + the
+  #    path remainder, then either returns 200 with the Remote-* headers, or a
+  #    302 to the portal that Envoy passes straight back to the browser.
+  #
+  #    Expected results:
+  #      curl -sI https://echo-gateway-auth.laboratory.casa/ -H 'Accept: text/html'
+  #        -> 302, Location: https://login.laboratory.casa/?rd=...&rm=GET
+  #      after logging in, the echoed request JSON shows remote-user/-groups/
+  #        -email/-name, and https://echo-gateway.laboratory.casa/ (route 1)
+  #        still answers 200 with no auth at all.
+  internal-auth:
+    hostnames:
+      - echo-gateway-auth.laboratory.casa
+    parentRefs:
+      - name: internal
+        namespace: kube-system
+        sectionName: https
+    rules:
+      - backendRefs:
+          - identifier: app
+            port: *port
+        filters:
+          - type: ExternalAuth
+            externalAuth:
+              protocol: HTTP
+              # Cross-namespace: authorised by the ReferenceGrant in
+              # kubernetes/apps/security/authelia/referencegrant.yaml.
+              backendRef:
+                name: authelia
+                namespace: security
+                port: 80
+              http:
+                # Envoy sets the auth request path to `path + originalPath`, so
+                # the trailing slash is required: `/` becomes
+                # `/api/authz/ext-authz//` which Authelia reads as `/`. Without
+                # it Authelia gets a relative remainder and answers 400.
+                path: /api/authz/ext-authz/
+                # Envoy only forwards Host, Method, Path, Content-Length and
+                # Authorization on its own. Everything else has to be listed --
+                # in particular `cookie`, or Authelia never sees the session and
+                # every request bounces to the portal.
+                allowedHeaders:
+                  - accept
+                  - cookie
+                  - proxy-authorization
+                  - x-forwarded-for
+                  - x-forwarded-proto
+                # Same set the nginx `auth-response-headers` annotation forwards.
+                allowedResponseHeaders:
+                  - Remote-User
+                  - Remote-Name
+                  - Remote-Groups
+                  - Remote-Email
+
+  # 3. External gateway. Proves external-dns publishes a record from an
+  #    HTTPRoute (targeted at the tunnel, not the private LB IP) and that
+  #    cloudflared can reach the Cilium gateway service.
+  external:
+    hostnames:
+      - echo-gateway-external.laboratory.casa
+    parentRefs:
+      - name: external
+        namespace: kube-system
+        sectionName: https
+    rules:
+      - backendRefs:
+          - identifier: app
+            port: *port
+
 ingress:
   app:
     className: external

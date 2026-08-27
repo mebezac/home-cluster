@@ -30,27 +30,22 @@ service:
     controller: main
     ports:
       http:
-        port: 80
+        port: &port 80
 
-ingress:
+# First real app on the external Gateway. The external-dns target comes off the
+# Gateway itself, so this route needs no annotations of its own.
+route:
   main:
-    enabled: true
-    className: external
-    annotations:
-      external-dns.alpha.kubernetes.io/target: external.laboratory.casa
-      bothy.dev/enabled: "true"
-      bothy.dev/name: "Audiobookshelf"
-      bothy.dev/description: "Audiobooks & podcasts"
-      bothy.dev/section: "Media"
-      bothy.dev/icon: "sh:audiobookshelf"
-    hosts:
-      - host: audiobookshelf.laboratory.casa
-        paths:
-          - path: /
-            pathType: ImplementationSpecific
-            service:
-              identifier: main
-              port: http
+    hostnames:
+      - audiobookshelf.laboratory.casa
+    parentRefs:
+      - name: external
+        namespace: kube-system
+        sectionName: https
+    rules:
+      - backendRefs:
+          - identifier: main
+            port: *port
 
 persistence:
   config:

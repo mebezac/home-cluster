@@ -1,0 +1,19 @@
+---
+# Lets HTTPRoutes in the `network` namespace point an `ExternalAuth` filter
+# (GEP-1494) at the Authelia Service in `security`. Cilium's Gateway API
+# ingestion runs the same ReferenceGrant check on `externalAuth.backendRef` that
+# it runs on a normal cross-namespace backendRef, and silently drops the filter
+# -- i.e. serves the route unauthenticated -- when no grant allows it.
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  name: authelia-ext-authz
+spec:
+  from:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      namespace: network
+  to:
+    - group: ""
+      kind: Service
+      name: authelia
