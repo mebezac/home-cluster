@@ -46,6 +46,25 @@ consequences that shape everything below:
 
 Renovate is the PR author. Filter with `--author "app/renovate"`.
 
+## Required tooling
+
+Everything this skill needs is pinned in `.mise.toml`, so prefix a call with
+`mise exec --` (or work inside `mise activate`) rather than assuming a bare
+binary is on `PATH`. The ones this skill leans on:
+
+| Tool | `.mise.toml` entry | Used for |
+|-|-|-|
+| `gh` | (system) | every PR read and every merge |
+| `crane` | `aqua:google/go-containerregistry` | **digest bumps** — see step 2 |
+| `helm` | `aqua:helm/helm` | chart bumps — `helm pull --untar` then diff the trees |
+| `jq` / `yq` | `aqua:jqlang/jq`, `aqua:mikefarah/yq` | reading manifests and our values |
+| `kubectl` | `aqua:kubernetes/kubectl` | read-only cluster checks |
+
+**Do not install anything.** If a tool is missing, say so and report what you
+could determine without it — never `curl | sh`, never a global package install.
+If a tool is genuinely needed and absent, the fix is to pin it in `.mise.toml`
+so Renovate tracks it, which is a normal repo change for the user to approve.
+
 ## Workflow
 
 Work the phases in order. Phases 1–4 are research and produce a briefing; phase
@@ -142,6 +161,42 @@ available, in this order:
 For a **grouped** dependency, get the changelog spanning the *whole* range up to
 the major, so the user sees everything they'd be adopting if they jump straight
 to it.
+
+**Digest bumps have no changelog at all — diff the image instead.** A
+`chore(container)` PR with short shas (`( abc123 → def456 )`) keeps the same
+version tag and only moves the `@sha256:` digest. There are no release notes to
+find, and hunting for them wastes the run. The real question is narrow: *did
+anything but the build timestamp change?* Answer it with `crane`:
+
+```bash
+mise exec -- .claude/skills/dependency-pr-triage/scripts/image-digest-diff.sh \
+  <image-without-tag> <old-sha256:...> <new-sha256:...>
+```
+
+Take both digests straight off the PR diff (`gh pr diff <n>`). The script prints
+four things, and you read them together:
+
+- **runtime config** — env, entrypoint, cmd, user, ports, volumes, labels.
+  `IDENTICAL` is the expected result. **Any diff here means it is not a plain
+  rebuild** — the image genuinely changed behaviour, so investigate before
+  recommending a merge.
+- **build timestamps** — a newer `created` with everything else identical is the
+  signature of a rebuild.
+- **layer sizes** — this is the useful part. A multi-megabyte jump on a package
+  layer is a base-image `apk`/`apt` refresh, which is usually a security update
+  and is the *reason* to take the bump. A few bytes on the application layer is
+  the same source recompiled. A byte-identical base layer proves the base image
+  did not move.
+- **interpretation** — a plain-language summary of the above.
+
+Report a clean result in one line ("rebuild only, no user-facing changes"), name
+the layer that moved, and do not pad it out. If the image publishes a source
+revision as a label or build arg (ocis exposes `REVISION`), an identical value
+across both digests is the strongest possible evidence that the code is the same.
+
+The script resolves a multi-arch index to `linux/amd64` by itself. If it cannot
+read the layer sizes it says so and still prints the rest — report what you got
+rather than guessing.
 
 **Leave a breadcrumb when the PR body wasn't enough.** Any time you had to go
 past step 1 — i.e. the changelog came from upstream releases (source 2) or the

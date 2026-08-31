@@ -15,7 +15,7 @@ controllers:
         command: ["valkey-server", "/config/valkey.conf"]
         image:
           repository: valkey/valkey
-          # changelog: digest-only bumps of the same tag are Alpine apk + binary rebuilds - diff the two image configs (crane config) rather than hunting for release notes; there are none
+          # changelog: digest-only bumps of the same tag are Alpine apk + binary rebuilds; there are no release notes. Run .claude/skills/dependency-pr-triage/scripts/image-digest-diff.sh with the old/new digests instead of hunting for any
           tag: 9.1.1-alpine@sha256:15568b9cb7eb67f4aed4de018c23f13d344e0e6437b31fe8fb8823dc81ebb3a9
         resources:
           requests:
