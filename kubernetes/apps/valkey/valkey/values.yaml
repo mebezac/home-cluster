@@ -16,7 +16,7 @@ controllers:
         image:
           repository: valkey/valkey
           # changelog: digest-only bumps of the same tag are Alpine apk + binary rebuilds - diff the two image configs (crane config) rather than hunting for release notes; there are none
-          tag: 9.1.1-alpine@sha256:de31910896150d5e754a07d57d227cfdde4e258ddd0d1aa4607f2d2f95843715
+          tag: 9.1.1-alpine@sha256:15568b9cb7eb67f4aed4de018c23f13d344e0e6437b31fe8fb8823dc81ebb3a9
         resources:
           requests:
             cpu: 5m
