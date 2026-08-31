@@ -7,7 +7,7 @@ controllers:
       app:
         image:
           repository: ghcr.io/esphome/esphome
-          # changelog: esphome.io/changelog/<version>.html (note .html; /changelog/<ver>/ 404s). A bump changes the DASHBOARD only - devices keep old firmware until reflashed
+          # changelog: esphome.io/changelog/<major.minor>.0.html ONLY - a patch page 404s, patch notes live in the GH release. A bump changes the DASHBOARD only - devices keep old firmware until reflashed
           tag: 2026.8.2@sha256:000c5ee5ee96d57208ee48f2d255f73713236f183959803e64cd0b00c39b277b
         env:
           - name: TZ

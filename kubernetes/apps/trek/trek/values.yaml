@@ -12,7 +12,7 @@ controllers:
       app:
         image:
           repository: mauriceboe/trek
-          # changelog: GH releases github.com/mauriceboe/trek/releases (Docker Hub image; not in PR body)
+          # changelog: GH releases github.com/liketrek/TREK/releases (repo redirects from mauriceboe/trek; Docker Hub image, never in PR body). Each release has an "Upgrading" section. SQLite on our PVC - migrations run automatically at boot and are one-way, so snapshot trek-data on any minor/major
           tag: 3.4.1@sha256:ce7fab639b89a6f62d484d1175a7d489a536a8c77291f56c03fec20608d4a3eb
         env:
           TZ: America/New_York

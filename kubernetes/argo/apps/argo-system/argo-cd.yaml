@@ -17,7 +17,7 @@ spec:
       ref: repo
     - repoURL: ghcr.io/argoproj/argo-helm
       chart: argo-cd
-      # changelog: helm pull oci://ghcr.io/argoproj/argo-helm/argo-cd --version X --untar, then diff the trees (PR body "Full Changelog" link points at the wrong tag lineage)
+      # changelog: helm pull oci://ghcr.io/argoproj/argo-helm/argo-cd --version X --untar, then diff the trees (Renovate ships NO release notes for this chart). Bump kubernetes/bootstrap/helmfile.yaml to match
       targetRevision: 10.4.3
       helm:
         releaseName: argo-cd
