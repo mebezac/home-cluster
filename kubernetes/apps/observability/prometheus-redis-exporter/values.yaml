@@ -3,7 +3,7 @@ image:
   # NOTE: no @sha256 digest here, deliberately. This chart templates image.tag into the
   # app.kubernetes.io/version LABEL, and a digest-bearing tag is an invalid label value
   # (contains '@', >63 bytes) -- it hard-fails the sync. The chart exposes no image.digest key.
-  tag: v1.89.0
+  tag: v1.90.0
 env:
   - name: TZ
     value: America/New_York
