@@ -15,7 +15,7 @@ spec:
     - repoURL: ghcr.io/prometheus-community/charts
       chart: prometheus-redis-exporter
       # changelog: chart bumps here are appVersion-only; the real image is pinned in kubernetes/apps/observability/prometheus-redis-exporter/values.yaml - bump both together
-      targetRevision: 6.29.0
+      targetRevision: 6.30.0
       helm:
         releaseName: prometheus-redis-exporter
         valueFiles:
