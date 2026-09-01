@@ -154,7 +154,8 @@ repoServer:
       name: helm-secrets-private-keys
   initContainers:
     - name: gitops-tools
-      image: ajaykumar4/gitops-tools:2026.8.0
+      # changelog: GH release bodies are empty stubs - diff the Dockerfile between tags (gh api "repos/ajaykumar4/gitops-tools/contents/Dockerfile?ref=<tag>"); an identical Dockerfile means a pure monthly rebuild, since every tool AND the alpine base are pinned there. Always check HELM_SECRETS_VERSION - the sed hack below assumes v4.7.6's plugin.yaml layout
+      image: ajaykumar4/gitops-tools:2026.9.0@sha256:c7679ca8d3658453be6b39e1c5fdbfb55f66d217629f5f3157e3b5606814232d
       imagePullPolicy: Always
       command:
         - sh

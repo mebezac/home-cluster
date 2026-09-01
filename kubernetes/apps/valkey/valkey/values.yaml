@@ -15,7 +15,7 @@ controllers:
         command: ["valkey-server", "/config/valkey.conf"]
         image:
           repository: valkey/valkey
-          # changelog: digest-only bumps of the same tag are Alpine apk + binary rebuilds; there are no release notes. Run .claude/skills/dependency-pr-triage/scripts/image-digest-diff.sh with the old/new digests instead of hunting for any
+          # changelog: VERSION bumps carry full notes in the PR body (valkey-io/valkey GH releases) - read the "Upgrade urgency" line first, and skip the RDMA items, this build has no RDMA listener. DIGEST-only bumps of the same tag are Alpine apk + binary rebuilds with no notes at all: run .claude/skills/dependency-pr-triage/scripts/image-digest-diff.sh instead of hunting for any. Either way the restart briefly drops authelia sessions (SSO re-login) plus grafana/romm/forgejo
           tag: 9.1.2-alpine@sha256:a174b894902bd3367e330d47cc2054367dc4917701776aaf336f41d83b65ec7a
         resources:
           requests:
