@@ -18,7 +18,7 @@ controllers:
         image:
           repository: lycheeorg/lychee
           # changelog: GH releases LycheeOrg/Lychee (full notes in PR body). Laravel migrations run on container start; watch SECURITY_HEADER_* CSP env when notes touch CSP/WASM
-          tag: v7.8.2@sha256:3772c9ecfa5de7a29045ba154c59142b7b295587568a2273bbdbcafd13598b80
+          tag: v7.8.3@sha256:bcbec35a17f7a2a0f222c4e4c9650d2b2d675274132619edde9f3465766627dd
         resources:
           requests:
             cpu: 100m
