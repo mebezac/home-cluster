@@ -57,7 +57,7 @@ controllers:
         image:
           # changelog: rclone.org/changelog (PR body is just a link). This mount IS garage's data_dir via FUSE - read the VFS/Mount/SFTP sections, and expect a garage restart (CNPG barman + forgejo + ocis) on every bump
           repository: rclone/rclone
-          tag: 1.75.0@sha256:b06aed988cf5967de7c25be5925240983981c757f4ed1ac9d2fa659d51d60548
+          tag: 1.75.1@sha256:45401ad7410db1d67ffdb58e19059ad20b0d8e0285a60e38bbec55cc1019c7a5
         command:
           - /bin/sh
           - -c
