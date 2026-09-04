@@ -55,11 +55,11 @@
     {
       description: ["Talos Group"],
       groupName: "Talos",
-      matchDatasources: ["docker"],
+      matchDatasources: ["docker", "github-releases"],
       group: {
         commitMessageTopic: "{{{groupName}}} group",
       },
-      matchPackageNames: ["/siderolabs/talosctl/", "/siderolabs/installer/"],
+      matchPackageNames: ["/siderolabs/talosctl/", "/siderolabs/installer/", "/siderolabs/talos/"],
     },
     {
       matchDatasources: ["docker"],

@@ -55,7 +55,13 @@ controllers:
             devic.es/tun: "1"
       rclone:
         image:
-          # changelog: rclone.org/changelog (PR body is just a link). This mount IS garage's data_dir via FUSE - read the VFS/Mount/SFTP sections, and expect a garage restart (CNPG barman + forgejo + ocis) on every bump
+          # changelog: rclone.org/changelog (PR body is just a link). This mount IS garage's
+          # data_dir via FUSE - read the VFS/Mount/crypt sections. Our remote is crypt-over-sftp
+          # with key-file auth, so "serve sftp|s3|ftp" CVEs are server-side and do NOT apply, and
+          # crypt (not sftp) is the section that actually bites. Expect a restart of the WHOLE
+          # garage pod (single replica, garage + tailscale + rclone in one pod) on every bump:
+          # S3 down for the window -> CNPG barman WAL backpressure + forgejo/ocis 5xx, so merge in
+          # a quiet window away from the @daily backup
           repository: rclone/rclone
           tag: 1.75.0@sha256:b06aed988cf5967de7c25be5925240983981c757f4ed1ac9d2fa659d51d60548
         command:

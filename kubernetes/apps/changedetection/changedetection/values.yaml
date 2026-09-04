@@ -6,6 +6,14 @@ controllers:
       app:
         image:
           repository: ghcr.io/dgtlmoon/changedetection.io
+          # changelog: GH releases dgtlmoon/changedetection.io - upstream SKIPS minor numbers
+          # (0.55.8 -> 0.60.1 direct; no 0.56-0.59 ever existed), so a "5-minor" bump is usually one
+          # release cycle: check the tag list, not the version delta. Datastore compat is
+          # settings.application.schema_version (33 as of 0.60.3), NOT the app version - equal
+          # numbers on both tags means run_updates() is a no-op and a downgrade stays possible. When
+          # a migration does run the app writes its own before-update-N-<ts>.tar.gz into /datastore.
+          # Driver contract to re-check on any bump: content_fetchers/__init__.py still reading
+          # PLAYWRIGHT_DRIVER_URL (our browserless sidecar).
           tag: 0.60.3@sha256:ecacd9fd0c664a786b77daadbbbf51373519b29178a32df3ddbc5c594bc067ed
         env:
           TZ: America/New_York

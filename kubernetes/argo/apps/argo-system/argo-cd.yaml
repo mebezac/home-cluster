@@ -17,7 +17,13 @@ spec:
       ref: repo
     - repoURL: ghcr.io/argoproj/argo-helm
       chart: argo-cd
-      # changelog: helm pull oci://ghcr.io/argoproj/argo-helm/argo-cd --version X --untar, then diff the trees (Renovate ships NO release notes for this chart). Bump kubernetes/bootstrap/helmfile.yaml to match
+      # changelog: Renovate ships NO release notes for this chart. Fastest read is the per-version
+      # changelog annotation: `helm show chart oci://ghcr.io/argoproj/argo-helm/argo-cd --version X
+      # | sed -n '/artifacthub.io\/changes/,/signKey/p'`, stepped across each intermediate version.
+      # Then the decisive check: `helm template` BOTH versions against our values.yaml and diff - an
+      # identical render (bar the chart label) proves a no-op, and catches a silently dropped key on
+      # the self-managed ArgoCD. Always check Chart.yaml appVersion: a chart minor is often the same
+      # ArgoCD build. Bump kubernetes/bootstrap/helmfile.yaml to match.
       targetRevision: 10.7.2
       helm:
         releaseName: argo-cd

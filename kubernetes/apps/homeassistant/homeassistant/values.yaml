@@ -7,8 +7,17 @@ controllers:
       app:
         image:
           repository: ghcr.io/home-assistant/home-assistant
-          # changelog: monthly release blog home-assistant.io/blog/YYYY/MM/DD/release-YYYYMM/ - the Breaking Changes section lives ONLY there; recorder DB is SQLite on this PVC
-          tag: 2026.9.0
+          # changelog: monthly release blog home-assistant.io/blog/YYYY/MM/DD/release-YYYYMM/ - the
+          # day is unreliable, find the post via home-assistant.io/blog/categories/release-notes/.
+          # The section is titled "Backward-incompatible changes" and lives ONLY there; machine-
+          # readable full log at home-assistant.io/changelogs/core-<YYYY.M>/. The real risk is the
+          # CROSS-APP contracts, which the blog does not cover: diff home-assistant/core tag-to-tag
+          # for components/{zwave_js,esphome,mqtt}/manifest.json (zwave_js MIN/MAX_SERVER_SCHEMA_
+          # VERSION must still cover our zwave-js-ui build) and recorder/db_schema.py SCHEMA_VERSION
+          # for a one-way recorder migration on the SQLite DB on this PVC. Also unverifiable from
+          # git: the auth_oidc HACS component lives on the PVC and patches HA auth internals - a
+          # break locks you out of the login page, so confirm you can still log in after the roll.
+          tag: 2026.9.0@sha256:372d991e58882a1d8c68c07e9aa3f3b509276e695355f73ccdb03baa70407293
         env:
           - name: TZ
             value: "America/New_York"

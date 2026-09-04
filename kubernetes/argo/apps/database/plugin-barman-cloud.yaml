@@ -15,7 +15,11 @@ spec:
       ref: plugin-barman-cloud-repo
     - repoURL: https://cloudnative-pg.github.io/charts
       chart: plugin-barman-cloud
-      # changelog: cloudnative-pg/charts GH releases (barman-cloud plugin; not in PR body)
+      # changelog: gh api repos/cloudnative-pg/charts/releases, filtered to plugin-barman-cloud-*.
+      # The PR body is worse than empty - Renovate renders the WRONG chart's notes (cluster-v*).
+      # The chart appVersion is overridden by the image tags in our values.yaml, so the chart PR and
+      # both image PRs must be merged as one set. Bumping the sidecar tag rolls all 3 Postgres
+      # instances with a primary switchover - merge just after the @daily backup, not mid-window.
       targetRevision: 0.7.1
       helm:
         releaseName: cloudnative-pg

@@ -1,7 +1,14 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/budimanjojo/talhelper/master/pkg/config/schemas/talconfig.json
 ---
 # changelog: Talos GH releases siderolabs/talos (image not in PR body)
-# renovate: datasource=docker depName=ghcr.io/siderolabs/installer
+# PREREQ: talhelper appends :${talosVersion} to EVERY node, including the three talmacs on
+# ghcr.io/mebezac/talos-mac/installer. That image is built by a TAG PUSH in
+# github.com/mebezac/talos-mac-installer - tag and build the new version there, and confirm
+# `crane ls ghcr.io/mebezac/talos-mac/installer` lists it, BEFORE bumping this line, or all
+# three talmacs fail the upgrade on ImagePull.
+# NOTE: ghcr.io/siderolabs/installer stopped publishing at v1.13.10 (1.14+ is Image Factory
+# only), so this tracks github-releases on siderolabs/talos, not the installer image.
+# renovate: datasource=github-releases depName=siderolabs/talos
 talosVersion: v1.13.9
 # renovate: datasource=docker depName=ghcr.io/siderolabs/kubelet
 # changelog: kubernetes/kubernetes CHANGELOG-1.36.md (siderolabs/kubelet images ship no release notes and the PR body is always empty)
@@ -129,7 +136,7 @@ nodes:
     # In-place `talosctl upgrade` to this image works but reports a non-fatal error
     # ("failed to create boot entry: BootFFFF ... overruns available data") — Apple's
     # EFI NVRAM is malformed; systemd-boot still boots the new UKI. talhelper appends
-    # :${talosVersion} (v1.13.5).
+    # :${talosVersion}.
     talosImageURL: ghcr.io/mebezac/talos-mac/installer
     controlPlane: false
     patches:
@@ -151,7 +158,7 @@ nodes:
       secureboot: false
     # Custom GCC-linked installer (github.com/mebezac/talos-mac-installer) — stock Talos
     # 1.13 hangs at cold boot on the T2 Mac (LLD EFI stub, siderolabs/talos#13579).
-    # talhelper appends :${talosVersion} (v1.13.5). Extensions/kernel-args are baked into
+    # talhelper appends :${talosVersion}. Extensions/kernel-args are baked into
     # this installer, so the factory schematic is no longer referenced here.
     talosImageURL: ghcr.io/mebezac/talos-mac/installer
     controlPlane: false
@@ -177,7 +184,7 @@ nodes:
     # In-place `talosctl upgrade` to this image works but reports a non-fatal error
     # ("failed to create boot entry: BootFFFF ... overruns available data") — Apple's
     # EFI NVRAM is malformed; systemd-boot still boots the new UKI. talhelper appends
-    # :${talosVersion} (v1.13.5). Migrated in place 2026-07-04.
+    # :${talosVersion}. Migrated in place 2026-07-04.
     talosImageURL: ghcr.io/mebezac/talos-mac/installer
     controlPlane: false
     patches:

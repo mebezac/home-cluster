@@ -12,7 +12,11 @@ controllers:
       app:
         image:
           repository: mauriceboe/trek
-          # changelog: GH releases github.com/liketrek/TREK/releases (repo redirects from mauriceboe/trek; Docker Hub image, never in PR body). Each release has an "Upgrading" section. SQLite on our PVC - migrations run automatically at boot and are one-way, so snapshot trek-data on any minor/major
+          # changelog: GH releases github.com/liketrek/TREK/releases (repo redirects from
+          # mauriceboe/trek; Docker Hub image, never in PR body). Operator-relevant content is under
+          # "Upgrading" OR "Read this first" + "Schema" - the heading is not consistent between
+          # releases, read both. SQLite on our PVC - migrations run automatically at boot and are
+          # one-way, so snapshot trek-data (1Gi, longhorn) on any minor/major
           tag: 4.2.0@sha256:281a44079910053089a77be73ca2148a0e131c80ca728ca1f71a28133b2eaef4
         env:
           TZ: America/New_York

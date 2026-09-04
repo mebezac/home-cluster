@@ -41,6 +41,11 @@ controllers:
       rotate:
         image:
           repository: curlimages/curl
+          # changelog: curl.se/ch/<version>.html; CVE list at curl.se/docs/vuln.json. We use curl
+          # ONLY for the plain-HTTP PUT to the gluetun control API below - no TLS, cookies, auth,
+          # LDAP or HTTP/2 - so TLS/auth CVEs and TLS feature removals (e.g. TLS-SRP dropped in
+          # 8.22.0) do not reach us; just confirm -s/-X/-H/-d behaviour is unchanged. Blast radius
+          # of a failure: the hourly VPN exit-IP rotation misses a cycle and self-heals next run.
           tag: 8.22.0@sha256:58adaa4e8dca9c988bae2aba4ab3434a0bb2da16bbe3f92dec39ec7785166777
         command: ["/bin/sh", "-c"]
         args:

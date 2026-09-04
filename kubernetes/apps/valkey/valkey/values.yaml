@@ -15,7 +15,16 @@ controllers:
         command: ["valkey-server", "/config/valkey.conf"]
         image:
           repository: valkey/valkey
-          # changelog: VERSION bumps carry full notes in the PR body (valkey-io/valkey GH releases) - read the "Upgrade urgency" line first, and skip the RDMA items, this build has no RDMA listener. DIGEST-only bumps of the same tag are Alpine apk + binary rebuilds with no notes at all: run .claude/skills/dependency-pr-triage/scripts/image-digest-diff.sh instead of hunting for any. Either way the restart briefly drops authelia sessions (SSO re-login) plus grafana/romm/forgejo
+          # changelog: VERSION bumps carry full notes in the PR body (valkey-io/valkey GH releases)
+          # - read the "Upgrade urgency" line first, and skip the RDMA items, this build has no RDMA
+          # listener. DIGEST-only bumps of the same tag have no notes at all: run
+          # .claude/skills/dependency-pr-triage/scripts/image-digest-diff.sh instead of hunting for
+          # one. Do NOT assume a digest bump is a pure rebuild - upstream sometimes changes runtime
+          # config (tini added to ENTRYPOINT, 2026-09). That particular class is INERT for us: the
+          # explicit command: above overrides the image ENTRYPOINT, so docker-entrypoint.sh never
+          # runs; only the valkey binary layer and the apk/base layer sizes matter. Either way the
+          # restart is a HARD blip (single replica, StatefulSet, OrderedReady) that drops authelia
+          # sessions (SSO re-login) plus grafana/romm/forgejo and prometheus-redis-exporter
           tag: 9.1.2-alpine@sha256:ccfa19b0d743e48927e1c8c14e39e0acb97b5cea347fef0bfe340247fea920cd
         resources:
           requests:
