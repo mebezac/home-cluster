@@ -20,7 +20,7 @@ spec:
       # The chart appVersion is overridden by the image tags in our values.yaml, so the chart PR and
       # both image PRs must be merged as one set. Bumping the sidecar tag rolls all 3 Postgres
       # instances with a primary switchover - merge just after the @daily backup, not mid-window.
-      targetRevision: 0.7.1
+      targetRevision: 0.8.0
       helm:
         releaseName: cloudnative-pg
         valueFiles:
