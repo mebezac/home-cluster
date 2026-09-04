@@ -16,7 +16,7 @@ controllers:
         image:
           repository: ghcr.io/music-assistant/server
           # changelog: GH releases music-assistant/server - PATCH notes are complete in the PR body, but a MINOR (2.x.0) truncates the body and carries breaking changes plus SQLite schema migrations on our /data PVC (DB_SCHEMA_VERSION in music_assistant/controllers/music/constants.py). Snapshot the PVC on a minor: a failed migration deletes library.db and forces a full rescan
-          tag: 2.10.1@sha256:e6edefe825b1cdc50223c16d9bc2fca909a158b36555a7763512b76ba04a1b9e
+          tag: 2.10.2@sha256:09c02b4ee491976efa6d698265f72571f064031bb1a2c9a1c32e104392209690
         env:
           TZ: America/New_York
           LOG_LEVEL: info
