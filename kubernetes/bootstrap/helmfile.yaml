@@ -44,7 +44,7 @@ releases:
     chart: oci://ghcr.io/argoproj/argo-helm/argo-cd
     # changelog: see kubernetes/argo/apps/argo-system/argo-cd.yaml - same chart, and this version
     # must be bumped in lockstep with the targetRevision there.
-    version: 10.7.2
+    version: 10.8.0
     secrets:
       - ../apps/argo-system/argo-cd/values.sops.yaml
     needs:

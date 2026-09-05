@@ -24,7 +24,7 @@ spec:
       # identical render (bar the chart label) proves a no-op, and catches a silently dropped key on
       # the self-managed ArgoCD. Always check Chart.yaml appVersion: a chart minor is often the same
       # ArgoCD build. Bump kubernetes/bootstrap/helmfile.yaml to match.
-      targetRevision: 10.7.2
+      targetRevision: 10.8.0
       helm:
         releaseName: argo-cd
         valueFiles:
