@@ -20,6 +20,34 @@ spec:
         serverName: postgres-17-cluster-v2
 
   postgresql:
+    # Tuned 2026-09-08. Before this there was no parameters block at all, so
+    # the planner ran on stock image defaults that did not match the 1Gi
+    # container limit below.
+    #
+    # Every parameter here has pg_settings context 'user', i.e. it applies by
+    # RELOAD - no restart, no switchover, no blip for the 13 databases that
+    # share this cluster. shared_buffers is deliberately absent because it is
+    # context 'postmaster' and would force a rolling restart (see below).
+    parameters:
+      # Was 4GB - the stock default, 4x larger than the whole container.
+      # The planner believed it had 4GB of cache to play with. 768MB is 75% of
+      # the 1Gi limit and still comfortably exceeds the 311MB total size of all
+      # databases, so full-cache assumptions stay correct without lying.
+      effective_cache_size: "768MB"
+      # Was 4, which models a spinning disk. This cluster is on
+      # longhorn-single-replica backed by SSD, so index scans are far cheaper
+      # than the default cost model assumes.
+      random_page_cost: "1.1"
+      # Pinned at the current default ON PURPOSE, not left to drift. work_mem
+      # is per sort/hash node, so with max_connections=100 a bump to 8MB is
+      # 800MB worst case against a 1Gi limit - the classic way to OOM a shared
+      # cluster. Raise the memory limit first if this ever needs to grow.
+      work_mem: "4MB"
+    #
+    # NOT changed: shared_buffers stays at CNPG's 128MB. Measured before
+    # touching it - cache hit ratio is 99.98% overall (worst database:
+    # authelia at 99.01%) against 311MB of total data. There is nothing to
+    # gain, and changing it would cost a rolling restart of the shared cluster.
     extensions:
       - name: postgis
         image:
