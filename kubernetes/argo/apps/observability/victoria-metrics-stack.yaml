@@ -15,7 +15,7 @@ spec:
     - repoURL: https://victoriametrics.github.io/helm-charts
       chart: victoria-metrics-k8s-stack
       # changelog: >=0.85 renders defaultRules/dashboards via a deploy-time sync-job (VMRules labelled managed-by=sync-job); verify bumps with helm template -f our values.yaml and diff
-      targetRevision: 0.91.2
+      targetRevision: 0.92.1
       helm:
         releaseName: victoria-metrics-stack
         valueFiles:
