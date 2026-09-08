@@ -13,11 +13,21 @@ controllers:
         envFrom:
           - secretRef:
               name: authelia-initdb-secret
+        # PodSecurity "restricted" is enforced here and the app container
+        # already satisfies it; init-db did not, so admission logged a warning
+        # on every rollout. readOnlyRootFilesystem is deliberately NOT set:
+        # "restricted" does not require it, and postgres-init may need scratch
+        # space - no reason to risk authelia failing to start over it.
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities: { drop: ["ALL"] }
     pod:
       securityContext:
         runAsUser: 568
         runAsGroup: 568
         runAsNonRoot: true
+        # set at pod level so it covers app AND init-db in one place
+        seccompProfile: { type: RuntimeDefault }
       topologySpreadConstraints:
         - maxSkew: 1
           topologyKey: kubernetes.io/hostname
