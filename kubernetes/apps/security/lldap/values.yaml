@@ -49,6 +49,21 @@ controllers:
         securityContext:
           allowPrivilegeEscalation: false
           capabilities: { drop: ["ALL"] }
+        # The image entrypoint (tini -- /docker-entrypoint.sh) starts as ROOT:
+        # it runs `find /app /data ! -user $UID -exec chown` and then gosu-drops
+        # to $UID:$GID. Under runAsUser 3000 that chown fails with
+        # "chown: /app: Operation not permitted" and the container exits 1
+        # (this DID crash-loop on first attempt, 2026-09-08).
+        # So we skip the entrypoint and do the only other thing it does that we
+        # need - seed the config file - then exec the binary directly.
+        # /data is an emptyDir, so the template is copied fresh on every start,
+        # exactly as the entrypoint would have done. Verified running as
+        # 3000:3000 with LDAP on 3890 and HTTP on 17170.
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            [ -f /data/lldap_config.toml ] || cp /app/lldap_config.docker_template.toml /data/lldap_config.toml
+            exec /app/lldap run --config-file /data/lldap_config.toml
         env:
           TZ: America/New_York
           LLDAP_HTTP_PORT: &port 17170
