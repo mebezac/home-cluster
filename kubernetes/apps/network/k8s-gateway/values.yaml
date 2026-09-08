@@ -1,4 +1,18 @@
 fullnameOverride: k8s-gateway
+# 2 replicas + PDB (pdb.yaml): this is the ONLY in-cluster resolver for
+# laboratory.casa / heremag.free. At 1 replica a node drain took cluster
+# DNS for those zones down entirely. The chart ships no PDB, so it lives
+# alongside as a plain manifest.
+replicaCount: 2
+priorityClassName: system-cluster-critical
+topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: DoNotSchedule
+    labelSelector:
+      matchLabels:
+        app.kubernetes.io/name: k8s-gateway
+        app.kubernetes.io/instance: k8s-gateway
 domain: laboratory.casa heremag.free
 ttl: 1
 service:
