@@ -1,5 +1,18 @@
 machine:
   kubelet:
+    extraConfig:
+      # Age-based image GC. Without this, kubelet only reclaims images under
+      # disk pressure (imageGCHighThresholdPercent 85 / low 80), so stale
+      # versions accumulate forever. talmac-01 reached 147.7GB of images on a
+      # 249GB root disk (82% full) with SEVEN music-assistant versions, six
+      # Home Assistant, five ESPHome and four Immich still cached - and GC had
+      # never fired because 82% sits between the low and high thresholds.
+      #
+      # 168h = 1 week. Safe to be aggressive here specifically BECAUSE Spegel
+      # runs: every node mirrors images to its peers, so an aged-out image is
+      # re-pulled from another node over the LAN rather than from the internet.
+      # Must stay above imageMinimumGCAge (2m0s).
+      imageMaximumGCAge: 168h
     extraMounts:
       - destination: /var/openebs/local
         type: bind
