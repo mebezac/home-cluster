@@ -23,8 +23,27 @@ persistence:
   defaultDataLocality: best-effort
   volumeBindingMode: WaitForFirstConsumer
 preUpgradeChecker:
-  jobEnabled: false
-  upgradeVersionCheck: false
+  # Re-enabled 2026-09-08. upgradeVersionCheck was turned off on 2026-02-15
+  # only because manager/instanceManager were pinned to the non-standard
+  # v1.11.0-hotfix-1 tag, which the version check rejects. That pin was removed
+  # 2026-08-24 (see the note at the top of this file), so the exception is
+  # obsolete.
+  #
+  # Why this matters here: Renovate bumps this chart and Argo has
+  # automated.selfHeal, so without a gate a breaking Longhorn release could
+  # apply itself unattended to the cluster's only block storage.
+  #
+  # BOTH flags are required - upgradeVersionCheck gates whether the
+  # longhorn-pre-upgrade Job renders at all, so jobEnabled alone does nothing.
+  # It also adds --upgrade-version-check to longhorn-manager for runtime
+  # version-skew enforcement.
+  #
+  # The Job carries helm.sh/hook: pre-upgrade, which Argo maps to PreSync. The
+  # chart's post-upgrade hook already runs here today, so the hook path is
+  # known-good. A failing check now blocks the sync instead of silently
+  # upgrading.
+  jobEnabled: true
+  upgradeVersionCheck: true
 service:
   ui:
     type: ClusterIP
