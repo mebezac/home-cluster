@@ -14,6 +14,17 @@ controllers:
           - secretRef:
               name: lldap-initdb-secret
     pod:
+      # lldap ran as ROOT because it bound :80 and :389, both privileged.
+      # Container ports moved to lldap's own defaults (17170/3890) so it can
+      # run unprivileged; the Service still publishes 80/389 via targetPort,
+      # so authelia's ldap://lldap.security.svc.cluster.local:389 is unchanged.
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 3000
+        runAsGroup: 3000
+        fsGroup: 3000
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile: { type: RuntimeDefault }
       topologySpreadConstraints:
         - maxSkew: 1
           topologyKey: kubernetes.io/hostname
@@ -25,12 +36,24 @@ controllers:
       lldap:
         image:
           repository: ghcr.io/lldap/lldap
-          tag: 2025-04-04
+          # changelog: GH releases lldap/lldap. Was pinned to the DATE tag
+          # 2025-04-04, which is a dev build off main, not a release - and
+          # Renovate cannot version-compare a bare date, so it silently never
+          # offered an update and we sat 13 months behind. Stay on the vX.Y.Z
+          # stream (`stable` == v0.6.3) so Renovate tracks it normally.
+          # v0.6.2 made a MISSING JWT SECRET FATAL at startup - LLDAP_JWT_SECRET
+          # is set in lldap-secret, verified before this bump.
+          # v0.6.3 also carries the fix for GHSA-qcxq-75wr-5cm8 (crafted LDAP
+          # query could crash the server).
+          tag: v0.6.3@sha256:2a8454b668c1aba7157e832eab0e242e1e7eb5fb7591d7e7774ba05286511ca8
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities: { drop: ["ALL"] }
         env:
           TZ: America/New_York
-          LLDAP_HTTP_PORT: &port 80
+          LLDAP_HTTP_PORT: &port 17170
           LLDAP_HTTP_URL: https://lldap.laboratory.casa
-          LLDAP_LDAP_PORT: &ldapPort 389
+          LLDAP_LDAP_PORT: &ldapPort 3890
           LLDAP_LDAP_BASE_DN: dc=laboratory,dc=casa
         envFrom:
           - secretRef:
@@ -45,10 +68,14 @@ service:
   app:
     controller: lldap
     ports:
+      # Service ports stay 80/389 so no consumer changes:
+      # authelia uses ldap://lldap.security.svc.cluster.local:389
       http:
-        port: *port
+        port: 80
+        targetPort: *port
       ldap:
-        port: *ldapPort
+        port: 389
+        targetPort: *ldapPort
 ingress:
   app:
     enabled: true
