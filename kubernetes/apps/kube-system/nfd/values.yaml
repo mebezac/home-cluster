@@ -1,6 +1,15 @@
 ---
 master:
   replicaCount: 1
+  # chart default limit is 4Gi against ~14Mi real usage; on the small
+  # wyse-5070-03 control-plane node that single limit was 59% of the
+  # node's whole memory-limit sum (143% commitment). Sized to reality.
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      memory: 256Mi
 worker:
   config:
     core:

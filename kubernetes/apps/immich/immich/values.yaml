@@ -92,10 +92,10 @@ controllers:
           requests:
             cpu: 100m
             gpu.intel.com/i915: 1
-            memory: 250Mi
+            memory: 1500Mi
           limits:
             gpu.intel.com/i915: 1
-            memory: 2Gi
+            memory: 4Gi
 
   machine-learning:
     annotations:
