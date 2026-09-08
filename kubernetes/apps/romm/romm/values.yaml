@@ -26,7 +26,10 @@ controllers:
       fix-permissions:
         image:
           repository: busybox
-          tag: stable
+          # was `stable`, a moving tag. Proof it drifts: on 2026-09-08 `stable`
+          # resolved to 73aaf090 while this cluster was still running 4b8407fa.
+          # 1.38.0 is the newest release (identical digest to `latest`).
+          tag: 1.38.0@sha256:dc2d74b28e4cf8984fa52af1f39bc7c3d9c73760b41a74d629f5d11b1ab28616
 
         command:
           [
