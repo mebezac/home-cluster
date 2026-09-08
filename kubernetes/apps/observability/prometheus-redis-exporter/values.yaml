@@ -3,6 +3,9 @@ image:
   # NOTE: no @sha256 digest here, deliberately. This chart templates image.tag into the
   # app.kubernetes.io/version LABEL, and a digest-bearing tag is an invalid label value
   # (contains '@', >63 bytes) -- it hard-fails the sync. The chart exposes no image.digest key.
+  # changelog: GH releases oliver006/redis_exporter. Keep in lockstep with the chart's
+  # targetRevision in kubernetes/argo/apps/observability/prometheus-redis-exporter.yaml - chart
+  # bumps there are appVersion-only, and this tag must equal that chart version's appVersion.
   tag: v1.91.1
 env:
   - name: TZ

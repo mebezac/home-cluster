@@ -17,6 +17,15 @@ controllers:
     containers:
       main:
         image:
+          # changelog: dxflrs/garage on GitHub is a dead mirror (no releases). Real notes live at
+          # git.deuxfleurs.fr/Deuxfleurs/garage/releases (Gitea) - garagehq.deuxfleurs.fr blog only
+          # covers major versions (v2.0). v2.4.0: stable, "no breaking changes from v2.3.0", no
+          # data-format/layout bump, no garage.toml key changes. Still NO conditional-write
+          # (If-Match/If-None-Match) support. v2.4.1: patch fixing a startup panic w/ Consul/K8s
+          # discovery - N/A here, we use static bootstrap_peers. NOTE: this manifest is only 1 of
+          # 3 garage nodes (replication_factor=3 in garage.toml; the other 2 peers run outside
+          # this repo, reached via Tailscale) - bumping here alone runs a mixed-version cluster
+          # briefly, which the "no breaking changes" note covers.
           repository: dxflrs/garage
           tag: v2.3.0@sha256:866bd13ed2038ba7e7190e840482bc27234c4afaf77be8cfa439ae088c1e4690
         env:
