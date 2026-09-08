@@ -133,11 +133,14 @@ controllers:
           - secretRef:
               name: *secret
         resources:
+          # 7d metrics (2026-09-08): peak 1.9Gi, p95 1.4Gi. The 250Mi request
+          # was ~6x below real usage and the 8Gi limit was the single largest
+          # limit reservation on talmac-02.
           requests:
             cpu: 100m
-            memory: 250Mi
+            memory: 1536Mi
           limits:
-            memory: 8Gi
+            memory: 3Gi
         probes:
           liveness: &probes
             enabled: true
