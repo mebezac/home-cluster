@@ -15,13 +15,17 @@ controllers:
           repository: ghcr.io/jellyfin/jellyfin
           tag: 10.11.11@sha256:45f648c382a0c8b552582fcea40e95cb17c5d475473a891cba0eb7523fb92112
         resources:
+          # 7d metrics (2026-09-08): peak 1.1Gi during transcoding, p95 770Mi.
+          # The peak came from an OLDER pod generation - the running pod was
+          # only at 183Mi, so a snapshot would have sized this far too low and
+          # OOM-killed a transcode. 2Gi limit keeps ~2x headroom over the peak.
           requests:
             cpu: 100m
             gpu.intel.com/i915: 1
-            memory: 512Mi
+            memory: 768Mi
           limits:
             gpu.intel.com/i915: 1
-            memory: 8000Mi
+            memory: 2Gi
 
 service:
   main:

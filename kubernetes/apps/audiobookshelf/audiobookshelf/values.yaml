@@ -15,11 +15,12 @@ controllers:
           repository: ghcr.io/advplyr/audiobookshelf
           tag: 2.36.0@sha256:180acad33d69c99ed208676465d8edcb268fa46967735579a7810859885b1a8e
         resources:
+          # 7d metrics (2026-09-08): peak 60Mi, CPU essentially flat.
           requests:
-            cpu: 100m
-            memory: 150Mi
+            cpu: 50m
+            memory: 96Mi
           limits:
-            memory: 2Gi
+            memory: 256Mi
         env:
           AUDIOBOOKSHELF_UID: 3000
           AUDIOBOOKSHELF_GID: 3000

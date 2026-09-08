@@ -33,11 +33,12 @@ controllers:
           LC_ALL: en_US.UTF-8
         envFrom: *envFrom
         resources:
+          # 7d metrics (2026-09-08): peak 37Mi, CPU peak 10m.
           requests:
             cpu: 15m
-            memory: 80M
+            memory: 64Mi
           limits:
-            memory: 512M
+            memory: 192Mi
 service:
   app:
     controller: lubelog

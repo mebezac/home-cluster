@@ -84,11 +84,13 @@ controllers:
               timeoutSeconds: 5
               failureThreshold: 3
         resources:
+          # 7d metrics (2026-09-08): peak 590Mi, p95 364Mi - the 128Mi request
+          # was ~4.6x below real usage, so the scheduler was under-counting it.
           requests:
             cpu: 5m
-            memory: 128Mi
+            memory: 640Mi
           limits:
-            memory: 1Gi
+            memory: 1536Mi
 
 service:
   app:

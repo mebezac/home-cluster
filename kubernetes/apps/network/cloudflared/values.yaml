@@ -47,10 +47,13 @@ controllers:
           readOnlyRootFilesystem: true
           capabilities: { drop: ["ALL"] }
         resources:
+          # 7d metrics (2026-09-08): peak 44Mi, p95 24Mi. Had no memory
+          # request at all, so the scheduler placed it blind.
           requests:
             cpu: 10m
+            memory: 64Mi
           limits:
-            memory: 256Mi
+            memory: 160Mi
 defaultPodOptions:
   securityContext:
     runAsNonRoot: true

@@ -20,11 +20,13 @@ controllers:
           # changelog: GH releases LycheeOrg/Lychee (full notes in PR body). Laravel migrations run on container start; watch SECURITY_HEADER_* CSP env when notes touch CSP/WASM
           tag: v7.8.3@sha256:bcbec35a17f7a2a0f222c4e4c9650d2b2d675274132619edde9f3465766627dd
         resources:
+          # 7d metrics (2026-09-08): peak 650Mi, p95 648Mi - steady, and well
+          # above the old 256Mi request.
           requests:
             cpu: 100m
-            memory: 256Mi
+            memory: 768Mi
           limits:
-            memory: 2048Mi
+            memory: 1536Mi
         env:
           TIMEZONE: America/New_York
           APP_NAME: Lychee

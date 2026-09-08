@@ -62,12 +62,14 @@ controllers:
           readiness:
             enabled: true
         resources:
+          # 7d metrics (2026-09-08): peak 493Mi, p95 428Mi - the 128Mi request
+          # was well under real usage.
           requests:
             cpu: 50m
-            memory: 128Mi
+            memory: 576Mi
           limits:
             cpu: 1000m
-            memory: 2048Mi
+            memory: 1536Mi
         securityContext:
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true

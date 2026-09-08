@@ -86,9 +86,13 @@ controllers:
               failureThreshold: 30
               periodSeconds: 5
         resources:
+          # 7d metrics (2026-09-08): peak 659Mi, p95 558Mi. Previously had NO
+          # memory limit at all - an unbounded ceiling on a shared node.
           requests:
             cpu: 10m
-            memory: 500Mi
+            memory: 768Mi
+          limits:
+            memory: 1536Mi
 
 service:
   app:

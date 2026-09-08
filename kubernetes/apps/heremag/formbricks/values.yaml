@@ -30,12 +30,16 @@ controllers:
           DANGEROUSLY_ALLOW_WEBHOOK_INTERNAL_URLS: "1"
         envFrom: *envFrom
         resources:
+          # 7d metrics (2026-09-08): CPU peak 2m against a 500m request - the
+          # single largest CPU over-request in the cluster. Memory peak 300Mi,
+          # which was slightly OVER the old 256M request, so memory goes up
+          # while CPU comes down.
           requests:
-            cpu: 500m
-            memory: 256M
+            cpu: 25m
+            memory: 384Mi
           limits:
             cpu: 2000m
-            memory: 2048M
+            memory: 768Mi
 service:
   app:
     controller: formbricks

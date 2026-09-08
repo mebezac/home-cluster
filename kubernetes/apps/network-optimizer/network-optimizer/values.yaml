@@ -30,9 +30,11 @@ controllers:
           Logging__LogLevel__Default: Information
           Logging__LogLevel__NetworkOptimizer: Information
         resources:
+          # 7d metrics (2026-09-08): peak 494Mi, p95 478Mi - request was
+          # roughly half of real usage.
           requests:
             cpu: 10m
-            memory: 256Mi
+            memory: 640Mi
           limits:
             memory: 1Gi
         probes:
@@ -95,11 +97,12 @@ controllers:
           OPENSPEEDTEST_HTTPS_PORT: "443"
           REVERSE_PROXIED_HOST_NAME: network-optimizer.laboratory.casa
         resources:
+          # 7d metrics (2026-09-08): speedtest peak 12Mi, CPU peak 1m.
           requests:
             cpu: 10m
-            memory: 128Mi
+            memory: 32Mi
           limits:
-            memory: 512Mi
+            memory: 96Mi
 
 service:
   network-optimizer:

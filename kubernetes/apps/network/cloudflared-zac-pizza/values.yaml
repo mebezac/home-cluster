@@ -49,10 +49,12 @@ controllers:
           readOnlyRootFilesystem: true
           capabilities: { drop: ["ALL"] }
         resources:
+          # 7d metrics (2026-09-08): peak 42Mi. Had no memory request at all.
           requests:
             cpu: 10m
+            memory: 64Mi
           limits:
-            memory: 256Mi
+            memory: 160Mi
 defaultPodOptions:
   securityContext:
     runAsNonRoot: true
