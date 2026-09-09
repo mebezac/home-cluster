@@ -12,7 +12,7 @@ controllers:
           # clip_index/face_index, runs ALTER EXTENSION, rebuilds and vacuums. NOT REVERSIBLE - once
           # it has run, the older image fatals with invalidDowngrade. Supported range is
           # VECTORCHORD_VERSION_RANGE in the immich server's constants.ts.
-          tag: 18-vectorchord0.5.3-pgvector0.8.1@sha256:828081a755d3911a2d94f0a2be9f98570c07d52cf080fd310a9d6e4b83b73aa5
+          tag: 18-vectorchord1.1.1-pgvector0.8.5@sha256:6e384bf4aa03866473395961786f40006555e4cd008b98f92bf4a44e5ab7b012
         env:
           POSTGRES_INITDB_ARGS: --data-checksums
           PGDATA: /var/lib/postgresql18/data
