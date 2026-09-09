@@ -9,7 +9,7 @@
 # NOTE: ghcr.io/siderolabs/installer stopped publishing at v1.13.10 (1.14+ is Image Factory
 # only), so this tracks github-releases on siderolabs/talos, not the installer image.
 # renovate: datasource=github-releases depName=siderolabs/talos
-talosVersion: v1.13.9
+talosVersion: v1.13.10
 # renovate: datasource=docker depName=ghcr.io/siderolabs/kubelet
 # changelog: kubernetes/kubernetes CHANGELOG-1.36.md (siderolabs/kubelet images ship no release notes and the PR body is always empty)
 kubernetesVersion: v1.36.4
