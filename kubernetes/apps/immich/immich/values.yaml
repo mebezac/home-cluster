@@ -54,7 +54,21 @@ controllers:
               failureThreshold: 5
           readiness: *probes
           startup:
-            enabled: false
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /api/server/ping
+                port: *serverport
+              initialDelaySeconds: 10
+              periodSeconds: 10
+              timeoutSeconds: 1
+              # 90 x 10s = 15min of bootstrap headroom. Immich does not open
+              # :2283 until bootstrap finishes, and a vector-extension upgrade
+              # DROPs clip_index/face_index then rebuilds them during bootstrap.
+              # Without a startupProbe the liveness probe (5 x 10s) kills the
+              # container mid-rebuild and it crashloops with both indexes gone.
+              failureThreshold: 90
 
   microservices:
     replicas: 2
