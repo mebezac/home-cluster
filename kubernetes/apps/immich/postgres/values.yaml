@@ -6,6 +6,12 @@ controllers:
       db18:
         image:
           repository: ghcr.io/immich-app/postgres
+          # changelog: GH releases tensorchord/VectorChord + pgvector/pgvector; image build lives in
+          # immich-app/base-images/postgres (Renovate ships NO notes for this image). A vchord major
+          # (0.5->1.x) is auto-migrated by Immich on the next immich-server bootstrap: it drops
+          # clip_index/face_index, runs ALTER EXTENSION, rebuilds and vacuums. NOT REVERSIBLE - once
+          # it has run, the older image fatals with invalidDowngrade. Supported range is
+          # VECTORCHORD_VERSION_RANGE in the immich server's constants.ts.
           tag: 18-vectorchord0.5.3-pgvector0.8.1@sha256:828081a755d3911a2d94f0a2be9f98570c07d52cf080fd310a9d6e4b83b73aa5
         env:
           POSTGRES_INITDB_ARGS: --data-checksums

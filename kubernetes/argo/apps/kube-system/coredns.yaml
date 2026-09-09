@@ -15,7 +15,7 @@ spec:
       ref: repo
     - repoURL: https://coredns.github.io/helm
       chart: coredns
-      # changelog: chart notes are thin - the real change is appVersion; diff Chart.yaml appVersion then read coredns/coredns GH releases for that range
+      # changelog: chart notes are thin - diff Chart.yaml appVersion FIRST; if appVersion is unchanged the bump is chart-only (no coredns release exists to read). Either way the helm.sh/chart label feeds checksum/config, so BOTH DNS pods still roll: 2 replicas, maxUnavailable 1, no PDB. Bump kubernetes/bootstrap/helmfile.yaml in lockstep.
       targetRevision: 1.47.1
       helm:
         releaseName: coredns
