@@ -1,0 +1,30 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: gateway-api-crds
+  namespace: argo-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "-5"
+spec:
+  project: kubernetes
+  sources:
+    # The EXPERIMENTAL channel is required: the `ExternalAuth` HTTPRoute filter
+    # (GEP-1494) that we use for Authelia only exists there. Cilium 1.20
+    # conforms against Gateway API v1.6.1, so keep these in lockstep with the
+    # Cilium version in ./cilium.yaml.
+    - repoURL: https://github.com/kubernetes-sigs/gateway-api
+      # renovate: datasource=github-releases depName=kubernetes-sigs/gateway-api
+      targetRevision: v1.6.1
+      path: config/crd/experimental
+  destination:
+    name: in-cluster
+  syncPolicy:
+    automated:
+      allowEmpty: true
+      prune: false
+      selfHeal: true
+    syncOptions:
+      # The Gateway API CRDs are far too large for the client-side
+      # last-applied-configuration annotation.
+      - ServerSideApply=true
