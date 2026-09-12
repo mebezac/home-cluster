@@ -28,7 +28,7 @@ image:
 plugin:
   image:
     repository: git.erwanleboucher.dev/eleboucher/runner-k8s-plugin
-    tag: "12.10.9"
+    tag: "13.1.0"
     digest: "sha256:7fb94371ccc6ef3ff7e2110b2c04050a68bb8031d3224ed8aee2cd5e1d31c673"
 
 # Full runner.yaml. plugins.k8s.address MUST match the chart's plugin.socketPath,
