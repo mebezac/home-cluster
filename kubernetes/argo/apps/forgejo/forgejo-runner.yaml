@@ -18,7 +18,7 @@ spec:
     # ServiceAccount/Role/RoleBinding, runner.yaml + podspec ConfigMap).
     - repoURL: git.erwanleboucher.dev/eleboucher/charts
       chart: forgejo-runner
-      targetRevision: 12.10.9
+      targetRevision: 13.1.0
       helm:
         releaseName: forgejo-runner
         valueFiles:
