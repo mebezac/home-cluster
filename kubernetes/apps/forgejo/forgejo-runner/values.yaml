@@ -1,8 +1,10 @@
 # Forgejo Actions runner with the Kubernetes backend plugin.
-# eleboucher/runner-k8s-plugin: the (forked) runner schedules each CI job as its
-# own pod in this namespace instead of using docker-in-docker. The plugin runs as
-# a native sidecar alongside the runner; the chart wires up the ServiceAccount +
-# Role/RoleBinding, the shared socket, and the runner.yaml/podspec ConfigMap.
+# eleboucher/runner-k8s-plugin: the runner schedules each CI job as its own pod
+# in this namespace instead of using docker-in-docker. Since runner v13 the
+# official Forgejo runner speaks the gRPC plugin protocol natively (no fork
+# needed). The plugin runs as a native sidecar alongside the runner; the chart
+# wires up the ServiceAccount + Role/RoleBinding, the shared socket, and the
+# runner.yaml/podspec ConfigMap.
 
 forgejo:
   # in-cluster Forgejo HTTP service (svc/forgejo-app in this namespace)
@@ -19,17 +21,23 @@ forgejo:
   # The daemon then auths as: --uuid <uuid> --token-url file://<token>.
   existingSecret: forgejo-runner-secret
 
-# Runner image (the eleboucher fork that speaks the k8s plugin protocol).
+# Runner image: the OFFICIAL Forgejo runner (>=13.0 has the k8s plugin protocol built in).
+# Runner and plugin MUST stay on the same major - the plugin gRPC API is versioned
+# with the runner (12.x = v1, 13.x = v1alpha). Bump both together.
+# changelog: code.forgejo.org/forgejo/runner releases + forgejo.org blog for workflow-level breaking changes
+# NOTE: Renovate does not understand the split tag:/digest: keys here - the chart renders
+# repository@digest, so a tag-only bump is a silent no-op. Set the digest by hand (crane digest).
 image:
-  repository: git.erwanleboucher.dev/eleboucher/runner
-  tag: "12.13.0"
-  digest: "sha256:b71959782cea9cbc86eaeb47e5ba32bf8179fbd117dd849e001c9a13807b1a07"
+  repository: data.forgejo.org/forgejo/runner
+  tag: "13.1.0"
+  digest: "sha256:c4af85fd9f0dd03788676a534781a87c71aa2c6a37737143e017eb94d4312952"
 
 plugin:
   image:
     repository: git.erwanleboucher.dev/eleboucher/runner-k8s-plugin
-    tag: "12.10.9"
-    digest: "sha256:7fb94371ccc6ef3ff7e2110b2c04050a68bb8031d3224ed8aee2cd5e1d31c673"
+    # changelog: forgejo API releases + compare at git.erwanleboucher.dev/eleboucher/runner-k8s-plugin (PR body is a stub); must match the runner major above
+    tag: "13.1.0"
+    digest: "sha256:9ae8a21340cde415b828adc95bc4f1345bed67c21a0e3be26032d367a64b20db"
 
 # Full runner.yaml. plugins.k8s.address MUST match the chart's plugin.socketPath,
 # and options.namespace is the namespace job pods are created in (this release's ns).
