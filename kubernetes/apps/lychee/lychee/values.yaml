@@ -77,6 +77,7 @@ ingress:
     className: external
     annotations:
       external-dns.alpha.kubernetes.io/target: external.zac.pizza
+      external-dns.kubernetes.io/target: external.zac.pizza
     hosts:
       - host: &host photos.zac.pizza
         paths:

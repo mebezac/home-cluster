@@ -3,6 +3,7 @@ controller:
   service:
     annotations:
       external-dns.alpha.kubernetes.io/hostname: external.laboratory.casa
+      external-dns.kubernetes.io/hostname: external.laboratory.casa
       lbipam.cilium.io/ips: 10.25.30.119
       tailscale.com/expose: "true"
     externalTrafficPolicy: Cluster

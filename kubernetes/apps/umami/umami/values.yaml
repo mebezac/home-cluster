@@ -68,6 +68,7 @@ ingress:
     className: external
     annotations:
       external-dns.alpha.kubernetes.io/target: external.laboratory.casa
+      external-dns.kubernetes.io/target: external.laboratory.casa
     hosts:
       - host: analytics.laboratory.casa
         paths:

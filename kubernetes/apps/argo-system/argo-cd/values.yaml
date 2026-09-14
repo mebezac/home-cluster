@@ -75,6 +75,7 @@ server:
     ingressClassName: external
     annotations:
       external-dns.alpha.kubernetes.io/target: external.laboratory.casa
+      external-dns.kubernetes.io/target: external.laboratory.casa
     hostname: argo.laboratory.casa
   metrics:
     enabled: true

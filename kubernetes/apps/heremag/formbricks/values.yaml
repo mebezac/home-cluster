@@ -51,6 +51,7 @@ ingress:
     className: external
     annotations:
       external-dns.alpha.kubernetes.io/target: external.heremag.free
+      external-dns.kubernetes.io/target: external.heremag.free
     hosts:
       - host: forms.heremag.free
         paths:

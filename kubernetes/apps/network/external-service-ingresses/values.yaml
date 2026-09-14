@@ -48,6 +48,7 @@ services:
         port: 80
         annotations:
           external-dns.alpha.kubernetes.io/target: external.laboratory.casa
+          external-dns.kubernetes.io/target: external.laboratory.casa
     service_ports:
       - name: http
         port: 80
@@ -60,6 +61,7 @@ services:
         port: 5000
         annotations:
           external-dns.alpha.kubernetes.io/target: external.laboratory.casa
+          external-dns.kubernetes.io/target: external.laboratory.casa
           nginx.ingress.kubernetes.io/auth-method: GET
           nginx.ingress.kubernetes.io/auth-url: http://authelia.security.svc.cluster.local/api/authz/auth-request
           nginx.ingress.kubernetes.io/auth-signin: https://login.laboratory.casa?rm=$request_method
@@ -76,6 +78,7 @@ services:
         port: 9000
         annotations:
           external-dns.alpha.kubernetes.io/target: external.laboratory.casa
+          external-dns.kubernetes.io/target: external.laboratory.casa
     service_ports:
       - name: http
         port: 9000
@@ -88,6 +91,7 @@ services:
         port: 9002
         annotations:
           external-dns.alpha.kubernetes.io/target: external.laboratory.casa
+          external-dns.kubernetes.io/target: external.laboratory.casa
     service_ports:
       - name: http
         port: 9002
@@ -100,6 +104,7 @@ services:
         port: 30188
         annotations:
           external-dns.alpha.kubernetes.io/target: external.laboratory.casa
+          external-dns.kubernetes.io/target: external.laboratory.casa
           nginx.ingress.kubernetes.io/enable-cors: "true"
           nginx.ingress.kubernetes.io/cors-allow-origin: "*"
           nginx.ingress.kubernetes.io/cors-allow-methods: "GET, PUT, POST, DELETE, HEAD, OPTIONS"
@@ -119,6 +124,7 @@ services:
         port: 30186
         annotations:
           external-dns.alpha.kubernetes.io/target: external.laboratory.casa
+          external-dns.kubernetes.io/target: external.laboratory.casa
     service_ports:
       - name: http
         port: 30186

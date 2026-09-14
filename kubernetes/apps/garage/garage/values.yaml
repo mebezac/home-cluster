@@ -208,6 +208,7 @@ ingress:
     className: external
     annotations:
       external-dns.alpha.kubernetes.io/target: external.laboratory.casa
+      external-dns.kubernetes.io/target: external.laboratory.casa
     hosts:
       - host: s3.laboratory.casa
         paths:
@@ -221,6 +222,7 @@ ingress:
     className: external
     annotations:
       external-dns.alpha.kubernetes.io/target: external.heremag.free
+      external-dns.kubernetes.io/target: external.heremag.free
     hosts:
       - host: files.heremag.free
         paths:
