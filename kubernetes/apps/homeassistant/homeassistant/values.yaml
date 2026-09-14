@@ -17,7 +17,7 @@ controllers:
           # for a one-way recorder migration on the SQLite DB on this PVC. Also unverifiable from
           # git: the auth_oidc HACS component lives on the PVC and patches HA auth internals - a
           # break locks you out of the login page, so confirm you can still log in after the roll.
-          tag: 2026.9.1@sha256:612d76760b544cb40b7ba01387fdac964c59a6a550a50a4d30b4773c822d2918
+          tag: 2026.9.2@sha256:a1bc133af84ee6505fe2c266d9805b7c75b780dfdc188edfee3b11e8f3cd8efe
         env:
           - name: TZ
             value: "America/New_York"
