@@ -15,10 +15,6 @@ extraArgs:
   - --events
   - --ignore-ingress-tls-spec
   - --ingress-class=external
-  # external-dns >=0.22 defaults the annotation prefix to external-dns.kubernetes.io/
-  # with NO fallback; our ingresses still carry external-dns.alpha.kubernetes.io/target.
-  # Keep the old prefix until every annotation is migrated, then drop this flag.
-  - --annotation-prefix=external-dns.alpha.kubernetes.io/
 policy: sync
 sources:
   - crd
