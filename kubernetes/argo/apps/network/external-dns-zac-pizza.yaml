@@ -15,6 +15,7 @@ spec:
       ref: repo
     - repoURL: https://kubernetes-sigs.github.io/external-dns
       chart: external-dns
+      # changelog: charts/external-dns/CHANGELOG.md at kubernetes-sigs/external-dns + GH release for the chart appVersion (v0.x.0) - PR body has no notes. Chart minors can carry app BREAKING changes (1.22.0 = annotation-prefix switch)
       targetRevision: 1.21.1
       helm:
         releaseName: external-dns-zac-pizza
