@@ -154,8 +154,8 @@ repoServer:
       name: helm-secrets-private-keys
   initContainers:
     - name: gitops-tools
-      # changelog: GH release bodies are empty stubs - diff the Dockerfile between tags (gh api "repos/ajaykumar4/gitops-tools/contents/Dockerfile?ref=<tag>"); an identical Dockerfile means a pure monthly rebuild, since every tool AND the alpine base are pinned there. Always check HELM_SECRETS_VERSION - the sed hack below assumes v4.7.6's plugin.yaml layout
-      image: ajaykumar4/gitops-tools:2026.9.0@sha256:c7679ca8d3658453be6b39e1c5fdbfb55f66d217629f5f3157e3b5606814232d
+      # changelog: GH release bodies are empty stubs - diff the Dockerfile between tags (gh api "repos/ajaykumar4/gitops-tools/contents/Dockerfile?ref=<tag>"); an identical Dockerfile means a pure monthly rebuild, since every tool AND the alpine base are pinned there. Since 2026.9.2 the image ships helm-secrets as three Helm-4-native plugins (secrets, secrets-getter, secrets-post-renderer) under helm-plugins/ - the old helm-secrets/ dir and our sed hack are gone. Always check HELM_SECRETS_VERSION + the plugin dir layout; the /gitops-tools/helm wrapper must come from secrets/scripts/wrapper/helm.sh (2026.9.1 shipped the wrong one)
+      image: ajaykumar4/gitops-tools:2026.9.2@sha256:7e7d595bcad996487b02413b4d89d8bf66cd81e17b14787a7b7a334c3aaf8f71
       imagePullPolicy: Always
       command:
         - sh
@@ -165,15 +165,6 @@ repoServer:
           mkdir -p /custom-tools/
           cp -rf /gitops-tools/* /custom-tools
           chmod +x /custom-tools/*
-          # Helm 4 compatibility: helm-secrets' plugin.yaml declares BOTH
-          # `platformCommand` (CLI) and `downloaders`. Helm 4 classifies such a
-          # plugin as getter/v1 and never registers the `helm secrets`
-          # subcommand, so the /usr/local/sbin/helm wrapper fails with
-          # `unknown command "secrets"` and every sops-using app stops
-          # rendering. We use the wrapper, not the secrets:// downloader, so
-          # strip the downloaders block to make Helm load it as cli/v1.
-          # Remove once helm-secrets ships a Helm-4-native plugin manifest.
-          sed -i '/^downloaders:/,$d' /custom-tools/helm-plugins/helm-secrets/plugin.yaml
       volumeMounts:
         - mountPath: /custom-tools
           name: custom-tools
