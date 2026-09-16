@@ -87,7 +87,7 @@ controllers:
           repository: ghcr.io/ozark-connect/speedtest
           # changelog: see the network-optimizer image above - both images ship in lockstep from one
           # upstream compose file and MUST be bumped together; never merge a speedtest PR alone.
-          tag: 2.8.4@sha256:a9d173eee38ecdd70aa374caf710f240d055009f38b4f52ffa5433d9a13d228a
+          tag: 2.8.5@sha256:b6a81e4e7c8dc26a643952b0758ec5025800b9242ca9f6759c022c6a249ef627
         env:
           TZ: America/New_York
           HOST_NAME: network-optimizer.laboratory.casa
