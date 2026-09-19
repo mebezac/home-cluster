@@ -29,7 +29,7 @@ forgejo:
 # repository@digest, so a tag-only bump is a silent no-op. Set the digest by hand (crane digest).
 image:
   repository: data.forgejo.org/forgejo/runner
-  tag: "13.1.0"
+  tag: "13.2.0"
   digest: "sha256:c4af85fd9f0dd03788676a534781a87c71aa2c6a37737143e017eb94d4312952"
 
 plugin:
