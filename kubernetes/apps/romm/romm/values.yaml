@@ -11,8 +11,6 @@ defaultPodOptions:
 
 controllers:
   romm:
-    # TEMP: 0 while the 5.3.0 migration OOMs the central PG primary. Restore to 1.
-    replicas: 0
     labels:
       reloader.stakater.com/auto: "true"
 
