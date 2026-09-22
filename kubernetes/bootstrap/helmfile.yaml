@@ -26,7 +26,7 @@ releases:
     chart: cilium/cilium
     version: 1.20.2
     values:
-      - ../apps/kube-system/cilium/values.sops.yaml
+      - ../apps/kube-system/cilium/values.yaml
     needs:
       - observability/prometheus-operator-crds
 
