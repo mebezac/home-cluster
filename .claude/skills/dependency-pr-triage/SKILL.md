@@ -383,6 +383,21 @@ webhook is wired), so the sync won't be instant. Merge the batch, then give it a
 moment before checking — or check, see `OutOfSync`/`Progressing`, and look again
 shortly rather than concluding it failed.
 
+**To wait on a rollout, use the script — don't hand-roll a poll loop:**
+
+```bash
+mise exec -- .claude/skills/dependency-pr-triage/scripts/wait-for-app.sh <app> \
+  [--chart <chart> <version>] [--ds <ns>/<daemonset>] [--timeout 600]
+```
+
+It exits `0 DONE` / `1 FAILED` / `2 TIMEOUT` and prints a `waiting` line every
+30s, so a stall is visible. Run it with `run_in_background` and let the
+completion notification wake you; don't block a foreground call on its output.
+Ad-hoc loops have burned whole sessions here: the Bash tool runs **zsh**, which
+doesn't word-split unquoted vars (`set -- $x` silently never matches), so a
+check sat "waiting" for 20 minutes on a Cilium rollout that had finished long
+before. If the user says it's done, believe them and re-check once.
+
 What to look at:
 
 - **Find the app** — the app name *usually* maps from the repo path
