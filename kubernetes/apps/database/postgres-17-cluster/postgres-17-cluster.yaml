@@ -62,11 +62,17 @@ spec:
   superuserSecret:
     name: cloudnative-pg
   resources:
+    # Raised 2026-09-22 from 512Mi/1Gi: romm 5.3.0's startup migration (a
+    # full-table UPDATE on roms with new row triggers) OOM-killed the primary
+    # twice at 1Gi and caused failovers for every database here. The talmacs
+    # have ~30Gi each, so a generous ceiling is cheap insurance for app
+    # migrations. The effective_cache_size/work_mem notes above were written
+    # for 1Gi and are still conservative at this size.
     requests:
       cpu: 500m
-      memory: 512Mi
-    limits:
       memory: 1Gi
+    limits:
+      memory: 4Gi
   monitoring:
     enablePodMonitor: true
     # see https://github.com/cloudnative-pg/cloudnative-pg/issues/2501
