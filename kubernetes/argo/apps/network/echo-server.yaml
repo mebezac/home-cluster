@@ -15,6 +15,7 @@ spec:
       ref: repo
     - repoURL: ghcr.io/bjw-s-labs/helm
       chart: app-template
+      # changelog: (applies to all ~40 app-template users) PR body only links out - real notes are GH releases bjw-s-labs/helm-charts tag common-X.Y.Z; verify by helm template-ing every app-template release at both versions and diffing per-document (map order shuffles)
       targetRevision: 5.2.1
       helm:
         releaseName: echo-server
