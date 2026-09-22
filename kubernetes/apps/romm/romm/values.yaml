@@ -74,6 +74,9 @@ controllers:
           SCAN_WORKERS: "3"
           TASK_TIMEOUT: "14400"
           TZ: America/Detroit
+          # 5.3.0 raised the default from 1 to 4 API workers; memory limit below
+          # was sized for 1 (peak 659Mi). Raise alongside the limit if needed.
+          WEB_SERVER_CONCURRENCY: "2"
         envFrom: *envFrom
         probes:
           liveness:
