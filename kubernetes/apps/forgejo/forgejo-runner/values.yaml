@@ -29,15 +29,15 @@ forgejo:
 # repository@digest, so a tag-only bump is a silent no-op. Set the digest by hand (crane digest).
 image:
   repository: data.forgejo.org/forgejo/runner
-  tag: "13.1.0"
-  digest: "sha256:c4af85fd9f0dd03788676a534781a87c71aa2c6a37737143e017eb94d4312952"
+  tag: "13.2.0"
+  digest: "sha256:ca3d5eea46004789a175d1369eec6829d3ea9bfbe2011a06625b4bdaa55f7552"
 
 plugin:
   image:
     repository: git.erwanleboucher.dev/eleboucher/runner-k8s-plugin
     # changelog: forgejo API releases + compare at git.erwanleboucher.dev/eleboucher/runner-k8s-plugin (PR body is a stub); must match the runner major above
-    tag: "13.1.0"
-    digest: "sha256:9ae8a21340cde415b828adc95bc4f1345bed67c21a0e3be26032d367a64b20db"
+    tag: "13.2.0"
+    digest: "sha256:1ee698a62fadae1fe0ff8ae24c1012c2fda0bb9c97bbd1e57606ce4445932bf9"
 
 # Full runner.yaml. plugins.k8s.address MUST match the chart's plugin.socketPath,
 # and options.namespace is the namespace job pods are created in (this release's ns).

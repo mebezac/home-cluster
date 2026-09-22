@@ -18,7 +18,8 @@ spec:
     # ServiceAccount/Role/RoleBinding, runner.yaml + podspec ConfigMap).
     - repoURL: git.erwanleboucher.dev/eleboucher/charts
       chart: forgejo-runner
-      targetRevision: 13.1.0
+      # changelog: same repo as the plugin - forgejo API releases at git.erwanleboucher.dev/eleboucher/runner-k8s-plugin (PR body is a stub); diff with helm pull oci://git.erwanleboucher.dev/eleboucher/charts/forgejo-runner
+      targetRevision: 13.2.0
       helm:
         releaseName: forgejo-runner
         valueFiles:
