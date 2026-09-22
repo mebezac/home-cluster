@@ -2,8 +2,11 @@
 # Wait for an ArgoCD Application to finish deploying a merged bump, then print
 # one status line. Read-only: only `kubectl get`.
 #
-# Usage: wait-for-app.sh <app> [--chart <name> <version>] [--ds <ns>/<name>] [--timeout <sec>]
+# Usage: wait-for-app.sh <app> [--rev <sha>] [--chart <name> <version>] [--ds <ns>/<name>] [--timeout <sec>]
 #   app       Application name (NOT always the file name - argo-cd's app is `argo`)
+#   --rev     require the synced git revision to start with this sha (your merge
+#             commit). Without it, an app that hasn't polled yet reads
+#             Synced/Healthy at the OLD revision and passes immediately.
 #   --chart   also require that source's targetRevision == version (chart bumps
 #             propagate in two hops: `apps` first, then the app itself)
 #   --ds      also require the DaemonSet to be fully rolled (updated == available == desired)
@@ -17,11 +20,12 @@
 set -uo pipefail
 
 app=$1; shift
-chart="" version="" ds="" timeout=600
+chart="" version="" ds="" rev="" timeout=600
 while [[ $# -gt 0 ]]; do
   case $1 in
     --chart) chart=$2 version=$3; shift 3 ;;
     --ds) ds=$2; shift 2 ;;
+    --rev) rev=$2; shift 2 ;;
     --timeout) timeout=$2; shift 2 ;;
     *) echo "unknown arg: $1" >&2; exit 64 ;;
   esac
@@ -33,9 +37,10 @@ deadline=$((SECONDS + timeout)) last_print=-30
 while :; do
   st=$(k get application "$app" -n argo-system -o json 2>/dev/null | jq -r --arg c "$chart" '
     [.status.sync.status, .status.health.status, (.status.operationState.phase // "none"),
-     (if $c == "" then "-" else ([.spec.sources[]? | select(.chart == $c) | .targetRevision] | first // "?") end)]
+     (if $c == "" then "-" else ([.spec.sources[]? | select(.chart == $c) | .targetRevision] | first // "?") end),
+     ([(.status.sync.revisions // [.status.sync.revision])[]? | select(test("^[0-9a-f]{40}$"))] | first // "?")]
     | join(" ")')
-  read -r sync health phase rev <<<"${st:-? ? ? ?}"
+  read -r sync health phase crev synced <<<"${st:-? ? ? ? ?}"
 
   ds_ok=1 ds_msg=""
   if [[ -n $ds ]]; then
@@ -45,12 +50,12 @@ while :; do
     [[ -n ${want:-} && $want == "${upd:-}" && $want == "${avail:-}" ]] || ds_ok=0
   fi
 
-  line="$app: $sync $health op=$phase${chart:+ $chart=$rev}$ds_msg"
+  line="$app: $sync $health op=$phase rev=${synced:0:8}${chart:+ $chart=$crev}$ds_msg"
   if [[ $phase == Failed || $phase == Error || $health == Degraded ]]; then
     echo "FAILED  $line"; exit 1
   fi
   if [[ $sync == Synced && $health == Healthy && $phase != Running \
-        && ( -z $chart || $rev == "$version" ) && $ds_ok == 1 ]]; then
+        && ( -z $chart || $crev == "$version" ) && ( -z $rev || $synced == "$rev"* ) && $ds_ok == 1 ]]; then
     echo "DONE    $line"; exit 0
   fi
   if (( SECONDS >= deadline )); then echo "TIMEOUT $line"; exit 2; fi

@@ -387,8 +387,13 @@ shortly rather than concluding it failed.
 
 ```bash
 mise exec -- .claude/skills/dependency-pr-triage/scripts/wait-for-app.sh <app> \
-  [--chart <chart> <version>] [--ds <ns>/<daemonset>] [--timeout 600]
+  --rev <merge-sha> [--chart <chart> <version>] [--ds <ns>/<daemonset>] [--timeout 600]
 ```
+
+Always pass `--rev` with the merge commit (`gh pr view <n> --json mergeCommit`)
+for image/values bumps: right after a merge the app still reads
+`Synced`/`Healthy` at the *old* revision, and without `--rev` the script
+passes on that stale state. For chart bumps `--chart` covers it.
 
 It exits `0 DONE` / `1 FAILED` / `2 TIMEOUT` and prints a `waiting` line every
 30s, so a stall is visible. Run it with `run_in_background` and let the
