@@ -6,7 +6,7 @@ image:
   # changelog: GH releases oliver006/redis_exporter. Keep in lockstep with the chart's
   # targetRevision in kubernetes/argo/apps/observability/prometheus-redis-exporter.yaml - chart
   # bumps there are appVersion-only, and this tag must equal that chart version's appVersion.
-  tag: v1.91.1
+  tag: v1.92.0
 env:
   - name: TZ
     value: America/New_York
