@@ -25,7 +25,7 @@ controllers:
         image:
           repository: ghcr.io/formbricks/formbricks
           # changelog: github releases at formbricks/formbricks (not in PR body); majors also need docs/self-hosting/advanced/migration.mdx in that repo
-          tag: 4.9.7@sha256:eb19ee1fe2bbd559fdd463b3bd72a2c2f664402510b446779192f7ffd10ada5d
+          tag: 6.0.0@sha256:349be90c07b4a68ce841930a2fb549f487276e2a3f9e73c1e64e6c32ae35b507
         env:
           EMAIL_VERIFICATION_DISABLED: "1"
           DANGEROUSLY_ALLOW_WEBHOOK_INTERNAL_URLS: "1"
