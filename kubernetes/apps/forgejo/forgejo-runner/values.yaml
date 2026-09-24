@@ -36,7 +36,7 @@ plugin:
   image:
     repository: git.erwanleboucher.dev/eleboucher/runner-k8s-plugin
     # changelog: forgejo API releases + compare at git.erwanleboucher.dev/eleboucher/runner-k8s-plugin (PR body is a stub); must match the runner major above
-    tag: "13.2.0"
+    tag: "13.2.1"
     digest: "sha256:1ee698a62fadae1fe0ff8ae24c1012c2fda0bb9c97bbd1e57606ce4445932bf9"
 
 # Full runner.yaml. plugins.k8s.address MUST match the chart's plugin.socketPath,
