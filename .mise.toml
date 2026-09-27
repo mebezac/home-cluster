@@ -35,3 +35,7 @@ uv = "0.12.19"
 "aqua:siderolabs/talos" = "1.14.1"
 "aqua:yannh/kubeconform" = "0.8.0"
 "asdf:janpieper/asdf-ksops" = "4.3.3"
+# renovate provides `renovate-config-validator` for checking .github/renovate.json5; needs node ^24.11
+node = "24.21.0"
+# libzip 3.2.2 was hand-published by the yarn lead (arcanis) without provenance; 3.2.0/3.2.1 had it via yarnbot
+"npm:renovate" = { version = "44.103.4", trust_policy_excludes = ["@yarnpkg/libzip@3.2.2"] }
