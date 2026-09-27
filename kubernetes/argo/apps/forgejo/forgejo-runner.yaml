@@ -19,7 +19,7 @@ spec:
     - repoURL: git.erwanleboucher.dev/eleboucher/charts
       chart: forgejo-runner
       # changelog: same repo as the plugin - forgejo API releases at git.erwanleboucher.dev/eleboucher/runner-k8s-plugin (PR body is a stub); diff with helm pull oci://git.erwanleboucher.dev/eleboucher/charts/forgejo-runner
-      targetRevision: 13.2.0
+      targetRevision: 13.2.1
       helm:
         releaseName: forgejo-runner
         valueFiles:
