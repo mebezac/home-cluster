@@ -227,6 +227,15 @@
       matchPackageNames: ["ghcr.io/tphakala/birdnet-go"],
       versioning: "regex:^(?<major>\\d{4})(?<minor>\\d{2})(?<patch>\\d{2})$",
     },
+    {
+      description: [
+        "forgejo-runner chart uses split tag:/digest: keys and renders repository@digest.",
+        "helm-values only bumps tag: (silent no-op - PR #2500), so the split-digest customManager owns these.",
+      ],
+      matchManagers: ["helm-values"],
+      matchFileNames: ["kubernetes/apps/forgejo/forgejo-runner/values.yaml"],
+      enabled: false,
+    },
   ],
   customManagers: [
     {
@@ -248,6 +257,18 @@
       datasourceTemplate: "docker",
       versioningTemplate: "docker",
       registryUrlTemplate: "https://{{registryUrl}}",
+    },
+    {
+      customType: "regex",
+      description: [
+        "Split tag:/digest: image keys (forgejo-runner chart renders repository@digest)",
+        "Bumps tag and digest together; comment lines between repository and tag are allowed.",
+      ],
+      managerFilePatterns: ["/(^|/)kubernetes/apps/forgejo/forgejo-runner/values\\.yaml$/"],
+      matchStrings: [
+        "repository: (?<depName>\\S+)\\n(?:[ \\t]*#.*\\n)*[ \\t]*tag: \"?(?<currentValue>[^\"\\s]+)\"?\\n[ \\t]*digest: \"?(?<currentDigest>sha256:[a-f0-9]{64})\"?",
+      ],
+      datasourceTemplate: "docker",
     },
   ],
 }
