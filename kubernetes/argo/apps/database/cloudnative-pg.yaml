@@ -15,6 +15,7 @@ spec:
       ref: cloudnative-pg-repo
     - repoURL: https://cloudnative-pg.github.io/charts
       chart: cloudnative-pg
+      # changelog: operator notes = GH releases cloudnative-pg/cloudnative-pg v<chart appVersion> (PR body only has thin chart notes)
       targetRevision: 0.29.1
       helm:
         releaseName: cloudnative-pg

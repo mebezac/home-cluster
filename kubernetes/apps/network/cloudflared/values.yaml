@@ -8,7 +8,7 @@ controllers:
       app:
         image:
           repository: docker.io/cloudflare/cloudflared
-          # changelog: GH releases cloudflare/cloudflared + repo CHANGES.md for breaking flags
+          # changelog: repo RELEASE_NOTES per-release (GH release body is checksums only) + CHANGES.md for breaking flags
           # (PR body is checksums only). NB 2026.8.0/.1 were 'do not use' releases; .2 is the fix.
           tag: 2026.9.3@sha256:072c067d25ccbe61d46e18f0d0723255f2bb5304f7317caa95b27031520ff92c
         env:
