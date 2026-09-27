@@ -9,7 +9,8 @@ description: >-
   the kubernetes MCP) for changes we'd need to make, sorts everything by
   danger/blast-radius, then walks the user through each one interactively so
   they decide what to merge, defer, or dig into, and confirms via the ArgoCD MCP
-  that each merged bump actually synced and went healthy. Reach for this any time
+  that each merged bump actually synced and went healthy, then lists the
+  follow-up features and improvements the bumps unlocked. Reach for this any time
   there's a pile of Renovate PRs to get through.
 ---
 
@@ -71,7 +72,8 @@ Work the phases in order. Phases 1–4 are research and produce a briefing; phas
 5 presents an up-front, PR-by-PR summary of *what changed* (features, fixes,
 improvements worth knowing about); phase 6 is the interactive merge session where
 you classify by danger and the user decides; phase 7 confirms each merge actually
-deployed. Do all the research *before* talking the user through decisions — they
+deployed; phase 8 hands over the **follow-ups** — features and improvements the
+merged bumps unlocked that we could adopt next. Do all the research *before* talking the user through decisions — they
 should never wait on a changelog fetch mid-conversation.
 
 For any non-trivial batch (say 8+ PRs), the research in phases 2–4 is
@@ -79,7 +81,8 @@ per-PR and independent — fan it out with parallel subagents (one per PR or per
 dependency group) rather than fetching serially. Give each subagent the PR
 number and the instructions from the relevant phase, and have it return a
 compact structured summary (package, versions, update type, changelog
-highlights, repo files that reference it, impact verdict). Then you assemble the
+highlights, repo files that reference it, impact verdict, follow-up candidates
+with where each would apply). Then you assemble the
 briefing. This keeps the whole triage fast even when there are twenty PRs.
 
 ### 1. Enumerate and group the PRs
@@ -221,8 +224,8 @@ it alongside any other change the PR needs, and let the user commit it per their
 workflow. If a `# changelog:` comment is already there and still accurate, leave
 it; refresh it only if the project moved where it publishes notes.
 
-Distil each changelog along **two** lenses — you're reading it anyway, so
-capture both:
+Distil each changelog along **three** lenses — you're reading it anyway, so
+capture all of them:
 
 1. **Impact on us** (drives the merge decision in phase 6): breaking changes,
    removed or renamed config options, new required settings, changed defaults,
@@ -234,8 +237,14 @@ capture both:
    worth turning on). Don't editorialize every line item — surface the two or
    three things a user would be glad to know shipped, and say plainly when a bump
    is purely internal ("no user-facing changes").
+3. **Follow-ups** (drives phase 8): the subset of lens 2 we'd have to *act on*
+   to benefit — a new chart value or env var worth setting, a feature to turn
+   on, a new metric/dashboard/alert to wire up, an integration with something
+   we already run (Authelia OIDC, VictoriaMetrics, Garage S3, central PG/Valkey),
+   or an upstream fix that lets us **drop a workaround** we carry. Lens 2 is
+   *what shipped*; a follow-up is *what we could change because it shipped*.
 
-Skip the noise for both lenses (dependency bumps inside the upstream project, CI
+Skip the noise for all lenses (dependency bumps inside the upstream project, CI
 changes, typo fixes).
 
 ### 3. Scan our repo for required changes
@@ -264,6 +273,14 @@ a key we actually set?* A renamed Helm value only matters if our `values.yaml`
 sets the old name. A changed default only matters if we relied on the old
 default. A required new env var always matters. Cross-reference the changelog
 against the real file contents — don't assume.
+
+Run the same scan for each **follow-up** candidate: find where it would land
+(the `values.yaml` key to add, the app it applies to) and check we don't already
+use it. Hunt for workarounds the bump may retire — comments near our usage
+mentioning an upstream bug, `NB`/`NOTE`/`TODO`/`workaround`/`until`, pinned
+older sub-images, disabled features — and match them against the fixed-bugs
+list. Drop candidates that don't fit how we run the app. Record each survivor as
+*file:line — the change — why it's worth it*.
 
 See `references/repo-map.md` for the full dependency-kind → file-location map and
 the repo's conventions (image pinning, app-template structure, central Postgres
@@ -306,7 +323,7 @@ fine — danger ordering is phase 6's job, not this one's). For each PR give:
   anything that could be **useful to the user** given how they run this cluster
   (a new setting for an app we deploy, a bug we've plausibly hit, a UX/perf win,
   a new integration worth enabling). Prefix those with **💡** so they're easy to
-  spot.
+  spot; the actionable 💡 items are the follow-ups phase 8 comes back to.
 - If a bump is purely internal, say so in one line ("digest refresh, no
   user-facing changes") rather than padding it.
 
@@ -453,6 +470,36 @@ Setup note: the ArgoCD MCP authenticates as the `mcp` local account
 (`role:admin`) with a token in the shell env — if the MCP tools error on auth,
 that token/config is the thing to check, and it's fine to tell the user the
 verification step is unavailable rather than falling back to guesswork.
+
+### 8. Hand over the follow-ups
+
+Once the merge session is done, close with a consolidated **follow-up list**:
+the improvements the merged bumps unlocked that we could adopt in a later
+change. This is the forward-looking half of the triage — the merges kept us
+current; the follow-ups are how we actually benefit.
+
+For each follow-up give:
+
+- **what** — the feature/improvement, in one line
+- **unlocked by** — the PR(s) and version that shipped it
+- **where** — `file:line` and the concrete change (the value to set, the
+  workaround to delete, the integration to wire up)
+- **worth** — the payoff for this cluster, and rough effort (one-line values
+  edit / small change / project)
+
+Order by payoff-to-effort, best first. Include follow-ups from **deferred** PRs
+only as "available once #n merges", listed after the rest. Retired workarounds
+go first — deleting a workaround is usually the cheapest win and removes future
+confusion.
+
+Then let the user pick. For each one they choose: make it now as a normal repo
+change (edit, commit, push per their workflow, then verify it synced as in phase
+7), or record it for later (a GitHub issue via `gh issue create`, or a note if
+they prefer). Leave the rest.
+
+**Completion criterion:** every actionable 💡 item from phase 5 for a merged PR
+is either on the list or dropped with a one-line reason ("already enabled",
+"we don't use that integration").
 
 ## Style
 
