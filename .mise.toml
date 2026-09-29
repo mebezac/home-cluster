@@ -38,4 +38,4 @@ uv = "0.12.19"
 # renovate provides `renovate-config-validator` for checking .github/renovate.json5; needs node ^24.11
 node = "24.21.0"
 # libzip 3.2.2 was hand-published by the yarn lead (arcanis) without provenance; 3.2.0/3.2.1 had it via yarnbot
-"npm:renovate" = { version = "44.115.13", trust_policy_excludes = ["@yarnpkg/libzip@3.2.2"] }
+"npm:renovate" = { version = "44.121.2", trust_policy_excludes = ["@yarnpkg/libzip@3.2.2"] }
