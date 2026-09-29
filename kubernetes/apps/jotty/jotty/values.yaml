@@ -16,7 +16,7 @@ controllers:
         image:
           repository: ghcr.io/fccview/jotty
           # changelog: GH releases fccview/jotty/releases (PR body has been complete so far, but verify on GH - security fixes are described vaguely with a 2wk disclosure delay). Data is flat JSON under /app/data; DATA_SCHEMA_VERSION in app/_consts/files.ts gates migrations - only a bump there needs a snapshot first
-          tag: 1.27.0@sha256:4c51a4ccc02644dc6bc96b0ecd9a5a881b4af47416726e14fa81b316f0b72759
+          tag: 1.28.0@sha256:df965e56fe2e3ce056351425b8ff5d7df991a6596dfa807c73c91cf5eaa30c86
         env:
           NODE_ENV: production
           PUID: 3000
