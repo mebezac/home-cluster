@@ -41,6 +41,9 @@ controllers:
           N8N_GIT_NODE_DISABLE_BARE_REPOS: true
           N8N_WEBHOOK_URL: https://n8n.laboratory.casa
           N8N_PROXY_HOPS: 2
+          # Opt in early to the v3 rename ~/.n8n/binaryData -> ~/.n8n/storage (one-shot, no-op once done;
+          # both paths sit inside the /home/node/.n8n PVC so no mount change is needed).
+          N8N_MIGRATE_FS_STORAGE_PATH: true
           # Pinned to the current defaults — upstream is lowering/flipping all four in a
           # future release (deprecation warnings as of 2.33.0). Set explicitly so the
           # change is a decision, not a silent inherit.
