@@ -64,7 +64,6 @@ There are **4 stages** outlined below for completing this project, make sure you
     ```sh
     mise trust
     mise install
-    mise run deps
     ```
 
 ### Stage 3: Template Configuration
