@@ -7,6 +7,9 @@ service:
   name: kube-dns
   clusterIP: "10.96.0.10"
 replicaCount: 2
+# Keep one DNS pod up through node drains (Talos upgrades); 3 control-plane nodes to land on.
+podDisruptionBudget:
+  minAvailable: 1
 servers:
   - zones:
       - zone: .
@@ -33,6 +36,11 @@ servers:
         parameters: . /etc/resolv.conf
       - name: cache
         parameters: 30
+        # Serve last-known answers for up to 1h if upstream fails; verify first (100ms cap) so a
+        # healthy upstream always wins. 30s stale TTL + 30s failure recheck per RFC 8767.
+        # Not using serve_stale_policy prefer_positive: it masks record deletions.
+        configBlock: |-
+          serve_stale 1h verify 100ms 30s 30s
       - name: loop
       - name: reload
       - name: loadbalance
