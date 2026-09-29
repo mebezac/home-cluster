@@ -10,7 +10,7 @@ TASK_X_MAP_VARIABLES = 0
 # Template tools
 python = "3.14.7"
 # changelog: astral-sh/uv CHANGELOG.md (Renovate truncates the body on multi-patch jumps - read CHANGELOG.md directly)
-uv = "0.12.20"
+uv = "0.12.21"
 # Operations tools
 "aqua:argoproj/argo-cd" = "3.5.3"
 "aqua:budimanjojo/talhelper" = "3.1.17"
