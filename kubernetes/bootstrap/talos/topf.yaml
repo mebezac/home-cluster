@@ -21,7 +21,7 @@ data:
   vip: 10.25.30.116
 
 # data.installDisk: install target. data.macAddr: NIC matched by LinkAliasConfig.
-# data.vip: holds the control-plane VIP (wyse-5070-03 is a control-plane node without it).
+# data.vip: candidate for the control-plane VIP (Talos elects one holder among them).
 nodes:
   - host: elitebook-01-talos-k3s-main-01
     ip: 10.25.30.45
@@ -37,7 +37,7 @@ nodes:
     ip: 10.25.30.35
     role: control-plane
     schematicId: "@schematics/wyse.yaml"
-    data: { installDisk: /dev/sdb, macAddr: "e4:54:e8:3c:08:6a", vip: false }
+    data: { installDisk: /dev/sdb, macAddr: "e4:54:e8:3c:08:6a", vip: true }
   - host: wyse-5070-01-talos-k3s-worker-01
     ip: 10.25.30.33
     role: worker
