@@ -79,12 +79,10 @@ persistence:
       - path: /cache
         subPath: cache
 
+  # Scratch space only - emptyDir so the pod isn't pinned to one node by a local PV.
   transcodes:
     enabled: true
-    type: persistentVolumeClaim
-    storageClass: openebs-hostpath
-    accessMode: ReadWriteOnce
-    suffix: transcodes
-    size: 60Gi
+    type: emptyDir
+    sizeLimit: 20Gi
     globalMounts:
       - path: /transcodes

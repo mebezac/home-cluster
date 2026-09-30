@@ -291,13 +291,14 @@ persistence:
   #         - path: /var/lib/garage/data
   #       rclone:
   #         - path: /tmp-d
+  # rclone's --vfs-cache-mode writes staging area. emptyDir, not a node-local PV: a clean stop
+  # flushes pending uploads (preStop unmount), and after a node death the unflushed seconds are
+  # gone either way, so a pinned PV only stopped the pod from moving off a drained/dead node.
+  # sizeLimit sits above --vfs-cache-max-size 6G.
   vfs-cache:
     enabled: true
-    type: persistentVolumeClaim
-    storageClass: openebs-hostpath
-    accessMode: ReadWriteOnce
-    suffix: vfs-cache
-    size: 7Gi
+    type: emptyDir
+    sizeLimit: 7Gi
     advancedMounts:
       main:
         rclone:
