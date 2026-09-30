@@ -362,7 +362,7 @@ ingress:
     enabled: true
     className: external
     annotations:
-      external-dns.alpha.kubernetes.io/target: external.laboratory.casa
+      external-dns.kubernetes.io/target: external.laboratory.casa
     hosts:
       - host: <app-name>.laboratory.casa
         paths:
@@ -379,7 +379,7 @@ ingress:
   app:
     className: external
     annotations:
-      external-dns.alpha.kubernetes.io/target: external.laboratory.casa
+      external-dns.kubernetes.io/target: external.laboratory.casa
       nginx.ingress.kubernetes.io/auth-method: GET
       nginx.ingress.kubernetes.io/auth-url: http://authelia.security.svc.cluster.local/api/authz/auth-request
       nginx.ingress.kubernetes.io/auth-signin: https://login.laboratory.casa?rm=$request_method
