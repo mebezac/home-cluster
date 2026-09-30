@@ -265,7 +265,7 @@ grep -rn "<image-repo-or-chart-name>" kubernetes/
   `image.repository`/`tag`), sometimes `helmfile.yaml` or bootstrap.
 - **Helm charts** → the `targetRevision` in `kubernetes/argo/apps/<ns>/<app>.yaml`
   and the chart's values in the app's `values.yaml`.
-- **github-release** tools (talos, sops, helmfile, talhelper) → `helmfile.yaml`,
+- **github-release** tools (talos, sops, helmfile, topf) → `helmfile.yaml`,
   `kubernetes/bootstrap/`, and CI/workflow files.
 
 Then ask: *does anything in the changelog's breaking/changed list correspond to

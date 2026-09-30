@@ -2,7 +2,8 @@
 _.python.venv = { path = "{{config_root}}/.venv", create = true }
 KUBECONFIG = "{{config_root}}/kubeconfig"
 SOPS_AGE_KEY_FILE = "{{config_root}}/age.key"
-TALOSCONFIG = "{{config_root}}/kubernetes/bootstrap/talos/clusterconfig/talosconfig"
+TALOSCONFIG = "{{config_root}}/kubernetes/bootstrap/talos/talosconfig"
+TOPFCONFIG = "{{config_root}}/kubernetes/bootstrap/talos/topf.yaml"
 TASK_X_ENV_PRECEDENCE = 1
 TASK_X_MAP_VARIABLES = 0
 
@@ -13,7 +14,6 @@ python = "3.14.7"
 uv = "0.12.21"
 # Operations tools
 "aqua:argoproj/argo-cd" = "3.5.3"
-"aqua:budimanjojo/talhelper" = "3.1.17"
 # changelog: repo RELEASE_NOTES per-release + CHANGES.md for breaking flags - the GH release body is checksums only.
 # Keep in step with the 3 cloudflared container pins under kubernetes/apps/network/cloudflared*/values.yaml
 "aqua:cloudflare/cloudflared" = "2026.9.3"
@@ -30,6 +30,8 @@ uv = "0.12.21"
 "aqua:kubernetes/kubectl" = "1.32.2"
 "aqua:mikefarah/yq" = "4.54.1"
 "aqua:siderolabs/talos" = "1.14.2"
+# topf renders + applies Talos machine configs from kubernetes/bootstrap/talos/topf.yaml (replaced archived talhelper)
+"github:postfinance/topf" = "0.6.1"
 "aqua:yannh/kubeconform" = "0.8.0"
 "asdf:janpieper/asdf-ksops" = "4.3.3"
 # renovate provides `renovate-config-validator` for checking .github/renovate.json5; needs node ^24.11

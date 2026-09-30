@@ -111,7 +111,7 @@ There are **4 stages** outlined below for completing this project, make sure you
 
     ```sh
     git add -A
-    git commit -m "chore: add talhelper encrypted secret :lock:"
+    git commit -m "chore: add talos encrypted secret :lock:"
     git push
     ```
 
@@ -178,25 +178,27 @@ task talos:reset # --force
 ### ⚙️ Updating Talos node configuration
 
 > [!IMPORTANT]
-> Ensure you have updated `talconfig.yaml` and any patches with your updated configuration. In some cases you **not only need to apply the configuration but also upgrade talos** to apply new configuration.
+> Talos config is assembled by [topf](https://postfinance.github.io/topf/) from `kubernetes/bootstrap/talos/topf.yaml` plus the patches next to it. In some cases you **not only need to apply the configuration but also upgrade talos** to apply new configuration.
 
 ```sh
-# (Re)generate the Talos config
-task talos:generate-config
-# Apply the config to the node
-task talos:apply-node IP=? MODE=?
-# e.g. task talos:apply-config IP=10.10.10.10 MODE=auto
+# Render + validate every node's config (to the gitignored ./rendered)
+task talos:render
+# Show what would change on each node
+task talos:diff
+# Apply the config to one node (shows a diff and asks first)
+task talos:apply-node NODE=? MODE=?
+# e.g. task talos:apply-node NODE=talmac-01 MODE=auto
 ```
 
 ### ⬆️ Updating Talos and Kubernetes versions
 
 > [!IMPORTANT]
-> Ensure the `talosVersion` and `kubernetesVersion` in `talconfig.yaml` are up-to-date with the version you wish to upgrade to.
+> Ensure the `talosVersion` and `kubernetesVersion` in `topf.yaml` are up-to-date with the version you wish to upgrade to.
 
 ```sh
 # Upgrade node to a newer Talos version
-task talos:upgrade-node IP=?
-# e.g. task talos:upgrade IP=10.10.10.10
+task talos:upgrade-node NODE=?
+# e.g. task talos:upgrade-node NODE=talmac-01
 ```
 
 ```sh

@@ -11,7 +11,7 @@ description: >-
   the Longhorn instance-manager PDB, evacuate single-replica volumes that would
   otherwise go offline, run `talosctl upgrade --preserve`, ride out the T2 Mac
   BootFFFF non-fatal error, re-enable scheduling, and confirm every volume /
-  pod / etcd member is healthy before the next node. Knows this repo's talhelper
+  pod / etcd member is healthy before the next node. Knows this repo's topf
   layout, the talmac T2 Mac constraints (>= v1.14.2 only), and the Longhorn
   gotchas (stale USB mounts, diskUUID mismatch, data-locality PVs, CNPG
   switchover). Reach for this any time a Talos node needs upgrading, reinstalling,
@@ -26,7 +26,8 @@ upgrade --preserve` → verify → restore → confirm cluster fully healthy →
 then touch the next node. Never two nodes at once.
 
 **This is the bootstrap/Talos layer — ArgoCD does NOT manage it.** Config lives
-in `kubernetes/bootstrap/talos/` (talhelper), applied manually. Config edits are
+in `kubernetes/bootstrap/talos/` (topf: `topf.yaml` + `all/` `control-plane/` `worker/`
+`node/<host>/` patches, `schematics/*.yaml`), applied manually. Config edits are
 committed to the repo normally (no attribution trailer per repo convention).
 
 ## Setup (run first, every session)
@@ -34,26 +35,55 @@ committed to the repo normally (no attribution trailer per repo convention).
 ```bash
 cd kubernetes/bootstrap/talos
 export SOPS_AGE_KEY_FILE=/Users/zac/projects/lab_casa/home-cluster/age.key
-export TALOSCONFIG="$PWD/clusterconfig/talosconfig"
-# regenerate configs so the install image reflects the target talosVersion:
-talhelper genconfig --config-file talconfig.yaml --secret-file talsecret.sops.yaml --out-dir clusterconfig
+export TALOSCONFIG=/Users/zac/projects/lab_casa/home-cluster/kubernetes/bootstrap/talos/talosconfig
+export TOPFCONFIG=/Users/zac/projects/lab_casa/home-cluster/kubernetes/bootstrap/talos/topf.yaml
+# render (gitignored ./rendered - PLAINTEXT SECRETS, never print whole files) + validate:
+topf render --output ./rendered --confirm=false
+for f in rendered/*.yaml; do talosctl validate --mode metal --config "$f"; done
+topf nodes   # live stage / ready / schematic / version per node (retry once on i/o timeout)
 ```
 
-`talconfig.yaml` already carries `talosVersion:` — the version everything targets.
+`topf.yaml` carries `talosVersion:` — the version everything targets.
 To upgrade the whole cluster to a new patch, bump `talosVersion` there first (and
 `kubernetesVersion` if desired), regen, then loop. For a same-version rollout
 (nodes lagging the pinned version) no edit is needed — just loop.
 
 ### Node inventory & upgrade image
 
-Each node's upgrade image = its **install image** from the generated config
-(factory schematic + `:version`):
+Each node's upgrade image = the `UnattendedInstallConfig.installer.image` topf renders
+(`factory.talos.dev/metal-installer/<schematic>:<talosVersion>`, schematic hashed locally
+from `schematics/<hw>.yaml`):
 
 ```bash
-for f in clusterconfig/kubernetes-*.yaml; do
-  echo "$f -> $(grep -A3 'install:' "$f" | grep image: | head -1 | awk '{print $2}')"
+for f in rendered/*.yaml; do
+  echo "$f -> $(yq 'select(.kind=="UnattendedInstallConfig") | .installer.image' "$f")"
 done
 ```
+
+`topf upgrade` exists (pre-pull, drain, reboot, uncordon) but this skill drives
+`talosctl upgrade --image <that image> --preserve` by hand because of the Longhorn
+evacuation and talmac BootFFFF/powercycle steps below. Either way, **the machine
+config is a separate step**: an upgrade keeps the node's current config.
+
+### First upgrade to 1.14 (one-time topf migration)
+
+Nodes upgraded from 1.13 still run the old talhelper-era legacy v1alpha1 config. The
+topf render uses 1.14-only document kinds, so it can ONLY be applied **after** a node
+is on 1.14 — never before. Per node, right after its upgrade is verified:
+
+```bash
+topf apply --nodes-filter '^<host>$' --dry-run   # review the diff (secrets redacted)
+topf apply --nodes-filter '^<host>$'             # asks to confirm; mode auto
+```
+
+Expect control-plane static pods to re-render. **talmacs**: their patch swaps legacy
+`machine.disks` for `ExistingVolumeConfig` (USB SSD by XFS UUID, same
+`/var/mnt/longhorn-usb` path) - apply with `--mode staged`, then
+`talosctl reboot --mode powercycle` while the node is still drained, then confirm
+`talosctl get volumestatus` shows `e-longhorn-usb` ready, `get mountstatus` shows
+`/var/mnt/longhorn-usb`, and the Longhorn disk `sabrent-usb-ssd` is Ready with its
+unchanged diskUUID before uncordoning. If the selector matches nothing the volume just
+waits (no data touched) - restore the old mount by reverting that patch.
 
 Current nodes (verify live, don't trust this list blindly):
 
@@ -381,11 +411,9 @@ do you move on.
 
 ## Repo cleanup after migrating a node onto a new installer
 
-If you moved a node onto a different schematic or off a version pin, edit
-`talconfig.yaml` (set its `talosImageURL`, delete its
-`patches/<node>/machine-install.yaml` pin + the reference line), keep
-`machine-disks.yaml`, `talhelper genconfig` to confirm the install image resolved,
-update `docs/talmac-1.13-upgrade.md`, and commit (conventional-commit message, no
+If you moved a node onto a different schematic or version pin, edit its entry in
+`topf.yaml` (`schematicId: "@schematics/<hw>.yaml"`, or a per-node `talosVersion`),
+re-render to confirm the installer image resolved, and commit (conventional-commit message, no
 attribution trailer).
 
 ## Gotchas learned (quick reference)
@@ -416,10 +444,10 @@ attribution trailer).
   Never gate a reboot wait on "node goes unreachable" — poll for the target
   version and sleep past the reset window instead.
 - **`talosctl` needs an absolute `$TALOSCONFIG`.** Exporting
-  `TALOSCONFIG="$PWD/clusterconfig/talosconfig"` breaks the moment anything `cd`s
+  `TALOSCONFIG="$PWD/talosconfig"` breaks the moment anything `cd`s
   elsewhere (editing this skill file will do it), and the failure reads as
   `talos config file is empty`. Use the full
-  `/Users/zac/projects/lab_casa/home-cluster/kubernetes/bootstrap/talos/clusterconfig/talosconfig`
+  `/Users/zac/projects/lab_casa/home-cluster/kubernetes/bootstrap/talos/talosconfig`
   path in every command. That failure is a safe no-op — the upgrade never reached
   the node — so just re-run it.
 - **etcd: leader last, verify 3 healthy converged members between CP nodes**, use
@@ -429,4 +457,4 @@ attribution trailer).
   touched disk, so re-running the same `upgrade` is a safe no-op (see step 4).
   First boot after the reboot can also log a burst of DNS/NTP timeouts and look
   stalled for 1-2 min, then self-recovers; don't reinstall over it.
-- **This layer isn't ArgoCD-managed** — talhelper/bootstrap, applied by hand.
+- **This layer isn't ArgoCD-managed** — topf/bootstrap, applied by hand.

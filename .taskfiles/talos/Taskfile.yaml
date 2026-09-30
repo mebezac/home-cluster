@@ -2,62 +2,65 @@
 # yaml-language-server: $schema=https://taskfile.dev/schema.json
 version: "3"
 
+# topf renders every node's machine config from topf.yaml + the patch dirs and diffs it against
+# the live node before applying (asks first). Rendered configs contain plaintext secrets - they
+# only ever go to the gitignored ./rendered dir.
+
 tasks:
-  generate-config:
-    desc: Generate Talos configuration
-    cmd: talhelper genconfig --config-file {{.TALHELPER_CONFIG_FILE}} --secret-file {{.TALHELPER_SECRET_FILE}} --out-dir {{.TALHELPER_CLUSTER_DIR}}
+  render:
+    desc: Render Talos machine configs to ./rendered and validate them
+    dir: '{{.TALOS_DIR}}'
+    cmds:
+      - topf render --output ./rendered --confirm=false
+      - for f in rendered/*.yaml; do talosctl validate --mode metal --config "$f"; done
     preconditions:
-      - test -f {{.TALHELPER_CONFIG_FILE}}
-      - test -f {{.SOPS_CONFIG_FILE}}
-      - test -f {{.SOPS_AGE_KEY_FILE}}
-      - which talhelper
+      - which topf talosctl
+
+  diff:
+    desc: Show pending config changes for every node without applying them
+    dir: '{{.TALOS_DIR}}'
+    cmd: topf apply --dry-run
+
+  apply:
+    desc: Apply Talos config to all nodes (shows a diff and asks first)
+    dir: '{{.TALOS_DIR}}'
+    cmd: topf apply
 
   apply-node:
-    desc: Apply Talos config to a node [IP=required]
-    cmd: talhelper gencommand apply --node {{.IP}} --config-file {{.TALHELPER_CONFIG_FILE}} --out-dir {{.TALHELPER_CLUSTER_DIR}} --extra-flags '--mode={{.MODE}}' | bash
+    desc: Apply Talos config to one node [NODE=required] [MODE=auto|no-reboot|reboot|staged|try]
+    dir: '{{.TALOS_DIR}}'
+    cmd: topf apply --nodes-filter '^{{.NODE}}$' --mode '{{.MODE}}'
     vars:
       MODE: '{{.MODE | default "auto"}}'
     requires:
-      vars: [IP]
-    preconditions:
-      - talosctl --nodes {{.IP}} get machineconfig
-      - talosctl config info
-      - test -f {{.TALOSCONFIG}}
-      - which talhelper talosctl yq
+      vars: [NODE]
+
+  nodes:
+    desc: List all nodes and their current state
+    dir: '{{.TALOS_DIR}}'
+    cmd: topf nodes
 
   upgrade-node:
-    desc: Upgrade Talos on a single node [IP=required]
-    cmd: talhelper gencommand upgrade --node {{.IP}} --config-file {{.TALHELPER_CONFIG_FILE}} --out-dir {{.TALHELPER_CLUSTER_DIR}} --extra-flags "--image='factory.talos.dev/installer{{if eq .TALOS_SECUREBOOT "true"}}-secureboot{{end}}/{{.TALOS_SCHEMATIC_ID}}:{{.TALOS_VERSION}}' --timeout=10m --preserve" | bash
-    vars:
-      TALOS_SCHEMATIC_ID:
-        sh: yq '.nodes[] | select(.ipAddress == "{{.IP}}") | .talosImageURL' {{.TALHELPER_CONFIG_FILE}} | awk -F/ '{print $NF}'
-      TALOS_SECUREBOOT:
-        sh: yq '.nodes[] | select(.ipAddress == "{{.IP}}") | .machineSpec.secureboot' {{.TALHELPER_CONFIG_FILE}}
-      TALOS_VERSION:
-        sh: yq '.talosVersion' {{.TALHELPER_CONFIG_FILE}}
+    desc: Upgrade Talos on one node [NODE=required] - prefer the talos-upgrade skill (Longhorn evacuation, talmac quirks)
+    dir: '{{.TALOS_DIR}}'
+    cmd: topf upgrade --nodes-filter '^{{.NODE}}$'
     requires:
-      vars: [IP]
-    preconditions:
-      - talosctl --nodes {{.IP}} get machineconfig
-      - talosctl config info
-      - test -f {{.TALOSCONFIG}}
-      - which kubectl talhelper talosctl yq
+      vars: [NODE]
 
   upgrade-k8s:
-    desc: Upgrade Kubernetes
-    cmd: talhelper gencommand upgrade-k8s --config-file {{.TALHELPER_CONFIG_FILE}} --out-dir {{.TALHELPER_CLUSTER_DIR}} --extra-flags "--to '{{.KUBERNETES_VERSION}}'" | bash
-    vars:
-      KUBERNETES_VERSION:
-        sh: yq '.kubernetesVersion' {{.TALHELPER_CONFIG_FILE}}
+    desc: Upgrade Kubernetes to kubernetesVersion in topf.yaml (topf deliberately doesn't manage this)
+    dir: '{{.TALOS_DIR}}'
+    cmd: talosctl --nodes "$(yq '[.nodes[] | select(.role == "control-plane")][0].ip' topf.yaml)" upgrade-k8s --to "$(yq '.kubernetesVersion' topf.yaml)"
     preconditions:
-      - talosctl config info
-      - test -f {{.TALOSCONFIG}}
-      - which talhelper talosctl yq
+      - which talosctl yq
+
+  talosconfig:
+    desc: Regenerate ./talosconfig from the secrets bundle
+    dir: '{{.TALOS_DIR}}'
+    cmd: topf talosconfig
 
   reset:
-    desc: Resets nodes back to maintenance mode
-    dir: "{{.KUBERNETES_DIR}}/bootstrap/talos"
+    desc: Reset ALL nodes back to maintenance mode (DESTRUCTIVE)
+    dir: '{{.TALOS_DIR}}'
     prompt: This will destroy your cluster and reset the nodes back to maintenance mode... continue?
-    cmd: talhelper gencommand reset --config-file {{.TALHELPER_CONFIG_FILE}} --out-dir {{.TALHELPER_CLUSTER_DIR}} --extra-flags="--reboot {{- if eq .CLI_FORCE false }} --system-labels-to-wipe STATE --system-labels-to-wipe EPHEMERAL{{ end }} --graceful=false --wait=false" | bash
-  preconditions:
-    - which talhelper
+    cmd: topf reset --confirm=false

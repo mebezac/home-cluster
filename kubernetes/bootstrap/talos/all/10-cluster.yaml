@@ -1,0 +1,13 @@
+machine:
+  certSANs:
+    - 10.25.30.45
+    - 10.25.30.35
+    - 10.25.30.46
+    - 10.25.30.116
+    - 10.25.30.127
+    - 127.0.0.1
+---
+apiVersion: v1alpha1
+kind: KubeNetworkConfig
+podSubnets: ["10.69.0.0/16"]
+serviceSubnets: ["10.96.0.0/16"]

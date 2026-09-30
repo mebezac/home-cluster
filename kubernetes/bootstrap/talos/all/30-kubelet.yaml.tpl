@@ -1,5 +1,13 @@
+# NOTE: this is the ONE deliberate deprecated v1alpha1 block. Talos 1.14 has no multi-doc
+# equivalent for .machine.kubelet.extraMounts ("upgrading-talos" guide), and KubeletConfig is
+# mutually exclusive with .machine.kubelet - so the generated KubeletConfig is deleted below and
+# its fields (image, seccomp default) are carried here instead. Kubelet only sees /var/lib/kubelet
+# and /var/mnt (ro) otherwise; openebs-hostpath PVs are `local` volumes that kubelet bind-mounts
+# itself, so it must see /var/openebs/local. Revisit when Talos adds a multi-doc extraMounts.
 machine:
   kubelet:
+    image: ghcr.io/siderolabs/kubelet:{{ .KubernetesVersion }}
+    defaultRuntimeSeccompProfileEnabled: true
     extraConfig:
       # Age-based image GC. Without this, kubelet only reclaims images under
       # disk pressure (imageGCHighThresholdPercent 85 / low 80), so stale
@@ -17,17 +25,18 @@ machine:
       - destination: /var/openebs/local
         type: bind
         source: /var/openebs/local
-        options:
-          - bind
-          - rshared
-          - rw
+        options: [bind, rshared, rw]
       - destination: /var/lib/longhorn
         type: bind
         source: /var/lib/longhorn
-        options:
-          - bind
-          - rshared
-          - rw
-    nodeIP:
-      validSubnets:
-        - 10.25.30.1/24
+        options: [bind, rshared, rw]
+---
+apiVersion: v1alpha1
+kind: KubeletConfig
+$patch: delete
+---
+apiVersion: v1alpha1
+kind: KubeNodeConfig
+nodeIP:
+  validSubnets:
+    - 10.25.30.0/24

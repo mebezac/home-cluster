@@ -1,0 +1,16 @@
+# 2018 T2 Intel Mac minis. pcie_ports=compat makes the Apple NVMe usable; intel_iommu/iommu=pt
+# are the usual i915 args. Stock factory images boot these Macs only on Talos >= v1.14.2
+# (Apple EFI-stub fix, siderolabs/pkgs@6c312e4, talos#13579) - never run a talmac on
+# v1.13.0-v1.14.1. The old custom GCC installer (mebezac/talos-mac-installer) is archived.
+customization:
+  extraKernelArgs:
+    - intel_iommu=on
+    - iommu=pt
+    - pcie_ports=compat
+  systemExtensions:
+    officialExtensions:
+      - siderolabs/i915
+      - siderolabs/intel-ucode
+      - siderolabs/iscsi-tools
+      - siderolabs/thunderbolt
+      - siderolabs/util-linux-tools

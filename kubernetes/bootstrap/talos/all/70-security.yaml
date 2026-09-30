@@ -1,0 +1,6 @@
+# Talos 1.14 enables workload isolation (sandboxd: kubelet + pods in their own PID/mount
+# namespace) for freshly generated configs. It breaks host-iscsid access, which the Longhorn v1
+# data engine depends on, so keep it explicitly off.
+apiVersion: v1alpha1
+kind: SecurityProfileConfig
+workloadIsolation: false

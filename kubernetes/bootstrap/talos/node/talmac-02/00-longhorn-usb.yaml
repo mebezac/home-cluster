@@ -1,0 +1,12 @@
+# USB SSD Longhorn disk (Longhorn disk "sabrent-usb-ssd", path /var/mnt/longhorn-usb).
+# Matched by XFS filesystem UUID, not /dev/sdX, so USB re-enumeration (the 2026-07 sda1->sde
+# incident) can't mount the wrong device. ExistingVolumeConfig never partitions or formats.
+# secure: false keeps today's mount options (legacy machine.disks mounted without nosuid/nodev/noexec).
+apiVersion: v1alpha1
+kind: ExistingVolumeConfig
+name: longhorn-usb
+discovery:
+  volumeSelector:
+    match: volume.uuid == "75d65343-28c8-4028-b9c9-202cce57d07a"
+mount:
+  secure: false

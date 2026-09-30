@@ -2,29 +2,25 @@
 # yaml-language-server: $schema=https://taskfile.dev/schema.json
 version: '3'
 
-env:
-  TALOSCONFIG: '{{.TALHELPER_CLUSTER_DIR}}/talosconfig'
-
 tasks:
 
   talos:
-    desc: Bootstrap the Talos cluster
-    dir: '{{.KUBERNETES_DIR}}/bootstrap/talos'
+    desc: Bootstrap the Talos cluster (nodes in maintenance mode)
+    dir: '{{.TALOS_DIR}}'
     cmds:
-      - '{{if eq .TALHELPER_SECRET_EXISTS "false"}}talhelper gensecret > {{.TALHELPER_SECRET_FILE}}{{end}}'
-      - '{{if eq .TALHELPER_SECRET_EXISTS "false"}}sops --encrypt --in-place {{.TALHELPER_SECRET_FILE}}{{end}}'
-      - talhelper genconfig --config-file {{.TALHELPER_CONFIG_FILE}} --secret-file {{.TALHELPER_SECRET_FILE}} --out-dir {{.TALHELPER_CLUSTER_DIR}}
-      - talhelper gencommand apply --config-file {{.TALHELPER_CONFIG_FILE}} --out-dir {{.TALHELPER_CLUSTER_DIR}} --extra-flags="--insecure" | bash
-      - until talhelper gencommand bootstrap --config-file {{.TALHELPER_CONFIG_FILE}} --out-dir {{.TALHELPER_CLUSTER_DIR}} | bash; do sleep 10; done
-      - until talhelper gencommand kubeconfig --config-file {{.TALHELPER_CONFIG_FILE}} --out-dir {{.TALHELPER_CLUSTER_DIR}} --extra-flags="{{.ROOT_DIR}} --force" | bash; do sleep 10; done
+      # topf secrets generates secrets.sops.yaml only if it doesn't exist yet
+      - '{{if eq .SECRETS_EXIST "false"}}topf secrets > /dev/null && sops --encrypt --in-place secrets.sops.yaml{{end}}'
+      - topf apply --auto-bootstrap
+      - topf talosconfig
+      - until topf kubeconfig --validity 8760h > {{.ROOT_DIR}}/kubeconfig; do sleep 10; done
     vars:
-      TALHELPER_SECRET_EXISTS:
-        sh: test -f {{.TALHELPER_SECRET_FILE}} && echo true || echo false
+      SECRETS_EXIST:
+        sh: test -f {{.TALOS_DIR}}/secrets.sops.yaml && echo true || echo false
     preconditions:
       - test -f {{.SOPS_CONFIG_FILE}}
       - test -f {{.SOPS_AGE_KEY_FILE}}
-      - test -f {{.TALHELPER_CONFIG_FILE}}
-      - which talhelper sops
+      - test -f {{.TOPFCONFIG}}
+      - which topf sops
 
   install-helm-secrets:
     cmds:
