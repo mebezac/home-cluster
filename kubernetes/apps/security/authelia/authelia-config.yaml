@@ -341,3 +341,27 @@ identity_providers:
           - "email"
         userinfo_signed_response_alg: "none"
         token_endpoint_auth_method: "client_secret_basic"
+      # pcab — podcast ad-blocker (github.com/mebezac/pcab). Confidential client
+      # (secret via SOPS in pcab-secret), client_secret_basic + PKCE S256.
+      # OIDC is pcab's only auth; /feeds/* bypass it via per-podcast URL tokens.
+      - client_id: "vhgmgEbo_H_j27QSNDnQG7YuwihZvr1qnZ_dS2moZa0eDMPLwulMdjb5wgDf92l.Giek9zCI"
+        client_name: "pcab"
+        client_secret: "$pbkdf2-sha512$310000$v08Ww/VwiK1pLHZ/r91rxg$LqAuMlDuVS84r.ktO3bM/ErGqYCc5vJ/WbGqN0D9CdiymAhstgoUkgfYdpxjwhQwkj4f.3h8xwomF2jR4/FFgg"
+        public: false
+        authorization_policy: "one_factor"
+        consent_mode: "implicit"
+        require_pkce: true
+        pkce_challenge_method: "S256"
+        redirect_uris:
+          - "https://pcab.laboratory.casa/auth/oidc/callback"
+        scopes:
+          - "openid"
+          - "profile"
+          - "email"
+        response_types:
+          - "code"
+        grant_types:
+          - "authorization_code"
+        access_token_signed_response_alg: "none"
+        userinfo_signed_response_alg: "none"
+        token_endpoint_auth_method: "client_secret_basic"
