@@ -499,6 +499,20 @@ attribution trailer).
   First boot after the reboot can also log a burst of DNS/NTP timeouts and look
   stalled for 1-2 min, then self-recovers; don't reinstall over it.
 - **This layer isn't ArgoCD-managed** — topf/bootstrap, applied by hand.
+- **talosctl ≥1.14 `upgrade` = install → its own drain (`--drain-timeout` 5m) → reboot →
+  uncordon.** The install takes seconds; the node then sits on the old version while
+  talosctl waits out pod grace periods (ingress-nginx-external has 300s), so ~2-4 min at
+  "still old version" is normal. `--preserve` is gone (always preserved). Check
+  `talosctl logs machined | grep "upgrade progress"` for "installation of vX complete".
+- **Check for node-pinned local PVs before draining** (`kubectl get pv` with `.spec.local`
+  / nodeAffinity): their pods stay Pending until that node returns. As of 2026-09-30 there
+  are none (garage vfs-cache and jellyfin transcodes moved to emptyDir).
+- **After the 1.14 upgrade but before the topf apply, `/var` loses `nosuid,nodev`**
+  (legacy config under the 1.14 contract). The topf render's `VolumeConfig EPHEMERAL
+  mount.secure: true` restores them on the next reboot. Expected, not a regression.
+- **`topf apply --dry-run` exits 1 while the node is NotReady** (pre-flight). Wait for
+  kubelet Ready (~1 min after boot), then dry-run again: exit 2 = diff, 0 = in sync.
+  Re-run the dry-run after the apply and require exit 0.
 - **topf, not talhelper.** Render/validate with topf, take the upgrade image from the
   rendered `UnattendedInstallConfig`, apply config with `topf apply --nodes-filter
   '^<host>$'` (dry-run first) only once that node is on 1.14. Never unfiltered mid-rollout.
