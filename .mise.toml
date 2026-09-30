@@ -28,7 +28,7 @@ uv = "0.12.21"
 "aqua:kubernetes-sigs/kustomize" = "5.6.0"
 "aqua:kubernetes/kubectl" = "1.32.2"
 "aqua:mikefarah/yq" = "4.54.1"
-"aqua:siderolabs/talos" = "1.14.1"
+"aqua:siderolabs/talos" = "1.14.2"
 "aqua:yannh/kubeconform" = "0.8.0"
 "asdf:janpieper/asdf-ksops" = "4.3.3"
 # renovate provides `renovate-config-validator` for checking .github/renovate.json5; needs node ^24.11
