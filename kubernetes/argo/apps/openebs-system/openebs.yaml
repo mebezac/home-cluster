@@ -28,5 +28,15 @@ spec:
       allowEmpty: true
       prune: true
       selfHeal: true
+    # localpv-provisioner runs its init/cleanup helper pods (hostPath + privileged) in this
+    # namespace; under the cluster-wide baseline PSA they are forbidden and PV deletes stall.
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: privileged
+        pod-security.kubernetes.io/enforce-version: latest
+        pod-security.kubernetes.io/audit: privileged
+        pod-security.kubernetes.io/audit-version: latest
+        pod-security.kubernetes.io/warn: privileged
+        pod-security.kubernetes.io/warn-version: latest
     syncOptions:
     - CreateNamespace=true
