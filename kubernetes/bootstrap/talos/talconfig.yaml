@@ -1,11 +1,6 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/budimanjojo/talhelper/master/pkg/config/schemas/talconfig.json
 ---
 # changelog: Talos GH releases siderolabs/talos (image not in PR body)
-# PREREQ: talhelper appends :${talosVersion} to EVERY node, including the three talmacs on
-# ghcr.io/mebezac/talos-mac/installer. That image is built by a TAG PUSH in
-# github.com/mebezac/talos-mac-installer - tag and build the new version there, and confirm
-# `crane ls ghcr.io/mebezac/talos-mac/installer` lists it, BEFORE bumping this line, or all
-# three talmacs fail the upgrade on ImagePull.
 # NOTE: ghcr.io/siderolabs/installer stopped publishing at v1.13.10 (1.14+ is Image Factory
 # only), so this tracks github-releases on siderolabs/talos, not the installer image.
 # renovate: datasource=github-releases depName=siderolabs/talos
@@ -131,13 +126,13 @@ nodes:
     installDisk: "/dev/nvme0n1"
     machineSpec:
       secureboot: false
-    # Custom GCC-linked installer (github.com/mebezac/talos-mac-installer) — stock Talos
-    # 1.13 hangs at cold boot on the T2 Mac (LLD EFI stub, siderolabs/talos#13579).
-    # In-place `talosctl upgrade` to this image works but reports a non-fatal error
-    # ("failed to create boot entry: BootFFFF ... overruns available data") — Apple's
-    # EFI NVRAM is malformed; systemd-boot still boots the new UKI. talhelper appends
-    # :${talosVersion}.
-    talosImageURL: ghcr.io/mebezac/talos-mac/installer
+    # Stock factory schematic (i915, intel-ucode, iscsi-tools, thunderbolt, util-linux-tools
+    # + intel_iommu=on iommu=pt pcie_ports=compat). Talos >= v1.14.2 boots the T2 Mac: the
+    # Apple EFI-stub fix (siderolabs/pkgs@6c312e4, talos#13579) retired the custom GCC
+    # installer (mebezac/talos-mac-installer, archived). NEVER go below v1.14.2 on a talmac.
+    # In-place `talosctl upgrade` still reports a non-fatal BootFFFF error (Apple's
+    # malformed EFI NVRAM) - powercycle the node yourself; systemd-boot boots the new UKI.
+    talosImageURL: factory.talos.dev/installer/2385c7daef21b71bfd59f74b96cdccfebe5003bcef3cee5b56b1add17a8f4817
     controlPlane: false
     patches:
       - "@./patches/talmac-01/machine-disks.yaml"
@@ -156,11 +151,13 @@ nodes:
     installDisk: "/dev/nvme0n1"
     machineSpec:
       secureboot: false
-    # Custom GCC-linked installer (github.com/mebezac/talos-mac-installer) — stock Talos
-    # 1.13 hangs at cold boot on the T2 Mac (LLD EFI stub, siderolabs/talos#13579).
-    # talhelper appends :${talosVersion}. Extensions/kernel-args are baked into
-    # this installer, so the factory schematic is no longer referenced here.
-    talosImageURL: ghcr.io/mebezac/talos-mac/installer
+    # Stock factory schematic (i915, intel-ucode, iscsi-tools, thunderbolt, util-linux-tools
+    # + intel_iommu=on iommu=pt pcie_ports=compat). Talos >= v1.14.2 boots the T2 Mac: the
+    # Apple EFI-stub fix (siderolabs/pkgs@6c312e4, talos#13579) retired the custom GCC
+    # installer (mebezac/talos-mac-installer, archived). NEVER go below v1.14.2 on a talmac.
+    # In-place `talosctl upgrade` still reports a non-fatal BootFFFF error (Apple's
+    # malformed EFI NVRAM) - powercycle the node yourself; systemd-boot boots the new UKI.
+    talosImageURL: factory.talos.dev/installer/2385c7daef21b71bfd59f74b96cdccfebe5003bcef3cee5b56b1add17a8f4817
     controlPlane: false
     patches:
       - "@./patches/talmac-02/machine-disks.yaml"
@@ -179,13 +176,13 @@ nodes:
     installDisk: "/dev/nvme0n1"
     machineSpec:
       secureboot: false
-    # Custom GCC-linked installer (github.com/mebezac/talos-mac-installer) — stock Talos
-    # 1.13 hangs at cold boot on the T2 Mac (LLD EFI stub, siderolabs/talos#13579).
-    # In-place `talosctl upgrade` to this image works but reports a non-fatal error
-    # ("failed to create boot entry: BootFFFF ... overruns available data") — Apple's
-    # EFI NVRAM is malformed; systemd-boot still boots the new UKI. talhelper appends
-    # :${talosVersion}. Migrated in place 2026-07-04.
-    talosImageURL: ghcr.io/mebezac/talos-mac/installer
+    # Stock factory schematic (i915, intel-ucode, iscsi-tools, thunderbolt, util-linux-tools
+    # + intel_iommu=on iommu=pt pcie_ports=compat). Talos >= v1.14.2 boots the T2 Mac: the
+    # Apple EFI-stub fix (siderolabs/pkgs@6c312e4, talos#13579) retired the custom GCC
+    # installer (mebezac/talos-mac-installer, archived). NEVER go below v1.14.2 on a talmac.
+    # In-place `talosctl upgrade` still reports a non-fatal BootFFFF error (Apple's
+    # malformed EFI NVRAM) - powercycle the node yourself; systemd-boot boots the new UKI.
+    talosImageURL: factory.talos.dev/installer/2385c7daef21b71bfd59f74b96cdccfebe5003bcef3cee5b56b1add17a8f4817
     controlPlane: false
     patches:
       - "@./patches/talmac-03/machine-disks.yaml"

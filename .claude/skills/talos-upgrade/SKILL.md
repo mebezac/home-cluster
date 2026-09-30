@@ -5,14 +5,14 @@ description: >-
   draining Longhorn + workloads first and verifying full health before moving on.
   Use whenever the user wants to bump Talos (e.g. "get the cluster on v1.13.5",
   "upgrade talos", "roll out the new talos version", "update <node> to <version>",
-  "do the talos nodes"), reinstall/recover a node, or migrate a node onto the
-  custom Mac installer. Handles the whole node loop: pick a safe order
+  "do the talos nodes"), reinstall/recover a node, or migrate a node between
+  installer schematics. Handles the whole node loop: pick a safe order
   (workers → control-plane, non-leaders → etcd-leader last), cordon, drain past
   the Longhorn instance-manager PDB, evacuate single-replica volumes that would
   otherwise go offline, run `talosctl upgrade --preserve`, ride out the T2 Mac
   BootFFFF non-fatal error, re-enable scheduling, and confirm every volume /
   pod / etcd member is healthy before the next node. Knows this repo's talhelper
-  layout, the custom GCC installer for the talmac nodes, and the Longhorn
+  layout, the talmac T2 Mac constraints (>= v1.14.2 only), and the Longhorn
   gotchas (stale USB mounts, diskUUID mismatch, data-locality PVs, CNPG
   switchover). Reach for this any time a Talos node needs upgrading, reinstalling,
   or migrating.
@@ -47,7 +47,7 @@ To upgrade the whole cluster to a new patch, bump `talosVersion` there first (an
 ### Node inventory & upgrade image
 
 Each node's upgrade image = its **install image** from the generated config
-(factory schematic + `:version`, or the custom installer for talmacs):
+(factory schematic + `:version`):
 
 ```bash
 for f in clusterconfig/kubernetes-*.yaml; do
@@ -64,14 +64,17 @@ Current nodes (verify live, don't trust this list blindly):
 | wyse-5070-03 | 10.25.30.35 | control-plane | no | factory `9ba0b24a…` |
 | wyse-5070-01 | 10.25.30.33 | worker | yes | factory `9ba0b24a…` |
 | wyse-5070-02 | 10.25.30.34 | worker | yes | factory `9ba0b24a…` |
-| talmac-01 | 10.25.30.42 | worker | yes | **`ghcr.io/mebezac/talos-mac/installer`** |
-| talmac-02 | 10.25.30.43 | worker | yes | **custom** |
-| talmac-03 | 10.25.30.44 | worker | yes | **custom** |
+| talmac-01 | 10.25.30.42 | worker | yes | factory `2385c7da…` |
+| talmac-02 | 10.25.30.43 | worker | yes | factory `2385c7da…` |
+| talmac-03 | 10.25.30.44 | worker | yes | factory `2385c7da…` |
 
-The **talmac** nodes are 2018 T2 Intel Macs and MUST use the custom GCC-linked
-installer (`ghcr.io/mebezac/talos-mac/installer:<ver>`) — stock Talos 1.13+ hangs
-at cold boot (siderolabs/talos#13579). Never point a talmac at `factory.talos.dev`
-for 1.13+. See the `talos-mac-installer` sibling repo + the memory of the same name.
+The **talmac** nodes are 2018 T2 Intel Macs. Stock Talos v1.13.0–v1.14.1 hangs at
+cold boot on them (Apple EFI-stub bug, siderolabs/talos#13579); **v1.14.2+ carries the
+fix** (siderolabs/pkgs@6c312e4), so they use the stock factory schematic `2385c7da…`
+(i915, intel-ucode, iscsi-tools, thunderbolt, util-linux-tools + `intel_iommu=on
+iommu=pt pcie_ports=compat`). **Never put a talmac on anything between v1.13.0 and
+v1.14.1.** The old custom GCC installer (`ghcr.io/mebezac/talos-mac/installer`,
+sibling repo `talos-mac-installer`) is archived — don't use it.
 
 ## Choose the order
 
@@ -347,8 +350,8 @@ do you move on.
   explicitly in step 6 alongside the Longhorn patch, or the node sits idle and
   nothing reschedules onto it.
 - **USB ISO reinstall is only for a talmac already bricked** on a non-booting
-  stock 1.13.x. Flash `metal-amd64.iso` from the matching
-  `mebezac/talos-mac-installer` GitHub release, boot holding ⌥ → EFI Boot,
+  stock 1.13.x–1.14.1. Flash the factory `metal-amd64.iso` for schematic `2385c7da…`
+  at **v1.14.2+**, boot holding ⌥ → EFI Boot,
   `talosctl apply-config --insecure`. A normal migration off a working version is
   just an in-place `upgrade --preserve`.
 - **Stale USB Longhorn mount after replug.** If a USB enclosure was unplugged and
@@ -378,7 +381,7 @@ do you move on.
 
 ## Repo cleanup after migrating a node onto a new installer
 
-If you moved a node onto the custom installer or off a version pin, edit
+If you moved a node onto a different schematic or off a version pin, edit
 `talconfig.yaml` (set its `talosImageURL`, delete its
 `patches/<node>/machine-install.yaml` pin + the reference line), keep
 `machine-disks.yaml`, `talhelper genconfig` to confirm the install image resolved,

@@ -1,5 +1,11 @@
 # Recovering / upgrading a talmac node to Talos v1.13+ (T2 Intel Mac)
 
+> [!IMPORTANT]
+> **Superseded (2026-09-30).** Talos **v1.14.2** fixed the real cause (an Apple EFI-stub
+> kernel bug, siderolabs/pkgs@6c312e4 / talos#13579), so the talmacs now use the stock
+> factory schematic `2385c7da…` and the custom GCC installer below is archived. Never run
+> a talmac on v1.13.0–v1.14.1. Everything below is historical.
+
 ## Background
 
 Stock Talos v1.13 **hangs at cold boot** on the 2018 T2 Mac mini: its kernel uses a
