@@ -513,6 +513,27 @@ attribution trailer).
 - **`topf apply --dry-run` exits 1 while the node is NotReady** (pre-flight). Wait for
   kubelet Ready (~1 min after boot), then dry-run again: exit 2 = diff, 0 = in sync.
   Re-run the dry-run after the apply and require exit 0.
+- **Elitebooks: never kexec. Always `--reboot-mode powercycle` / `reboot --mode powercycle`.**
+  On 2026-09-30 elitebook-02 hung after the kexec into v1.14.2: it answered ping, but all
+  service ports were closed and apid never started. About 75 minutes later it rebooted
+  and GRUB fell back to slot A (the old version). A retry of the same kexec worked.
+  Firmware reboots took 70-100s and were clean on both elitebooks. If a node answers ping
+  but 50000 stays refused for more than 5 minutes, it is hung: ask the user to check the
+  screen. A hard power-off falls back to the old slot.
+- **Apply config to control-plane nodes as `--mode staged --skip-post-apply-checks` and then
+  `talosctl reboot --drain --mode powercycle`. Don't use a live no-reboot apply.** On
+  wyse-03 the live apply restarted kubelet, the old kubelet ignored SIGTERM, and Talos
+  marked the service Failed ("cannot delete running task kubelet"). `service kubelet
+  restart` couldn't fix it; only a reboot did. The workers' live applies were fine. The
+  reboot also brings back the `/var` `nosuid,nodev` flags in the same step.
+- **etcd 3.6 → 3.7 happens on control-plane upgrade** (the image is not pinned). It's one-way,
+  so take `talosctl etcd snapshot` into the scratchpad first. The STORAGE column flips to
+  3.7.0 once all members run 3.7.1.
+- **The control-plane topf diff adds `KubeEtcdEncryptionConfig` without the `identity: {}`
+  fallback** (the upstream 1.14 default). Before applying, confirm by hash that the
+  secretbox key matches the live one. `KubeAuthenticationConfig` allows anonymous access
+  to `/livez`, `/readyz` and `/healthz` only; the old setting was `--anonymous-auth=false`.
+  Both are expected.
 - **topf, not talhelper.** Render/validate with topf, take the upgrade image from the
   rendered `UnattendedInstallConfig`, apply config with `topf apply --nodes-filter
   '^<host>$'` (dry-run first) only once that node is on 1.14. Never unfiltered mid-rollout.
