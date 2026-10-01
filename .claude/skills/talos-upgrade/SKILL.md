@@ -545,6 +545,21 @@ attribution trailer).
   on the node is a replica (`currentPrimary` is elsewhere), let it go offline for the
   reboot; CNPG resyncs it. Keep the other replicas with `evictionRequested:false`. This
   avoids rebuilding ~27 replicas per talmac, and the degraded volumes resynced in ~3 min.
+- **Before draining the node that hosts the CNPG *primary*, check where
+  `cloudnative-pg-plugin-barman-cloud` and the `cloudnative-pg` operator pods run.** On
+  talmac-01 (2026-10-01) the drain evicted the primary *and* the barman plugin together.
+  The operator then failed with "error while interacting with plugins … context deadline
+  exceeded" and could not fail over until the plugin restarted elsewhere. That gave ~2 min
+  with no Postgres primary. Fix first: switch the primary to an instance on another node
+  (`kubectl cnpg promote postgres-17-cluster <instance> -n database`), or move the plugin
+  pod off the node, then drain. After the plugin returns, CNPG may also roll pending
+  instance changes (it rolled the barman sidecar v0.15.1), which means one more primary
+  switchover.
+- **Talmac upgrades: run `.claude/skills/talos-upgrade/scripts/talmac-upgrade.sh <host> <ip>`** (backgrounded, logged; aborts on anything unexpected; first handle the CNPG-primary note above). It covers cordon → drain →
+  upgrade (BootFFFF expected) → powercycle → staged topf apply → powercycle → verify
+  (volume/mount/`/var`/drift/Longhorn diskUUID) → uncordon → gate. Each talmac took
+  ~12-15 min end to end. The talmac-01 USB stick is the **Z-Wave** adapter
+  (zwave-js-ui-0); zigbee2mqtt isn't tied to talmac-01.
 - **Don't use `ls -t …/tasks/*.output | head -1` to find a monitor's file.** Another task
   finishing can make its file newer. Tail the exact task output path.
 - **topf, not talhelper.** Render/validate with topf, take the upgrade image from the
