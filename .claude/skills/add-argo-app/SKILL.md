@@ -17,7 +17,8 @@ description: >-
   central Postgres init-container, central valkey), pins images to tag@sha256,
   commits GitOps-first, and verifies the app synced Healthy via the argocd +
   kubernetes MCP. Reach for this any time a new workload needs to exist in the
-  cluster.
+  cluster. If the user wants the app kept private (in ../home-cluster-private),
+  use add-private-argo-app instead.
 ---
 
 # Add a new ArgoCD app (bjw-s app-template, GitOps-first)
