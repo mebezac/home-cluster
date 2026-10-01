@@ -11,7 +11,7 @@ The features included will depend on the type of configuration you want to use. 
 1. **"Argo cluster"** - a Kubernetes cluster deployed on-top of [Talos Linux](https://github.com/siderolabs/talos) with an opinionated implementation of [Argo](https://github.com/argoproj/argo-cd) using [GitHub](https://github.com/) as the Git provider and [sops](https://github.com/getsops/sops) to manage secrets.
 
     - **Required:** Some knowledge of [Containers](https://opencontainers.org/), [YAML](https://yaml.org/), and [Git](https://git-scm.com/).
-    - **Components:** [argo](https://github.com/argoproj/argo-cd), [cilium](https://github.com/cilium/cilium), [cert-manager](https://github.com/cert-manager/cert-manager), [spegel](https://github.com/spegel-org/spegel), [reloader](https://github.com/stakater/Reloader), and [openebs](https://github.com/openebs/openebs).
+    - **Components:** [argo](https://github.com/argoproj/argo-cd), [cilium](https://github.com/cilium/cilium), [cert-manager](https://github.com/cert-manager/cert-manager), [spegel](https://github.com/spegel-org/spegel), and [reloader](https://github.com/stakater/Reloader).
 
 2. **"Argo cluster with Cloudflare"** - An addition to "**Argo cluster**" that provides DNS and SSL with [Cloudflare](https://www.cloudflare.com/). [Cloudflare Tunnel](https://www.cloudflare.com/products/tunnel/) is also included to provide external access to certain applications deployed in your cluster.
 
@@ -123,7 +123,7 @@ There are **4 stages** outlined below for completing this project, make sure you
 
 4. Watch the rollout of your cluster happen:
 
-   📍 _Depending on the features you choose a successful rollout will include pods being deployed into the **cert-manager, argo-system, network and openebs-system** namespaces_
+   📍 _Depending on the features you choose a successful rollout will include pods being deployed into the **cert-manager, argo-system and network** namespaces_
 
     ```sh
     watch kubectl get pods --all-namespaces

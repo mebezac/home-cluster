@@ -2,8 +2,8 @@
 # equivalent for .machine.kubelet.extraMounts ("upgrading-talos" guide), and KubeletConfig is
 # mutually exclusive with .machine.kubelet - so the generated KubeletConfig is deleted below and
 # its fields (image, seccomp default) are carried here instead. Kubelet only sees /var/lib/kubelet
-# and /var/mnt (ro) otherwise; openebs-hostpath PVs are `local` volumes that kubelet bind-mounts
-# itself, so it must see /var/openebs/local. Revisit when Talos adds a multi-doc extraMounts.
+# and /var/mnt (ro) otherwise; Longhorn needs /var/lib/longhorn bind-mounted rshared into the
+# kubelet. Revisit when Talos adds a multi-doc extraMounts.
 machine:
   kubelet:
     image: ghcr.io/siderolabs/kubelet:{{ .KubernetesVersion }}
@@ -22,10 +22,6 @@ machine:
       # Must stay above imageMinimumGCAge (2m0s).
       imageMaximumGCAge: 168h
     extraMounts:
-      - destination: /var/openebs/local
-        type: bind
-        source: /var/openebs/local
-        options: [bind, rshared, rw]
       - destination: /var/lib/longhorn
         type: bind
         source: /var/lib/longhorn
