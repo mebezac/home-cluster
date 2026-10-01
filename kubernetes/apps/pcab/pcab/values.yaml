@@ -26,7 +26,7 @@ controllers:
       app:
         image:
           repository: ghcr.io/mebezac/pcab
-          tag: v2.0.0@sha256:3282163d3e1816d80ce24a4dad7faf7997f1b9e411c460192a0c0460ebb4dba6
+          tag: v2.0.1@sha256:3834803479e62e27ec66660095082a906af0ad75ce2a357a7f2c31f53e34b913
         env:
           TZ: America/New_York
           PORT: "4000"
