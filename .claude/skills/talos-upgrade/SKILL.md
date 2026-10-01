@@ -534,6 +534,19 @@ attribution trailer).
   secretbox key matches the live one. `KubeAuthenticationConfig` allows anonymous access
   to `/livez`, `/readyz` and `/healthz` only; the old setting was `--anonymous-auth=false`.
   Both are expected.
+- **Talmac on 1.14.2 (proved on talmac-02, 2026-10-01).** The BootFFFF error *still*
+  happens on the 1.14.2 installer: exit code 7, after `Talos-v1.14.2.efi` is copied. Talos
+  1.14 talosctl therefore never reaches its own drain or reboot, so drain first and pass
+  `--drain=false`. The power-cycle takes **~70s** to actually cut power on the Mac (not
+  15-20s); the first boot on the stock factory image then came up in ~85s. The talmac
+  config apply was staged and then a power-cycle. Afterwards `volumestatus e-longhorn-usb`
+  was ready, the Longhorn disks went Ready in ~30s, and the diskUUID was unchanged.
+- **CNPG instances with a single Longhorn replica don't need evicting.** If the instance
+  on the node is a replica (`currentPrimary` is elsewhere), let it go offline for the
+  reboot; CNPG resyncs it. Keep the other replicas with `evictionRequested:false`. This
+  avoids rebuilding ~27 replicas per talmac, and the degraded volumes resynced in ~3 min.
+- **Don't use `ls -t …/tasks/*.output | head -1` to find a monitor's file.** Another task
+  finishing can make its file newer. Tail the exact task output path.
 - **topf, not talhelper.** Render/validate with topf, take the upgrade image from the
   rendered `UnattendedInstallConfig`, apply config with `topf apply --nodes-filter
   '^<host>$'` (dry-run first) only once that node is on 1.14. Never unfiltered mid-rollout.
