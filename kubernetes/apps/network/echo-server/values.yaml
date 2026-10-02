@@ -5,7 +5,7 @@ controllers:
       app:
         image:
           repository: ghcr.io/mendhak/http-https-echo
-          tag: 41
+          tag: 42@sha256:a265f55c86cb3baead76fdf379dc8e9e6440ed121874e101e60b833e05bce8d4
         env:
           DISABLE_REQUEST_LOGS: true
           HTTP_PORT: &port 8080
@@ -156,7 +156,7 @@ ingress:
   app:
     className: external
     annotations:
-      external-dns.alpha.kubernetes.io/target: external.laboratory.casa
+      external-dns.kubernetes.io/target: external.laboratory.casa
       nginx.ingress.kubernetes.io/auth-method: GET
       nginx.ingress.kubernetes.io/auth-url: http://authelia.security.svc.cluster.local/api/authz/auth-request
       nginx.ingress.kubernetes.io/auth-signin: https://login.laboratory.casa?rm=$request_method

@@ -19,7 +19,13 @@ controllers:
       app:
         image:
           repository: ghcr.io/squat/generic-device-plugin
-          tag: latest@sha256:dc192e164c69b03f156765793a1be62ca437709ae477b27ca7d8f3dcf5021576
+          # was `latest`. Upstream DOES publish releases (0.1.0, 0.2.0) - they are
+          # just buried past the first page of the tag list, which is why an earlier
+          # check concluded there were none. 0.2.0 (built 2026-04-14) is the newest
+          # release; the `latest` digest we ran was a 2026-05-15 build off main, so
+          # this deliberately steps back from an untagged main build to a real
+          # release Renovate can version-track.
+          tag: 0.2.0@sha256:66c8d5c270eb2b721f1064c549b9b7898152a6d2f0163380a5d37dc7636c20ff
         args:
           - --log-level=info
           - --config=/config/config.yaml

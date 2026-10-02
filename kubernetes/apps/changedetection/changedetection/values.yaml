@@ -6,7 +6,15 @@ controllers:
       app:
         image:
           repository: ghcr.io/dgtlmoon/changedetection.io
-          tag: 0.55.8@sha256:5438423d5e906eff4e8f7886823482ad23f472bf7b8530ccaca89fb48c337882
+          # changelog: GH releases dgtlmoon/changedetection.io - upstream SKIPS minor numbers
+          # (0.55.8 -> 0.60.1 direct; no 0.56-0.59 ever existed), so a "5-minor" bump is usually one
+          # release cycle: check the tag list, not the version delta. Datastore compat is
+          # settings.application.schema_version (33 as of 0.60.3), NOT the app version - equal
+          # numbers on both tags means run_updates() is a no-op and a downgrade stays possible. When
+          # a migration does run the app writes its own before-update-N-<ts>.tar.gz into /datastore.
+          # Driver contract to re-check on any bump: content_fetchers/__init__.py still reading
+          # PLAYWRIGHT_DRIVER_URL (our browserless sidecar).
+          tag: 0.60.8@sha256:34df3680db1cbffc45ac1e9c1514bc0507dd0c5b5fde47d1992fe6f14a7b40e4
         env:
           TZ: America/New_York
           PORT: &port 5000
@@ -16,19 +24,15 @@ controllers:
         image:
           repository: ghcr.io/browserless/chrome
           # changelog: GH releases browserless/browserless (NOT browserless/chrome - image name != repo name); Renovate embeds full notes
-          tag: v2.56.0@sha256:2f89b7c5106a3d9e31b6c597a7a37b964bb8cf95bfca4047e5e7f57354a9c0f6
+          tag: v2.56.7@sha256:d600eac6283f03d2b540ea8af705b3c382cf1bf886b52a699ec9fe054142c241
           pullPolicy: IfNotPresent
         env:
           SCREEN_WIDTH: "1920"
           SCREEN_HEIGHT: "1024"
           SCREEN_DEPTH: "16"
           ENABLE_DEBUGGER: "false"
-          PREBOOT_CHROME: "true"
           CONNECTION_TIMEOUT: "300000"
           MAX_CONCURRENT_SESSIONS: "10"
-          CHROME_REFRESH_TIME: "600000"
-          DEFAULT_BLOCK_ADS: "true"
-          DEFAULT_STEALTH: "true"
 service:
   app:
     controller: changedetection

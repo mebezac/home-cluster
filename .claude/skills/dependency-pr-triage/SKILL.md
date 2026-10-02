@@ -9,7 +9,8 @@ description: >-
   the kubernetes MCP) for changes we'd need to make, sorts everything by
   danger/blast-radius, then walks the user through each one interactively so
   they decide what to merge, defer, or dig into, and confirms via the ArgoCD MCP
-  that each merged bump actually synced and went healthy. Reach for this any time
+  that each merged bump actually synced and went healthy, then lists the
+  follow-up features and improvements the bumps unlocked. Reach for this any time
   there's a pile of Renovate PRs to get through.
 ---
 
@@ -46,13 +47,33 @@ consequences that shape everything below:
 
 Renovate is the PR author. Filter with `--author "app/renovate"`.
 
+## Required tooling
+
+Everything this skill needs is pinned in `.mise.toml`, so prefix a call with
+`mise exec --` (or work inside `mise activate`) rather than assuming a bare
+binary is on `PATH`. The ones this skill leans on:
+
+| Tool | `.mise.toml` entry | Used for |
+|-|-|-|
+| `gh` | (system) | every PR read and every merge |
+| `crane` | `aqua:google/go-containerregistry` | **digest bumps** — see step 2 |
+| `helm` | `aqua:helm/helm` | chart bumps — `helm pull --untar` then diff the trees |
+| `jq` / `yq` | `aqua:jqlang/jq`, `aqua:mikefarah/yq` | reading manifests and our values |
+| `kubectl` | `aqua:kubernetes/kubectl` | read-only cluster checks |
+
+**Do not install anything.** If a tool is missing, say so and report what you
+could determine without it — never `curl | sh`, never a global package install.
+If a tool is genuinely needed and absent, the fix is to pin it in `.mise.toml`
+so Renovate tracks it, which is a normal repo change for the user to approve.
+
 ## Workflow
 
 Work the phases in order. Phases 1–4 are research and produce a briefing; phase
 5 presents an up-front, PR-by-PR summary of *what changed* (features, fixes,
 improvements worth knowing about); phase 6 is the interactive merge session where
 you classify by danger and the user decides; phase 7 confirms each merge actually
-deployed. Do all the research *before* talking the user through decisions — they
+deployed; phase 8 hands over the **follow-ups** — features and improvements the
+merged bumps unlocked that we could adopt next. Do all the research *before* talking the user through decisions — they
 should never wait on a changelog fetch mid-conversation.
 
 For any non-trivial batch (say 8+ PRs), the research in phases 2–4 is
@@ -60,7 +81,8 @@ per-PR and independent — fan it out with parallel subagents (one per PR or per
 dependency group) rather than fetching serially. Give each subagent the PR
 number and the instructions from the relevant phase, and have it return a
 compact structured summary (package, versions, update type, changelog
-highlights, repo files that reference it, impact verdict). Then you assemble the
+highlights, repo files that reference it, impact verdict, follow-up candidates
+with where each would apply). Then you assemble the
 briefing. This keeps the whole triage fast even when there are twenty PRs.
 
 ### 1. Enumerate and group the PRs
@@ -143,6 +165,42 @@ For a **grouped** dependency, get the changelog spanning the *whole* range up to
 the major, so the user sees everything they'd be adopting if they jump straight
 to it.
 
+**Digest bumps have no changelog at all — diff the image instead.** A
+`chore(container)` PR with short shas (`( abc123 → def456 )`) keeps the same
+version tag and only moves the `@sha256:` digest. There are no release notes to
+find, and hunting for them wastes the run. The real question is narrow: *did
+anything but the build timestamp change?* Answer it with `crane`:
+
+```bash
+mise exec -- .claude/skills/dependency-pr-triage/scripts/image-digest-diff.sh \
+  <image-without-tag> <old-sha256:...> <new-sha256:...>
+```
+
+Take both digests straight off the PR diff (`gh pr diff <n>`). The script prints
+four things, and you read them together:
+
+- **runtime config** — env, entrypoint, cmd, user, ports, volumes, labels.
+  `IDENTICAL` is the expected result. **Any diff here means it is not a plain
+  rebuild** — the image genuinely changed behaviour, so investigate before
+  recommending a merge.
+- **build timestamps** — a newer `created` with everything else identical is the
+  signature of a rebuild.
+- **layer sizes** — this is the useful part. A multi-megabyte jump on a package
+  layer is a base-image `apk`/`apt` refresh, which is usually a security update
+  and is the *reason* to take the bump. A few bytes on the application layer is
+  the same source recompiled. A byte-identical base layer proves the base image
+  did not move.
+- **interpretation** — a plain-language summary of the above.
+
+Report a clean result in one line ("rebuild only, no user-facing changes"), name
+the layer that moved, and do not pad it out. If the image publishes a source
+revision as a label or build arg (ocis exposes `REVISION`), an identical value
+across both digests is the strongest possible evidence that the code is the same.
+
+The script resolves a multi-arch index to `linux/amd64` by itself. If it cannot
+read the layer sizes it says so and still prints the rest — report what you got
+rather than guessing.
+
 **Leave a breadcrumb when the PR body wasn't enough.** Any time you had to go
 past step 1 — i.e. the changelog came from upstream releases (source 2) or the
 commit diff (source 3) — record *where you found it* with a one-line comment on
@@ -166,8 +224,8 @@ it alongside any other change the PR needs, and let the user commit it per their
 workflow. If a `# changelog:` comment is already there and still accurate, leave
 it; refresh it only if the project moved where it publishes notes.
 
-Distil each changelog along **two** lenses — you're reading it anyway, so
-capture both:
+Distil each changelog along **three** lenses — you're reading it anyway, so
+capture all of them:
 
 1. **Impact on us** (drives the merge decision in phase 6): breaking changes,
    removed or renamed config options, new required settings, changed defaults,
@@ -179,8 +237,14 @@ capture both:
    worth turning on). Don't editorialize every line item — surface the two or
    three things a user would be glad to know shipped, and say plainly when a bump
    is purely internal ("no user-facing changes").
+3. **Follow-ups** (drives phase 8): the subset of lens 2 we'd have to *act on*
+   to benefit — a new chart value or env var worth setting, a feature to turn
+   on, a new metric/dashboard/alert to wire up, an integration with something
+   we already run (Authelia OIDC, VictoriaMetrics, Garage S3, central PG/Valkey),
+   or an upstream fix that lets us **drop a workaround** we carry. Lens 2 is
+   *what shipped*; a follow-up is *what we could change because it shipped*.
 
-Skip the noise for both lenses (dependency bumps inside the upstream project, CI
+Skip the noise for all lenses (dependency bumps inside the upstream project, CI
 changes, typo fixes).
 
 ### 3. Scan our repo for required changes
@@ -201,7 +265,7 @@ grep -rn "<image-repo-or-chart-name>" kubernetes/
   `image.repository`/`tag`), sometimes `helmfile.yaml` or bootstrap.
 - **Helm charts** → the `targetRevision` in `kubernetes/argo/apps/<ns>/<app>.yaml`
   and the chart's values in the app's `values.yaml`.
-- **github-release** tools (talos, sops, helmfile, talhelper) → `helmfile.yaml`,
+- **github-release** tools (talos, sops, helmfile, topf) → `helmfile.yaml`,
   `kubernetes/bootstrap/`, and CI/workflow files.
 
 Then ask: *does anything in the changelog's breaking/changed list correspond to
@@ -209,6 +273,14 @@ a key we actually set?* A renamed Helm value only matters if our `values.yaml`
 sets the old name. A changed default only matters if we relied on the old
 default. A required new env var always matters. Cross-reference the changelog
 against the real file contents — don't assume.
+
+Run the same scan for each **follow-up** candidate: find where it would land
+(the `values.yaml` key to add, the app it applies to) and check we don't already
+use it. Hunt for workarounds the bump may retire — comments near our usage
+mentioning an upstream bug, `NB`/`NOTE`/`TODO`/`workaround`/`until`, pinned
+older sub-images, disabled features — and match them against the fixed-bugs
+list. Drop candidates that don't fit how we run the app. Record each survivor as
+*file:line — the change — why it's worth it*.
 
 See `references/repo-map.md` for the full dependency-kind → file-location map and
 the repo's conventions (image pinning, app-template structure, central Postgres
@@ -251,7 +323,7 @@ fine — danger ordering is phase 6's job, not this one's). For each PR give:
   anything that could be **useful to the user** given how they run this cluster
   (a new setting for an app we deploy, a bug we've plausibly hit, a UX/perf win,
   a new integration worth enabling). Prefix those with **💡** so they're easy to
-  spot.
+  spot; the actionable 💡 items are the follow-ups phase 8 comes back to.
 - If a bump is purely internal, say so in one line ("digest refresh, no
   user-facing changes") rather than padding it.
 
@@ -328,6 +400,26 @@ webhook is wired), so the sync won't be instant. Merge the batch, then give it a
 moment before checking — or check, see `OutOfSync`/`Progressing`, and look again
 shortly rather than concluding it failed.
 
+**To wait on a rollout, use the script — don't hand-roll a poll loop:**
+
+```bash
+mise exec -- .claude/skills/dependency-pr-triage/scripts/wait-for-app.sh <app> \
+  --rev <merge-sha> [--chart <chart> <version>] [--ds <ns>/<daemonset>] [--timeout 600]
+```
+
+Always pass `--rev` with the merge commit (`gh pr view <n> --json mergeCommit`)
+for image/values bumps: right after a merge the app still reads
+`Synced`/`Healthy` at the *old* revision, and without `--rev` the script
+passes on that stale state. For chart bumps `--chart` covers it.
+
+It exits `0 DONE` / `1 FAILED` / `2 TIMEOUT` and prints a `waiting` line every
+30s, so a stall is visible. Run it with `run_in_background` and let the
+completion notification wake you; don't block a foreground call on its output.
+Ad-hoc loops have burned whole sessions here: the Bash tool runs **zsh**, which
+doesn't word-split unquoted vars (`set -- $x` silently never matches), so a
+check sat "waiting" for 20 minutes on a Cilium rollout that had finished long
+before. If the user says it's done, believe them and re-check once.
+
 What to look at:
 
 - **Find the app** — the app name *usually* maps from the repo path
@@ -378,6 +470,36 @@ Setup note: the ArgoCD MCP authenticates as the `mcp` local account
 (`role:admin`) with a token in the shell env — if the MCP tools error on auth,
 that token/config is the thing to check, and it's fine to tell the user the
 verification step is unavailable rather than falling back to guesswork.
+
+### 8. Hand over the follow-ups
+
+Once the merge session is done, close with a consolidated **follow-up list**:
+the improvements the merged bumps unlocked that we could adopt in a later
+change. This is the forward-looking half of the triage — the merges kept us
+current; the follow-ups are how we actually benefit.
+
+For each follow-up give:
+
+- **what** — the feature/improvement, in one line
+- **unlocked by** — the PR(s) and version that shipped it
+- **where** — `file:line` and the concrete change (the value to set, the
+  workaround to delete, the integration to wire up)
+- **worth** — the payoff for this cluster, and rough effort (one-line values
+  edit / small change / project)
+
+Order by payoff-to-effort, best first. Include follow-ups from **deferred** PRs
+only as "available once #n merges", listed after the rest. Retired workarounds
+go first — deleting a workaround is usually the cheapest win and removes future
+confusion.
+
+Then let the user pick. For each one they choose: make it now as a normal repo
+change (edit, commit, push per their workflow, then verify it synced as in phase
+7), or record it for later (a GitHub issue via `gh issue create`, or a note if
+they prefer). Leave the rest.
+
+**Completion criterion:** every actionable 💡 item from phase 5 for a merged PR
+is either on the list or dropped with a one-line reason ("already enabled",
+"we don't use that integration").
 
 ## Style
 

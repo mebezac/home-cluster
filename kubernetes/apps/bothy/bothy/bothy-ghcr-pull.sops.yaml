@@ -5,7 +5,7 @@ metadata:
   namespace: bothy
 type: kubernetes.io/dockerconfigjson
 stringData:
-  .dockerconfigjson: ENC[AES256_GCM,data:yUeuwEThbYYUGAlblufJc2oN+znsoCmkZFXMidhEt3jFrWNzDrUtHGmSBkU0O8isrhjHgigrBSKQhhHnpNJ3X8I1Hb3KxfZUvFz0WNn3mbGcK+Vqb3WYCpGW7SpjRz82ZNtz4SssNnQW3L2zE23ResW4OE5zH2iBr8Y9cKswlIm2+VkSOVlwFkp6J7F/Wk1kLSM8SWypaSiWB8L8LFMxcvzcajQ0nGXFJUgsSg==,iv:ivO7e/IUsbMgmj4mYrS5bsLssSOZqNDa1JSw2MRkH9A=,tag:o0iqoqn1rPsY3E6hoLlzoQ==,type:str]
+  .dockerconfigjson: ENC[AES256_GCM,data:5zfK/w62aYT7N1yD0AK8SbIbO9RBL2y1CxWvB2mixjLMa8Ybszxm0xKEvRDArX6hnBDFEUEQXXZYjjIKhD5FaJdC3q0EFAtN49waGuWabuJlOtqXo+bXkjO6DulK47l4+RDm/axbdIMPyjNc2G/RIrNgJNgRBfFrc2nX4Go1UiuWWtgGootZGxUyfbVGK5TAIIs/RKuAoSVGuRiXMxYsQhreMKp8nM46109DCw==,iv:QV4DRIz+DoTuPSt0TVefODpnVwSnLw2X+CY41pGbeV0=,tag:T2rGjmNXrezczg4sVJj+mA==,type:str]
 sops:
   age:
     - enc: |
@@ -18,7 +18,7 @@ sops:
         -----END AGE ENCRYPTED FILE-----
       recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
   encrypted_regex: ^(data|stringData)$
-  lastmodified: "2026-07-11T04:36:25Z"
-  mac: ENC[AES256_GCM,data:E+rX1XJ6MrKD1caDoLF5WFGPnoY7xlDxIsz/W8A3wZ/X57FH4QNoyzHEgo8MnGHTRDJrRDuSZqmaPuENNhIRE37NjqCGQqazzzJ28SZpOQ4TBdJGWNN8JnW1di91TlQ9ZhJihjx+o1Um5DIY8KEoUSpInPe5VKY3c8oF0TLKVUA=,iv:oZhaMIiS7KnSNcQOr16+4Tk4GelkQQHlCc1KlzC7npc=,tag:aqdvIHvV/wBifKiLcKGD3g==,type:str]
+  lastmodified: "2026-09-30T01:34:05Z"
+  mac: ENC[AES256_GCM,data:1EKg1FJqBMBMyVA+L/V8pc1E95oQizlDSR+zWrrhvM44Pts4eO4JT356XQ+2X55buDVnf2TH9sa1kag1OPfg51Q1Wq0dcy+VyfmztVaqmMTlXgcxKvZGNyCPkkaAiL0xVw4JiD+iRAR4aYVFWmN1knqrIpLihxc0015q4hwnBvA=,iv:caUbi8rV3UuCXsci+n2EHNIl0orEODkG7hKO+nC3KqI=,tag:8BJCUcJeUDyEPDK44UzRjg==,type:str]
   mac_only_encrypted: true
   version: 3.13.2

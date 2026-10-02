@@ -26,7 +26,10 @@ controllers:
       fix-permissions:
         image:
           repository: busybox
-          tag: stable
+          # was `stable`, a moving tag. Proof it drifts: on 2026-09-08 `stable`
+          # resolved to 73aaf090 while this cluster was still running 4b8407fa.
+          # 1.38.0 is the newest release (identical digest to `latest`).
+          tag: 1.38.0@sha256:fd7dc98638c8e305f4dc34e979f1c0fdfdcaeb0fbf8fcff77ae834b6da3d7e6e
 
         command:
           [
@@ -49,7 +52,7 @@ controllers:
         image:
           repository: ghcr.io/rommapp/romm
           # changelog: GH releases rommapp/romm. Alembic migrations run on startup; MariaDB-only warnings in the notes do NOT apply (we use ROMM_DB_DRIVER=postgresql)
-          tag: 5.2.0@sha256:3512f2ca455782f90247271bed23116e6bc675bc74e379be2c41696e607ab11e
+          tag: 5.3.1@sha256:0d66b4ea152a237c7f24b95e87459f46d3c596a7c0b35a82f26bc971487278b3
 
         env:
           ENABLE_RESCAN_ON_FILESYSTEM_CHANGE: "true"
@@ -71,6 +74,9 @@ controllers:
           SCAN_WORKERS: "3"
           TASK_TIMEOUT: "14400"
           TZ: America/Detroit
+          # 5.3.0 raised the default from 1 to 4 API workers; memory limit below
+          # was sized for 1 (peak 659Mi). Raise alongside the limit if needed.
+          WEB_SERVER_CONCURRENCY: "2"
         envFrom: *envFrom
         probes:
           liveness:
@@ -83,9 +89,13 @@ controllers:
               failureThreshold: 30
               periodSeconds: 5
         resources:
+          # 7d metrics (2026-09-08): peak 659Mi, p95 558Mi. Previously had NO
+          # memory limit at all - an unbounded ceiling on a shared node.
           requests:
             cpu: 10m
-            memory: 500Mi
+            memory: 768Mi
+          limits:
+            memory: 1536Mi
 
 service:
   app:

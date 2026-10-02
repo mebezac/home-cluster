@@ -24,8 +24,11 @@ spec:
       - CreateNamespace=true
       - ServerSideApply=true
       - RespectIgnoreDifferences=true
+  # Only the automated block is ignored, so auto-sync can still be paused/toggled by hand on a
+  # child app. Ignoring all of /spec/syncPolicy silently dropped later git edits to syncOptions
+  # and managedNamespaceMetadata on existing apps.
   ignoreDifferences:
     - group: argoproj.io
       kind: Application
       jsonPointers:
-        - /spec/syncPolicy
+        - /spec/syncPolicy/automated

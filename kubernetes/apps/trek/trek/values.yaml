@@ -12,8 +12,12 @@ controllers:
       app:
         image:
           repository: mauriceboe/trek
-          # changelog: GH releases github.com/mauriceboe/trek/releases (Docker Hub image; not in PR body)
-          tag: 3.4.1@sha256:ce7fab639b89a6f62d484d1175a7d489a536a8c77291f56c03fec20608d4a3eb
+          # changelog: GH releases github.com/liketrek/TREK/releases (repo redirects from
+          # mauriceboe/trek; Docker Hub image, never in PR body). Operator-relevant content is under
+          # "Upgrading" OR "Read this first" + "Schema" - the heading is not consistent between
+          # releases, read both. SQLite on our PVC - migrations run automatically at boot and are
+          # one-way, so snapshot trek-data (1Gi, longhorn) on any minor/major
+          tag: 4.3.3@sha256:1ef1ccf41af8ae409e0435518facb5789b6adc99681ef26d1869508355455749
         env:
           TZ: America/New_York
           NODE_ENV: production

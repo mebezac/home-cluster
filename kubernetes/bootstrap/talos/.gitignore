@@ -1,0 +1,4 @@
+# plaintext secrets - never commit
+talosconfig
+rendered/
+output/

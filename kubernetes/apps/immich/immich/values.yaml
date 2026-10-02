@@ -20,9 +20,13 @@ controllers:
       main:
         image:
           repository: ghcr.io/immich-app/immich-server
-          tag: v3.1.0@sha256:b434cb9287eea1471c9974845914d4dd328c9c2d652e446ed4930f99944f0ceb
+          tag: v3.2.4@sha256:d317916b28090c33eb36b308464ea391f8b7df1d850fcfea227a39ec879718c2
         env:
-          TZ: America/New_York
+          # MUST stay UTC: exiftool-vendored infers the tz of cameras that omit
+          # OffsetTimeOriginal (e.g. Panasonic LX10) from Panasonic:TimeStamp, but
+          # parses that UTC tag as process-local time — a non-UTC TZ here shifts
+          # every such photo by the server offset. Phone photos are unaffected.
+          TZ: Etc/UTC
           IMMICH_CONFIG_FILE: /config/immich-config.json
           IMMICH_SERVER_URL: http://immich-server.immich.svc.cluster.local:2283
           IMMICH_MACHINE_LEARNING_URL: http://immich-machine-learning.immich.svc.cluster.local:3003
@@ -50,7 +54,21 @@ controllers:
               failureThreshold: 5
           readiness: *probes
           startup:
-            enabled: false
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /api/server/ping
+                port: *serverport
+              initialDelaySeconds: 10
+              periodSeconds: 10
+              timeoutSeconds: 1
+              # 90 x 10s = 15min of bootstrap headroom. Immich does not open
+              # :2283 until bootstrap finishes, and a vector-extension upgrade
+              # DROPs clip_index/face_index then rebuilds them during bootstrap.
+              # Without a startupProbe the liveness probe (5 x 10s) kills the
+              # container mid-rebuild and it crashloops with both indexes gone.
+              failureThreshold: 90
 
   microservices:
     replicas: 2
@@ -74,12 +92,12 @@ controllers:
       main:
         image:
           repository: ghcr.io/immich-app/immich-server
-          tag: v3.1.0@sha256:b434cb9287eea1471c9974845914d4dd328c9c2d652e446ed4930f99944f0ceb
+          tag: v3.2.4@sha256:d317916b28090c33eb36b308464ea391f8b7df1d850fcfea227a39ec879718c2
         envFrom:
           - secretRef:
               name: *secret
         env:
-          TZ: America/New_York
+          TZ: Etc/UTC
           IMMICH_CONFIG_FILE: /config/immich-config.json
           IMMICH_SERVER_URL: http://immich-server.immich.svc.cluster.local:2283
           IMMICH_MACHINE_LEARNING_URL: http://immich-machine-learning.immich.svc.cluster.local:3003
@@ -88,10 +106,10 @@ controllers:
           requests:
             cpu: 100m
             gpu.intel.com/i915: 1
-            memory: 250Mi
+            memory: 1500Mi
           limits:
             gpu.intel.com/i915: 1
-            memory: 2Gi
+            memory: 4Gi
 
   machine-learning:
     annotations:
@@ -114,9 +132,9 @@ controllers:
         image:
           repository: ghcr.io/immich-app/immich-machine-learning
           # changelog: GH releases immich-app/immich (PR body only has compare links). v3 note: migration guide at immich.app/blog/v3-migration; watch ffmpeg config enum changes (libopus→opus)
-          tag: v3.1.0@sha256:5a0839dc5303cd7215bcd2180a26aed3af41675aefb3e75e5157e9f10ad16e6e
+          tag: v3.2.4@sha256:e16c2f166a8174901959fdf85e2e4c7bd1ebc4b37e0b6655de97c41408a260c4
         env:
-          TZ: America/New_York
+          TZ: Etc/UTC
           IMMICH_CONFIG_FILE: /config/immich-config.json
           IMMICH_SERVER_URL: http://immich-server.immich.svc.cluster.local:2283
           IMMICH_MACHINE_LEARNING_URL: http://immich-machine-learning.immich.svc.cluster.local:3003
@@ -129,11 +147,14 @@ controllers:
           - secretRef:
               name: *secret
         resources:
+          # 7d metrics (2026-09-08): peak 1.9Gi, p95 1.4Gi. The 250Mi request
+          # was ~6x below real usage and the 8Gi limit was the single largest
+          # limit reservation on talmac-02.
           requests:
             cpu: 100m
-            memory: 250Mi
+            memory: 1536Mi
           limits:
-            memory: 8Gi
+            memory: 3Gi
         probes:
           liveness: &probes
             enabled: true
@@ -174,7 +195,7 @@ ingress:
     enabled: true
     className: external
     annotations:
-      external-dns.alpha.kubernetes.io/target: external.laboratory.casa
+      external-dns.kubernetes.io/target: external.laboratory.casa
       # keep the long-lived mobile delta-sync stream (/api/sync/stream) alive;
       # nginx's default 60s read timeout was cutting idle streams
       nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"

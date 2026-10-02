@@ -22,8 +22,8 @@ controllers:
       app:
         image:
           repository: ghcr.io/n8n-io/n8n
-          # changelog: GH releases n8n-io/n8n tag "n8n@<version>" (PR body is a stub)
-          tag: 2.36.6@sha256:ac17f6df352c221d17ad2d566e5e61835bcc36de1e912650c8dced43d8cccf76
+          # changelog: GH releases n8n-io/n8n tag "n8n@<version>" (PR body is a stub; upstream skips some patch numbers entirely - check git refs, not just the release list; check Latest vs Pre-release - n8n tags its "next" channel as GH pre-releases)
+          tag: 2.41.4@sha256:3cd1d3a03f5e059a0757d8c95823ff09ef61d3b6bf7fcb4ac3ac5fd5303b6c6d
         env:
           DB_TYPE: postgresdb
           DB_POSTGRESDB_SCHEMA: public
@@ -41,6 +41,9 @@ controllers:
           N8N_GIT_NODE_DISABLE_BARE_REPOS: true
           N8N_WEBHOOK_URL: https://n8n.laboratory.casa
           N8N_PROXY_HOPS: 2
+          # Opt in early to the v3 rename ~/.n8n/binaryData -> ~/.n8n/storage (one-shot, no-op once done;
+          # both paths sit inside the /home/node/.n8n PVC so no mount change is needed).
+          N8N_MIGRATE_FS_STORAGE_PATH: true
           # Pinned to the current defaults — upstream is lowering/flipping all four in a
           # future release (deprecation warnings as of 2.33.0). Set explicitly so the
           # change is a decision, not a silent inherit.
@@ -84,11 +87,13 @@ controllers:
               timeoutSeconds: 5
               failureThreshold: 3
         resources:
+          # 7d metrics (2026-09-08): peak 590Mi, p95 364Mi - the 128Mi request
+          # was ~4.6x below real usage, so the scheduler was under-counting it.
           requests:
             cpu: 5m
-            memory: 128Mi
+            memory: 640Mi
           limits:
-            memory: 1Gi
+            memory: 1536Mi
 
 service:
   app:
@@ -101,7 +106,7 @@ ingress:
   app:
     className: external
     annotations:
-      external-dns.alpha.kubernetes.io/target: external.laboratory.casa
+      external-dns.kubernetes.io/target: external.laboratory.casa
     hosts:
       - host: n8n.laboratory.casa
         paths:

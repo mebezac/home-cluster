@@ -1,0 +1,65 @@
+---
+# Machine configs are assembled by topf (https://postfinance.github.io/topf/) from this file
+# plus the strategic-merge patches in all/, control-plane/, worker/ and node/<host>/.
+clusterName: kubernetes
+clusterEndpoint: https://10.25.30.116:6443
+
+# changelog: Talos GH releases siderolabs/talos (image not in PR body)
+# NOTE: installers come from the Image Factory (factory.talos.dev/metal-installer/<schematic>),
+# so this tracks github-releases on siderolabs/talos, not an installer image.
+# renovate: datasource=github-releases depName=siderolabs/talos
+talosVersion: v1.14.2
+# changelog: kubernetes/kubernetes CHANGELOG-1.36.md (siderolabs/kubelet images ship no release notes and the PR body is always empty)
+# renovate: datasource=docker depName=ghcr.io/siderolabs/kubelet
+kubernetesVersion: v1.36.5
+
+secretsPath: secrets.sops.yaml
+
+data:
+  nodeCIDR: 10.25.30.0/24
+  gateway: 10.25.30.1
+  vip: 10.25.30.116
+
+# data.installDisk: install target. data.macAddr: NIC matched by LinkAliasConfig.
+# data.vip: candidate for the control-plane VIP (Talos elects one holder among them).
+nodes:
+  - host: elitebook-01-talos-k3s-main-01
+    ip: 10.25.30.45
+    role: control-plane
+    schematicId: "@schematics/elitebook.yaml"
+    data: { installDisk: /dev/sdb, macAddr: "30:e1:71:85:dd:5b", vip: true }
+  - host: elitebook-02-talos-k3s-main-02
+    ip: 10.25.30.46
+    role: control-plane
+    schematicId: "@schematics/elitebook.yaml"
+    data: { installDisk: /dev/sdb, macAddr: "3c:52:82:3f:1c:98", vip: true }
+  - host: wyse-5070-03-talos-k3s-main-03
+    ip: 10.25.30.35
+    role: control-plane
+    schematicId: "@schematics/wyse.yaml"
+    data: { installDisk: /dev/sdb, macAddr: "e4:54:e8:3c:08:6a", vip: true }
+  - host: wyse-5070-01-talos-k3s-worker-01
+    ip: 10.25.30.33
+    role: worker
+    schematicId: "@schematics/wyse.yaml"
+    data: { installDisk: /dev/sdb, macAddr: "e4:54:e8:41:96:87", vip: false }
+  - host: wyse-5070-02-talos-k3s-worker-02
+    ip: 10.25.30.34
+    role: worker
+    schematicId: "@schematics/wyse.yaml"
+    data: { installDisk: /dev/sdb, macAddr: "e4:54:e8:3a:43:c5", vip: false }
+  - host: talmac-01
+    ip: 10.25.30.42
+    role: worker
+    schematicId: "@schematics/talmac.yaml"
+    data: { installDisk: /dev/nvme0n1, macAddr: "3c:cd:36:69:f7:f8", vip: false }
+  - host: talmac-02
+    ip: 10.25.30.43
+    role: worker
+    schematicId: "@schematics/talmac.yaml"
+    data: { installDisk: /dev/nvme0n1, macAddr: "3c:cd:36:69:f8:ce", vip: false }
+  - host: talmac-03
+    ip: 10.25.30.44
+    role: worker
+    schematicId: "@schematics/talmac.yaml"
+    data: { installDisk: /dev/nvme0n1, macAddr: "3c:cd:36:69:f8:de", vip: false }

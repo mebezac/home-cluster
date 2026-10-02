@@ -16,7 +16,7 @@ spec:
     - repoURL: https://charts.jetstack.io
       chart: cert-manager
       # changelog: GH releases cert-manager/cert-manager (PR body is a compare link only)
-      targetRevision: v1.21.1
+      targetRevision: v1.21.2
       helm:
         releaseName: cert-manager
         valueFiles:

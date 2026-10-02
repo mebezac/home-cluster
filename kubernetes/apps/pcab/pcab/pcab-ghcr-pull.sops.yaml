@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: pcab-ghcr-pull
+  namespace: pcab
+type: kubernetes.io/dockerconfigjson
+stringData:
+  .dockerconfigjson: ENC[AES256_GCM,data:UE/tkZQ6Jp2Yu1PsNzpYAtNgHjUU90b/lUmWCkl6Jwce1wjOxXZCJehaqX8cXX/qPQB+VHp6atSC+JRxlUSUPx73AUVlUhc+0dC3kgUzm6+JRVHslNXub1FzZ/QMX3f3SBZdmu9WEwsa4+jZbpJzFA0nXpEUAEFxhfMeSS02O9OdULCxszzANnYaf49YJWXa7bQrPA4Rq4LZcUrJNb41EGQhg6kOgdsAg47z1Q==,iv:2NdKV38LU2Kt2G2/p1D8hre0DBT1AWPPlJebxegbX7g=,tag:Scc9CW2Vnn59b7sHyLF0pg==,type:str]
+sops:
+  age:
+    - enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBVUEJob3c5TUErT2lhWVA1
+        T1g2T0VvbHUzZWQ3RTU4L3ZCbEpKTjM3VGdvCmx2QWxtSG1yMWJQakQveVZaUTBF
+        c25pVmR2dEdTQ0ZmUklIbVh1Z3hDS0kKLS0tIE9qL3FMZUN2MXV3LytSODlEYi92
+        ZWtaQlNHZHNuNHcwZGFYZjZLbTFxbjgKr1tBf/x/59IF84fKp0uy4qs/ucmpoWFu
+        3dEvXcG03oyE/dL2vuHPgzNFE+mweZ+YR/vW+k1FBsb1IrO+0oUfzw==
+        -----END AGE ENCRYPTED FILE-----
+      recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
+  encrypted_regex: ^(data|stringData)$
+  lastmodified: "2026-09-30T01:33:39Z"
+  mac: ENC[AES256_GCM,data:raH78VS7oehNqnJAL2scguucNw3v55kduxObKVqKu4l+O1bv16oF4tOlVNAoWKT6Yotl2sPm4G46mrL7p3seSDonUllYwDFOEmu8NKF4KuyDpgR8agTQeacpenLyQyK9iPb4WTiwntog8aKeTS18BjNQMN6qcDc4DH9OfAWYR6Q=,iv:rbr3afr+GTgn7scA2blQad3x66xGUjTMa/plC2lmcSQ=,tag:LStPsHFrpOJlqfrSYePZ0w==,type:str]
+  mac_only_encrypted: true
+  version: 3.13.3

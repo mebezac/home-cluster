@@ -11,7 +11,7 @@
         "--disable-multi-cluster"
       ],
       "env": {
-        "KUBECONFIG": "/Users/zac/projects/lab_casa/home-cluster/kubeconfig"
+        "KUBECONFIG": "${HOME_CLUSTER_KUBECONFIG:-./kubeconfig}"
       }
     },
     "argocd-mcp": {

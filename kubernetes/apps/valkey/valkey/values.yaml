@@ -10,13 +10,27 @@ defaultPodOptions:
 controllers:
   valkey:
     type: statefulset
+    pod:
+      # valkey loads its AOF in <1s; the old 30s grace just delayed the
+      # Longhorn detach, which is what actually dominates a drain (last
+      # restart: 29s total, 0.747s of it valkey).
+      terminationGracePeriodSeconds: 10
     containers:
       app:
         command: ["valkey-server", "/config/valkey.conf"]
         image:
           repository: valkey/valkey
-          # changelog: digest-only bumps of the same tag are Alpine apk + binary rebuilds - diff the two image configs (crane config) rather than hunting for release notes; there are none
-          tag: 9.1.1-alpine@sha256:de31910896150d5e754a07d57d227cfdde4e258ddd0d1aa4607f2d2f95843715
+          # changelog: VERSION bumps carry full notes in the PR body (valkey-io/valkey GH releases)
+          # - read the "Upgrade urgency" line first, and skip the RDMA items, this build has no RDMA
+          # listener. DIGEST-only bumps of the same tag have no notes at all: run
+          # .claude/skills/dependency-pr-triage/scripts/image-digest-diff.sh instead of hunting for
+          # one. Do NOT assume a digest bump is a pure rebuild - upstream sometimes changes runtime
+          # config (tini added to ENTRYPOINT, 2026-09). That particular class is INERT for us: the
+          # explicit command: above overrides the image ENTRYPOINT, so docker-entrypoint.sh never
+          # runs; only the valkey binary layer and the apk/base layer sizes matter. Either way the
+          # restart is a HARD blip (single replica, StatefulSet, OrderedReady) that drops authelia
+          # sessions (SSO re-login) plus grafana/romm/forgejo and prometheus-redis-exporter
+          tag: 9.1.2-alpine@sha256:48332870af354a799964c0012ae1194a0bf2bf894eb508f945810596dc2d8d11
         resources:
           requests:
             cpu: 5m
@@ -27,6 +41,28 @@ controllers:
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
           capabilities: { drop: ["ALL"] }
+        probes:
+          # Without this the Service published valkey-0 as soon as the
+          # container started, so clients could connect mid-AOF-load.
+          # NOTE: valkey-cli exits 0 even on "NOAUTH Authentication
+          # required", so the probe MUST match PONG in the output -
+          # checking the exit code alone always passes.
+          readiness:
+            enabled: true
+            custom: true
+            spec:
+              exec:
+                command:
+                  - sh
+                  - -c
+                  - |
+                    valkey-cli -a "$(grep '^requirepass' /config/valkey.conf | cut -d' ' -f2)" --no-auth-warning ping | grep -q PONG
+              initialDelaySeconds: 2
+              periodSeconds: 10
+              timeoutSeconds: 3
+              failureThreshold: 3
+          liveness: { enabled: false }
+          startup: { enabled: false }
 
 service:
   app:

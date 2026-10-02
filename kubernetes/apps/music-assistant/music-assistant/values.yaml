@@ -15,8 +15,14 @@ controllers:
       main:
         image:
           repository: ghcr.io/music-assistant/server
-          # changelog: GH releases music-assistant/server - patch notes are complete in the PR body; 2.9.x is bugfix-only, no config/DB migrations
-          tag: 2.9.13@sha256:5ded610a2804fb7a973d2cbe390df09ceb67f0d7f603bcacd21ebaaa5a8a9b62
+          # changelog: GH RELEASES music-assistant/server (gh api repos/music-assistant/server/
+          # releases/tags/<v>) - the PR body is NOT reliable even for patches, it is often just a
+          # bare compare link, and a MINOR (2.x.0) truncates it entirely. Patches here are not small
+          # either (2.10.2 was 42 commits). The real signal on every bump is DB_SCHEMA_VERSION in
+          # music_assistant/controllers/music/constants.py, diffed tag-to-tag: unchanged means no
+          # migration on our /data PVC. Snapshot the PVC when it does change - a failed migration
+          # deletes library.db and forces a full rescan
+          tag: 2.10.4@sha256:37a9a2776e838a754c9f5b38c432567389952304e7cb8f6b44b6cd28043de6de
         env:
           TZ: America/New_York
           LOG_LEVEL: info
@@ -25,11 +31,12 @@ controllers:
           readOnlyRootFilesystem: true
           capabilities: { drop: ["ALL"], add: ["SYS_ADMIN", "DAC_READ_SEARCH"] }
         resources:
+          # 7d metrics (2026-09-08): peak 260Mi, p95 254Mi - very stable.
           requests:
             cpu: 100m
-            memory: 1Gi
+            memory: 320Mi
           limits:
-            memory: 2Gi
+            memory: 768Mi
 
 service:
   main:

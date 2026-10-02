@@ -27,17 +27,18 @@ controllers:
           # changelog: GH releases hargata/lubelog - notes understate the diff; check the tag-to-tag
           # compare for controller/routing changes (v1.7.1 moved /images,/documents,/translations,/temp
           # from static middleware to an [Authorize] FilesController route).
-          tag: v1.7.1@sha256:678a5c4af387e525f06ef954b454efe536745f517f2078dc646ccce9332adb9d
+          tag: v1.7.3@sha256:c9d2bbb48c7f84d90e54496e2cd60422e56a5f2345c8a539ebe09f77e629d321
         env:
           TZ: America/New_York
           LC_ALL: en_US.UTF-8
         envFrom: *envFrom
         resources:
+          # 7d metrics (2026-09-08): peak 37Mi, CPU peak 10m.
           requests:
             cpu: 15m
-            memory: 80M
+            memory: 64Mi
           limits:
-            memory: 512M
+            memory: 192Mi
 service:
   app:
     controller: lubelog

@@ -14,7 +14,7 @@ controllers:
       init-config:
         image:
           repository: docker.io/owncloud/ocis
-          tag: 8.2.0@sha256:57a955178d226ead28ae6ed06ac4ceb5301cc21179c5b518986afa8611f9125c
+          tag: 8.2.0@sha256:1b9e3945890f2cb57283d15d3937a2d8180036db003bec4cc499bf95a2c82446
         command:
           - /bin/sh
           - -c
@@ -31,7 +31,7 @@ controllers:
           # changelog: GH releases owncloud/ocis. We use the BUILT-IN IdP + s3ng/Garage, so the
           # PROXY_AUTOPROVISION_* / external-OIDC upgrade notes do not apply. Keep this digest in
           # sync with the init-config container above - they must be the same build.
-          tag: 8.2.0@sha256:57a955178d226ead28ae6ed06ac4ceb5301cc21179c5b518986afa8611f9125c
+          tag: 8.2.0@sha256:1b9e3945890f2cb57283d15d3937a2d8180036db003bec4cc499bf95a2c82446
         env:
           DEMO_USERS: false
           OCIS_LOG_COLOR: false
@@ -62,12 +62,14 @@ controllers:
           readiness:
             enabled: true
         resources:
+          # 7d metrics (2026-09-08): peak 493Mi, p95 428Mi - the 128Mi request
+          # was well under real usage.
           requests:
             cpu: 50m
-            memory: 128Mi
+            memory: 576Mi
           limits:
             cpu: 1000m
-            memory: 2048Mi
+            memory: 1536Mi
         securityContext:
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
@@ -85,7 +87,7 @@ service:
 ingress:
   app:
     annotations:
-      external-dns.alpha.kubernetes.io/target: external.laboratory.casa
+      external-dns.kubernetes.io/target: external.laboratory.casa
     className: "external"
     hosts:
       - host: files.laboratory.casa

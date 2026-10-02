@@ -1,5 +1,19 @@
 fullnameOverride: ingress-nginx-internal
 controller:
+  # 2 replicas + PDB: this controller fronts ALL internal laboratory.casa
+  # traffic. At 1 replica a node drain (talos-upgrade) took every internal
+  # site down until the pod rescheduled. minAvailable renders the PDB.
+  replicaCount: 2
+  minAvailable: 1
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: DoNotSchedule
+      labelSelector:
+        matchLabels:
+          app.kubernetes.io/name: ingress-nginx
+          app.kubernetes.io/instance: ingress-nginx-internal
+          app.kubernetes.io/component: controller
   service:
     annotations:
       lbipam.cilium.io/ips: 10.25.30.117

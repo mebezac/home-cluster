@@ -5,14 +5,15 @@ description: >-
   draining Longhorn + workloads first and verifying full health before moving on.
   Use whenever the user wants to bump Talos (e.g. "get the cluster on v1.13.5",
   "upgrade talos", "roll out the new talos version", "update <node> to <version>",
-  "do the talos nodes"), reinstall/recover a node, or migrate a node onto the
-  custom Mac installer. Handles the whole node loop: pick a safe order
+  "do the talos nodes"), reinstall/recover a node, or migrate a node between
+  installer schematics. Handles the whole node loop: pick a safe order
   (workers → control-plane, non-leaders → etcd-leader last), cordon, drain past
   the Longhorn instance-manager PDB, evacuate single-replica volumes that would
   otherwise go offline, run `talosctl upgrade --preserve`, ride out the T2 Mac
-  BootFFFF non-fatal error, re-enable scheduling, and confirm every volume /
-  pod / etcd member is healthy before the next node. Knows this repo's talhelper
-  layout, the custom GCC installer for the talmac nodes, and the Longhorn
+  BootFFFF non-fatal error, apply the topf-rendered machine config per node,
+  re-enable scheduling, and confirm every volume / pod / etcd member is healthy
+  before the next node. Knows this repo's topf layout (talhelper is gone),
+  the talmac T2 Mac constraints (>= v1.14.2 only), and the Longhorn
   gotchas (stale USB mounts, diskUUID mismatch, data-locality PVs, CNPG
   switchover). Reach for this any time a Talos node needs upgrading, reinstalling,
   or migrating.
@@ -26,34 +27,101 @@ upgrade --preserve` → verify → restore → confirm cluster fully healthy →
 then touch the next node. Never two nodes at once.
 
 **This is the bootstrap/Talos layer — ArgoCD does NOT manage it.** Config lives
-in `kubernetes/bootstrap/talos/` (talhelper), applied manually. Config edits are
-committed to the repo normally (no attribution trailer per repo convention).
+in `kubernetes/bootstrap/talos/` (topf: `topf.yaml` + `all/` `control-plane/` `worker/`
+`node/<host>/` patches, `schematics/*.yaml`, `secrets.sops.yaml`), applied manually. Config
+edits are committed to the repo normally (no attribution trailer per repo convention).
+
+**talhelper is gone** (archived upstream; replaced by [topf](https://postfinance.github.io/topf/)
+in 8010c9cc). There is no `talconfig.yaml`, `talsecret.sops.yaml`, `patches/` or
+`clusterconfig/` any more — never run `talhelper genconfig` or apply an old
+`clusterconfig/*.yaml`. topf and talosctl are pinned in `.mise.toml`; run from inside the
+repo (mise shims fail outside it) or prefix with `mise exec --`. `task --list` shows the
+`talos:*` wrappers (`render`, `diff`, `apply-node`, `nodes`, `upgrade-node`, `talosconfig`).
 
 ## Setup (run first, every session)
 
 ```bash
-cd kubernetes/bootstrap/talos
+cd /Users/zac/projects/lab_casa/home-cluster/kubernetes/bootstrap/talos
 export SOPS_AGE_KEY_FILE=/Users/zac/projects/lab_casa/home-cluster/age.key
-export TALOSCONFIG="$PWD/clusterconfig/talosconfig"
-# regenerate configs so the install image reflects the target talosVersion:
-talhelper genconfig --config-file talconfig.yaml --secret-file talsecret.sops.yaml --out-dir clusterconfig
+export TALOSCONFIG=/Users/zac/projects/lab_casa/home-cluster/kubernetes/bootstrap/talos/talosconfig
+export TOPFCONFIG=/Users/zac/projects/lab_casa/home-cluster/kubernetes/bootstrap/talos/topf.yaml
+[ -s "$TALOSCONFIG" ] || topf talosconfig   # regenerate from the secrets bundle if missing
+# render (gitignored ./rendered - PLAINTEXT SECRETS, never print whole files) + validate:
+topf render --output ./rendered --confirm=false
+for f in rendered/*.yaml; do talosctl validate --mode metal --config "$f"; done
+topf nodes               # live stage / ready / schematic / version per node (retry once on i/o timeout)
+topf upgrade --dry-run   # read-only plan: per node version_actual→desired, schematic_actual→desired, installer
 ```
 
-`talconfig.yaml` already carries `talosVersion:` — the version everything targets.
-To upgrade the whole cluster to a new patch, bump `talosVersion` there first (and
-`kubernetesVersion` if desired), regen, then loop. For a same-version rollout
-(nodes lagging the pinned version) no edit is needed — just loop.
+`topf upgrade --dry-run` is the quickest "who still needs upgrading, and to what image"
+view. The talmacs report `schematic_actual=37656798…` until their first 1.14.2 upgrade:
+that's the empty-schematic ID the retired custom installer reported, not a drift problem.
+
+`topf.yaml` carries `talosVersion:` (and optionally a per-node `talosVersion:` override) —
+the version everything targets. Renovate bumps it (github-releases siderolabs/talos)
+alongside `aqua:siderolabs/talos` in `.mise.toml`; keep talosctl on the same version. To
+upgrade the whole cluster to a new patch, bump `talosVersion` first (and
+`kubernetesVersion` if desired — that's `task talos:upgrade-k8s`, separate from this
+skill), re-render, then loop. For a same-version rollout (nodes lagging the pinned
+version) no edit is needed — just loop.
+
+**Confirm the factory has built every installer before touching a node**
+(`crane digest factory.talos.dev/metal-installer/<schematic>:<version>` for each distinct
+image). A schematic the factory has never seen needs one `topf render --submit-to-factory`
+first; otherwise the upgrade's image pull fails.
 
 ### Node inventory & upgrade image
 
-Each node's upgrade image = its **install image** from the generated config
-(factory schematic + `:version`, or the custom installer for talmacs):
+Each node's upgrade image = the `UnattendedInstallConfig.installer.image` topf renders
+(`factory.talos.dev/metal-installer/<schematic>:<talosVersion>`, schematic hashed locally
+from `schematics/<hw>.yaml`):
 
 ```bash
-for f in clusterconfig/kubernetes-*.yaml; do
-  echo "$f -> $(grep -A3 'install:' "$f" | grep image: | head -1 | awk '{print $2}')"
+for f in rendered/*.yaml; do
+  echo "$f -> $(yq 'select(.kind=="UnattendedInstallConfig") | .installer.image' "$f")"
 done
 ```
+
+`topf upgrade` exists (pre-pull, cordon+drain with a 5m timeout, kexec reboot, uncordon;
+etcd health is validated server-side on ≥1.13 nodes) but this skill drives
+`talosctl upgrade --image <that image> --preserve` by hand because of the Longhorn
+evacuation (the instance-manager PDB outlasts topf's drain timeout) and the talmac
+BootFFFF/powercycle steps below. Don't use `task talos:upgrade-node` on a talmac.
+Either way, **the machine config is a separate step**: an upgrade keeps the node's
+current config.
+
+### First upgrade to 1.14 (one-time topf migration)
+
+Nodes upgraded from 1.13 still run the old talhelper-era legacy v1alpha1 config (1.14
+still accepts it). The topf render uses 1.14-only document kinds, so it can ONLY be
+applied **after** a node is on 1.14 — never before. Per node, right after its upgrade is
+verified (step 5) and while it's still cordoned:
+
+```bash
+topf apply --nodes-filter '^<host>$' --dry-run   # review the diff (secrets redacted); exit 2 = "changes found", not an error
+topf apply --nodes-filter '^<host>$'             # asks to confirm; mode auto; waits 30s stabilization
+```
+
+- **Never run an unfiltered `topf apply` / `task talos:apply` while any node is still on
+  1.13.** It walks every node. `task talos:diff` (dry-run) is harmless but noisy until
+  the migration is done.
+- topf's pre-flight aborts if the node has unmet conditions. Fix the node rather than
+  reaching for `--allow-not-ready`.
+- The apply restarts kubelet, so kubelet's image GC ages reset (expected).
+- **VIP:** wyse-5070-03 becomes a `10.25.30.116` Layer2 VIP candidate only once its topf
+  config is applied; until then only the elitebooks can hold the VIP. Do wyse-03 first
+  among the control planes (unless it is the etcd leader) so there are always two
+  candidates while the elitebooks reboot. The VIP moving makes kubectl blip for a few
+  seconds; talosctl talks to node IPs, so it's unaffected.
+
+Expect control-plane static pods to re-render. **talmacs**: their patch swaps legacy
+`machine.disks` for `ExistingVolumeConfig` (USB SSD by XFS UUID, same
+`/var/mnt/longhorn-usb` path) - apply with `--mode staged`, then
+`talosctl reboot --mode powercycle` while the node is still drained, then confirm
+`talosctl get volumestatus` shows `e-longhorn-usb` ready, `get mountstatus` shows
+`/var/mnt/longhorn-usb`, and the Longhorn disk `sabrent-usb-ssd` is Ready with its
+unchanged diskUUID before uncordoning. If the selector matches nothing the volume just
+waits (no data touched) - restore the old mount by reverting that patch.
 
 Current nodes (verify live, don't trust this list blindly):
 
@@ -64,14 +132,17 @@ Current nodes (verify live, don't trust this list blindly):
 | wyse-5070-03 | 10.25.30.35 | control-plane | no | factory `9ba0b24a…` |
 | wyse-5070-01 | 10.25.30.33 | worker | yes | factory `9ba0b24a…` |
 | wyse-5070-02 | 10.25.30.34 | worker | yes | factory `9ba0b24a…` |
-| talmac-01 | 10.25.30.42 | worker | yes | **`ghcr.io/mebezac/talos-mac/installer`** |
-| talmac-02 | 10.25.30.43 | worker | yes | **custom** |
-| talmac-03 | 10.25.30.44 | worker | yes | **custom** |
+| talmac-01 | 10.25.30.42 | worker | yes | factory `2385c7da…` |
+| talmac-02 | 10.25.30.43 | worker | yes | factory `2385c7da…` |
+| talmac-03 | 10.25.30.44 | worker | yes | factory `2385c7da…` |
 
-The **talmac** nodes are 2018 T2 Intel Macs and MUST use the custom GCC-linked
-installer (`ghcr.io/mebezac/talos-mac/installer:<ver>`) — stock Talos 1.13+ hangs
-at cold boot (siderolabs/talos#13579). Never point a talmac at `factory.talos.dev`
-for 1.13+. See the `talos-mac-installer` sibling repo + the memory of the same name.
+The **talmac** nodes are 2018 T2 Intel Macs. Stock Talos v1.13.0–v1.14.1 hangs at
+cold boot on them (Apple EFI-stub bug, siderolabs/talos#13579); **v1.14.2+ carries the
+fix** (siderolabs/pkgs@6c312e4), so they use the stock factory schematic `2385c7da…`
+(i915, intel-ucode, iscsi-tools, thunderbolt, util-linux-tools + `intel_iommu=on
+iommu=pt pcie_ports=compat`). **Never put a talmac on anything between v1.13.0 and
+v1.14.1.** The old custom GCC installer (`ghcr.io/mebezac/talos-mac/installer`,
+sibling repo `talos-mac-installer`) is archived — don't use it.
 
 ## Choose the order
 
@@ -185,7 +256,7 @@ Run it **backgrounded** (drains exceed the 2-min foreground cap). Expected resid
 
 ```bash
 talosctl -e <other-endpoint-or-$N> -n $N upgrade \
-  --image <install-image-from-step-'Node inventory'>:<version> --preserve
+  --image <installer image from "Node inventory" — it already ends in :<talosVersion>> --preserve
 ```
 **Never wrap `talosctl upgrade` (or `reset`) in `timeout`** — an interrupted
 upgrade leaves the node in a half-reset LOCKED state. Background it and poll.
@@ -246,8 +317,14 @@ import sys,json;d=json.load(sys.stdin)
 for n,st in d['status']['diskStatus'].items():
     print(n,{c['type']:c['status'] for c in st.get('conditions',[])})"   # Ready:True Schedulable:True
 ```
-Talos already uncordoned the k8s node. If you manually `kubectl cordon`'d and it
-didn't auto-uncordon, `kubectl uncordon $H`.
+Talos already uncordoned the k8s node **on the normal path** (where Talos itself
+drove the reboot). It does NOT on a **talmac you powercycled yourself** after the
+BootFFFF abort — that node returns `Ready,SchedulingDisabled`. Always check and
+uncordon explicitly:
+```bash
+kubectl get node $H --no-headers   # if it says Ready,SchedulingDisabled:
+kubectl uncordon $H
+```
 
 ### 7. Confirm cluster fully healthy — GATE before the next node
 
@@ -287,25 +364,73 @@ do you move on.
   # force a full firmware reboot (NOT a kexec, which would re-boot the old kernel):
   talosctl -e <endpoint> -n $N reboot --mode=powercycle
   ```
-  systemd-boot then boots the newest on-disk UKI = the new version. **After issuing
-  powercycle, wait for the node to go UNREACHABLE before trusting any version read**
-  — the hardware reset takes ~15-20s to actually trigger, and a version check in
-  that window returns the *old* version from the still-running node (false
-  "BOOTED_OLD"). Poll: wait-for-unreachable → wait-for-reachable → then read version
-  (expect the new one at ~60-120s). Longhorn disks come back `Ready:False` for
-  ~10-50s post-boot while instance-manager restarts, then flip to Ready — that's
-  normal, not the diskUUID gotcha.
+  systemd-boot then boots the newest on-disk UKI = the new version. The hardware
+  reset takes ~15-20s to actually trigger, so a version read in that window returns
+  the *old* version from the still-running node. **Do NOT handle that with a
+  "wait for UNREACHABLE" phase** — see the trap below. Just sleep past the reset
+  window, then poll for the target version with a single bounded, always-verbose
+  loop:
+  ```bash
+  TARGET=v1.14.2; EP=10.25.30.45; N=10.25.30.43   # TARGET = topf.yaml talosVersion
+  probe() { timeout 10 talosctl -e $EP -n $N version 2>/dev/null \
+              | grep -A2 Server | grep Tag | awk '{print $2}'; }
+  talosctl -e $EP -n $N reboot --mode=powercycle
+  sleep 45                      # ride out the 15-20s reset trigger + early boot
+  for i in $(seq 1 40); do      # hard bound: ~7 min
+    V=$(probe); echo "t=$((45+i*10))s version=${V:-unreachable}"   # print EVERY pass
+    [ "$V" = "$TARGET" ] && echo BOOTED_NEW && break
+    sleep 10
+  done
+  ```
+  Longhorn disks come back `Ready:False` for ~10-50s post-boot while
+  instance-manager restarts, then flip to Ready — normal, not the diskUUID gotcha.
+- **Never gate on "wait for the node to go UNREACHABLE".** A talmac powercycle can
+  come and go faster than the probe interval, so the unreachable window is often
+  missed entirely and that loop never breaks. Worse, the usual shape
+  (`for …; do sleep 5; [ -z "$(probe)" ] && break; done`) prints **nothing** while
+  it spins, so it burns its full bound — 40 iterations × (5s sleep + up to 10s
+  probe) ≈ 10 minutes of dead silence — and looks exactly like a hung node when the
+  machine is already up and healthy. Poll for the *target version* instead, sleep
+  past the reset window rather than trying to detect it, and **echo on every
+  iteration** so a stall is always distinguishable from a slow boot.
+- **`talosctl version` has NO `--timeout` flag.** Passing one makes the command
+  exit 1 with `unknown flag: --timeout` and print NOTHING to stdout — so a poll
+  loop that greps its output reads every iteration as "unreachable" and spins
+  until the loop bound while the node is actually up and healthy. This is the
+  classic fake-stuck-talmac bug; it also produces a bogus instant "UNREACHABLE at
+  t=5s" in the wait-for-unreachable phase. Wrap the whole call in the shell's
+  `timeout` instead (safe for a read-only `version`; still NEVER for
+  `upgrade`/`reset`):
+  ```bash
+  # reachability probe — note `timeout N talosctl`, NOT `talosctl --timeout`
+  probe() { timeout 10 talosctl -e <endpoint> -n $N version 2>/dev/null \
+              | grep -A2 Server | grep Tag | awk '{print $2}'; }
+  until [ -z "$(probe)" ]; do sleep 5; done          # gone down
+  until [ "$(probe)" = "<version>" ]; do sleep 10; done   # back up on the new version
+  ```
+  If a poll loop ever reports "unreachable" for more than ~3 min, STOP and run the
+  bare command by hand — confirm it's a real outage and not a bad flag swallowing
+  the output.
+- **A powercycled talmac does NOT get auto-uncordoned.** Talos only uncordons the
+  k8s node when *it* drove the reboot (the normal GRUB-node upgrade path). Because
+  the BootFFFF abort means you rebooted the node yourself, it comes back
+  `Ready,SchedulingDisabled` and stays there — you must `kubectl uncordon $H`
+  explicitly in step 6 alongside the Longhorn patch, or the node sits idle and
+  nothing reschedules onto it.
 - **USB ISO reinstall is only for a talmac already bricked** on a non-booting
-  stock 1.13.x. Flash `metal-amd64.iso` from the matching
-  `mebezac/talos-mac-installer` GitHub release, boot holding ⌥ → EFI Boot,
-  `talosctl apply-config --insecure`. A normal migration off a working version is
-  just an in-place `upgrade --preserve`.
+  stock 1.13.x–1.14.1. Flash the factory `metal-amd64.iso` for schematic `2385c7da…`
+  at **v1.14.2+**, boot holding ⌥ → EFI Boot, then
+  `topf apply --nodes-filter '^<host>$'` (topf detects maintenance mode and applies
+  insecurely; its dry-run diff won't be meaningful there). A normal migration off a
+  working version is just an in-place `upgrade --preserve`.
 - **Stale USB Longhorn mount after replug.** If a USB enclosure was unplugged and
-  replugged, the old bind mount goes stale (`/var/mnt/longhorn-usb` → dead
-  `/dev/sda1`, `input/output error` on `longhorn-disk.cfg`, disk `Ready:False`).
-  The upgrade's **reboot fixes it** — Talos re-resolves the `by-id` mount and
-  Longhorn re-adopts automatically **if the on-disk diskUUID still matches** the
-  node CR. No manual dance needed for that case.
+  replugged, the old mount goes stale (`/var/mnt/longhorn-usb` → dead `/dev/sdX1`,
+  `input/output error` on `longhorn-disk.cfg`, disk `Ready:False`). A **reboot fixes
+  it**: Talos re-discovers the disk (legacy `machine.disks` by-id before the topf apply;
+  `ExistingVolumeConfig longhorn-usb` by XFS UUID after it, from
+  `node/talmac-0N/00-longhorn-usb.yaml`), and Longhorn re-adopts automatically **if the
+  on-disk diskUUID still matches** the node CR. No manual dance needed for that case.
+  Check with `talosctl -n $N get volumestatus e-longhorn-usb`.
 - **Longhorn diskUUID mismatch** ("record diskUUID doesn't match the one on the
   disk"): happens when `/var/lib/longhorn/` got reset (fresh install, or a
   `--preserve` upgrade that reset EPHEMERAL) so the on-disk cfg has a *new* UUID.
@@ -327,11 +452,9 @@ do you move on.
 
 ## Repo cleanup after migrating a node onto a new installer
 
-If you moved a node onto the custom installer or off a version pin, edit
-`talconfig.yaml` (set its `talosImageURL`, delete its
-`patches/<node>/machine-install.yaml` pin + the reference line), keep
-`machine-disks.yaml`, `talhelper genconfig` to confirm the install image resolved,
-update `docs/talmac-1.13-upgrade.md`, and commit (conventional-commit message, no
+If you moved a node onto a different schematic or version pin, edit its entry in
+`topf.yaml` (`schematicId: "@schematics/<hw>.yaml"`, or a per-node `talosVersion`),
+re-render to confirm the installer image resolved, and commit (conventional-commit message, no
 attribution trailer).
 
 ## Gotchas learned (quick reference)
@@ -349,7 +472,25 @@ attribution trailer).
 - **Detached volume `robustness=unknown` is normal** (no attached workload) — not
   a fault. Only `degraded`/`faulted` are real problems.
 - **CNPG primary drain = automatic switchover.** Safe and expected.
-- **Talmac BootFFFF error is non-fatal.** Verify version, don't reinstall.
+- **Talmac BootFFFF error is non-fatal.** Verify version, don't reinstall. It does
+  mean you must `reboot --mode=powercycle` yourself AND `kubectl uncordon` after —
+  neither happens automatically on that path.
+- **Never pass `--timeout` to `talosctl version`** — the flag doesn't exist, the
+  command prints nothing, and version poll loops hang forever on a healthy node.
+  Use `timeout 10 talosctl … version` instead. Any "unreachable" streak longer
+  than ~3 min should be re-checked by hand before believing it.
+- **Every wait loop must echo on every iteration and carry a hard bound.** A
+  silent loop is indistinguishable from a hung node; a loop whose only exit is the
+  success condition will spin its whole budget when that condition never trips.
+  Never gate a reboot wait on "node goes unreachable" — poll for the target
+  version and sleep past the reset window instead.
+- **`talosctl` needs an absolute `$TALOSCONFIG`.** Exporting
+  `TALOSCONFIG="$PWD/talosconfig"` breaks the moment anything `cd`s
+  elsewhere (editing this skill file will do it), and the failure reads as
+  `talos config file is empty`. Use the full
+  `/Users/zac/projects/lab_casa/home-cluster/kubernetes/bootstrap/talos/talosconfig`
+  path in every command. That failure is a safe no-op — the upgrade never reached
+  the node — so just re-run it.
 - **etcd: leader last, verify 3 healthy converged members between CP nodes**, use
   a different `-e` endpoint when the node being rebooted is itself an endpoint.
 - **Node DNS resolver (10.25.30.38) is flaky — watch the upgrade's image pull and
@@ -357,4 +498,72 @@ attribution trailer).
   touched disk, so re-running the same `upgrade` is a safe no-op (see step 4).
   First boot after the reboot can also log a burst of DNS/NTP timeouts and look
   stalled for 1-2 min, then self-recovers; don't reinstall over it.
-- **This layer isn't ArgoCD-managed** — talhelper/bootstrap, applied by hand.
+- **This layer isn't ArgoCD-managed** — topf/bootstrap, applied by hand.
+- **talosctl ≥1.14 `upgrade` = install → its own drain (`--drain-timeout` 5m) → reboot →
+  uncordon.** The install takes seconds; the node then sits on the old version while
+  talosctl waits out pod grace periods (ingress-nginx-external has 300s), so ~2-4 min at
+  "still old version" is normal. `--preserve` is gone (always preserved). Check
+  `talosctl logs machined | grep "upgrade progress"` for "installation of vX complete".
+- **Check for node-pinned local PVs before draining** (`kubectl get pv` with `.spec.local`
+  / nodeAffinity): their pods stay Pending until that node returns. As of 2026-09-30 there
+  are none (garage vfs-cache and jellyfin transcodes moved to emptyDir).
+- **After the 1.14 upgrade but before the topf apply, `/var` loses `nosuid,nodev`**
+  (legacy config under the 1.14 contract). The topf render's `VolumeConfig EPHEMERAL
+  mount.secure: true` restores them on the next reboot. Expected, not a regression.
+- **`topf apply --dry-run` exits 1 while the node is NotReady** (pre-flight). Wait for
+  kubelet Ready (~1 min after boot), then dry-run again: exit 2 = diff, 0 = in sync.
+  Re-run the dry-run after the apply and require exit 0.
+- **Elitebooks: never kexec. Always `--reboot-mode powercycle` / `reboot --mode powercycle`.**
+  On 2026-09-30 elitebook-02 hung after the kexec into v1.14.2: it answered ping, but all
+  service ports were closed and apid never started. About 75 minutes later it rebooted
+  and GRUB fell back to slot A (the old version). A retry of the same kexec worked.
+  Firmware reboots took 70-100s and were clean on both elitebooks. If a node answers ping
+  but 50000 stays refused for more than 5 minutes, it is hung: ask the user to check the
+  screen. A hard power-off falls back to the old slot.
+- **Apply config to control-plane nodes as `--mode staged --skip-post-apply-checks` and then
+  `talosctl reboot --drain --mode powercycle`. Don't use a live no-reboot apply.** On
+  wyse-03 the live apply restarted kubelet, the old kubelet ignored SIGTERM, and Talos
+  marked the service Failed ("cannot delete running task kubelet"). `service kubelet
+  restart` couldn't fix it; only a reboot did. The workers' live applies were fine. The
+  reboot also brings back the `/var` `nosuid,nodev` flags in the same step.
+- **etcd 3.6 → 3.7 happens on control-plane upgrade** (the image is not pinned). It's one-way,
+  so take `talosctl etcd snapshot` into the scratchpad first. The STORAGE column flips to
+  3.7.0 once all members run 3.7.1.
+- **The control-plane topf diff adds `KubeEtcdEncryptionConfig` without the `identity: {}`
+  fallback** (the upstream 1.14 default). Before applying, confirm by hash that the
+  secretbox key matches the live one. `KubeAuthenticationConfig` allows anonymous access
+  to `/livez`, `/readyz` and `/healthz` only; the old setting was `--anonymous-auth=false`.
+  Both are expected.
+- **Talmac on 1.14.2 (proved on talmac-02, 2026-10-01).** The BootFFFF error *still*
+  happens on the 1.14.2 installer: exit code 7, after `Talos-v1.14.2.efi` is copied. Talos
+  1.14 talosctl therefore never reaches its own drain or reboot, so drain first and pass
+  `--drain=false`. The power-cycle takes **~70s** to actually cut power on the Mac (not
+  15-20s); the first boot on the stock factory image then came up in ~85s. The talmac
+  config apply was staged and then a power-cycle. Afterwards `volumestatus e-longhorn-usb`
+  was ready, the Longhorn disks went Ready in ~30s, and the diskUUID was unchanged.
+- **CNPG instances with a single Longhorn replica don't need evicting.** If the instance
+  on the node is a replica (`currentPrimary` is elsewhere), let it go offline for the
+  reboot; CNPG resyncs it. Keep the other replicas with `evictionRequested:false`. This
+  avoids rebuilding ~27 replicas per talmac, and the degraded volumes resynced in ~3 min.
+- **Before draining the node that hosts the CNPG *primary*, check where
+  `cloudnative-pg-plugin-barman-cloud` and the `cloudnative-pg` operator pods run.** On
+  talmac-01 (2026-10-01) the drain evicted the primary *and* the barman plugin together.
+  The operator then failed with "error while interacting with plugins … context deadline
+  exceeded" and could not fail over until the plugin restarted elsewhere. That gave ~2 min
+  with no Postgres primary. Fix first: switch the primary to an instance on another node
+  (`kubectl cnpg promote postgres-17-cluster <instance> -n database`), or move the plugin
+  pod off the node, then drain. After the plugin returns, CNPG may also roll pending
+  instance changes (it rolled the barman sidecar v0.15.1), which means one more primary
+  switchover.
+- **Talmac upgrades: run `.claude/skills/talos-upgrade/scripts/talmac-upgrade.sh <host> <ip>`** (backgrounded, logged; aborts on anything unexpected; first handle the CNPG-primary note above). It covers cordon → drain →
+  upgrade (BootFFFF expected) → powercycle → staged topf apply → powercycle → verify
+  (volume/mount/`/var`/drift/Longhorn diskUUID) → uncordon → gate. Each talmac took
+  ~12-15 min end to end. The talmac-01 USB stick is the **Z-Wave** adapter
+  (zwave-js-ui-0); zigbee2mqtt isn't tied to talmac-01.
+- **Don't use `ls -t …/tasks/*.output | head -1` to find a monitor's file.** Another task
+  finishing can make its file newer. Tail the exact task output path.
+- **topf, not talhelper.** Render/validate with topf, take the upgrade image from the
+  rendered `UnattendedInstallConfig`, apply config with `topf apply --nodes-filter
+  '^<host>$'` (dry-run first) only once that node is on 1.14. Never unfiltered mid-rollout.
+- **Rendered configs and `talosconfig` hold plaintext secrets** — gitignored; `yq` out
+  the field you need, never `cat` a whole file.

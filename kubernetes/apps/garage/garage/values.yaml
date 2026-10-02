@@ -14,23 +14,38 @@ controllers:
       name: tailscale
     annotations:
       reloader.stakater.com/auto: "true"
-    containers:
-      main:
-        image:
-          repository: dxflrs/garage
-          tag: v2.3.0@sha256:866bd13ed2038ba7e7190e840482bc27234c4afaf77be8cfa439ae088c1e4690
-        env:
-          TZ: America/Detroit
-        resources:
-          requests:
-            cpu: 100m
-            memory: 128Mi
-          limits:
-            memory: 512Mi
+    # tailscale and rclone are NATIVE SIDECARS (initContainers with
+    # restartPolicy: Always), not plain containers. garage's data_dir IS the
+    # rclone FUSE mount, and garage aborts at startup if it cannot see
+    # garage-marker there. As plain containers all three started together, so
+    # garage lost the race on every image bump and crash-looped for ~15s until
+    # kubelet retried (observed 2026-09-08 17:59:58).
+    #
+    # A plain initContainer CANNOT fix this: init containers finish before any
+    # regular container starts, so a "wait for the marker" init container would
+    # block forever waiting on an rclone that has not been started yet. Native
+    # sidecars are the only ordering primitive that works here - kubelet starts
+    # them in order and waits for each to be Started (= its startupProbe passes)
+    # before running the next one and then the regular containers.
+    #
+    # app-template renders initContainers in ALPHABETICAL key order, so the
+    # real order is rclone -> tailscale -> garage, not the order written here.
+    # That is safe: rclone's sftp remote is a public host (gorillaservers.com),
+    # NOT a tailnet address, so rclone does not depend on tailscale. If that
+    # remote is ever moved onto the tailnet, these keys MUST be renamed
+    # (01-tailscale / 02-rclone) or rclone will block on a mount it cannot make
+    # while tailscale waits behind it - a permanent deadlock.
+    # Both sidecars still start before garage, which also fixes garage racing
+    # tailscale for its replication peers.
+    # Bonus: sidecars are torn down AFTER regular containers, so rclone's
+    # preStop unmount now runs after garage has stopped writing, instead of
+    # racing it.
+    initContainers:
       tailscale:
         image:
           repository: ghcr.io/tailscale/tailscale
-          tag: v1.102.3@sha256:8c42c4574ab066384fcb72f69e086a2ff1dd3652eb6f56856cee34bcf0d2f680
+          # changelog: tailscale.com/changelog is sparse for patches; read commits via gh api repos/tailscale/tailscale/compare/vOLD...vNEW
+          tag: v1.102.5@sha256:c507f3a2a6ab1cabd8d809b98edeb41edbd5c3fb6ad9632ffd098b4c7d0b4065
         securityContext:
           privileged: true
           runAsUser: 0
@@ -53,11 +68,18 @@ controllers:
         resources:
           limits:
             devic.es/tun: "1"
+        restartPolicy: Always
       rclone:
         image:
-          # changelog: rclone.org/changelog (PR body is just a link). This mount IS garage's data_dir via FUSE - read the VFS/Mount/SFTP sections, and expect a garage restart (CNPG barman + forgejo + ocis) on every bump
+          # changelog: rclone.org/changelog (PR body is just a link). This mount IS garage's
+          # data_dir via FUSE - read the VFS/Mount/crypt sections. Our remote is crypt-over-sftp
+          # with key-file auth, so "serve sftp|s3|ftp" CVEs are server-side and do NOT apply, and
+          # crypt (not sftp) is the section that actually bites. Expect a restart of the WHOLE
+          # garage pod (single replica, garage + tailscale + rclone in one pod) on every bump:
+          # S3 down for the window -> CNPG barman WAL backpressure + forgejo/ocis 5xx, so merge in
+          # a quiet window away from the @daily backup
           repository: rclone/rclone
-          tag: 1.75.0@sha256:b06aed988cf5967de7c25be5925240983981c757f4ed1ac9d2fa659d51d60548
+          tag: 1.75.1@sha256:45401ad7410db1d67ffdb58e19059ad20b0d8e0285a60e38bbec55cc1019c7a5
         command:
           - /bin/sh
           - -c
@@ -98,6 +120,49 @@ controllers:
             memory: 64Mi
           limits:
             memory: 1Gi
+        restartPolicy: Always
+        probes:
+          # THE gate. garage does not start until the FUSE mount is live and
+          # actually serving garage-marker. failureThreshold x periodSeconds
+          # allows ~150s for the sftp remote to come up.
+          startup:
+            enabled: true
+            custom: true
+            spec:
+              exec:
+                command:
+                  - /bin/sh
+                  - -c
+                  - test -f /data/garage-marker
+              initialDelaySeconds: 3
+              periodSeconds: 5
+              timeoutSeconds: 5
+              failureThreshold: 30
+          liveness: { enabled: false }
+          readiness: { enabled: false }
+    containers:
+      main:
+        image:
+          # changelog: dxflrs/garage on GitHub is a dead mirror (no releases). Real notes live at
+          # git.deuxfleurs.fr/Deuxfleurs/garage/releases (Gitea) - garagehq.deuxfleurs.fr blog only
+          # covers major versions (v2.0). v2.4.0: stable, "no breaking changes from v2.3.0", no
+          # data-format/layout bump, no garage.toml key changes. Still NO conditional-write
+          # (If-Match/If-None-Match) support. v2.4.1: patch fixing a startup panic w/ Consul/K8s
+          # discovery - N/A here, we use static bootstrap_peers. NOTE: this manifest is only 1 of
+          # 3 garage nodes (replication_factor=3 in garage.toml; the other 2 peers run outside
+          # this repo, reached via Tailscale) - bumping here alone runs a mixed-version cluster
+          # briefly, which the "no breaking changes" note covers.
+          repository: dxflrs/garage
+          tag: v2.4.1@sha256:9c96caa2612d3411acc5b0e6701fb238dbfba33e533a6d7d3d811a4b12d0d020
+        env:
+          TZ: America/Detroit
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            memory: 512Mi
+
 service:
   s3:
     controller: main
@@ -143,7 +208,7 @@ ingress:
     enabled: true
     className: external
     annotations:
-      external-dns.alpha.kubernetes.io/target: external.laboratory.casa
+      external-dns.kubernetes.io/target: external.laboratory.casa
     hosts:
       - host: s3.laboratory.casa
         paths:
@@ -156,7 +221,7 @@ ingress:
     enabled: true
     className: external
     annotations:
-      external-dns.alpha.kubernetes.io/target: external.heremag.free
+      external-dns.kubernetes.io/target: external.heremag.free
     hosts:
       - host: files.heremag.free
         paths:
@@ -226,13 +291,14 @@ persistence:
   #         - path: /var/lib/garage/data
   #       rclone:
   #         - path: /tmp-d
+  # rclone's --vfs-cache-mode writes staging area. emptyDir, not a node-local PV: a clean stop
+  # flushes pending uploads (preStop unmount), and after a node death the unflushed seconds are
+  # gone either way, so a pinned PV only stopped the pod from moving off a drained/dead node.
+  # sizeLimit sits above --vfs-cache-max-size 6G.
   vfs-cache:
     enabled: true
-    type: persistentVolumeClaim
-    storageClass: openebs-hostpath
-    accessMode: ReadWriteOnce
-    suffix: vfs-cache
-    size: 7Gi
+    type: emptyDir
+    sizeLimit: 7Gi
     advancedMounts:
       main:
         rclone:

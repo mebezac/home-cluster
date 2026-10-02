@@ -13,11 +13,21 @@ controllers:
         envFrom:
           - secretRef:
               name: authelia-initdb-secret
+        # PodSecurity "restricted" is enforced here and the app container
+        # already satisfies it; init-db did not, so admission logged a warning
+        # on every rollout. readOnlyRootFilesystem is deliberately NOT set:
+        # "restricted" does not require it, and postgres-init may need scratch
+        # space - no reason to risk authelia failing to start over it.
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities: { drop: ["ALL"] }
     pod:
       securityContext:
         runAsUser: 568
         runAsGroup: 568
         runAsNonRoot: true
+        # set at pod level so it covers app AND init-db in one place
+        seccompProfile: { type: RuntimeDefault }
       topologySpreadConstraints:
         - maxSkew: 1
           topologyKey: kubernetes.io/hostname
@@ -29,7 +39,16 @@ controllers:
       app:
         image:
           repository: ghcr.io/authelia/authelia
-          tag: 4.39.20
+          # changelog: GH releases authelia/authelia - PATCH VERSIONS LIE (4.39.20 -> 4.39.21 was 677
+          # commits and a full MUI->tailwind login-portal rewrite). Two mandatory tag-to-tag checks:
+          # (1) internal/configuration/schema/keys.go - an unexpected key fatals config load and
+          #     crashloops Authelia = total SSO outage across every OIDC client and forward-auth
+          #     ingress, INCLUDING the ArgoCD UI, so keep kubectl as the escape hatch;
+          # (2) internal/storage/migrations/postgres for new V00xx - they auto-run on startup, are
+          #     one-way, and a newer schema makes the OLD image refuse to boot, so reverting the tag
+          #     alone will NOT roll back. Back up the authelia DB in central PG before any bump; to
+          #     undo, run `authelia storage migrate down --target <N>` from a NEW-version pod first.
+          tag: 4.39.28@sha256:bd97cff4fcbf715b5ff1f9ae286afbe6033afce385302520b0368122d43a6f54
         env:
           AUTHELIA_SERVER_ADDRESS: tcp://:80
           AUTHELIA_SERVER_DISABLE_HEALTHCHECK: "true"
@@ -92,7 +111,7 @@ ingress:
   app:
     className: external
     annotations:
-      external-dns.alpha.kubernetes.io/target: external.laboratory.casa
+      external-dns.kubernetes.io/target: external.laboratory.casa
       nginx.ingress.kubernetes.io/configuration-snippet: |
         add_header Cache-Control "no-store";
         add_header Pragma "no-cache";

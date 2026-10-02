@@ -11,7 +11,7 @@ The features included will depend on the type of configuration you want to use. 
 1. **"Argo cluster"** - a Kubernetes cluster deployed on-top of [Talos Linux](https://github.com/siderolabs/talos) with an opinionated implementation of [Argo](https://github.com/argoproj/argo-cd) using [GitHub](https://github.com/) as the Git provider and [sops](https://github.com/getsops/sops) to manage secrets.
 
     - **Required:** Some knowledge of [Containers](https://opencontainers.org/), [YAML](https://yaml.org/), and [Git](https://git-scm.com/).
-    - **Components:** [argo](https://github.com/argoproj/argo-cd), [cilium](https://github.com/cilium/cilium), [cert-manager](https://github.com/cert-manager/cert-manager), [spegel](https://github.com/spegel-org/spegel), [reloader](https://github.com/stakater/Reloader), and [openebs](https://github.com/openebs/openebs).
+    - **Components:** [argo](https://github.com/argoproj/argo-cd), [cilium](https://github.com/cilium/cilium), [cert-manager](https://github.com/cert-manager/cert-manager), [spegel](https://github.com/spegel-org/spegel), and [reloader](https://github.com/stakater/Reloader).
 
 2. **"Argo cluster with Cloudflare"** - An addition to "**Argo cluster**" that provides DNS and SSL with [Cloudflare](https://www.cloudflare.com/). [Cloudflare Tunnel](https://www.cloudflare.com/products/tunnel/) is also included to provide external access to certain applications deployed in your cluster.
 
@@ -64,7 +64,6 @@ There are **4 stages** outlined below for completing this project, make sure you
     ```sh
     mise trust
     mise install
-    mise run deps
     ```
 
 ### Stage 3: Template Configuration
@@ -112,7 +111,7 @@ There are **4 stages** outlined below for completing this project, make sure you
 
     ```sh
     git add -A
-    git commit -m "chore: add talhelper encrypted secret :lock:"
+    git commit -m "chore: add talos encrypted secret :lock:"
     git push
     ```
 
@@ -124,7 +123,7 @@ There are **4 stages** outlined below for completing this project, make sure you
 
 4. Watch the rollout of your cluster happen:
 
-   📍 _Depending on the features you choose a successful rollout will include pods being deployed into the **cert-manager, argo-system, network and openebs-system** namespaces_
+   📍 _Depending on the features you choose a successful rollout will include pods being deployed into the **cert-manager, argo-system and network** namespaces_
 
     ```sh
     watch kubectl get pods --all-namespaces
@@ -179,25 +178,27 @@ task talos:reset # --force
 ### ⚙️ Updating Talos node configuration
 
 > [!IMPORTANT]
-> Ensure you have updated `talconfig.yaml` and any patches with your updated configuration. In some cases you **not only need to apply the configuration but also upgrade talos** to apply new configuration.
+> Talos config is assembled by [topf](https://postfinance.github.io/topf/) from `kubernetes/bootstrap/talos/topf.yaml` plus the patches next to it. In some cases you **not only need to apply the configuration but also upgrade talos** to apply new configuration.
 
 ```sh
-# (Re)generate the Talos config
-task talos:generate-config
-# Apply the config to the node
-task talos:apply-node IP=? MODE=?
-# e.g. task talos:apply-config IP=10.10.10.10 MODE=auto
+# Render + validate every node's config (to the gitignored ./rendered)
+task talos:render
+# Show what would change on each node
+task talos:diff
+# Apply the config to one node (shows a diff and asks first)
+task talos:apply-node NODE=? MODE=?
+# e.g. task talos:apply-node NODE=talmac-01 MODE=auto
 ```
 
 ### ⬆️ Updating Talos and Kubernetes versions
 
 > [!IMPORTANT]
-> Ensure the `talosVersion` and `kubernetesVersion` in `talconfig.yaml` are up-to-date with the version you wish to upgrade to.
+> Ensure the `talosVersion` and `kubernetesVersion` in `topf.yaml` are up-to-date with the version you wish to upgrade to.
 
 ```sh
 # Upgrade node to a newer Talos version
-task talos:upgrade-node IP=?
-# e.g. task talos:upgrade IP=10.10.10.10
+task talos:upgrade-node NODE=?
+# e.g. task talos:upgrade-node NODE=talmac-01
 ```
 
 ```sh

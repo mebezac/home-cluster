@@ -1,0 +1,7 @@
+# Spegel needs unpacked layers kept so it can serve them to peers.
+apiVersion: v1alpha1
+kind: CRICustomizationConfig
+name: spegel
+content: |
+  [plugins."io.containerd.cri.v1.images"]
+    discard_unpacked_layers = false

@@ -33,12 +33,13 @@ controllers:
               failureThreshold: 3
           readiness: *probes
         resources:
+          # 7d metrics (2026-09-08): peak 424Mi, p95 276Mi.
           requests:
             cpu: 10m
-            memory: 512Mi
+            memory: 384Mi
           limits:
             gpu.intel.com/i915: 1
-            memory: 8Gi
+            memory: 1Gi
         securityContext:
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: false

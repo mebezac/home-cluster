@@ -15,7 +15,8 @@ controllers:
       app:
         image:
           repository: ghcr.io/fccview/jotty
-          tag: 1.26.1@sha256:20fce87deab74c3b1758126f288fb230a7982a024103b9d65bb8479cede2c405
+          # changelog: GH releases fccview/jotty/releases (PR body has been complete so far, but verify on GH - security fixes are described vaguely with a 2wk disclosure delay). Data is flat JSON under /app/data; DATA_SCHEMA_VERSION in app/_consts/files.ts gates migrations - only a bump there needs a snapshot first
+          tag: 1.28.0@sha256:df965e56fe2e3ce056351425b8ff5d7df991a6596dfa807c73c91cf5eaa30c86
         env:
           NODE_ENV: production
           PUID: 3000
@@ -44,7 +45,7 @@ ingress:
   app:
     className: external
     annotations:
-      external-dns.alpha.kubernetes.io/target: external.laboratory.casa
+      external-dns.kubernetes.io/target: external.laboratory.casa
     hosts:
       - host: jotty.laboratory.casa
         paths:

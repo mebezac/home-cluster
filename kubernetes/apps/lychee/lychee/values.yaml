@@ -18,13 +18,15 @@ controllers:
         image:
           repository: lycheeorg/lychee
           # changelog: GH releases LycheeOrg/Lychee (full notes in PR body). Laravel migrations run on container start; watch SECURITY_HEADER_* CSP env when notes touch CSP/WASM
-          tag: v7.7.5@sha256:c097f20b9fad9590e578e7c4770418ce9d1446d18c6e43feff9a3a214c52bfa9
+          tag: v7.10.0@sha256:8bc127206d53b0e39674b9f142fc2d810c20862e81aaa56cd2d9232a9dfaf8ea
         resources:
+          # 7d metrics (2026-09-08): peak 650Mi, p95 648Mi - steady, and well
+          # above the old 256Mi request.
           requests:
             cpu: 100m
-            memory: 256Mi
+            memory: 768Mi
           limits:
-            memory: 2048Mi
+            memory: 1536Mi
         env:
           TIMEZONE: America/New_York
           APP_NAME: Lychee
@@ -74,7 +76,7 @@ ingress:
     enabled: true
     className: external
     annotations:
-      external-dns.alpha.kubernetes.io/target: external.zac.pizza
+      external-dns.kubernetes.io/target: external.zac.pizza
     hosts:
       - host: &host photos.zac.pizza
         paths:

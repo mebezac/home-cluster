@@ -55,11 +55,11 @@
     {
       description: ["Talos Group"],
       groupName: "Talos",
-      matchDatasources: ["docker"],
+      matchDatasources: ["docker", "github-releases"],
       group: {
         commitMessageTopic: "{{{groupName}}} group",
       },
-      matchPackageNames: ["/siderolabs/talosctl/", "/siderolabs/installer/"],
+      matchPackageNames: ["/siderolabs/talosctl/", "/siderolabs/installer/", "/siderolabs/talos/"],
     },
     {
       matchDatasources: ["docker"],
@@ -203,6 +203,22 @@
     },
     {
       description: [
+        "Override versioning for the immich postgres compound tag",
+        "Tag shape: <pgmajor>-vectorchord<x.y.z>-pgvector<a.b.c>, e.g. 18-vectorchord0.5.3-pgvector0.8.1.",
+        "Default docker versioning cannot parse this, so Renovate silently offered nothing at all.",
+        "compatibility = the Postgres major. Renovate NEVER changes a compatibility value, so this",
+        "  pins us to PG 18 and cannot propose an 18 -> 19 jump, which would need a pg_upgrade.",
+        "major/minor/patch = the vectorchord version (the component that actually moves).",
+        "build/revision = pgvector minor/patch. CAVEAT: pgvector's major is matched but not",
+        "  captured because only two slots are left; it has always been 0. If pgvector ever ships",
+        "  1.0.0, revisit this rule - ordering across that boundary would be wrong.",
+      ],
+      matchDatasources: ["docker"],
+      matchPackageNames: ["ghcr.io/immich-app/postgres"],
+      versioning: "regex:^(?<compatibility>\\d+)-vectorchord(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-pgvector\\d+\\.(?<build>\\d+)\\.(?<revision>\\d+)$",
+    },
+    {
+      description: [
         "Override versioning for birdnet-go date-based release tags",
         "Upstream publishes dated release builds (20260716); the floating nightly/latest tags point at the same digest.",
         "Mapping Y/M/D to major/minor/patch keeps day-to-day bumps as fix(container) rather than a major every release.",
@@ -210,6 +226,15 @@
       matchDatasources: ["docker"],
       matchPackageNames: ["ghcr.io/tphakala/birdnet-go"],
       versioning: "regex:^(?<major>\\d{4})(?<minor>\\d{2})(?<patch>\\d{2})$",
+    },
+    {
+      description: [
+        "forgejo-runner chart uses split tag:/digest: keys and renders repository@digest.",
+        "helm-values only bumps tag: (silent no-op - PR #2500), so the split-digest customManager owns these.",
+      ],
+      matchManagers: ["helm-values"],
+      matchFileNames: ["kubernetes/apps/forgejo/forgejo-runner/values.yaml"],
+      enabled: false,
     },
   ],
   customManagers: [
@@ -232,6 +257,18 @@
       datasourceTemplate: "docker",
       versioningTemplate: "docker",
       registryUrlTemplate: "https://{{registryUrl}}",
+    },
+    {
+      customType: "regex",
+      description: [
+        "Split tag:/digest: image keys (forgejo-runner chart renders repository@digest)",
+        "Bumps tag and digest together; comment lines between repository and tag are allowed.",
+      ],
+      managerFilePatterns: ["/(^|/)kubernetes/apps/forgejo/forgejo-runner/values\\.yaml$/"],
+      matchStrings: [
+        "repository: (?<depName>\\S+)\\n(?:[ \\t]*#.*\\n)*[ \\t]*tag: \"?(?<currentValue>[^\"\\s]+)\"?\\n[ \\t]*digest: \"?(?<currentDigest>sha256:[a-f0-9]{64})\"?",
+      ],
+      datasourceTemplate: "docker",
     },
   ],
 }

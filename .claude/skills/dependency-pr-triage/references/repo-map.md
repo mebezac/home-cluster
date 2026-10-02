@@ -79,7 +79,8 @@ majors as 🛑 and read release notes carefully.
 Grounded in `CLAUDE.md` and `AGENTS.md`:
 
 - **Images are pinned `tag@sha256:...`.** Renovate updates both. No `latest`.
-- **app-template chart** (`ghcr.io/bjw-s-labs/helm`, currently `4.6.2`) backs
+- **app-template chart** (`ghcr.io/bjw-s-labs/helm`; current version is the
+  `targetRevision` in any `kubernetes/argo/apps/**` file that uses it) backs
   most apps — a *chart-structure* change in an app-template bump can ripple
   across every app that uses it; scan broadly for those.
 - **Central Postgres + init-container** pattern: apps needing a DB use a

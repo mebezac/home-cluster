@@ -1,0 +1,114 @@
+defaultPodOptions:
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 3000
+    runAsGroup: 3000
+    fsGroup: 3000
+    fsGroupChangePolicy: OnRootMismatch
+    seccompProfile: { type: RuntimeDefault }
+  # Private ghcr package — pull via the ksops-generated dockerconfigjson secret.
+  imagePullSecrets:
+    - name: pcab-ghcr-pull
+
+controllers:
+  pcab:
+    annotations:
+      reloader.stakater.com/auto: "true"
+    initContainers:
+      init-db:
+        image:
+          repository: ghcr.io/home-operations/postgres-init
+          tag: 18.6@sha256:b6d3af974df781c673d37e49bdddfa14a6f5be28b18d2cb7713f0449bea4057b
+        envFrom: &envFrom
+          - secretRef:
+              name: pcab-secret
+    containers:
+      app:
+        image:
+          repository: ghcr.io/mebezac/pcab
+          tag: v2.0.1@sha256:3834803479e62e27ec66660095082a906af0ad75ce2a357a7f2c31f53e34b913
+        env:
+          TZ: America/New_York
+          PORT: "4000"
+          PHX_HOST: pcab.laboratory.casa
+          PHX_SCHEME: https
+          PHX_PORT: "443"
+          STORAGE_PATH: /app/priv/storage
+          # Release writes .erlang.cookie under $HOME; the image's home belongs to UID 1000.
+          HOME: /tmp
+          # Default is 30; Oban runs ~26 concurrent jobs but most are waiting on
+          # OpenRouter/ffmpeg, not holding a connection. Keep the central PG footprint small.
+          POOL_SIZE: "15"
+        envFrom: *envFrom
+        probes:
+          # bin/start runs migrations before boot; give it room.
+          startup:
+            enabled: true
+            custom: true
+            spec:
+              httpGet: &health
+                path: /health
+                port: 4000
+                # force_ssl redirects any request without this header.
+                httpHeaders:
+                  - name: X-Forwarded-Proto
+                    value: https
+              periodSeconds: 10
+              timeoutSeconds: 5
+              failureThreshold: 30
+          liveness:
+            enabled: true
+            custom: true
+            spec:
+              httpGet: *health
+              periodSeconds: 30
+              timeoutSeconds: 10
+              failureThreshold: 3
+          readiness:
+            enabled: true
+            custom: true
+            spec:
+              httpGet: *health
+              periodSeconds: 10
+              timeoutSeconds: 5
+              failureThreshold: 3
+        resources:
+          requests:
+            cpu: 100m
+            memory: 512Mi
+          limits:
+            memory: 2Gi
+
+service:
+  app:
+    controller: pcab
+    ports:
+      http:
+        port: 4000
+
+ingress:
+  app:
+    className: external
+    annotations:
+      external-dns.kubernetes.io/target: external.laboratory.casa
+    hosts:
+      - host: pcab.laboratory.casa
+        paths:
+          - path: /
+            service:
+              identifier: app
+              port: http
+
+persistence:
+  storage:
+    type: persistentVolumeClaim
+    storageClass: longhorn
+    accessMode: ReadWriteOnce
+    size: 10Gi
+    globalMounts:
+      - path: /app/priv/storage
+  # Transcription chunks + ffmpeg scratch for full episodes.
+  tmp:
+    type: emptyDir
+    globalMounts:
+      - path: /tmp

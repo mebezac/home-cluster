@@ -1,5 +1,0 @@
-machine:
-  kernel:
-    modules:
-      - name: nvme_tcp
-      - name: vfio_pci
