@@ -5,9 +5,6 @@ metadata:
   name: authelia
   namespace: argo-system
   annotations:
-    # ServerSideApply + client-side diff flags CRD-defaulted fields (e.g.
-    # HTTPRoute parentRef group/kind, default path match) as OutOfSync.
-    argocd.argoproj.io/compare-options: ServerSideDiff=true
     argocd.argoproj.io/sync-wave: "0"
 spec:
   project: kubernetes
