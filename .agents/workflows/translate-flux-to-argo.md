@@ -95,7 +95,7 @@ Also note whenever you see https://bjw-s.github.io/helm-charts/ change it to ghc
 6. For HTTP routing (HTTPRoutes, never Ingress):
 
    - Flux app-template "route" blocks map almost 1:1 onto app-template's top-level `route:` key; keep `hostnames`, `parentRefs` and `rules`, fixing only these:
-   - Always change the domain to `laboratory.casa`
+   - Always change the domain to `laboratory.casa` (if the user wants `heremag.free` / `zac.pizza` instead, the route still uses `envoy-external` but needs a hand-added CNAME in that domain's `cloudflared-*/config/dnsendpoint.sops.yaml`; see AGENTS.md "Other Domains")
    - Choose an appropriate subdomain based on the service function (e.g., `speedtest` for OpenSpeedTest, `photos` for photo services)
    - Point `parentRefs` at `envoy-internal` (default, LAN only) or `envoy-external` (internet via cloudflared), namespace `network`, `sectionName: https`. Never both on one route
    - Drop route annotations (external-dns, nginx, etc.); none are needed

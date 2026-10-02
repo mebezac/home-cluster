@@ -123,7 +123,7 @@ Phase 0b.
 | app-template version | **5.2.1** (dominant in-repo; confirm with `grep -rh 'chart: app-template' -A1 kubernetes/argo/apps/`) |
 | Git repoURL | `https://github.com/mebezac/home-cluster.git` |
 | Argo app namespace / project | `argo-system` / `kubernetes` |
-| Domain | `laboratory.casa` (no TLS block — the Gateway terminates TLS) |
+| Domain | `laboratory.casa` (no TLS block — the Gateway terminates TLS). `heremag.free` / `zac.pizza` also work on `envoy-external` but need a hand-added CNAME (see Gotchas) |
 | Gateways (ns `network`) | `envoy-internal` (LAN, default) / `envoy-external` (internet via cloudflared). HTTPRoutes only — ingress-nginx is gone |
 | Authelia | route label `auth: authelia`; needs an `authelia` SecurityPolicy in the route's namespace (exists in `network`) |
 | Central Postgres (CNPG) | host `postgres-17-cluster-rw.database.svc.cluster.local` |
@@ -154,6 +154,8 @@ pin down the repo-side choices:
 4. **Route?** `envoy-internal` (default) vs `envoy-external`, optionally +
    Authelia (`auth: authelia` label); pick a subdomain by function. Map 0a's
    port to the service/route. Never attach one route to both Gateways.
+   A non-`laboratory.casa` hostname (`heremag.free`, `zac.pizza`) adds a
+   manual DNSEndpoint step — see Gotchas.
 5. **Persistence.** Turn 0a's volume paths into `persistence` entries. Almost
    always **Longhorn** (`storageClass: longhorn`, `ReadWriteOnce`) — reach for
    anything else only with a specific reason (see the storage-class table in
@@ -406,6 +408,12 @@ For redis, don't deploy one — point the app at
   (wildcard certs in `network`), and a gateway-wide BackendTrafficPolicy already
   disables the request timeout; Envoy has no body limit. External apps just use
   `parentRefs: envoy-external` — external-dns makes the CNAME, no annotations.
+- **heremag.free / zac.pizza get NO automatic DNS.** external-dns only reads
+  the target from the Gateway (`external.laboratory.casa`). In the same commit
+  as the route, `sops` edit
+  `kubernetes/apps/network/cloudflared-{heremag-free,zac-pizza}/config/dnsendpoint.sops.yaml`
+  and add `- dnsName: <host>` / `recordType: CNAME` / `targets: [external.<domain>]`.
+  Deliberate (no wildcard, no per-domain Gateway). See AGENTS.md "Other Domains".
 - **Authelia outside `network`.** The `auth: authelia` label only works if the
   route's namespace has its own `authelia` SecurityPolicy (copy
   `kubernetes/apps/network/envoy-gateway/authelia.yaml` into the app) AND is

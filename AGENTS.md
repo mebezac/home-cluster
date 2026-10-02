@@ -414,14 +414,36 @@ A label-selected Envoy Gateway `SecurityPolicy` named `authelia` **in the route'
 
 ### Special Cases
 
-- **heremag.free / zac.pizza hosts**: attach to `envoy-external`, but external-dns takes the CNAME target from the Gateway (`external.laboratory.casa`), so add their CNAME by hand as a DNSEndpoint entry in `kubernetes/apps/network/cloudflared-heremag-free/config/dnsendpoint.sops.yaml` or `cloudflared-zac-pizza/config/dnsendpoint.sops.yaml` (edit with `sops`).
+- **heremag.free / zac.pizza hosts**: need one manual DNS step; see [Other Domains](#other-domains-heremagfree-zacpizza) below.
 - **LAN devices outside the cluster**: add a file to `kubernetes/apps/network/external-services/` (selector-less Service + EndpointSlice + HTTPRoute; copy an existing one) and list it in that kustomization.
 - **Charts with their own Gateway API values** (argo-cd `server.httproute`, longhorn `httproute`, grafana `route.main`, victoria charts `route`): use those, with the same parentRefs.
 - **Non-HTTP LoadBalancer Services** that want a laboratory.casa name: annotate the Service with `coredns.io/hostname: <name>.laboratory.casa` (k8s-gateway), e.g. mosquitto.
 
+### Other Domains (heremag.free, zac.pizza)
+
+Everything except `laboratory.casa` is **half-automatic on purpose** (decided 2026-10-02: no wildcard CNAMEs, no per-domain Gateways).
+
+What already works with no per-app setup:
+- Routes attach to `envoy-external` like any external app. Its HTTPS listener already carries the `heremag-free-production-tls` and `zac-pizza-production-tls` wildcard certs (Envoy picks by SNI).
+- Each domain has its own cloudflared tunnel (`cloudflared-heremag-free`, `cloudflared-zac-pizza`) whose catch-all already sends `*.<domain>` to `envoy-external`.
+
+The manual step — **every new hostname needs a CNAME entry**:
+- external-dns only reads the CNAME target from the *Gateway*, never from a route, and `envoy-external` says `external.laboratory.casa` (the laboratory.casa tunnel). So routes on these domains get no record automatically.
+- Add an endpoint to that domain's DNSEndpoint, pointing at the domain's own tunnel record (`sops kubernetes/apps/network/cloudflared-heremag-free/config/dnsendpoint.sops.yaml`, or the `cloudflared-zac-pizza` one):
+  ```yaml
+      - dnsName: newapp.heremag.free
+        recordType: CNAME
+        targets:
+          - external.heremag.free   # external.zac.pizza for zac.pizza
+  ```
+  The `external-dns-heremag-free` / `external-dns-zac-pizza` instances (CRD source only) publish it. Remove the entry when the route goes away.
+- Internal DNS: k8s-gateway serves `heremag.free` (and `laboratory.casa`) from route hostnames automatically; `zac.pizza` is not in its zone list, so LAN clients resolve it publicly through Cloudflare.
+
+A brand-new domain needs: a cert-manager Certificate in `kubernetes/apps/network/envoy-gateway/certificates/` + its secret in `envoy-external`'s `certificateRefs`, a cloudflared tunnel app with its own `external.<domain>` DNSEndpoint, an external-dns instance with that `domainFilters`, and (optionally) the domain in k8s-gateway's `domain` list.
+
 ### Domain Guidelines
 
-- Primary domain: `laboratory.casa`
+- Primary domain: `laboratory.casa` (fully automatic DNS). `heremag.free` / `zac.pizza` need a manual CNAME per host — see Other Domains above
 - Use descriptive subdomains: `lubelog.laboratory.casa`, `ha.laboratory.casa`
 - Do NOT include TLS configuration - it's handled at the Gateway
 

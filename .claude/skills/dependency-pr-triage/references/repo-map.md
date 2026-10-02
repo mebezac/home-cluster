@@ -95,7 +95,9 @@ Grounded in `CLAUDE.md` and `AGENTS.md`:
   major is high blast-radius for this reason.
 - **Central Valkey** as the shared Redis.
 - **Routing**: Gateway API HTTPRoutes (app-template `route:`) on the
-  `envoy-internal` / `envoy-external` Gateways, domain `laboratory.casa`, TLS
+  `envoy-internal` / `envoy-external` Gateways, domain `laboratory.casa`
+  (heremag.free / zac.pizza hosts also on `envoy-external`, with hand-written
+  DNSEndpoint CNAMEs since external-dns takes targets from the Gateway), TLS
   terminated at the Gateway with cert-manager certs (so cert-manager and
   Envoy Gateway / Gateway API majors matter for every app). No Ingresses.
 - **GitOps**: merging = deploying. Cluster is read-only to you (k8s MCP for
