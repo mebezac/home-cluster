@@ -10,7 +10,7 @@ metadata:
     # external-dns' gateway-httproute source reads the target override off the
     # *Gateway*, not off each HTTPRoute, so attached routes get CNAMEd at the
     # tunnel rather than at the private LB IP.
-    external-dns.alpha.kubernetes.io/target: external.laboratory.casa
+    external-dns.kubernetes.io/target: external.laboratory.casa
 spec:
   gatewayClassName: cilium
   addresses:
