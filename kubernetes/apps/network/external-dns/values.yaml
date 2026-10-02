@@ -12,15 +12,12 @@ extraArgs:
   - --cloudflare-proxied
   - --crd-source-apiversion=externaldns.k8s.io/v1alpha1
   - --crd-source-kind=DNSEndpoint
-  - --ignore-ingress-tls-spec
-  - --ingress-class=external
   - --gateway-name=envoy-external
 triggerLoopOnEvent: true
 policy: sync
 sources:
   - crd
   - gateway-httproute
-  - ingress
 txtPrefix: k8s.
 txtOwnerId: default
 domainFilters:

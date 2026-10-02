@@ -11,9 +11,3 @@ spec:
   dnsNames:
     - heremag.free
     - '*.heremag.free'
-  secretTemplate:
-    annotations:
-      reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
-      reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces: heremag
-      reflector.v1.k8s.emberstack.com/reflection-auto-enabled: "true"
-      reflector.v1.k8s.emberstack.com/reflection-auto-namespaces: heremag

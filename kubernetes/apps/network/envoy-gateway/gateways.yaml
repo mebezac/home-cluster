@@ -1,6 +1,5 @@
 ---
 # yaml-language-server: $schema=https://k8s-schemas.home-operations.com/gateway.networking.k8s.io/gateway_v1.json
-# Replaces the `internal` ingressClass (ingress-nginx-internal, 10.25.30.117).
 # LAN only: k8s-gateway answers *.laboratory.casa with this Gateway's address
 # for every HTTPRoute attached to it.
 apiVersion: gateway.networking.k8s.io/v1
@@ -11,7 +10,11 @@ spec:
   gatewayClassName: envoy
   infrastructure:
     annotations:
-      lbipam.cilium.io/ips: 10.25.30.121
+      lbipam.cilium.io/ips: 10.25.30.117
+      # Shared with the forgejo `ssh` LoadBalancer (port 22), so git SSH and
+      # HTTPS both live on git.laboratory.casa.
+      lbipam.cilium.io/sharing-key: internal-ingress
+      lbipam.cilium.io/sharing-cross-namespace: forgejo
       tailscale.com/expose: "true"
   listeners:
     - name: http
@@ -32,7 +35,6 @@ spec:
             name: laboratory-casa-production-tls
 ---
 # yaml-language-server: $schema=https://k8s-schemas.home-operations.com/gateway.networking.k8s.io/gateway_v1.json
-# Replaces the `external` ingressClass (ingress-nginx-external, 10.25.30.119).
 # Internet traffic arrives through the cloudflared tunnels, which all point at
 # the `envoy-external` Service.
 #

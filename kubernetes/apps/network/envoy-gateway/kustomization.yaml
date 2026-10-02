@@ -9,4 +9,3 @@ resources:
   - ./authelia.yaml
   - ./https-redirect.yaml
   - ./monitoring.yaml
-  - ./nginx-fallback.yaml

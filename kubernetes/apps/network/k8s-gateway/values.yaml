@@ -23,5 +23,4 @@ service:
   externalTrafficPolicy: Cluster
 watchedResources:
   - HTTPRoute
-  - Ingress
   - Service

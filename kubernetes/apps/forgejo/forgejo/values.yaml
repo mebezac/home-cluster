@@ -157,8 +157,8 @@ service:
     controller: forgejo
     type: LoadBalancer
     annotations:
-      # Shares the internal ingress IP with ingress-nginx-internal (network ns).
-      # Ports don't collide: ingress holds 80/443, this holds 22. Keeps git SSH and
+      # Shares the envoy-internal Gateway's IP (network ns). Ports don't
+      # collide: the Gateway holds 80/443, this holds 22. Keeps git SSH and
       # HTTPS on one DNS name (git.laboratory.casa) so clients need no ssh_config
       # HostName override — see the `fj` CLI breakage that motivated this.
       lbipam.cilium.io/ips: 10.25.30.117
@@ -170,16 +170,18 @@ service:
         port: 22
         targetPort: 2222
 
-ingress:
+route:
   app:
-    className: internal
-    hosts:
-      - host: git.laboratory.casa
-        paths:
-          - path: /
-            service:
-              identifier: app
-              port: http
+    hostnames:
+      - git.laboratory.casa
+    parentRefs:
+      - name: envoy-internal
+        namespace: network
+        sectionName: https
+    rules:
+      - backendRefs:
+          - identifier: app
+            port: http
 
 serviceMonitor:
   app:

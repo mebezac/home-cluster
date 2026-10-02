@@ -314,11 +314,14 @@ dashboards:
       revision: 1
       datasource:
         - { name: DS_PROMETHEUS, value: Prometheus }
-    ingress-nginx:
-      url: https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/grafana/dashboards/nginx.json
+    envoy-proxy-global:
+      url: https://raw.githubusercontent.com/envoyproxy/gateway/v1.9.2/charts/gateway-addons-helm/dashboards/envoy-proxy-global.json
       datasource: Prometheus
-    ingress-nginx-request-handling-performance:
-      url: https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/grafana/dashboards/request-handling-performance.json
+    envoy-clusters:
+      url: https://raw.githubusercontent.com/envoyproxy/gateway/v1.9.2/charts/gateway-addons-helm/dashboards/envoy-clusters.json
+      datasource: Prometheus
+    envoy-gateway-global:
+      url: https://raw.githubusercontent.com/envoyproxy/gateway/v1.9.2/charts/gateway-addons-helm/dashboards/envoy-gateway-global.json
       datasource: Prometheus
     external-dns:
       # renovate: depName="External-DNS"
