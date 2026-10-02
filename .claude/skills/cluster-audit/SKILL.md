@@ -78,7 +78,7 @@ namespaces explicitly so nothing is audited twice or missed:
 | Security/GitOps | `security`, `cert-manager`, `argo-system`, `forgejo` |
 | Media | `jellyfin`, `immich`, `audiobookshelf`, `calibre-web-automated`, `romm`, `music-assistant`, `podcasts`, `lychee`, `downloads`, `gluetun-proxy` |
 | Home automation | `homeassistant`, `birdnet-go` |
-| Web apps | `n8n`, `umami`, `jotty`, `lubelog`, `changedetection`, `trek`, `bothy`, `reckage`, `lastglance`, `heremag`, `owncloud`, `smee`, `whoami`, `openspeedtest`, `default` |
+| Web apps | `n8n`, `umami`, `jotty`, `lubelog`, `changedetection`, `trek`, `reckage`, `lastglance`, `heremag`, `owncloud`, `smee`, `whoami`, `openspeedtest`, `default` |
 | Platform/capacity | rest of kube-system + **cluster-wide node capacity** |
 
 Every brief must include:
