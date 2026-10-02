@@ -84,18 +84,18 @@ service:
       http:
         port: 9200
 
-ingress:
+route:
   app:
-    annotations:
-      external-dns.kubernetes.io/target: external.laboratory.casa
-    className: "external"
-    hosts:
-      - host: files.laboratory.casa
-        paths:
-          - path: /
-            service:
-              identifier: app
-              port: http
+    hostnames:
+      - files.laboratory.casa
+    parentRefs:
+      - name: envoy-external
+        namespace: network
+        sectionName: https
+    rules:
+      - backendRefs:
+          - identifier: app
+            port: http
 
 persistence:
   config:
