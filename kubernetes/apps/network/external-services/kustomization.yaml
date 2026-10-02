@@ -9,9 +9,6 @@ resources:
   - ./adguard-pi-02.yaml
   - ./adguard-pi-03.yaml
   - ./zigbee-hub.yaml
-  - ./birdnet.yaml
   - ./frigate.yaml
-  - ./minio-tc.yaml
-  - ./minio-tc-console.yaml
   - ./garage-tc.yaml
   - ./garage-tc-console.yaml
