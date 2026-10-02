@@ -31,3 +31,6 @@ spec:
       selfHeal: true
     syncOptions:
     - CreateNamespace=true
+    # Client-side apply merges containerPorts by number only, so the chart's
+    # router-quic (5001/UDP) next to router-tcp (5001/TCP) was silently dropped.
+    - ServerSideApply=true
