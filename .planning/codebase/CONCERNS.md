@@ -102,15 +102,16 @@ Missing `livenessProbe`, `readinessProbe`, or `startupProbe` in:
 **Impact:** New contributors follow outdated guidance; manual steps repeated
 **Fix approach:** Update README with actual init workflow; add Valkey/Postgres HA caveats to CLAUDE.md; document init-container pattern
 
-## Ingress Configuration Consistency
+## Gateway / Route Configuration Consistency
 
-**Issue:** All apps using `laboratory.casa` domain and `internal` className (correct pattern verified), but:
-- No `external` className apps found; no dual ingress (internal/external) apps
-- No validation that cert-manager is issuing TLS for all ingress hosts
-- No gap found but fragility: if cert-manager fails, all HTTPS fails silently
+**Issue:** Apps expose HTTP via Gateway API HTTPRoutes attached to `envoy-internal` or `envoy-external` (Envoy Gateway; ingress-nginx was removed 2026-10-02), but:
+- TLS is terminated at the two Gateways using wildcard certs in `network`; if cert-manager fails to renew them, all HTTPS fails silently
+- Each Gateway is a shared single point of failure (2 Envoy replicas + PDB, `minAvailable: 1`)
+- A route labelled `auth: authelia` in a namespace without its own `authelia` SecurityPolicy and ReferenceGrant entry (`kubernetes/apps/security/authelia/referencegrant.yaml`) fails closed (500)
+- heremag.free / zac.pizza hostnames get no automatic DNS; manual CNAMEs are required in `cloudflared-{heremag-free,zac-pizza}/config/dnsendpoint.sops.yaml`
 
-**Files:** Scattered in `kubernetes/apps/*/*/values.yaml` ingress blocks
-**Fix approach:** Add cert-manager PDB; monitor certificate expiry; test ingress failover
+**Files:** `kubernetes/apps/network/envoy-gateway/`, `route:` blocks in `kubernetes/apps/*/*/values.yaml`
+**Fix approach:** Monitor certificate expiry; add cert-manager PDB; test Gateway failover
 
 ## SOPS Encryption Status
 
@@ -133,7 +134,7 @@ Missing `livenessProbe`, `readinessProbe`, or `startupProbe` in:
 ## Deprecated Kubernetes APIs
 
 **Checked for v1beta1, v2alpha, extensions/v1beta:**
-- No deprecated Ingress, Deployment, or StatefulSet APIs found
+- No deprecated Deployment or StatefulSet APIs found; no Ingress resources remain (replaced by Gateway API HTTPRoutes)
 - Kustomize v1beta1 used throughout (standard and current)
 - No deprecated extensions/v1beta APIs detected
 

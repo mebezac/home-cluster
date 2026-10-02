@@ -77,8 +77,8 @@ route:
             port: *port
 
   # 2. Internal Gateway + Authelia: the `auth: authelia` label opts it into
-  #    the SecurityPolicy in kubernetes/apps/network/envoy-gateway/authelia.yaml. This is the replacement for the
-  #    `nginx.ingress.kubernetes.io/auth-*` annotations below.
+  #    the SecurityPolicy in kubernetes/apps/network/envoy-gateway/authelia.yaml. This replaced the old
+  #    `nginx.ingress.kubernetes.io/auth-*` annotations.
   #
   #    Expected results:
   #      curl -sI https://echo-gateway-auth.laboratory.casa/ -H 'Accept: text/html'

@@ -6,11 +6,12 @@
 
 **Cloudflare:**
 - Provider for `laboratory.casa` delegation
-- Service: External DNS integration via `external-dns.alpha.kubernetes.io/target: external.laboratory.casa`
+- Service: External DNS integration; the `envoy-external` Gateway carries `external-dns.kubernetes.io/target: external.laboratory.casa`, so routes need no annotations
 - Config: `kubernetes/apps/network/external-dns/values.yaml`
 - Auth: Environment variable `CF_API_TOKEN` (stored as `external-dns-secret`)
-- Integration: External-DNS synchronizes ingress records → Cloudflare DNS
-- Tunnel: Cloudflared 2026.3.0 for external HTTP/HTTPS routing
+- Integration: External-DNS (sources `crd` + `gateway-httproute`, `--gateway-name=envoy-external`) synchronizes HTTPRoute hostnames → Cloudflare DNS
+- heremag.free / zac.pizza hostnames are NOT automatic: add manual CNAMEs (to `external.heremag.free` / `external.zac.pizza`) in `kubernetes/apps/network/cloudflared-{heremag-free,zac-pizza}/config/dnsendpoint.sops.yaml`
+- Tunnel: Cloudflared 2026.3.0 (3 tunnels) targeting the `envoy-external` Gateway (10.25.30.122) for external HTTP/HTTPS routing
 - Config path: `kubernetes/apps/network/cloudflared/` (encrypted: `cloudflared.sops.yaml`, `dnsendpoint.sops.yaml`)
 
 ## Certificate Management
@@ -19,8 +20,7 @@
 - Provider: ACME HTTP-01 and DNS-01 challenges
 - Config: `kubernetes/apps/cert-manager/cert-manager/`
 - Issuers: `kubernetes/apps/cert-manager/cert-manager/issuers/` (zac-pizza, laboratory.casa ClusterIssuers)
-- TLS cert for ingress: `network/laboratory-casa-production-tls`
-- Default issuer in ingress-nginx: `cert-manager`
+- TLS certs for the Gateways: wildcard `laboratory-casa-production-tls`, `heremag-free-production-tls`, `zac-pizza-production-tls` in `network` (Certificates in `kubernetes/apps/network/envoy-gateway/certificates/`); terminated at `envoy-internal` / `envoy-external`, no Reflector copying
 
 ## Data Storage
 
@@ -83,8 +83,9 @@
 - Config: `authelia-config.yaml` (encrypted secrets)
 - Session backend: Valkey at `valkey.valkey.svc.cluster.local`
 - Integration points:
-  - Ingress auth-signin redirect: `https://login.laboratory.casa?rm=$request_method`
-  - Used by ingress-nginx-internal for protected services
+  - Envoy Gateway forward auth: routes labelled `auth: authelia` are checked by a label-selected `authelia` SecurityPolicy in the route's namespace (`network`, private `downloads`)
+  - New namespaces need their own SecurityPolicy copy plus an entry in `kubernetes/apps/security/authelia/referencegrant.yaml`, or auth routes fail closed (500)
+  - Login portal: `https://login.laboratory.casa`
 - Single sign-on: OIDC/LDAP capable (secrets in `authelia-initdb-secret.sops.yaml`)
 
 ## Media & Content Services
@@ -148,21 +149,21 @@
 ## External Services & Endpoints
 
 **TrueNAS:**
-- External NAS exposed via ingress
+- External NAS exposed via HTTPRoute
 - Domain: `truenas.laboratory.casa`
-- Access: External service ingress (non-Kubernetes service)
-- Config: `kubernetes/apps/network/external-service-ingresses/values.yaml`
+- Access: External service (non-Kubernetes; Service + EndpointSlice + HTTPRoute)
+- Config: `kubernetes/apps/network/external-services/truenas.yaml` (one file per LAN device, listed in its kustomization; also adguard-pi-02/03, zigbee-hub, frigate, garage-tc, garage-tc-console)
 
 **AdGuard Home (Pi instances):**
 - Multiple external Pi instances
 - Domains: `adguard-pi-02.laboratory.casa`, `adguard-pi-03.laboratory.casa`
-- Access: External service ingress
+- Access: External service (`kubernetes/apps/network/external-services/`)
 
 **Frigate (Camera system):**
 - Video surveillance backend
 - Exposed via: `frigate.laboratory.casa`
 - Target: External network service
-- Auth: Ingress NGINX auth via Authelia
+- Auth: Authelia via `auth: authelia` route label
 
 **Zigbee Hub:**
 - Zigbee coordinator device
@@ -206,13 +207,18 @@
 **Tailscale:**
 - VPN mesh for secure access
 - Operator: Tailscale Operator for Kubernetes integration
-- Exposed services: Ingress NGINX internal controller annotation `tailscale.com/expose: "true"`
+- Exposed services: the Envoy proxy Services of both Gateways, via `tailscale.com/expose: "true"` in each Gateway's `spec.infrastructure.annotations` (`kubernetes/apps/network/envoy-gateway/gateways.yaml`); tailnet nodes `network-envoy-internal` (100.94.67.88) and `network-envoy-external` (100.84.161.122)
 - Location: `kubernetes/apps/network/tailscale-operator`
 
+**Envoy Gateway:**
+- Gateway API implementation (v1.9.2, GatewayClass `envoy`; Gateway API CRDs v1.6.1 experimental via Argo app `gateway-api-crds`)
+- Gateways in `network`: `envoy-internal` (10.25.30.117, LAN only, shares IP with forgejo-ssh) and `envoy-external` (10.25.30.122, target of the cloudflared tunnels)
+- Location: `kubernetes/apps/network/envoy-gateway/`
+
 **K8s Gateway:**
-- Gateway API implementation
-- Allows external services (non-K8s) to be accessed via DNS
-- Location: `kubernetes/apps/network/k8s_gateway`
+- DNS server (not a Gateway API implementation) at 10.25.30.118
+- Answers LAN DNS for every attached HTTPRoute hostname
+- Location: `kubernetes/apps/network/k8s-gateway`
 
 **LINSTOR/Piraeus:**
 - Advanced storage volume management

@@ -124,7 +124,7 @@
 **Values File (Helm Configuration):**
 - Purpose: Chart-agnostic application configuration
 - Examples: `kubernetes/apps/lubelog/lubelog/values.yaml`, `kubernetes/apps/immich/immich/values.yaml`
-- Pattern: Uses bjw-s app-template spec (image, service, ingress, persistence, security context, resources)
+- Pattern: Uses bjw-s app-template spec (image, service, route (HTTPRoute), persistence, security context, resources)
 
 **Secret Generator (ksops):**
 - Purpose: Declarative secret provisioning with Kustomize integration

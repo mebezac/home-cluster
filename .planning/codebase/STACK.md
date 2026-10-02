@@ -26,7 +26,7 @@
 **Kubernetes Infrastructure:**
 - Cilium 1.18.4 - CNI/networking
 - CoreDNS 1.45.2 - In-cluster DNS
-- Ingress NGINX 4.15.1 - Dual ingress controllers (`internal`, `external`)
+- Envoy Gateway 1.9.2 - Gateway API controller (GatewayClass `envoy`; Gateways `envoy-internal`, `envoy-external`); Gateway API CRDs 1.6.1 experimental
 - Cert-Manager (Jetstack) - TLS certificate management
 - External DNS 1.21.1 - DNS record synchronization
 
@@ -45,13 +45,13 @@
 **Networking & Security:**
 - Cilium - Service mesh capabilities
 - Tailscale Operator - VPN mesh access
-- K8s Gateway - Gateway API implementation
-- External Service Ingresses - Remote service exposure
+- K8s Gateway - LAN DNS server answering for HTTPRoute hostnames (not a Gateway API implementation)
+- External Services - LAN devices exposed via Service + EndpointSlice + HTTPRoute
 
 **Utility & Automation:**
 - Reloader (Stakater) - Pod restarter for config changes
 - Spegel - Registry mirror/cache
-- Reflector - Secret/ConfigMap sync across namespaces
+- Reflector - Secret/ConfigMap sync across namespaces (no longer used for TLS)
 - Node Feature Discovery - Hardware capability detection
 - Metrics Server - Resource metrics provider
 
@@ -89,7 +89,6 @@
 - `https://charts.longhorn.io/` - Longhorn
 - `https://cloudnative-pg.github.io/charts` - CloudNative-PG
 - `https://helm.cilium.io` - Cilium
-- `https://kubernetes.github.io/ingress-nginx` - Ingress NGINX
 - `https://kubernetes-sigs.github.io/external-dns` - External DNS
 - `https://kubernetes-sigs.github.io/metrics-server` - Metrics Server
 - `https://kubernetes-sigs.github.io/node-feature-discovery/charts` - NFD
@@ -101,7 +100,6 @@
 - `https://piraeus.io/helm-charts/` - LINSTOR
 - `https://intel.github.io/helm-charts` - Intel GPU plugins
 - `https://coredns.github.io/helm` - CoreDNS
-- `https://kubernetes.github.io/ingress-nginx` - Ingress NGINX
 - `https://raw.githubusercontent.com/kubernetes-csi/csi-driver-smb/master/charts` - SMB CSI
 
 **Custom:**
@@ -180,13 +178,13 @@
 - External DNS targets Cloudflare for `laboratory.casa` subdomain delegation
 
 **TLS:**
-- Default certificate: `network/laboratory-casa-production-tls` (ingress-nginx config)
+- Wildcard certificates `laboratory-casa` / `heremag-free` / `zac-pizza` `-production-tls` in `network`, terminated at the Gateways (Certificates in `kubernetes/apps/network/envoy-gateway/certificates/`)
 - Cert-Manager issues Let's Encrypt certificates
 - Cloudflare tunnel for external access
 
-**Ingress Classes:**
-- `internal` - Tailscale-exposed, nginx controller
-- `external` - Cloudflare-proxied, nginx controller
+**Gateways:**
+- `envoy-internal` (10.25.30.117) - LAN, Tailscale-exposed (`network-envoy-internal`)
+- `envoy-external` (10.25.30.122) - Cloudflare-proxied via the cloudflared tunnels, Tailscale-exposed (`network-envoy-external`)
 
 ## Secrets Management
 

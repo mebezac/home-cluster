@@ -32,26 +32,27 @@
 
 **Values File Pattern:**
 - Values stored as `values.yaml` referenced via `$<app>-repo` reference in ArgoCD sources
-- Ingress configured under `ingress.<identifier>` with standardized keys:
-  - `className`: `internal` for internal-only access, `external` for internet-exposed
-  - `hosts[].host`: Always `<subdomain>.laboratory.casa`
-  - `hosts[].paths[].path`: `/` for root path
-  - `hosts[].paths[].service.identifier`: Service name (often `app`)
-  - `hosts[].paths[].service.port`: Port name (often `http`)
+- Routing configured under the top-level `route.<identifier>` key (Gateway API HTTPRoute; never Ingress) with standardized keys:
+  - `hostnames[]`: Always `<subdomain>.laboratory.casa`
+  - `parentRefs`: `envoy-internal` (LAN) or `envoy-external` (internet) in namespace `network`, `sectionName: https`
+  - `rules[].backendRefs[].identifier`: Service key (often `app`)
+  - `rules[].backendRefs[].port`: Port name (often `http`)
+- Charts with their own Gateway API values use those with the same parentRefs: argo-cd `server.httproute`, longhorn `httproute`, grafana `route.main`, victoria `route`
 
-Example ingress pattern (`kubernetes/apps/changedetection/changedetection/values.yaml`):
+Example route pattern:
 ```yaml
-ingress:
+route:
   app:
-    enabled: true
-    className: internal
-    hosts:
-      - host: changedetection.laboratory.casa
-        paths:
-          - path: /
-            service:
-              identifier: app
-              port: http
+    hostnames:
+      - <sub>.laboratory.casa
+    parentRefs:
+      - name: envoy-internal
+        namespace: network
+        sectionName: https
+    rules:
+      - backendRefs:
+          - identifier: app
+            port: http
 ```
 
 ## Secret Handling
@@ -127,22 +128,23 @@ defaultPodOptions:
     fsGroupChangePolicy: "OnRootMismatch"
 ```
 
-## Ingress Domain & External Access
+## Route Domain & External Access
 
 **Base Domain:** `laboratory.casa`
 
-**Ingress Classes:**
-- `internal`: Internal-only access (e.g., pgadmin, longhorn dashboard)
-- `external`: Internet-exposed via Cloudflare (e.g., jotty, pcab, jellyfin, audiobookshelf)
+**Gateways (namespace `network`, GatewayClass `envoy`):**
+- `envoy-internal` (10.25.30.117): LAN only (e.g., pgadmin, longhorn dashboard); k8s-gateway answers LAN DNS for attached route hostnames
+- `envoy-external`: Internet-exposed via the cloudflared tunnels (e.g., jotty, pcab, jellyfin, audiobookshelf)
+- Never attach one route to both Gateways
 
 **External DNS Pattern:**
-External ingresses annotated with:
-```yaml
-annotations:
-  external-dns.alpha.kubernetes.io/target: external.laboratory.casa
-```
+Routes on `envoy-external` need NO annotations: external-dns reads the CNAME target (`external.laboratory.casa`) from the Gateway. heremag.free / zac.pizza hosts need manual CNAMEs in `cloudflared-{heremag-free,zac-pizza}/config/dnsendpoint.sops.yaml`.
 
-No manual TLS configuration — cert-manager handles all certificates.
+**Authelia:** add `labels: { auth: authelia }` to the route.
+
+No manual TLS configuration — the Gateways terminate TLS with cert-manager wildcard certs from `network`; no timeout/body-size config is needed (gateway-wide policy).
+
+**ArgoCD diff:** ServerSideDiff is enabled globally (`controller.diff.server.side` in argo-cd values), so no per-app annotation is needed.
 
 ## ArgoCD Application Pattern
 
