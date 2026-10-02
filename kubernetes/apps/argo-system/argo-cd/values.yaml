@@ -9,6 +9,8 @@ global:
 configs:
   params:
     server.insecure: true
+    # Server-side diff for every app: dry-run applies so CRD defaults (HTTPRoutes etc.) don't show as drift.
+    controller.diff.server.side: "true"
   cm:
     oidc.config: |
       name: 'Authelia'

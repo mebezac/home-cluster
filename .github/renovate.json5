@@ -62,6 +62,19 @@
       matchPackageNames: ["/siderolabs/talosctl/", "/siderolabs/installer/", "/siderolabs/talos/"],
     },
     {
+      description: [
+        "Envoy Gateway Group",
+        "Envoy Gateway bundles a specific Gateway API version; kubernetes-sigs/gateway-api",
+        "(gateway-api-crds app) must match it, so both charts and the CRDs land in one PR.",
+        "Before merging, check the EG release notes for the bundled Gateway API version.",
+      ],
+      groupName: "Envoy Gateway",
+      group: {
+        commitMessageTopic: "{{{groupName}}} group",
+      },
+      matchPackageNames: ["/envoyproxy/gateway-helm/", "/envoyproxy/gateway-crds-helm/", "kubernetes-sigs/gateway-api"],
+    },
+    {
       matchDatasources: ["docker"],
       matchUpdateTypes: ["major"],
       commitMessagePrefix: "feat(container)!: ",
