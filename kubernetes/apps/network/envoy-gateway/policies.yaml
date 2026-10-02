@@ -14,9 +14,11 @@ spec:
       kind: Gateway
       name: envoy-external
   # ingress-nginx had brotli on; gzip is the fallback for everything else.
-  compression:
+  compressor:
     - type: Brotli
+      brotli: {}
     - type: Gzip
+      gzip: {}
   tcpKeepalive:
     idleTime: 60s
     interval: 10s

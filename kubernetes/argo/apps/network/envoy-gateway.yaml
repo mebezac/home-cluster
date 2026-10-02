@@ -6,6 +6,9 @@ metadata:
   namespace: argo-system
   annotations:
     argocd.argoproj.io/sync-wave: "-1"
+    # With ServerSideApply, the client-side diff flags every CRD-defaulted
+    # field (parentRefs group/kind, default path matches...) as OutOfSync.
+    argocd.argoproj.io/compare-options: ServerSideDiff=true
 spec:
   project: kubernetes
   sources:
