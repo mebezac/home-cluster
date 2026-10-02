@@ -1,0 +1,23 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/gateway.networking.k8s.io/httproute_v1.json
+# Port 80 on both Gateways only ever redirects (ingress-nginx's
+# force-ssl-redirect). No hostnames, so external-dns and k8s-gateway have
+# nothing to publish; the controller annotation makes that explicit.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: https-redirect
+  annotations:
+    external-dns.kubernetes.io/controller: none
+spec:
+  parentRefs:
+    - name: envoy-internal
+      sectionName: http
+    - name: envoy-external
+      sectionName: http
+  rules:
+    - filters:
+        - type: RequestRedirect
+          requestRedirect:
+            scheme: https
+            statusCode: 301

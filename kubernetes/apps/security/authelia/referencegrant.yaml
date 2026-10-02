@@ -1,19 +1,15 @@
 ---
-# Lets HTTPRoutes in the `network` namespace point an `ExternalAuth` filter
-# (GEP-1494) at the Authelia Service in `security`. Cilium's Gateway API
-# ingestion runs the same ReferenceGrant check on `externalAuth.backendRef` that
-# it runs on a normal cross-namespace backendRef. Since Cilium 1.20.2
-# (cilium/cilium#47929) a missing grant fails CLOSED -- the route is denied, not
-# served unauthenticated -- so every namespace with ExternalAuth routes needs an
-# entry under `from`.
+# Lets Envoy Gateway SecurityPolicies (extAuth) in these namespaces call the
+# Authelia Service. Without an entry the policy is rejected and its routes fail
+# closed (500), so add a namespace here before giving any of its routes auth.
 apiVersion: gateway.networking.k8s.io/v1beta1
 kind: ReferenceGrant
 metadata:
   name: authelia-ext-authz
 spec:
   from:
-    - group: gateway.networking.k8s.io
-      kind: HTTPRoute
+    - group: gateway.envoyproxy.io
+      kind: SecurityPolicy
       namespace: network
   to:
     - group: ""

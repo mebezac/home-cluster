@@ -1,0 +1,19 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: zac-pizza-staging
+spec:
+  secretName: zac-pizza-staging-tls
+  issuerRef:
+    name: letsencrypt-staging-zac-pizza
+    kind: ClusterIssuer
+  commonName: zac.pizza
+  dnsNames:
+    - zac.pizza
+    - '*.zac.pizza'
+  secretTemplate:
+    annotations:
+      reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
+      reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces: whoami,ghost
+      reflector.v1.k8s.emberstack.com/reflection-auto-enabled: "true"
+      reflector.v1.k8s.emberstack.com/reflection-auto-namespaces: whoami,ghost

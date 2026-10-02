@@ -1,0 +1,41 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/gateway.envoyproxy.io/securitypolicy_v1alpha1.json
+# Authelia forward auth for every HTTPRoute in `network` labelled
+# `auth: authelia`. Replaces the nginx.ingress.kubernetes.io/auth-* annotations.
+# A SecurityPolicy only selects routes in its own namespace, so other namespaces
+# need their own copy (plus an entry in the Authelia ReferenceGrant,
+# kubernetes/apps/security/authelia/referencegrant.yaml).
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: authelia
+spec:
+  targetSelectors:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      matchLabels:
+        auth: authelia
+  extAuth:
+    # Authelia down = 500, never an unauthenticated pass-through.
+    failOpen: false
+    # Envoy only forwards Host, Method, Path, Content-Length and Authorization
+    # on its own. Authelia needs the session `cookie`, and `accept` to choose
+    # between a 302 to the portal (browsers) and a 401 (API clients).
+    headersToExtAuth:
+      - accept
+      - authorization
+      - cookie
+      - proxy-authorization
+      - x-forwarded-proto
+    http:
+      backendRefs:
+        - name: authelia
+          namespace: security
+          port: 80
+      # Envoy calls `path + original path`, so the trailing slash matters.
+      path: /api/authz/ext-authz/
+      headersToBackend:
+        - Remote-User
+        - Remote-Groups
+        - Remote-Name
+        - Remote-Email

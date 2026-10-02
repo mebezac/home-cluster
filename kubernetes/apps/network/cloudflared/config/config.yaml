@@ -11,10 +11,10 @@ data:
     ingress:
       - hostname: "laboratory.casa"
         service: &nginx-svc https://ingress-nginx-external-controller.network.svc.cluster.local:443
-      # Hosts that have moved to the Cilium external Gateway. Everything else
-      # still falls through to ingress-nginx until this migration is done.
+      # Hosts that have moved to the Envoy Gateway `envoy-external`. Everything
+      # else still falls through to ingress-nginx until this migration is done.
       - hostname: "echo-gateway-external.laboratory.casa"
-        service: &gateway-svc https://cilium-gateway-external.kube-system.svc.cluster.local
+        service: &gateway-svc https://envoy-external.network.svc.cluster.local
       - hostname: "audiobookshelf.laboratory.casa"
         service: *gateway-svc
       - hostname: "*.laboratory.casa"

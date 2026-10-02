@@ -1,0 +1,19 @@
+---
+# Gateway API CRDs come from the `gateway-api-crds` app and the Envoy Gateway
+# CRDs from the gateway-crds-helm source in the Argo app, so this chart must not
+# install its own copy.
+crds:
+  enabled: false
+deployment:
+  replicas: 2
+podDisruptionBudget:
+  minAvailable: 1
+config:
+  envoyGateway:
+    provider:
+      type: Kubernetes
+      kubernetes:
+        # Envoy proxies run next to their Gateway (network) and are named after
+        # it, so cloudflared can target a stable `envoy-external` Service name.
+        deploy:
+          type: GatewayNamespace

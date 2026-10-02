@@ -9,10 +9,9 @@ metadata:
 spec:
   project: kubernetes
   sources:
-    # The EXPERIMENTAL channel is required: the `ExternalAuth` HTTPRoute filter
-    # (GEP-1494) that we use for Authelia only exists there. Cilium 1.20
-    # conforms against Gateway API v1.6.1, so keep these in lockstep with the
-    # Cilium version in ./cilium.yaml.
+    # Experimental channel, on the exact version Envoy Gateway bundles (see
+    # gateway-crds-helm templates in ../network/envoy-gateway.yaml). Bump the
+    # two together.
     - repoURL: https://github.com/kubernetes-sigs/gateway-api
       # renovate: datasource=github-releases depName=kubernetes-sigs/gateway-api
       targetRevision: v1.6.1
