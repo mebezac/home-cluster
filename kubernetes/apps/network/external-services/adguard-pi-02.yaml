@@ -1,0 +1,42 @@
+---
+# AdGuard Home on pi-02: 10.25.30.32:80, served as adguard-pi-02.laboratory.casa on envoy-internal.
+apiVersion: v1
+kind: Service
+metadata:
+  name: adguard-pi-02
+spec:
+  ports:
+    - name: http
+      port: 80
+---
+apiVersion: discovery.k8s.io/v1
+kind: EndpointSlice
+metadata:
+  name: adguard-pi-02
+  labels:
+    kubernetes.io/service-name: adguard-pi-02
+    endpointslice.kubernetes.io/managed-by: home-cluster
+addressType: IPv4
+ports:
+  - name: http
+    port: 80
+endpoints:
+  - addresses:
+      - 10.25.30.32
+    conditions:
+      ready: true
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: adguard-pi-02
+spec:
+  parentRefs:
+    - name: envoy-internal
+      sectionName: https
+  hostnames:
+    - adguard-pi-02.laboratory.casa
+  rules:
+    - backendRefs:
+        - name: adguard-pi-02
+          port: 80

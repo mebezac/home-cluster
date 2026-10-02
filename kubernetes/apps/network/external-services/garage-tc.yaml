@@ -1,0 +1,67 @@
+---
+# Garage S3 API on TrueNAS: 10.25.30.36:30188, served as garage-tc.laboratory.casa on envoy-external.
+apiVersion: v1
+kind: Service
+metadata:
+  name: garage-tc
+spec:
+  ports:
+    - name: http
+      port: 30188
+---
+apiVersion: discovery.k8s.io/v1
+kind: EndpointSlice
+metadata:
+  name: garage-tc
+  labels:
+    kubernetes.io/service-name: garage-tc
+    endpointslice.kubernetes.io/managed-by: home-cluster
+addressType: IPv4
+ports:
+  - name: http
+    port: 30188
+endpoints:
+  - addresses:
+      - 10.25.30.36
+    conditions:
+      ready: true
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: garage-tc
+spec:
+  parentRefs:
+    - name: envoy-external
+      sectionName: https
+  hostnames:
+    - garage-tc.laboratory.casa
+  rules:
+    - backendRefs:
+        - name: garage-tc
+          port: 30188
+      filters:
+        - type: CORS
+          cors:
+            allowOrigins:
+              - "*"
+            allowMethods: [GET, PUT, POST, DELETE, HEAD, OPTIONS]
+            allowHeaders:
+              - DNT
+              - Keep-Alive
+              - User-Agent
+              - X-Requested-With
+              - If-Modified-Since
+              - Cache-Control
+              - Content-Type
+              - Range
+              - Authorization
+              - X-Amz-Date
+              - X-Amz-Content-SHA256
+              - X-Amz-Security-Token
+            exposeHeaders:
+              - Content-Length
+              - Content-Range
+              - ETag
+              - X-Amz-Request-Id
+            maxAge: 3600

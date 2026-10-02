@@ -1,0 +1,42 @@
+---
+# Garage console on TrueNAS: 10.25.30.36:30186, served as garage-tc-console.laboratory.casa on envoy-external.
+apiVersion: v1
+kind: Service
+metadata:
+  name: garage-tc-console
+spec:
+  ports:
+    - name: http
+      port: 30186
+---
+apiVersion: discovery.k8s.io/v1
+kind: EndpointSlice
+metadata:
+  name: garage-tc-console
+  labels:
+    kubernetes.io/service-name: garage-tc-console
+    endpointslice.kubernetes.io/managed-by: home-cluster
+addressType: IPv4
+ports:
+  - name: http
+    port: 30186
+endpoints:
+  - addresses:
+      - 10.25.30.36
+    conditions:
+      ready: true
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: garage-tc-console
+spec:
+  parentRefs:
+    - name: envoy-external
+      sectionName: https
+  hostnames:
+    - garage-tc-console.laboratory.casa
+  rules:
+    - backendRefs:
+        - name: garage-tc-console
+          port: 30186

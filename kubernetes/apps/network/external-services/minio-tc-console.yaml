@@ -1,0 +1,42 @@
+---
+# MinIO console on TrueNAS: 10.25.30.36:9002, served as minio-tc-console.laboratory.casa on envoy-external.
+apiVersion: v1
+kind: Service
+metadata:
+  name: minio-tc-console
+spec:
+  ports:
+    - name: http
+      port: 9002
+---
+apiVersion: discovery.k8s.io/v1
+kind: EndpointSlice
+metadata:
+  name: minio-tc-console
+  labels:
+    kubernetes.io/service-name: minio-tc-console
+    endpointslice.kubernetes.io/managed-by: home-cluster
+addressType: IPv4
+ports:
+  - name: http
+    port: 9002
+endpoints:
+  - addresses:
+      - 10.25.30.36
+    conditions:
+      ready: true
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: minio-tc-console
+spec:
+  parentRefs:
+    - name: envoy-external
+      sectionName: https
+  hostnames:
+    - minio-tc-console.laboratory.casa
+  rules:
+    - backendRefs:
+        - name: minio-tc-console
+          port: 9002

@@ -1,0 +1,17 @@
+---
+# Devices outside the cluster, exposed through the Gateways. Each file is a
+# Service with no selector, a hand-written EndpointSlice pointing at the device,
+# and an HTTPRoute. Replaces the external-service-ingresses Helm chart.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ./truenas.yaml
+  - ./adguard-pi-02.yaml
+  - ./adguard-pi-03.yaml
+  - ./zigbee-hub.yaml
+  - ./birdnet.yaml
+  - ./frigate.yaml
+  - ./minio-tc.yaml
+  - ./minio-tc-console.yaml
+  - ./garage-tc.yaml
+  - ./garage-tc-console.yaml

@@ -1,0 +1,42 @@
+---
+# Zigbee hub: 10.25.30.78:80, served as zigbee-hub.laboratory.casa on envoy-internal.
+apiVersion: v1
+kind: Service
+metadata:
+  name: zigbee-hub
+spec:
+  ports:
+    - name: http
+      port: 80
+---
+apiVersion: discovery.k8s.io/v1
+kind: EndpointSlice
+metadata:
+  name: zigbee-hub
+  labels:
+    kubernetes.io/service-name: zigbee-hub
+    endpointslice.kubernetes.io/managed-by: home-cluster
+addressType: IPv4
+ports:
+  - name: http
+    port: 80
+endpoints:
+  - addresses:
+      - 10.25.30.78
+    conditions:
+      ready: true
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: zigbee-hub
+spec:
+  parentRefs:
+    - name: envoy-internal
+      sectionName: https
+  hostnames:
+    - zigbee-hub.laboratory.casa
+  rules:
+    - backendRefs:
+        - name: zigbee-hub
+          port: 80
