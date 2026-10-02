@@ -121,7 +121,7 @@ parent to prune:
 - `mcp__argocd-mcp__sync_application` on `apps` with `prune: true`.
 
 The parent prunes the child CRs; each finalizer drives **cascading deletion** of
-all managed resources (workloads, Services, Secrets, Ingress, namespaced
+all managed resources (workloads, Services, Secrets, HTTPRoutes/Ingress, namespaced
 Role/RoleBinding, **cluster-scoped ClusterRole/ClusterRoleBinding**, and PVCs →
 PVs → volumes when reclaim=Delete).
 
@@ -138,7 +138,7 @@ or prune it — and it never managed runtime-created orphans. Sweep both.
 
 1. List what's actually left and check ownership:
    ```
-   kubectl get all,ingress,secret,configmap,pvc -n <namespace>
+   kubectl get all,httproute,ingress,securitypolicy,secret,configmap,pvc -n <namespace>
    ```
    For anything still present, inspect
    `metadata.annotations."argocd.argoproj.io/tracking-id"` (empty = never
@@ -189,10 +189,14 @@ Longhorn volume remains.
   ClusterRole/ClusterRoleBinding/CRDs/PVs separately.
 - **Runtime-created objects survive the GitOps cascade.** Apps with broad RBAC or
   controllers (e.g. a bundled `k8s-ttl-controller`, preview-env managers) leave
-  bare Services/Ingress/etc. that no Application owns. The namespace delete is
+  bare Services/HTTPRoutes/Ingress/etc. that no Application owns. The namespace delete is
   what actually sweeps them — which is why Phase 3 matters even when Phase 2
   "looks" complete.
 - **PV reclaim policy dictates volume cleanup.** `Delete` = automatic; `Retain` =
   manual.
 - **The namespace is not GitOps-managed** here — it needs an explicit delete.
 - **Parent `ignoreDifferences: /spec/syncPolicy` does not block `metadata.finalizers`.**
+- **Own-namespace Authelia wiring.** If the app's namespace carried its own
+  `authelia` SecurityPolicy (for `auth: authelia` HTTPRoutes outside `network`),
+  also drop that namespace's entry from
+  `kubernetes/apps/security/authelia/referencegrant.yaml`.

@@ -92,30 +92,33 @@ Also note whenever you see https://bjw-s.github.io/helm-charts/ change it to ghc
    kubernetes/argo/apps/<app-name>/<app-name>.yaml
    ```
 
-6. For ingress configuration:
+6. For HTTP routing (HTTPRoutes, never Ingress):
 
-   - When a Flux app includes "routes", convert them to ingresses following these rules:
+   - Flux app-template "route" blocks map almost 1:1 onto app-template's top-level `route:` key; keep `hostnames`, `parentRefs` and `rules`, fixing only these:
    - Always change the domain to `laboratory.casa`
    - Choose an appropriate subdomain based on the service function (e.g., `speedtest` for OpenSpeedTest, `photos` for photo services)
-   - Only include annotations if they are nginx-specific configuration
-   - Use the `internal` className for ingresses
-   - Do not include TLS configuration
-   - Make sure the service identifier matches the service name (usually `app`)
-   - Ensure the port matches the name of the port in the service (usually `http`)
-   - Example ingress configuration in values.yaml:
+   - Point `parentRefs` at `envoy-internal` (default, LAN only) or `envoy-external` (internet via cloudflared), namespace `network`, `sectionName: https`. Never both on one route
+   - Drop route annotations (external-dns, nginx, etc.); none are needed
+   - For Authelia forward auth, add `labels: { auth: authelia }` to the route (works in `network`; other namespaces need their own `authelia` SecurityPolicy copy plus an entry in `kubernetes/apps/security/authelia/referencegrant.yaml`)
+   - Do not include TLS, timeout or body-size configuration (handled at the Gateway)
+   - Make sure the backendRef `identifier` matches the service name (usually `app`)
+   - Ensure the port matches the name (or number) of the port in the service (usually `http`)
+   - Flux "ingress" blocks get converted to the same `route:` shape
+   - Example route configuration in values.yaml:
 
    ```yaml
-   ingress:
+   route:
      app:
-       enabled: true
-       className: internal
-       hosts:
-         - host: <appropriate-subdomain>.laboratory.casa
-           paths:
-             - path: /
-               service:
-                 identifier: app
-                 port: http
+       hostnames:
+         - <appropriate-subdomain>.laboratory.casa
+       parentRefs:
+         - name: envoy-internal
+           namespace: network
+           sectionName: https
+       rules:
+         - backendRefs:
+             - identifier: app
+               port: http
    ```
 
 Key differences from Flux:
@@ -125,7 +128,7 @@ Key differences from Flux:
 - Uses ksops for secret management instead of Flux's valuesFrom
 - No need to add Helm repositories in the repositories directory as they're referenced directly in the Application
 - Standardizes on `laboratory.casa` domain with appropriate subdomains
-- Only preserves nginx-specific annotations in ingress configurations
+- Exposes apps via Envoy Gateway HTTPRoutes (no Ingress, no route annotations)
 
 7. For persistence configuration:
 

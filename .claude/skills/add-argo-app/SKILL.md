@@ -13,7 +13,7 @@ description: >-
   for a fully-fleshed-out — not bare-bones — deploy, then scaffolds the full
   directory (values.yaml + Argo Application,
   plus ksops secret files when needed), wires the house patterns (internal
-  ingress on laboratory.casa, Longhorn persistence, runAs 3000 security context,
+  Envoy Gateway HTTPRoute on laboratory.casa, Longhorn persistence, runAs 3000 security context,
   central Postgres init-container, central valkey), pins images to tag@sha256,
   commits GitOps-first, and verifies the app synced Healthy via the argocd +
   kubernetes MCP. Reach for this any time a new workload needs to exist in the
@@ -30,7 +30,7 @@ the app-of-apps parent picks it up and ArgoCD reconciles. Use the kubernetes +
 argocd MCP only to *verify* the result.
 
 `AGENTS.md` at the repo root is the exhaustive values.yaml cookbook (every
-persistence/ingress/security/probe/sidecar/cronjob pattern). This skill is the
+persistence/route/security/probe/sidecar/cronjob pattern). This skill is the
 workflow + the facts that drift; open `AGENTS.md` for any pattern not covered
 here.
 
@@ -84,7 +84,7 @@ style" means:
    not just the quickstart.
 3. **Optional configs / add-ons that fit THIS repo** — features worth enabling
    given our conventions: Authelia/OIDC SSO, Prometheus metrics + ServiceMonitor,
-   external-vs-internal ingress, central Postgres/valkey instead of bundled,
+   external-vs-internal Gateway, central Postgres/valkey instead of bundled,
    extra persistence, sidecars, cron/maintenance jobs, backups. The subagent
    should return each as a concrete "we could also enable X (needs Y)" option
    with the config it requires.
@@ -120,10 +120,12 @@ Phase 0b.
 | App dir | `kubernetes/apps/<namespace>/<app>/` |
 | Argo Application | `kubernetes/argo/apps/<namespace>/<app>.yaml` |
 | Chart repo | `ghcr.io/bjw-s-labs/helm` (NOT the github.io URL) |
-| app-template version | **5.0.1** (dominant in-repo; confirm with `grep -rh 'chart: app-template' -A1 kubernetes/argo/apps/`) |
+| app-template version | **5.2.1** (dominant in-repo; confirm with `grep -rh 'chart: app-template' -A1 kubernetes/argo/apps/`) |
 | Git repoURL | `https://github.com/mebezac/home-cluster.git` |
 | Argo app namespace / project | `argo-system` / `kubernetes` |
-| Domain | `laboratory.casa` (no TLS block — cert-manager handles it) |
+| Domain | `laboratory.casa` (no TLS block — the Gateway terminates TLS) |
+| Gateways (ns `network`) | `envoy-internal` (LAN, default) / `envoy-external` (internet via cloudflared). HTTPRoutes only — ingress-nginx is gone |
+| Authelia | route label `auth: authelia`; needs an `authelia` SecurityPolicy in the route's namespace (exists in `network`) |
 | Central Postgres (CNPG) | host `postgres-17-cluster-rw.database.svc.cluster.local` |
 | postgres-init image | `ghcr.io/home-operations/postgres-init` (tag `18.4` at last check) |
 | Central valkey (redis) | `valkey.valkey.svc.cluster.local:6379` |
@@ -149,8 +151,9 @@ pin down the repo-side choices:
    any moving tag) if it can be avoided. Where possible **pin the digest too**:
    `tag: X.Y.Z@sha256:...`. Only fall back to `latest@sha256:` if the image
    publishes no versioned tags at all. Resolve the digest yourself.
-4. **Ingress?** internal (default) vs external vs external+authelia; pick a
-   subdomain by function. Map 0a's port to the service/ingress.
+4. **Route?** `envoy-internal` (default) vs `envoy-external`, optionally +
+   Authelia (`auth: authelia` label); pick a subdomain by function. Map 0a's
+   port to the service/route. Never attach one route to both Gateways.
 5. **Persistence.** Turn 0a's volume paths into `persistence` entries. Almost
    always **Longhorn** (`storageClass: longhorn`, `ReadWriteOnce`) — reach for
    anything else only with a specific reason (see the storage-class table in
@@ -208,16 +211,19 @@ service:
       http:
         port: <container-port>
 
-ingress:                                   # omit whole block if no ingress
+route:                                     # omit whole block if no HTTP route
   app:
-    className: internal                    # or external (+ authelia) — see AGENTS.md
-    hosts:
-      - host: <subdomain>.laboratory.casa
-        paths:
-          - path: /
-            service:
-              identifier: app              # must match the service key above
-              port: http
+    # labels: { auth: authelia }           # Authelia forward auth — see Gotchas
+    hostnames:
+      - <subdomain>.laboratory.casa
+    parentRefs:
+      - name: envoy-internal               # or envoy-external — see AGENTS.md
+        namespace: network
+        sectionName: https
+    rules:
+      - backendRefs:
+          - identifier: app                # must match the service key above
+            port: http                     # port name or number
 
 persistence:                              # omit if stateless
   data:
@@ -249,7 +255,7 @@ spec:
       ref: <app>-repo
     - repoURL: ghcr.io/bjw-s-labs/helm
       chart: app-template
-      targetRevision: 5.0.1
+      targetRevision: 5.2.1
       helm:
         releaseName: <app>
         valueFiles:
@@ -381,20 +387,30 @@ For redis, don't deploy one — point the app at
      `health=Healthy`.
    - `kubectl get pods -n <namespace>` → running; if a DB init-container,
      confirm `init-db` completed (check logs on CrashLoop).
-   - Hit the ingress host if applicable.
+   - Hit the route hostname if applicable (`kubectl get httproute -n <namespace>`
+     → parent `Accepted`/`ResolvedRefs` True).
 4. If it doesn't appear at all: the parent may not have reconciled — sync `apps`
    in `argo-system`, and re-check the file path is under
    `kubernetes/argo/apps/**`.
 
 ## Gotchas
 
-- **Stale version in AGENTS.md.** It says app-template `4.6.2`; the repo is on
-  `5.0.1`. Always grep the actual current version rather than copying a doc.
+- **Versions drift.** Always grep the actual current app-template version
+  rather than copying a doc.
 - **Chart repo.** `ghcr.io/bjw-s-labs/helm`, never `https://bjw-s.github.io/helm-charts/`.
-- **`identifier` must match the service key** (both `app`), or the ingress 500s
-  with no backend.
-- **No TLS block** for `laboratory.casa` — cert-manager owns it. External apps
-  add the `external-dns` target annotation + `className: external` instead.
+- **HTTPRoutes, never Ingress.** app-template's top-level `route:` key; no
+  `ingress:` block, no nginx annotations (they'd do nothing).
+- **`identifier` must match the service key** (both `app`), or the route has no
+  backend.
+- **No TLS block, no timeout/body-size tweaks** — the Gateway terminates TLS
+  (wildcard certs in `network`), and a gateway-wide BackendTrafficPolicy already
+  disables the request timeout; Envoy has no body limit. External apps just use
+  `parentRefs: envoy-external` — external-dns makes the CNAME, no annotations.
+- **Authelia outside `network`.** The `auth: authelia` label only works if the
+  route's namespace has its own `authelia` SecurityPolicy (copy
+  `kubernetes/apps/network/envoy-gateway/authelia.yaml` into the app) AND is
+  listed in `kubernetes/apps/security/authelia/referencegrant.yaml` — otherwise
+  the route fails closed with 500.
 - **No Flux-isms.** No `${TIMEZONE}` / `${VOLSYNC_CLAIM}` substitution, no
   `existingClaim` templating — use literal values.
 - **Pin images** to an explicit version, digest too where possible

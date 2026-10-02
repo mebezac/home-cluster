@@ -28,7 +28,7 @@ This document provides comprehensive guidelines for developing, deploying, and m
 2. [Argo CD Application Definition](#argo-cd-application-definition)
 3. [Values.yaml Configuration](#valuesyaml-configuration)
 4. [Secrets Management with ksops](#secrets-management-with-ksops)
-5. [Ingress Configuration](#ingress-configuration)
+5. [Routing (HTTPRoutes)](#routing-httproutes)
 6. [Persistence Configuration](#persistence-configuration)
 7. [Security Context](#security-context)
 8. [Common Patterns](#common-patterns)
@@ -86,7 +86,7 @@ spec:
       ref: <app-name>-repo
     - repoURL: ghcr.io/bjw-s-labs/helm
       chart: app-template
-      targetRevision: 4.6.2
+      targetRevision: 5.2.1
       helm:
         releaseName: <app-name>
         valueFiles:
@@ -106,7 +106,7 @@ spec:
 **Key points:**
 
 - Always use `ghcr.io/bjw-s-labs/helm` as the chart repository (NOT `https://bjw-s.github.io/helm-charts/`)
-- Standard app-template version is **4.6.2**
+- Standard app-template version is **5.2.1**
 - The `ref` name must match the pattern `<app-name>-repo`
 - Value files are referenced using `$<app-name>-repo/...` syntax
 
@@ -152,17 +152,18 @@ service:
       http:
         port: 8080
 
-ingress:
+route:
   app:
-    enabled: true
-    className: internal
-    hosts:
-      - host: <app-name>.laboratory.casa
-        paths:
-          - path: /
-            service:
-              identifier: app
-              port: http
+    hostnames:
+      - <app-name>.laboratory.casa
+    parentRefs:
+      - name: envoy-internal
+        namespace: network
+        sectionName: https
+    rules:
+      - backendRefs:
+          - identifier: app
+            port: http
 
 persistence:
   data:
@@ -332,73 +333,97 @@ generators:
 
 ---
 
-## Ingress Configuration
+## Routing (HTTPRoutes)
 
-### Internal Ingress (Default)
+ingress-nginx is gone. Apps are exposed through Gateway API HTTPRoutes on Envoy Gateway (Argo app `envoy-gateway`, config in `kubernetes/apps/network/envoy-gateway/`). In app-template use the top-level `route:` key. **Never write an `ingress:` block or an Ingress resource.**
+
+Two Gateways, both in namespace `network`, GatewayClass `envoy`:
+
+| Gateway          | IP           | Reach                                                                                                                                                        |
+| ---------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `envoy-internal` | 10.25.30.117 | LAN only. k8s-gateway answers internal DNS for every attached hostname. IP shared with the forgejo SSH LoadBalancer.                                         |
+| `envoy-external` | 10.25.30.122 | Internet, via the cloudflared tunnels. external-dns (gateway-httproute source) creates the Cloudflare CNAME from the Gateway's annotation; routes need NO annotations. |
+
+**Never attach one route to both Gateways** (k8s-gateway would answer with both IPs; HTTP/2 connection coalescing then yields 404/421s).
+
+### Internal Route (Default)
 
 For apps only accessible within the network:
 
 ```yaml
-ingress:
+route:
   app:
-    enabled: true
-    className: internal
-    hosts:
-      - host: <app-name>.laboratory.casa
-        paths:
-          - path: /
-            service:
-              identifier: app
-              port: http
+    hostnames:
+      - <app-name>.laboratory.casa
+    parentRefs:
+      - name: envoy-internal
+        namespace: network
+        sectionName: https
+    rules:
+      - backendRefs:
+          - identifier: app # must match the service key
+            port: http # port name or number
 ```
 
-### External Ingress
+### External Route
 
-For apps accessible from the internet:
+For apps accessible from the internet, swap the parentRef; nothing else changes:
 
 ```yaml
-ingress:
+route:
   app:
-    enabled: true
-    className: external
-    annotations:
-      external-dns.kubernetes.io/target: external.laboratory.casa
-    hosts:
-      - host: <app-name>.laboratory.casa
-        paths:
-          - path: /
-            service:
-              identifier: app
-              port: http
+    hostnames:
+      - <app-name>.laboratory.casa
+    parentRefs:
+      - name: envoy-external
+        namespace: network
+        sectionName: https
+    rules:
+      - backendRefs:
+          - identifier: app
+            port: http
 ```
 
 ### With Authelia Authentication
 
+Add the `auth: authelia` label to the route (works on either Gateway):
+
 ```yaml
-ingress:
+route:
   app:
-    className: external
-    annotations:
-      external-dns.kubernetes.io/target: external.laboratory.casa
-      nginx.ingress.kubernetes.io/auth-method: GET
-      nginx.ingress.kubernetes.io/auth-url: http://authelia.security.svc.cluster.local/api/authz/auth-request
-      nginx.ingress.kubernetes.io/auth-signin: https://login.laboratory.casa?rm=$request_method
-      nginx.ingress.kubernetes.io/auth-response-headers: Remote-User,Remote-Name,Remote-Groups,Remote-Email
-    hosts:
-      - host: <app-name>.laboratory.casa
-        paths:
-          - path: /
-            service:
-              identifier: app
-              port: http
+    labels:
+      auth: authelia
+    hostnames:
+      - <app-name>.laboratory.casa
+    parentRefs:
+      - name: envoy-internal
+        namespace: network
+        sectionName: https
+    rules:
+      - backendRefs:
+          - identifier: app
+            port: http
 ```
+
+A label-selected Envoy Gateway `SecurityPolicy` named `authelia` **in the route's namespace** makes the ext-authz call. It exists in `network` (`kubernetes/apps/network/envoy-gateway/authelia.yaml`) and in the private repo's `downloads` namespace. For any other namespace, add a copy of that SecurityPolicy to the app AND add the namespace to the ReferenceGrant at `kubernetes/apps/security/authelia/referencegrant.yaml`; otherwise the auth routes fail closed with 500. There are no nginx auth annotations anymore.
+
+### Timeouts, Upload Size, TLS
+
+- No per-app config: a gateway-wide `BackendTrafficPolicy` sets `requestTimeout: 0s` and `streamIdleTimeout: 1h`, and Envoy has no request body size limit.
+- The Gateways terminate TLS with wildcard certs in `network` (`kubernetes/apps/network/envoy-gateway/certificates/`). Apps never configure TLS.
+
+### Special Cases
+
+- **heremag.free / zac.pizza hosts**: attach to `envoy-external`, but external-dns takes the CNAME target from the Gateway (`external.laboratory.casa`), so add their CNAME by hand as a DNSEndpoint entry in `kubernetes/apps/network/cloudflared-heremag-free/config/dnsendpoint.sops.yaml` or `cloudflared-zac-pizza/config/dnsendpoint.sops.yaml` (edit with `sops`).
+- **LAN devices outside the cluster**: add a file to `kubernetes/apps/network/external-services/` (selector-less Service + EndpointSlice + HTTPRoute; copy an existing one) and list it in that kustomization.
+- **Charts with their own Gateway API values** (argo-cd `server.httproute`, longhorn `httproute`, grafana `route.main`, victoria charts `route`): use those, with the same parentRefs.
+- **Non-HTTP LoadBalancer Services** that want a laboratory.casa name: annotate the Service with `coredns.io/hostname: <name>.laboratory.casa` (k8s-gateway), e.g. mosquitto.
 
 ### Domain Guidelines
 
 - Primary domain: `laboratory.casa`
 - Use descriptive subdomains: `lubelog.laboratory.casa`, `ha.laboratory.casa`
-- External services (like biglink.party) may have separate TLS configuration
-- Do NOT include TLS configuration for laboratory.casa - it's handled automatically
+- Do NOT include TLS configuration - it's handled at the Gateway
 
 ---
 
@@ -813,11 +838,12 @@ containers:
 service:
   myservice:
     controller: main
-ingress:
-  myingress:
+route:
+  myroute:
     # ...
-    service:
-      identifier: differentname # Doesn't match
+    rules:
+      - backendRefs:
+          - identifier: differentname # Doesn't match
 ```
 
 **Good:**
@@ -826,11 +852,12 @@ ingress:
 service:
   app:
     controller: main
-ingress:
+route:
   app:
     # ...
-    service:
-      identifier: app # Matches service name
+    rules:
+      - backendRefs:
+          - identifier: app # Matches service name
 ```
 
 ---

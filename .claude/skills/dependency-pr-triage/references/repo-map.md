@@ -45,16 +45,22 @@ cluster, break GitOps reconciliation, or corrupt data.
   it via `postgres-init` init-containers. Major bumps can imply data migrations;
   check running version via the k8s MCP before adopting.
 - **valkey** — central Redis-equivalent shared by multiple apps.
-- **cert-manager** — TLS for all ingress. CRD-bearing; majors may drop old API
+- **cert-manager** — TLS for the Gateways (wildcard certs in `network`). CRD-bearing; majors may drop old API
   versions — verify served CRDs in-cluster first.
-- **network** — Cilium / CNI / external-dns / ingress. Networking outage =
-  everything unreachable.
+- **network** — Cilium / CNI / external-dns / k8s-gateway / cloudflared /
+  Envoy Gateway (all HTTP traffic via HTTPRoutes). Networking outage =
+  everything unreachable. **Envoy Gateway chart bumps (`envoy-gateway` app,
+  `gateway-helm` + `gateway-crds-helm`) must stay in lockstep with the
+  `gateway-api-crds` app** (`kubernetes/argo/apps/kube-system/gateway-api-crds.yaml`):
+  that app's Gateway API version must equal the one the Envoy Gateway release
+  bundles (`gateway-crds-helm/templates/*gatewayapi-crds.yaml` bundle-version).
+  Bump the two together; never merge one alone.
 - **storage / longhorn-system / openebs-system** — persistent volumes. Risky to
   bump carelessly; data lives here.
 - **observability** — victoria-metrics-k8s-stack, prometheus-operator-crds.
   CRD-bearing; a CRD major (e.g. prometheus-operator-crds) can break every
   ServiceMonitor/PrometheusRule if an API version is removed.
-- **kube-system**, **security** (authelia — auth for protected ingress),
+- **kube-system**, **security** (authelia — forward auth for `auth: authelia` HTTPRoutes),
   **bootstrap/talos**, **sops/ksops** (secret decryption — break this and
   ArgoCD can't render secrets).
 
@@ -88,8 +94,10 @@ Grounded in `CLAUDE.md` and `AGENTS.md`:
   `database` Postgres (example: `kubernetes/apps/lubelog/lubelog/`). A Postgres
   major is high blast-radius for this reason.
 - **Central Valkey** as the shared Redis.
-- **Ingress**: `internal` vs `external` classNames, domain `laboratory.casa`,
-  TLS handled by cert-manager (so cert-manager majors matter for all ingress).
+- **Routing**: Gateway API HTTPRoutes (app-template `route:`) on the
+  `envoy-internal` / `envoy-external` Gateways, domain `laboratory.casa`, TLS
+  terminated at the Gateway with cert-manager certs (so cert-manager and
+  Envoy Gateway / Gateway API majors matter for every app). No Ingresses.
 - **GitOps**: merging = deploying. Cluster is read-only to you (k8s MCP for
   inspection only); all changes go through the repo.
 

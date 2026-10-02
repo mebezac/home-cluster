@@ -501,7 +501,8 @@ attribution trailer).
 - **This layer isn't ArgoCD-managed** — topf/bootstrap, applied by hand.
 - **talosctl ≥1.14 `upgrade` = install → its own drain (`--drain-timeout` 5m) → reboot →
   uncordon.** The install takes seconds; the node then sits on the old version while
-  talosctl waits out pod grace periods (ingress-nginx-external has 300s), so ~2-4 min at
+  talosctl waits out pod grace periods (the Envoy Gateway proxies drain for 60s, `shutdown.drainTimeout`
+  in `kubernetes/apps/network/envoy-gateway/envoy.yaml`), so ~2-4 min at
   "still old version" is normal. `--preserve` is gone (always preserved). Check
   `talosctl logs machined | grep "upgrade progress"` for "installation of vX complete".
 - **Check for node-pinned local PVs before draining** (`kubectl get pv` with `.spec.local`

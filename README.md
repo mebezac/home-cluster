@@ -16,7 +16,7 @@ The features included will depend on the type of configuration you want to use. 
 2. **"Argo cluster with Cloudflare"** - An addition to "**Argo cluster**" that provides DNS and SSL with [Cloudflare](https://www.cloudflare.com/). [Cloudflare Tunnel](https://www.cloudflare.com/products/tunnel/) is also included to provide external access to certain applications deployed in your cluster.
 
     - **Required:** A Cloudflare account with a domain managed in your Cloudflare account.
-    - **Components:** [ingress-nginx](https://github.com/kubernetes/ingress-nginx/), [external-dns](https://github.com/kubernetes-sigs/external-dns) and [cloudflared](https://github.com/cloudflare/cloudflared).
+    - **Components:** [Envoy Gateway](https://github.com/envoyproxy/gateway) (Gateway API), [external-dns](https://github.com/kubernetes-sigs/external-dns) and [cloudflared](https://github.com/cloudflare/cloudflared).
 
 **Other features include:**
 
@@ -134,14 +134,14 @@ There are **4 stages** outlined below for completing this project, make sure you
 ### 🌐 Public DNS
 
 > [!TIP]
-> Use the `external` ingress class to make applications public to the internet.
+> Attach an HTTPRoute to the `envoy-external` Gateway to make applications public to the internet.
 
-The `external-dns` application created in the `networking` namespace will handle creating public DNS records. By default, `echo-server` and the `argo` are the only subdomains reachable from the public internet. In order to make additional applications public you must set set the correct ingress class name and ingress annotations like in the HelmRelease for `echo-server`.
+The `external-dns` application created in the `networking` namespace will handle creating public DNS records. By default, `echo-server` and the `argo` are the only subdomains reachable from the public internet. In order to make additional applications public, attach their HTTPRoute to the `envoy-external` Gateway (`parentRefs: [{name: envoy-external, namespace: network, sectionName: https}]`); external-dns reads the CNAME target from the Gateway, so the route needs no annotations.
 
 ### 🏠 Home DNS
 
 > [!TIP]
-> Use the `internal` ingress class to make applications private to your network. If you're having trouble with internal DNS resolution check out [this](https://github.com/onedr0p/cluster-template/discussions/719) GitHub discussion.
+> Attach an HTTPRoute to the `envoy-internal` Gateway to make applications private to your network. If you're having trouble with internal DNS resolution check out [this](https://github.com/onedr0p/cluster-template/discussions/719) GitHub discussion.
 
 `k8s_gateway` will provide DNS resolution to external Kubernetes resources (i.e. points of entry to the cluster) from any device that uses your home DNS server. For this to work, your home DNS server must be configured to forward DNS queries for `${cloudflare.domain}` to `${cloudflare.gateway_vip}` instead of the upstream DNS server(s) it normally uses. This is a form of **split DNS** (aka split-horizon DNS / conditional forwarding).
 

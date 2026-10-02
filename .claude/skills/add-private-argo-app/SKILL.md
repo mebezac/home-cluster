@@ -95,21 +95,33 @@ add-argo-app's table.
    the shared PVCs or talks to the existing download apps by in-namespace
    service name). Otherwise its own namespace = app name. PVCs are namespaced — the
    shared claims above are only mountable from `downloads`.
-4. **Ingress.** Every private ingress today is `className: internal` **plus
-   Authelia forward-auth**. Default to that unless the app does its own OIDC
-   login (then ask). The annotations:
+4. **Route.** Every private route today is on `envoy-internal` **plus
+   Authelia forward-auth** (the `auth: authelia` label). Default to that unless
+   the app does its own OIDC login (then ask). HTTPRoutes only — no `ingress:`
+   block, no nginx annotations:
    ```yaml
-   ingress:
+   route:
      app:
-       className: internal
-       annotations:
-         nginx.ingress.kubernetes.io/auth-method: GET
-         nginx.ingress.kubernetes.io/auth-url: http://authelia.security.svc.cluster.local/api/authz/auth-request
-         nginx.ingress.kubernetes.io/auth-signin: https://login.laboratory.casa?rm=$request_method
-         nginx.ingress.kubernetes.io/auth-response-headers: Remote-User,Remote-Name,Remote-Groups,Remote-Email
-         nginx.ingress.kubernetes.io/auth-snippet: proxy_set_header X-Forwarded-Method $request_method;
-       hosts: [...]
+       labels:
+         auth: authelia
+       hostnames:
+         - <subdomain>.laboratory.casa
+       parentRefs:
+         - name: envoy-internal
+           namespace: network
+           sectionName: https
+       rules:
+         - backendRefs:
+             - identifier: app
+               port: http
    ```
+   The label only takes effect where an `authelia` SecurityPolicy exists in the
+   route's namespace. `downloads` has one (`$P/kubernetes/apps/downloads/gateway/authelia.yaml`,
+   Argo app `downloads-gateway`). A **new private namespace** needs its own copy
+   of that file AND an entry in the PUBLIC repo's
+   `kubernetes/apps/security/authelia/referencegrant.yaml` (else the route fails
+   closed with 500) — that public edit exposes the namespace name, so ask first
+   (see the privacy guardrail).
    Apps that support trusting a reverse-proxy auth header (an "External" /
    "header" auth mode) should be set to use it. Prefer a terse/non-obvious
    subdomain if the app name itself is something the user wouldn't want in DNS
@@ -168,7 +180,7 @@ that sit in that tree (gitignored — keep it that way).
 3. Verify via MCP: `private-apps` should pick it up within its poll; if not,
    `mcp__argocd-mcp__sync_application` on **`private-apps`** (not `apps`). Then
    `get_application <app>` → Synced/Healthy, pods running in `<ns>`, init-db
-   completed, ingress host responds (expect an Authelia redirect, i.e. 302 to
+   completed, route hostname responds (expect an Authelia redirect, i.e. 302 to
    `login.laboratory.casa`, if forward-auth is on).
 
 ## Privacy guardrail — nothing leaks into the public repo

@@ -38,24 +38,28 @@ When translating an application to ArgoCD, use the `context7` MCP server to fetc
 ### 2. Helm Values Configuration
 Create `values.yaml` with the chart values. Key patterns:
 
-**Ingress Configuration:**
+**Routing (HTTPRoutes, never Ingress):**
+- ingress-nginx is gone; apps expose HTTP via Gateway API HTTPRoutes on Envoy Gateway (app-template top-level `route:` key)
 - Always use domain `laboratory.casa`
 - Choose appropriate subdomain based on service function
-- Use `internal` className for internal access
-- No TLS configuration needed (handled by cert-manager)
+- Attach to `envoy-internal` for internal access (see Gateways below)
+- No TLS configuration needed (the Gateway terminates TLS with wildcard certs from `network`)
+- No timeout/body-size config needed (gateway-wide policy: no request timeout, no body limit)
+- Authelia forward auth: add `labels: { auth: authelia }` to the route (see Gateways below)
 - Example:
 ```yaml
-ingress:
+route:
   app:
-    enabled: true
-    className: internal
-    hosts:
-      - host: <subdomain>.laboratory.casa
-        paths:
-          - path: /
-            service:
-              identifier: app
-              port: http
+    hostnames:
+      - <subdomain>.laboratory.casa
+    parentRefs:
+      - name: envoy-internal
+        namespace: network
+        sectionName: https
+    rules:
+      - backendRefs:
+          - identifier: app   # must match the service key
+            port: http        # port name or number
 ```
 
 **Chart Repository Changes:**
@@ -160,10 +164,17 @@ spec:
 - **Bitnami**: `registry-1.docker.io/bitnamicharts`
 - **Prometheus Community**: `oci://ghcr.io/prometheus-community/charts`
 
-## Ingress Classes
+## Gateways
 
-- **`internal`**: For applications accessed only within the network
-- **`external`**: For applications exposed to the internet (uses Cloudflare)
+Both live in `network`, GatewayClass `envoy` (Envoy Gateway, Argo app `envoy-gateway`, config in `kubernetes/apps/network/envoy-gateway/`):
+- **`envoy-internal`** (10.25.30.117): LAN only. k8s-gateway answers internal DNS for every attached route hostname.
+- **`envoy-external`** (10.25.30.122): internet via the cloudflared tunnels. external-dns creates the Cloudflare CNAME automatically; routes need NO annotations.
+- Never attach one route to both Gateways.
+- **Authelia**: `labels: { auth: authelia }` on the route; a label-selected `authelia` SecurityPolicy in the route's namespace does the check. Exists in `network` (`envoy-gateway/authelia.yaml`) and private `downloads`. A NEW namespace needs its own copy of that SecurityPolicy AND an entry in `kubernetes/apps/security/authelia/referencegrant.yaml`, or auth routes fail closed (500).
+- **heremag.free / zac.pizza** hosts attach to `envoy-external`, but their CNAME must be added by hand to `kubernetes/apps/network/cloudflared-{heremag-free,zac-pizza}/config/dnsendpoint.sops.yaml` (edit with `sops`).
+- **LAN devices outside the cluster**: copy a file in `kubernetes/apps/network/external-services/` (Service + EndpointSlice + HTTPRoute) and list it in its kustomization.
+- **Charts with their own Gateway API values** (argo-cd `server.httproute`, longhorn `httproute`, grafana `route.main`, victoria `route`) use those with the same parentRefs.
+- **Non-HTTP LoadBalancers** wanting a laboratory.casa name: annotate the Service `coredns.io/hostname: <name>.laboratory.casa` (k8s-gateway), e.g. mosquitto.
 
 ## Secret Patterns
 
