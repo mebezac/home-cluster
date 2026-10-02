@@ -14,7 +14,7 @@ controllers:
         image:
           repository: ghcr.io/ozark-connect/network-optimizer
           # changelog: GH releases Ozark-Connect/NetworkOptimizer (Renovate truncates the body - read each minor directly). Both images ship in lockstep from one compose file; bump network-optimizer and speedtest together
-          tag: 2.9.0@sha256:a5e48d9f505b36a15395f58574cb99de172cc77a94b3bb6c16467f15a6bc18c6
+          tag: 2.9.1@sha256:b17890f43225a884e1ef2b67492d1258e082e13302a97f1fa9897ce6e6cb5892
         env:
           TZ: America/New_York
           BIND_LOCALHOST_ONLY: "false"
