@@ -35,18 +35,18 @@ service:
       http:
         port: 3909
 
-ingress:
+route:
   main:
-    enabled: true
-    className: internal
-    hosts:
-      - host: garage-console.laboratory.casa
-        paths:
-          - path: /
-            pathType: ImplementationSpecific
-            service:
-              identifier: main
-              port: http
+    hostnames:
+      - garage-console.laboratory.casa
+    parentRefs:
+      - name: envoy-internal
+        namespace: network
+        sectionName: https
+    rules:
+      - backendRefs:
+          - identifier: main
+            port: http
 
 persistence:
   config:

@@ -71,23 +71,18 @@ service:
       http:
         port: *appPort
 
-ingress:
+route:
   main:
-    enabled: true
-    className: external
-    annotations:
-      external-dns.kubernetes.io/target: external.zac.pizza
-    hosts:
-      - host: &host photos.zac.pizza
-        paths:
-          - path: /
-            service:
-              identifier: main
-              port: http
-    tls:
-      - hosts:
-          - *host
-        secretName: zac-pizza-production-tls
+    hostnames:
+      - photos.zac.pizza
+    parentRefs:
+      - name: envoy-external
+        namespace: network
+        sectionName: https
+    rules:
+      - backendRefs:
+          - identifier: main
+            port: http
 
 persistence:
   data:

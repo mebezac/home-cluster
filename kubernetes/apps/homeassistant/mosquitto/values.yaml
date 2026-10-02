@@ -40,6 +40,9 @@ defaultPodOptions:
 service:
   app:
     annotations:
+      # k8s-gateway answers mqtt.laboratory.casa with this LB IP. (It used to
+      # be an nginx Ingress, which pointed MQTT clients at an HTTP proxy.)
+      coredns.io/hostname: mqtt.laboratory.casa
       lbipam.cilium.io/ips: 10.25.30.54
       tailscale.com/expose: "true"
     controller: mosquitto
@@ -47,18 +50,6 @@ service:
     ports:
       mqtt:
         port: 1883
-
-ingress:
-  main:
-    enabled: true
-    className: internal
-    hosts:
-      - host: mqtt.laboratory.casa
-        paths:
-          - path: /
-            service:
-              identifier: app
-              port: mqtt
 
 persistence:
   data:

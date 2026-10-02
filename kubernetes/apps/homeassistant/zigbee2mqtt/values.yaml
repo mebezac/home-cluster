@@ -67,17 +67,18 @@ service:
       http:
         port: *port
 
-ingress:
+route:
   app:
-    enabled: true
-    className: internal
-    hosts:
-      - host: zigbee2mqtt.laboratory.casa
-        paths:
-          - path: /
-            service:
-              identifier: app
-              port: http
+    hostnames:
+      - zigbee2mqtt.laboratory.casa
+    parentRefs:
+      - name: envoy-internal
+        namespace: network
+        sectionName: https
+    rules:
+      - backendRefs:
+          - identifier: app
+            port: http
 
 persistence:
   data:

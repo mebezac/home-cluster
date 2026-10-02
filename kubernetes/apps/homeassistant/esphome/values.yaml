@@ -33,17 +33,18 @@ service:
         port: 6052
         targetPort: 6052
 
-ingress:
+route:
   main:
-    enabled: true
-    className: internal
-    hosts:
-      - host: esphome.laboratory.casa
-        paths:
-          - path: /
-            service:
-              identifier: main
-              port: http
+    hostnames:
+      - esphome.laboratory.casa
+    parentRefs:
+      - name: envoy-internal
+        namespace: network
+        sectionName: https
+    rules:
+      - backendRefs:
+          - identifier: main
+            port: http
 
 persistence:
   config:

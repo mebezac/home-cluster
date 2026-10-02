@@ -18,10 +18,15 @@ serviceMonitor:
   enabled: true
 serviceAccount:
   autoMount: true
-ingress:
-  enabled: true
-  ingressClassName: internal
-  hosts: ["graf.laboratory.casa"]
+route:
+  main:
+    enabled: true
+    hostnames:
+      - graf.laboratory.casa
+    parentRefs:
+      - name: envoy-internal
+        namespace: network
+        sectionName: https
 env:
   GF_SECURITY_DISABLE_INITIAL_ADMIN_CREATION: true
 envFromSecrets:

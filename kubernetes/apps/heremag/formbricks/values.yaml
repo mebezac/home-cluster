@@ -47,19 +47,15 @@ service:
     ports:
       http:
         port: 3000
-ingress:
+route:
   app:
-    className: external
-    annotations:
-      external-dns.kubernetes.io/target: external.heremag.free
-    hosts:
-      - host: forms.heremag.free
-        paths:
-          - path: /
-            service:
-              identifier: app
-              port: http
-    tls:
-      - hosts:
-          - forms.heremag.free
-        secretName: heremag-free-production-tls
+    hostnames:
+      - forms.heremag.free
+    parentRefs:
+      - name: envoy-external
+        namespace: network
+        sectionName: https
+    rules:
+      - backendRefs:
+          - identifier: app
+            port: http

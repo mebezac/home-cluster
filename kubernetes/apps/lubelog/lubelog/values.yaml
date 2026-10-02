@@ -45,16 +45,18 @@ service:
     ports:
       http:
         port: 8080
-ingress:
+route:
   app:
-    className: internal
-    hosts:
-      - host: lubelog.laboratory.casa
-        paths:
-          - path: /
-            service:
-              identifier: app
-              port: http
+    hostnames:
+      - lubelog.laboratory.casa
+    parentRefs:
+      - name: envoy-internal
+        namespace: network
+        sectionName: https
+    rules:
+      - backendRefs:
+          - identifier: app
+            port: http
 persistence:
   data:
     type: persistentVolumeClaim

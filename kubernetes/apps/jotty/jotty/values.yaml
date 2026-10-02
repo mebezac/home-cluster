@@ -41,18 +41,18 @@ service:
       http:
         port: 3000
 
-ingress:
+route:
   app:
-    className: external
-    annotations:
-      external-dns.kubernetes.io/target: external.laboratory.casa
-    hosts:
-      - host: jotty.laboratory.casa
-        paths:
-          - path: /
-            service:
-              identifier: app
-              port: http
+    hostnames:
+      - jotty.laboratory.casa
+    parentRefs:
+      - name: envoy-external
+        namespace: network
+        sectionName: https
+    rules:
+      - backendRefs:
+          - identifier: app
+            port: http
 
 persistence:
   data:

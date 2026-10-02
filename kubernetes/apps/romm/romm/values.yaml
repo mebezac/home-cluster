@@ -104,17 +104,18 @@ service:
       http:
         port: 8080
 
-ingress:
+route:
   app:
-    enabled: true
-    className: internal
-    hosts:
-      - host: romm.laboratory.casa
-        paths:
-          - path: /
-            service:
-              identifier: app
-              port: http
+    hostnames:
+      - romm.laboratory.casa
+    parentRefs:
+      - name: envoy-internal
+        namespace: network
+        sectionName: https
+    rules:
+      - backendRefs:
+          - identifier: app
+            port: http
 
 persistence:
   data:

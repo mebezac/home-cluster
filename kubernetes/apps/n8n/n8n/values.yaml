@@ -102,18 +102,18 @@ service:
       http:
         port: *port
 
-ingress:
+route:
   app:
-    className: external
-    annotations:
-      external-dns.kubernetes.io/target: external.laboratory.casa
-    hosts:
-      - host: n8n.laboratory.casa
-        paths:
-          - path: /
-            service:
-              identifier: app
-              port: http
+    hostnames:
+      - n8n.laboratory.casa
+    parentRefs:
+      - name: envoy-external
+        namespace: network
+        sectionName: https
+    rules:
+      - backendRefs:
+          - identifier: app
+            port: http
 
 persistence:
   data:

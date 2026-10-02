@@ -54,17 +54,18 @@ service:
       http:
         port: *port
 
-ingress:
+route:
   main:
-    enabled: true
-    className: internal
-    hosts:
-      - host: pinchflat.laboratory.casa
-        paths:
-          - path: /
-            service:
-              identifier: main
-              port: http
+    hostnames:
+      - pinchflat.laboratory.casa
+    parentRefs:
+      - name: envoy-internal
+        namespace: network
+        sectionName: https
+    rules:
+      - backendRefs:
+          - identifier: main
+            port: http
 
 persistence:
   config:

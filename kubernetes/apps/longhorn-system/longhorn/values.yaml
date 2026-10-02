@@ -14,10 +14,14 @@ defaultSettings:
   autoDeletePodWhenVolumeDetachedUnexpectedly: true
   createDefaultDiskLabeledNodes: true
   nodeDownPodDeletionPolicy:
-ingress:
+httproute:
   enabled: true
-  host: "longhorn.laboratory.casa"
-  ingressClassName: "internal"
+  parentRefs:
+    - name: envoy-internal
+      namespace: network
+      sectionName: https
+  hostnames:
+    - longhorn.laboratory.casa
 persistence:
   defaultClassReplicaCount: 2
   defaultDataLocality: best-effort

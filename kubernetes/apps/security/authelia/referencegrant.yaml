@@ -11,6 +11,10 @@ spec:
     - group: gateway.envoyproxy.io
       kind: SecurityPolicy
       namespace: network
+    # home-cluster-private: kubernetes/apps/downloads/gateway/authelia.yaml
+    - group: gateway.envoyproxy.io
+      kind: SecurityPolicy
+      namespace: downloads
   to:
     - group: ""
       kind: Service

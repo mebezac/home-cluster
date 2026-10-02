@@ -49,16 +49,18 @@ service:
     ports:
       http:
         port: 3000
-ingress:
+route:
   app:
-    className: internal
-    hosts:
-      - host: trek.laboratory.casa
-        paths:
-          - path: /
-            service:
-              identifier: app
-              port: http
+    hostnames:
+      - trek.laboratory.casa
+    parentRefs:
+      - name: envoy-internal
+        namespace: network
+        sectionName: https
+    rules:
+      - backendRefs:
+          - identifier: app
+            port: http
 persistence:
   data:
     type: persistentVolumeClaim

@@ -44,19 +44,18 @@ service:
         port: 1400
         targetPort: 1400
 
-ingress:
+route:
   main:
-    enabled: true
-    className: external
-    annotations:
-      external-dns.kubernetes.io/target: external.laboratory.casa
-    hosts:
-      - host: ha.laboratory.casa
-        paths:
-          - path: /
-            service:
-              identifier: main
-              port: http
+    hostnames:
+      - ha.laboratory.casa
+    parentRefs:
+      - name: envoy-external
+        namespace: network
+        sectionName: https
+    rules:
+      - backendRefs:
+          - identifier: main
+            port: http
 
 persistence:
   config:

@@ -9,19 +9,30 @@ spec:
       recordType: CNAME
       targets:
         - 37bdf31a-c269-426d-9a70-823699fb91d9.cfargotunnel.com
+    # Hosts with HTTPRoutes on envoy-external. external-dns can't CNAME these
+    # from the routes: it takes the target from the Gateway, which says
+    # external.laboratory.casa (a different tunnel).
+    - dnsName: files.heremag.free
+      recordType: CNAME
+      targets:
+        - external.heremag.free
+    - dnsName: forms.heremag.free
+      recordType: CNAME
+      targets:
+        - external.heremag.free
 sops:
   age:
-    - recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
-      enc: |
+    - enc: |
         -----BEGIN AGE ENCRYPTED FILE-----
-        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBhbGhlUEg1SUlObXdNVjYv
-        ZEZUSGdQVU5lbzFCRURtVUNXeStNbjNnS0JJCmQxNjBnWWZvUUVxSEVOVTVHMU5E
-        VEJuTk5Ud3pzL3RzVlNVNUVyTWZKejAKLS0tIFVnUXlvc3FhMXBrTDFJaVBpVjJa
-        WmxDTGlqREpoSXMrQlpiOUdRZXEzNVEKWIf8o61Zd9wHIJH7F4Vtq+jgj1la/H7y
-        lyY2crVgM2C3TdL7pO4q54YITG3eiZ7LwEpxYtdv7fzDH4Z+L6MHNQ==
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBqQmtyWGNRbk02R3BGU01q
+        Z3N2TS9EbmRPYyt6VUFYMmx0N1ByZ1lYYmdZClFiR0FadlVpLzFHcEQ2NndwaVor
+        RzFWWmhQbm9Fayt2cXJ5QkpNaU9hY3cKLS0tIHRmcHRXMk9od000ZkZVdlJJMEg1
+        cTJoZkoyK3o0cEhwcytGTXJYVTdVYzAKDz18Zqqv8RvV4CLnFOQTpSEbxWiMhgPG
+        FzCC17G2ryYhZrzLP3J/zoc8KaLp9WWuNcDcZiyiARu1a4rFq8TJmw==
         -----END AGE ENCRYPTED FILE-----
-  lastmodified: "2025-12-30T15:03:01Z"
-  mac: ENC[AES256_GCM,data:k04XKZomL5bhCtvzNfnNKpQD/mgmhCufmANn2Mx7+qQDcJcUD/2Y1zTXwssg4IdzhSaPmsk5Y+Atj5OWQ0fI+Zlv8npX0eTsN+1+s9Yvj25fnzvJvmqn9Gsl4D1InhF6ok6RzjARUI58bukvLQTJKIIfLgiTASqYtinW2KkssIg=,iv:CogfKjZ9lEWSW8MezUSun50d74F8TZWCBKZFKFZ1pBo=,tag:J+gZp9DPTJEF2qWKIWARig==,type:str]
+      recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
   encrypted_regex: ^(data|stringData)$
+  lastmodified: "2026-10-02T15:37:25Z"
+  mac: ENC[AES256_GCM,data:eCdrKWh7yTU8F8SErUShVkhmWeapvCKYd97XZ8G/kMveuTlgOaNOAdJQ0U4AgUgEgn+PAz0ppHXOvU608XrIKWsnn8x8R8MGhMSz77R5yPC6HppRMVhaW0ZZp/7t4GiWo3viKoDf7a/OfWVHqRv8NMTO6Jn+74x+rR2JOGfBZ6U=,iv:pjmwCTl5eHmmYkAx4zZkUL+hkg68pogyhvml1lIGDBY=,tag:Hd3utM+MgxPQivSkNO/8yg==,type:str]
   mac_only_encrypted: true
-  version: 3.11.0
+  version: 3.13.3

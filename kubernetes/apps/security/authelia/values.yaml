@@ -107,23 +107,32 @@ serviceMonitor:
     serviceName: authelia
     endpoints:
       - port: metrics
-ingress:
+route:
   app:
-    className: external
-    annotations:
-      external-dns.kubernetes.io/target: external.laboratory.casa
-      nginx.ingress.kubernetes.io/configuration-snippet: |
-        add_header Cache-Control "no-store";
-        add_header Pragma "no-cache";
-        add_header X-Frame-Options "SAMEORIGIN";
-        add_header X-XSS-Protection "1; mode=block";
-    hosts:
-      - host: "login.laboratory.casa"
-        paths:
-          - path: /
-            service:
-              identifier: app
-              port: http
+    hostnames:
+      - login.laboratory.casa
+    parentRefs:
+      - name: envoy-external
+        namespace: network
+        sectionName: https
+    rules:
+      - backendRefs:
+          - identifier: app
+            port: http
+        filters:
+          # Was an nginx configuration-snippet: never cache the portal, and
+          # don't let other origins frame it.
+          - type: ResponseHeaderModifier
+            responseHeaderModifier:
+              set:
+                - name: Cache-Control
+                  value: no-store
+                - name: Pragma
+                  value: no-cache
+                - name: X-Frame-Options
+                  value: SAMEORIGIN
+                - name: X-XSS-Protection
+                  value: 1; mode=block
 persistence:
   private-key:
     type: secret

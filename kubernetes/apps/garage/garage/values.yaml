@@ -185,35 +185,29 @@ service:
       s3-web:
         port: 3902
 
-ingress:
+route:
   main:
-    enabled: true
-    className: internal
-    hosts:
-      - host: garage.laboratory.casa
-        paths:
-          - path: /
-            pathType: ImplementationSpecific
-            service:
-              identifier: s3
-              port: s3
+    hostnames:
+      - garage.laboratory.casa
+    parentRefs:
+      - name: envoy-internal
+        namespace: network
+        sectionName: https
+    rules:
+      - backendRefs:
+          - identifier: s3
+            port: s3
   files:
-    enabled: true
-    className: external
-    annotations:
-      external-dns.kubernetes.io/target: external.heremag.free
-    hosts:
-      - host: files.heremag.free
-        paths:
-          - path: /
-            pathType: Prefix
-            service:
-              identifier: s3-web
-              port: s3-web
-    tls:
-      - hosts:
-          - files.heremag.free
-        secretName: heremag-free-production-tls
+    hostnames:
+      - files.heremag.free
+    parentRefs:
+      - name: envoy-external
+        namespace: network
+        sectionName: https
+    rules:
+      - backendRefs:
+          - identifier: s3-web
+            port: s3-web
 
 persistence:
   config:

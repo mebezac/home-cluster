@@ -116,27 +116,29 @@ service:
       http:
         port: 3000
 
-ingress:
+route:
   network-optimizer:
-    enabled: true
-    className: internal
-    hosts:
-      - host: network-optimizer.laboratory.casa
-        paths:
-          - path: /
-            service:
-              identifier: network-optimizer
-              port: http
+    hostnames:
+      - network-optimizer.laboratory.casa
+    parentRefs:
+      - name: envoy-internal
+        namespace: network
+        sectionName: https
+    rules:
+      - backendRefs:
+          - identifier: network-optimizer
+            port: http
   speedtest:
-    enabled: true
-    className: internal
-    hosts:
-      - host: speedtest.laboratory.casa
-        paths:
-          - path: /
-            service:
-              identifier: speedtest
-              port: http
+    hostnames:
+      - speedtest.laboratory.casa
+    parentRefs:
+      - name: envoy-internal
+        namespace: network
+        sectionName: https
+    rules:
+      - backendRefs:
+          - identifier: speedtest
+            port: http
 
 persistence:
   data:

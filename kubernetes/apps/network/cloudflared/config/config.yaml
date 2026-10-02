@@ -9,14 +9,11 @@ data:
       originServerName: "external.laboratory.casa"
 
     ingress:
+      # Everything goes to the Envoy Gateway `envoy-external`. Hosts that
+      # haven't moved to an HTTPRoute yet are passed on to ingress-nginx by the
+      # temporary nginx-fallback route (kubernetes/apps/network/envoy-gateway).
       - hostname: "laboratory.casa"
-        service: &nginx-svc https://ingress-nginx-external-controller.network.svc.cluster.local:443
-      # Hosts that have moved to the Envoy Gateway `envoy-external`. Everything
-      # else still falls through to ingress-nginx until this migration is done.
-      - hostname: "echo-gateway-external.laboratory.casa"
         service: &gateway-svc https://envoy-external.network.svc.cluster.local
-      - hostname: "audiobookshelf.laboratory.casa"
-        service: *gateway-svc
       - hostname: "*.laboratory.casa"
-        service: *nginx-svc
+        service: *gateway-svc
       - service: http_status:404

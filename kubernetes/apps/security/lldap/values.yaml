@@ -91,17 +91,18 @@ service:
       ldap:
         port: 389
         targetPort: *ldapPort
-ingress:
+route:
   app:
-    enabled: true
-    className: internal
-    hosts:
-      - host: &host "lldap.laboratory.casa"
-        paths:
-          - path: /
-            service:
-              identifier: app
-              port: http
+    hostnames:
+      - lldap.laboratory.casa
+    parentRefs:
+      - name: envoy-internal
+        namespace: network
+        sectionName: https
+    rules:
+      - backendRefs:
+          - identifier: app
+            port: http
 persistence:
   data:
     type: emptyDir

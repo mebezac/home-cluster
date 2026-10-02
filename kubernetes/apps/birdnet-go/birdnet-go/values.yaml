@@ -31,16 +31,18 @@ service:
       http:
         port: 8080
 
-ingress:
+route:
   app:
-    className: internal
-    hosts:
-      - host: bird.laboratory.casa
-        paths:
-          - path: /
-            service:
-              identifier: app
-              port: http
+    hostnames:
+      - bird.laboratory.casa
+    parentRefs:
+      - name: envoy-internal
+        namespace: network
+        sectionName: https
+    rules:
+      - backendRefs:
+          - identifier: app
+            port: http
 
 persistence:
   config:

@@ -55,16 +55,18 @@ service:
       websocket:
         port: 3000
 
-ingress:
+route:
   main:
-    className: internal
-    hosts:
-      - host: &host "zwave.laboratory.casa"
-        paths:
-          - path: /
-            service:
-              identifier: main
-              port: *httpPort
+    hostnames:
+      - zwave.laboratory.casa
+    parentRefs:
+      - name: envoy-internal
+        namespace: network
+        sectionName: https
+    rules:
+      - backendRefs:
+          - identifier: main
+            port: 8091
 
 persistence:
   config:

@@ -8,24 +8,25 @@ spec:
       recordType: CNAME
       targets:
         - 527a21c7-28f1-42fb-8067-80ebbe8e5707.cfargotunnel.com
+    # Hosts with HTTPRoutes on envoy-external (see the heremag-free copy for
+    # why these aren't created from the routes).
+    - dnsName: photos.zac.pizza
+      recordType: CNAME
+      targets:
+        - external.zac.pizza
 sops:
-  kms: []
-  gcp_kms: []
-  azure_kv: []
-  hc_vault: []
   age:
-    - recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
-      enc: |
+    - enc: |
         -----BEGIN AGE ENCRYPTED FILE-----
-        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBjSHZhZWRwdVRXQlpCdUc4
-        VjJ4UUVVc1RNOFNkNmRyaUtwVVdFWUJudEVnCklTZm1JakRVQ0cweUhFZTFObnhQ
-        UXMwUkNoZktFdmFGUFdGQlVRYVNEVU0KLS0tIHJUckRacmNCM1VxMGk4SWtlUkJX
-        U1V4OSt2b21DcGVHeU82K3BIV09JblUKvqcfvC1lriyKElrevqP3TLu/pYZ40gYE
-        shGdkpGWTDChTOzybZvPTpHQssLWqjkRbATeetlHCJgRB2Z68Xt9ow==
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBHUTBGTWk0RDFZTXJzeTF3
+        aWhvVnd3QTRKZ1JubnFxWnEwVlFvbmVNZDNFCkdNaVFTRGtrRGdNa3llMDdXRmU4
+        bTRpZEU4Q2lLSy9TUTRLVjgwc0dya1EKLS0tIFg3azBxWElyeWEvcG1HejZEeTFN
+        VFBYOGZ3ZXREZlk1RDRnd2txYmZ4SFkK7ltv0aEtp73AHSkQsqclGKSgZDHgmfOn
+        3scDBva/p5BmFrsSEvdWJNQeyr5+CyGeqOfpoJhlAFZ0/Kkf6gw+wQ==
         -----END AGE ENCRYPTED FILE-----
-  lastmodified: "2025-02-06T17:20:30Z"
-  mac: ENC[AES256_GCM,data:NiX2mcodAM4pjRAbph1qG/o7wBkWI/oKbzo31u0jQ+yaBoi5CD3yW+2J+5YroLfCJVKK01GXNOrOOPzYpxlrTPRUzKht80REyXuvt24K3YOs8kleYc5sGKE2XRwVKpDHMBgLpOcGwpQ3mX03wIeF+9w19oFoQ81u9K7X1MmV5tI=,iv:21ko6peACd75HBTOnlvEUslEO3g394nCuGwIou5Q2zE=,tag:ZxebEIbW4lrwvorP90tnmA==,type:str]
-  pgp: []
+      recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
   encrypted_regex: ^(data|stringData)$
+  lastmodified: "2026-10-02T15:37:25Z"
+  mac: ENC[AES256_GCM,data:a+Mu2r2wWu/O/lnr3dshPB9nj+aKB5LdP8kTszNycqU3lTGW+SbkZOvDtn13phj2wWrBePuqK5atQwkc08P39UBxMy1gVkiaRXW0vOn4SVLPAxQHzsByZ5A+9DcaQYvQhEZ0XDLm3+9AirlLHZ6wDqPXtnBMJIkqo3PXzGcZgIM=,iv:/HP43vZHzeLQp/vl9am5Njw3EhfUTUENACmwf/g/mbc=,tag:A+TZjztif9hGoGqp97g+vQ==,type:str]
   mac_only_encrypted: true
-  version: 3.9.3
+  version: 3.13.3

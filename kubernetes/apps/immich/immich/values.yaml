@@ -190,24 +190,18 @@ service:
       http:
         port: *mlport
 
-ingress:
+route:
   main:
-    enabled: true
-    className: external
-    annotations:
-      external-dns.kubernetes.io/target: external.laboratory.casa
-      # keep the long-lived mobile delta-sync stream (/api/sync/stream) alive;
-      # nginx's default 60s read timeout was cutting idle streams
-      nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
-      nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
-    hosts:
-      - host: photos.laboratory.casa
-        paths:
-          - path: /
-            pathType: ImplementationSpecific
-            service:
-              identifier: server
-              port: http
+    hostnames:
+      - photos.laboratory.casa
+    parentRefs:
+      - name: envoy-external
+        namespace: network
+        sectionName: https
+    rules:
+      - backendRefs:
+          - identifier: server
+            port: http
 
 persistence:
   config:

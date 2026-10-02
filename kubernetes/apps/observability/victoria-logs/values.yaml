@@ -16,14 +16,14 @@ server:
     limits:
       memory: 1Gi
 
-  ingress:
+  route:
     enabled: true
-    ingressClassName: internal
-    hosts:
-      - name: victorialogs.laboratory.casa
-        path:
-          - /
-        port: http
+    hostnames:
+      - victorialogs.laboratory.casa
+    parentRefs:
+      - name: envoy-internal
+        namespace: network
+        sectionName: https
 
   serviceMonitor:
     enabled: true

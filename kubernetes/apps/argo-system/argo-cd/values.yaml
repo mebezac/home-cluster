@@ -70,12 +70,14 @@ redis:
 server:
   replicas: 1
   allowAnyNamespace: true
-  ingress:
+  httproute:
     enabled: true
-    ingressClassName: external
-    annotations:
-      external-dns.kubernetes.io/target: external.laboratory.casa
-    hostname: argo.laboratory.casa
+    parentRefs:
+      - name: envoy-external
+        namespace: network
+        sectionName: https
+    hostnames:
+      - argo.laboratory.casa
   metrics:
     enabled: true
     serviceMonitor:

@@ -37,11 +37,14 @@ vmsingle:
         memory: 1Gi
       limits:
         memory: 4Gi
-  ingress:
+  route:
     enabled: true
-    ingressClassName: internal
-    hosts:
+    hostnames:
       - vmsingle.laboratory.casa
+    parentRefs:
+      - name: envoy-internal
+        namespace: network
+        sectionName: https
 
 # VMAgent - replaces Prometheus scraping + Alloy
 vmagent:
@@ -118,11 +121,14 @@ alertmanager:
         memory: 128Mi
       limits:
         memory: 256Mi
-  ingress:
+  route:
     enabled: true
-    ingressClassName: internal
-    hosts:
+    hostnames:
       - alertmanager.laboratory.casa
+    parentRefs:
+      - name: envoy-internal
+        namespace: network
+        sectionName: https
 
 # Exporters - enabled after kube-prometheus-stack removal
 prometheus-node-exporter:
