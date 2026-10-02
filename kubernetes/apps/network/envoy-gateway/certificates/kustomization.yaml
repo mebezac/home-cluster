@@ -1,0 +1,13 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+# These live with the Gateways because a Gateway can only reference TLS Secrets
+# in its own namespace (network). heremag.free / zac.pizza still reflect into
+# a few app namespaces for the Ingresses that haven't moved to HTTPRoutes yet.
+resources:
+  - ./production.yaml
+  - ./production-heremag-free.yaml
+  - ./production-zac-pizza.yaml
+  - ./staging.yaml
+  - ./staging-heremag-free.yaml
+  - ./staging-zac-pizza.yaml

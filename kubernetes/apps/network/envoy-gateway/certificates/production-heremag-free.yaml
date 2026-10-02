@@ -1,0 +1,19 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: heremag-free-production
+spec:
+  secretName: heremag-free-production-tls
+  issuerRef:
+    name: letsencrypt-production-heremag-free
+    kind: ClusterIssuer
+  commonName: heremag.free
+  dnsNames:
+    - heremag.free
+    - '*.heremag.free'
+  secretTemplate:
+    annotations:
+      reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
+      reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces: heremag,garage
+      reflector.v1.k8s.emberstack.com/reflection-auto-enabled: "true"
+      reflector.v1.k8s.emberstack.com/reflection-auto-namespaces: heremag,garage

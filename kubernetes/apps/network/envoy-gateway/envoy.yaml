@@ -1,0 +1,62 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/gateway.envoyproxy.io/envoyproxy_v1alpha1.json
+# Shared shape of every Envoy deployment Envoy Gateway runs for our Gateways.
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: EnvoyProxy
+metadata:
+  name: envoy
+spec:
+  logging:
+    level:
+      default: warn
+  provider:
+    type: Kubernetes
+    kubernetes:
+      envoyDeployment:
+        # 2 replicas + PDB, same reasoning as the old ingress-nginx-internal:
+        # one replica means a node drain takes every site down.
+        replicas: 2
+        pod:
+          topologySpreadConstraints:
+            - maxSkew: 1
+              topologyKey: kubernetes.io/hostname
+              whenUnsatisfiable: DoNotSchedule
+              labelSelector:
+                matchLabels:
+                  app.kubernetes.io/name: envoy
+                  app.kubernetes.io/component: proxy
+              matchLabelKeys:
+                - gateway.envoyproxy.io/owning-gateway-name
+        container:
+          resources:
+            requests:
+              cpu: 100m
+            limits:
+              memory: 1Gi
+      envoyPDB:
+        minAvailable: 1
+      envoyService:
+        # Envoy Gateway defaults to Local. Keep Cluster: Cilium 1.20.2 L2
+        # announcements break with eTP Local (cilium/cilium#48799), and the
+        # old ingress-nginx Services were Cluster too.
+        externalTrafficPolicy: Cluster
+  shutdown:
+    drainTimeout: 60s
+  telemetry:
+    metrics:
+      prometheus:
+        compression:
+          type: Zstd
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/gateway.networking.k8s.io/gatewayclass_v1.json
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: envoy
+spec:
+  controllerName: gateway.envoyproxy.io/gatewayclass-controller
+  parametersRef:
+    group: gateway.envoyproxy.io
+    kind: EnvoyProxy
+    name: envoy
+    namespace: network

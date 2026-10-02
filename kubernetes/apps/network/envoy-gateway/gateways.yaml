@@ -1,0 +1,82 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/gateway.networking.k8s.io/gateway_v1.json
+# Replaces the `internal` ingressClass (ingress-nginx-internal, 10.25.30.117).
+# LAN only: k8s-gateway answers *.laboratory.casa with this Gateway's address
+# for every HTTPRoute attached to it.
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: envoy-internal
+spec:
+  gatewayClassName: envoy
+  infrastructure:
+    annotations:
+      lbipam.cilium.io/ips: 10.25.30.121
+      tailscale.com/expose: "true"
+  listeners:
+    - name: http
+      protocol: HTTP
+      port: 80
+      allowedRoutes:
+        namespaces:
+          from: Same
+    - name: https
+      protocol: HTTPS
+      port: 443
+      allowedRoutes:
+        namespaces:
+          from: All
+      tls:
+        certificateRefs:
+          - kind: Secret
+            name: laboratory-casa-production-tls
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/gateway.networking.k8s.io/gateway_v1.json
+# Replaces the `external` ingressClass (ingress-nginx-external, 10.25.30.119).
+# Internet traffic arrives through the cloudflared tunnels, which all point at
+# the `envoy-external` Service.
+#
+# Never attach one HTTPRoute to both Gateways: k8s-gateway would then answer
+# the hostname with both IPs, and browsers coalescing HTTP/2 connections across
+# them get 404/421s.
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: envoy-external
+  annotations:
+    # external-dns' gateway-httproute source only reads the target from the
+    # Gateway, never from a route. So laboratory.casa routes are CNAMEd at the
+    # tunnel automatically. The handful of heremag.free / zac.pizza hosts can't
+    # share this target, so their CNAMEs are DNSEndpoints in the matching
+    # cloudflared-* app instead.
+    external-dns.kubernetes.io/target: external.laboratory.casa
+spec:
+  gatewayClassName: envoy
+  infrastructure:
+    annotations:
+      lbipam.cilium.io/ips: 10.25.30.122
+      tailscale.com/expose: "true"
+  listeners:
+    - name: http
+      protocol: HTTP
+      port: 80
+      allowedRoutes:
+        namespaces:
+          from: Same
+    - name: https
+      protocol: HTTPS
+      port: 443
+      allowedRoutes:
+        namespaces:
+          from: All
+      tls:
+        # One listener, several certs: Envoy picks by SNI. Separate per-domain
+        # listeners on :443 would work too, but Envoy Gateway pins listeners
+        # whose certs overlap to HTTP/1.1, so keep it to one.
+        certificateRefs:
+          - kind: Secret
+            name: laboratory-casa-production-tls
+          - kind: Secret
+            name: heremag-free-production-tls
+          - kind: Secret
+            name: zac-pizza-production-tls

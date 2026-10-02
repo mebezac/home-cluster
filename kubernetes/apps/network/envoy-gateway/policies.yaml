@@ -1,0 +1,74 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/gateway.envoyproxy.io/backendtrafficpolicy_v1alpha1.json
+# Envoy -> app settings for every route on both Gateways.
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: BackendTrafficPolicy
+metadata:
+  name: envoy
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: envoy-internal
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: envoy-external
+  # ingress-nginx had brotli on; gzip is the fallback for everything else.
+  compression:
+    - type: Brotli
+    - type: Gzip
+  tcpKeepalive:
+    idleTime: 60s
+    interval: 10s
+    probes: 3
+  timeout:
+    http:
+      # Envoy's default is a 15s cap on the whole request, which kills large
+      # uploads (copyparty, oCIS, garage, immich) and long downloads. 0s means
+      # no cap; a stalled stream is still cut by streamIdleTimeout.
+      requestTimeout: 0s
+      # Long enough for websockets/noVNC (jdownloader2) and slow uploads.
+      streamIdleTimeout: 1h
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/gateway.envoyproxy.io/clienttrafficpolicy_v1alpha1.json
+# Client -> Envoy settings for both Gateways. (A Gateway takes only one
+# ClientTrafficPolicy, so this one covers both.)
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: ClientTrafficPolicy
+metadata:
+  name: envoy
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: envoy-internal
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: envoy-external
+  clientIPDetection:
+    xForwardedFor:
+      # Trust X-Forwarded-For only from pods. That is the cloudflared tunnels,
+      # which set it to the real visitor IP. LAN clients reach the internal
+      # Gateway SNATed to a node IP, so it uses the peer address for them.
+      trustedCIDRs:
+        - 10.69.0.0/16
+  headers:
+    lateResponseHeaders:
+      # ingress-nginx defaults: hsts-max-age 31449600 + includeSubDomains,
+      # hide-headers X-Powered-By.
+      addIfAbsent:
+        - name: Strict-Transport-Security
+          value: max-age=31449600; includeSubDomains
+      remove:
+        - X-Powered-By
+  http2:
+    onInvalidMessage: TerminateStream
+  tcpKeepalive:
+    idleTime: 60s
+    interval: 10s
+    probes: 3
+  tls:
+    minVersion: "1.2"
+    alpnProtocols:
+      - h2
+      - http/1.1

@@ -8,7 +8,7 @@ controllers:
           tag: 42@sha256:a265f55c86cb3baead76fdf379dc8e9e6440ed121874e101e60b833e05bce8d4
         env:
           DISABLE_REQUEST_LOGS: true
-          HTTP_PORT: 8080
+          HTTP_PORT: &port 8080
           LOG_WITHOUT_NEWLINE: true
           LOG_IGNORE_PATH: /healthz
           PROMETHEUS_ENABLED: true
@@ -19,7 +19,7 @@ controllers:
             spec:
               httpGet:
                 path: /healthz
-                port: 8080
+                port: *port
               initialDelaySeconds: 0
               periodSeconds: 10
               timeoutSeconds: 1
@@ -58,6 +58,64 @@ serviceMonitor:
         path: /metrics
         interval: 1m
         scrapeTimeout: 10s
+# echo-server is the test surface for the Envoy Gateway migration. The nginx
+# `ingress` below stays as the control; these three HTTPRoutes cover the three
+# things to prove before moving real apps over.
+route:
+  # 1. Internal Gateway, no auth. Proves the Gateway comes up, LB IPAM hands it
+  #    10.25.30.121, the wildcard cert is served, and k8s-gateway answers
+  #    internal DNS for an HTTPRoute (not just an Ingress).
+  internal:
+    hostnames:
+      - echo-gateway.laboratory.casa
+    parentRefs:
+      - name: envoy-internal
+        namespace: network
+        sectionName: https
+    rules:
+      - backendRefs:
+          - identifier: app
+            port: *port
+
+  # 2. Internal Gateway + Authelia: the `auth: authelia` label opts it into
+  #    the SecurityPolicy in kubernetes/apps/network/envoy-gateway/authelia.yaml. This is the replacement for the
+  #    `nginx.ingress.kubernetes.io/auth-*` annotations below.
+  #
+  #    Expected results:
+  #      curl -sI https://echo-gateway-auth.laboratory.casa/ -H 'Accept: text/html'
+  #        -> 302, Location: https://login.laboratory.casa/?rd=...&rm=GET
+  #      after logging in, the echoed request JSON shows remote-user/-groups/
+  #        -email/-name, and https://echo-gateway.laboratory.casa/ (route 1)
+  #        still answers 200 with no auth at all.
+  internal-auth:
+    labels:
+      auth: authelia
+    hostnames:
+      - echo-gateway-auth.laboratory.casa
+    parentRefs:
+      - name: envoy-internal
+        namespace: network
+        sectionName: https
+    rules:
+      - backendRefs:
+          - identifier: app
+            port: *port
+
+  # 3. External Gateway. Proves external-dns publishes a record from an
+  #    HTTPRoute (targeted at the tunnel, not the private LB IP) and that
+  #    cloudflared can reach the envoy-external Service.
+  external:
+    hostnames:
+      - echo-gateway-external.laboratory.casa
+    parentRefs:
+      - name: envoy-external
+        namespace: network
+        sectionName: https
+    rules:
+      - backendRefs:
+          - identifier: app
+            port: *port
+
 ingress:
   app:
     className: external

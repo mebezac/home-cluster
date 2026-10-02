@@ -1,0 +1,17 @@
+---
+# Lets Envoy Gateway SecurityPolicies (extAuth) in these namespaces call the
+# Authelia Service. Without an entry the policy is rejected and its routes fail
+# closed (500), so add a namespace here before giving any of its routes auth.
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  name: authelia-ext-authz
+spec:
+  from:
+    - group: gateway.envoyproxy.io
+      kind: SecurityPolicy
+      namespace: network
+  to:
+    - group: ""
+      kind: Service
+      name: authelia
