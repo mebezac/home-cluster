@@ -55,6 +55,9 @@ spec:
       trustedCIDRs:
         - 10.69.0.0/16
   headers:
+    # Envoy rejects (400) any request header with '_' in its name by default;
+    # ingress-nginx silently dropped them. Keep the nginx behaviour.
+    withUnderscoresAction: DropHeader
     lateResponseHeaders:
       # ingress-nginx defaults: hsts-max-age 31449600 + includeSubDomains,
       # hide-headers X-Powered-By.
