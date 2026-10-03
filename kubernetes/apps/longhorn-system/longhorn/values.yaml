@@ -13,7 +13,10 @@ defaultSettings:
   allowCollectingLonghornUsageMetrics: false
   autoDeletePodWhenVolumeDetachedUnexpectedly: true
   createDefaultDiskLabeledNodes: true
-  nodeDownPodDeletionPolicy:
+  # Empty since the first commit = do-nothing: an RWO pod on a dead node stayed
+  # Terminating forever and its volume never moved. Force-delete the pod so the
+  # controller reschedules it and Longhorn reattaches the volume elsewhere.
+  nodeDownPodDeletionPolicy: delete-both-statefulset-and-deployment-pod
 httproute:
   enabled: true
   parentRefs:
