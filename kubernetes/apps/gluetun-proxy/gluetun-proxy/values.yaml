@@ -49,11 +49,15 @@ controllers:
           tag: 8.22.0@sha256:58adaa4e8dca9c988bae2aba4ab3434a0bb2da16bbe3f92dec39ec7785166777
         command: ["/bin/sh", "-c"]
         args:
+          # -f/set -e: a failed call must fail the Job. Until 2026-10-02 this
+          # targeted a non-existent "gluetun-proxy-main" Service and -s hid it.
           - |
+            set -e
+            api=http://gluetun-proxy.gluetun-proxy.svc.cluster.local:8000/v1/vpn/status
             echo "Rotating IP..."
-            curl -s -X PUT http://gluetun-proxy-main:8000/v1/vpn/status -H "Content-Type: application/json" -d '{"status":"stopped"}'
+            curl -fsS -X PUT "$api" -H "Content-Type: application/json" -d '{"status":"stopped"}'
             sleep 5
-            curl -s -X PUT http://gluetun-proxy-main:8000/v1/vpn/status -H "Content-Type: application/json" -d '{"status":"running"}'
+            curl -fsS -X PUT "$api" -H "Content-Type: application/json" -d '{"status":"running"}'
             echo "IP rotation complete"
         securityContext:
           runAsUser: 1000
@@ -74,6 +78,9 @@ service:
     ports:
       http:
         port: 8888
+      # gluetun control server, used by the ip-rotator CronJob
+      control:
+        port: 8000
 
 persistence:
   config:
