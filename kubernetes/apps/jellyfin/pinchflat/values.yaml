@@ -33,13 +33,13 @@ controllers:
               failureThreshold: 3
           readiness: *probes
         resources:
-          # 7d metrics (2026-09-08): peak 424Mi, p95 276Mi.
+          # 7d metrics (2026-10-02): peak 929Mi, p95 627Mi; OOMKilled at 1Gi.
           requests:
             cpu: 10m
-            memory: 384Mi
+            memory: 640Mi
           limits:
             gpu.intel.com/i915: 1
-            memory: 1Gi
+            memory: 2Gi
         securityContext:
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: false

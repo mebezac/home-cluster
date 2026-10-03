@@ -89,13 +89,13 @@ controllers:
               failureThreshold: 30
               periodSeconds: 5
         resources:
-          # 7d metrics (2026-09-08): peak 659Mi, p95 558Mi. Previously had NO
-          # memory limit at all - an unbounded ceiling on a shared node.
+          # 7d metrics (2026-10-02): peak 1376Mi, p95 1181Mi (90% of the old
+          # 1536Mi limit). A romm OOM on 2026-09-22 triggered CNPG failovers.
           requests:
             cpu: 10m
-            memory: 768Mi
+            memory: 1200Mi
           limits:
-            memory: 1536Mi
+            memory: 2816Mi
 
 service:
   app:
