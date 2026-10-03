@@ -185,7 +185,7 @@ route:
 
 serviceMonitor:
   app:
-    serviceName: forgejo
+    serviceName: forgejo-app
     endpoints:
       - port: http
         path: /metrics
