@@ -111,7 +111,8 @@ persistence:
     storageClass: longhorn
     accessMode: ReadWriteOnce
     suffix: data
-    size: 15Gi
+    # 2026-10-02: 96% full (15.1 of 15.7 GB). Longhorn expands online.
+    size: 30Gi
     globalMounts:
       - path: /var/lib/ocis
         subPath: data
