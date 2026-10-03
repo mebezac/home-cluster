@@ -74,8 +74,10 @@ server:
   allowAnyNamespace: true
   httproute:
     enabled: true
+    # LAN/tailnet only. GitHub webhooks come in on the separate public
+    # argo-webhook.laboratory.casa route (./webhook-httproute.yaml).
     parentRefs:
-      - name: envoy-external
+      - name: envoy-internal
         namespace: network
         sectionName: https
     hostnames:
