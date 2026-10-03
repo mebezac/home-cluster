@@ -14,7 +14,7 @@ spec:
     # two together.
     - repoURL: https://github.com/kubernetes-sigs/gateway-api
       # renovate: datasource=github-releases depName=kubernetes-sigs/gateway-api
-      targetRevision: v1.6.1
+      targetRevision: v1.6.2
       path: config/crd/experimental
   destination:
     name: in-cluster
