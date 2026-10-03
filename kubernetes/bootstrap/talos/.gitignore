@@ -2,3 +2,5 @@
 talosconfig
 rendered/
 output/
+# legacy talhelper output (machine configs carry CA keys + tokens)
+clusterconfig/
