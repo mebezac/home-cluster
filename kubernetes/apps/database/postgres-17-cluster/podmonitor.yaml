@@ -1,0 +1,23 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/monitoring.coreos.com/podmonitor_v1.json
+# Replaces the deprecated Cluster spec.monitoring.enablePodMonitor. A different
+# name from the operator's old "postgres-17-cluster" PodMonitor, so the
+# operator deleting its own object cannot take this one with it.
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: postgres-17-cluster-instances
+spec:
+  selector:
+    matchLabels:
+      cnpg.io/cluster: postgres-17-cluster
+      cnpg.io/podRole: instance
+  podMetricsEndpoints:
+    - port: metrics
+      metricRelabelings:
+        # see https://github.com/cloudnative-pg/cloudnative-pg/issues/2501
+        - sourceLabels: ["cluster"]
+          targetLabel: cnpg_cluster
+          action: replace
+        - regex: cluster
+          action: labeldrop

@@ -9,7 +9,10 @@ spec:
   # NOTE: Yes I know everything is called *-17-*, even though the version is now higher
   # That was an oversight when first making the cluster, but I don't care enough to fix it now
   imageName: ghcr.io/cloudnative-pg/postgresql:18.3-standard-trixie@sha256:3a83f577034d7c9b5f41c60e753d8380b94360a2a7088f5d6a60ba8e09d30285
-  logLevel: warning
+  # info (the CNPG default): the instance manager emits PostgreSQL's own log
+  # records at info, so 'warning' dropped every server log line - auth
+  # failures, missing databases, too many connections were all invisible.
+  logLevel: info
   plugins:
     - name: barman-cloud.cloudnative-pg.io
       isWALArchiver: true
@@ -73,12 +76,5 @@ spec:
       memory: 1Gi
     limits:
       memory: 4Gi
-  monitoring:
-    enablePodMonitor: true
-    # see https://github.com/cloudnative-pg/cloudnative-pg/issues/2501
-    podMonitorMetricRelabelings:
-      - sourceLabels: ["cluster"]
-        targetLabel: cnpg_cluster
-        action: replace
-      - regex: cluster
-        action: labeldrop
+  # monitoring.enablePodMonitor is deprecated ("will be removed"); the
+  # PodMonitor is now a plain manifest: ./podmonitor.yaml

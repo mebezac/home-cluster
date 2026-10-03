@@ -4,6 +4,15 @@ metadata:
   name: pg-cluster-garage-object-store
 spec:
   retentionPolicy: 30d
+  instanceSidecarConfiguration:
+    # The plugin-barman-cloud sidecar in every instance pod had no requests
+    # or limits. 7d (2026-10-03): mem p95 84Mi / peak 188Mi, cpu p95 135m.
+    resources:
+      requests:
+        cpu: 150m
+        memory: 128Mi
+      limits:
+        memory: 384Mi
   configuration:
     endpointURL: https://garage-tc.laboratory.casa
     s3Credentials:

@@ -1,0 +1,69 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/monitoring.coreos.com/prometheusrule_v1.json
+# The central PG cluster backs 13 apps; until 2026-10-02 it had neither metrics
+# (vmagent ignored the database namespace) nor alerts. Backup age uses the
+# barman-cloud plugin's metric: the operator's own cnpg_collector_*backup*
+# metrics stopped updating when backups moved to the plugin.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: postgres-17-cluster
+spec:
+  groups:
+    - name: cloudnative-pg
+      rules:
+        - alert: CNPGClusterDown
+          expr: (sum(kube_pod_status_ready{namespace="database", pod=~"postgres-17-cluster-[0-9]+", condition="true"}) or vector(0)) == 0
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: "postgres-17-cluster has no ready instance"
+            description: "Every app on the central Postgres cluster is down."
+        - alert: CNPGInstanceNotReady
+          expr: (sum(kube_pod_status_ready{namespace="database", pod=~"postgres-17-cluster-[0-9]+", condition="true"}) or vector(0)) < 3
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "postgres-17-cluster has {{ $value }} of 3 instances ready"
+        - alert: CNPGWALArchivingFailing
+          expr: cnpg_pg_stat_archiver_last_failed_time > cnpg_pg_stat_archiver_last_archived_time
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "{{ $labels.pod }}: WAL archiving to garage is failing"
+            description: "Point-in-time recovery is degrading and pg_wal is filling up."
+        - alert: CNPGWALArchivingStalled
+          # CNPG sets archive_timeout=5min, so a healthy primary archives at least that often.
+          expr: cnpg_pg_stat_archiver_seconds_since_last_archival > 1800
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "{{ $labels.pod }}: no WAL archived for {{ $value | humanizeDuration }}"
+        - alert: CNPGBackupTooOld
+          # ScheduledBackup runs @daily; 26h leaves room for one slow run.
+          expr: time() - max(barman_cloud_cloudnative_pg_io_last_available_backup_timestamp{namespace="database"}) > 93600
+          for: 30m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Newest postgres-17-cluster base backup is {{ $value | humanizeDuration }} old"
+        - alert: CNPGReplicationLag
+          expr: max by (pod) (cnpg_pg_replication_lag) > 300
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "{{ $labels.pod }} replica is {{ $value | humanizeDuration }} behind"
+        - alert: CNPGConnectionsHigh
+          expr: |
+            sum by (pod) (cnpg_backends_total)
+              / on (pod) max by (pod) (cnpg_pg_settings_setting{name="max_connections"}) > 0.8
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "{{ $labels.pod }} uses {{ $value | humanizePercentage }} of max_connections"
