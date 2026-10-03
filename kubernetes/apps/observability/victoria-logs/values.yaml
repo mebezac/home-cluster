@@ -18,6 +18,9 @@ server:
 
   route:
     enabled: true
+    # Admin-only via Authelia (SecurityPolicy in ../victoria-metrics-stack/authelia.yaml)
+    extraLabels:
+      auth: authelia
     hostnames:
       - victorialogs.laboratory.casa
     parentRefs:

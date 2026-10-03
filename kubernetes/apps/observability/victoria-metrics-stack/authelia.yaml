@@ -1,0 +1,40 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/gateway.envoyproxy.io/securitypolicy_v1alpha1.json
+# Authelia forward auth for HTTPRoutes in `observability` labelled
+# `auth: authelia` (vmsingle, alertmanager, victorialogs). Grafana is not
+# labelled: it has its own Authelia OIDC login.
+# Same policy as kubernetes/apps/network/envoy-gateway/authelia.yaml; a
+# SecurityPolicy only reaches routes in its own namespace, and this namespace
+# must be listed in kubernetes/apps/security/authelia/referencegrant.yaml.
+# Authelia's access_control (default deny, *.laboratory.casa -> group
+# apps_admin) makes these admin-only.
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: authelia
+spec:
+  targetSelectors:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      matchLabels:
+        auth: authelia
+  extAuth:
+    # Authelia down = 500, never an unauthenticated pass-through.
+    failOpen: false
+    headersToExtAuth:
+      - accept
+      - authorization
+      - cookie
+      - proxy-authorization
+      - x-forwarded-proto
+    http:
+      backendRefs:
+        - name: authelia
+          namespace: security
+          port: 80
+      path: /api/authz/ext-authz/
+      headersToBackend:
+        - Remote-User
+        - Remote-Groups
+        - Remote-Name
+        - Remote-Email

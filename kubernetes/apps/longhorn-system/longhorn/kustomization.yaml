@@ -4,4 +4,5 @@ kind: Kustomization
 generators:
   - ./secret-generator.yaml
 resources:
+  - ./authelia.yaml
   - ./single-replica-storage-class.yaml

@@ -1,0 +1,38 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/gateway.envoyproxy.io/securitypolicy_v1alpha1.json
+# Authelia forward auth for the Longhorn UI. The longhorn chart's httproute
+# block cannot set labels, so this targets the route by name.
+# Same policy as kubernetes/apps/network/envoy-gateway/authelia.yaml; a
+# SecurityPolicy only reaches routes in its own namespace, and this namespace
+# must be listed in kubernetes/apps/security/authelia/referencegrant.yaml.
+# Authelia's access_control (default deny, *.laboratory.casa -> group
+# apps_admin) makes these admin-only.
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: authelia
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: longhorn-httproute
+  extAuth:
+    # Authelia down = 500, never an unauthenticated pass-through.
+    failOpen: false
+    headersToExtAuth:
+      - accept
+      - authorization
+      - cookie
+      - proxy-authorization
+      - x-forwarded-proto
+    http:
+      backendRefs:
+        - name: authelia
+          namespace: security
+          port: 80
+      path: /api/authz/ext-authz/
+      headersToBackend:
+        - Remote-User
+        - Remote-Groups
+        - Remote-Name
+        - Remote-Email

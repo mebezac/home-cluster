@@ -39,6 +39,9 @@ vmsingle:
         memory: 4Gi
   route:
     enabled: true
+    # Admin-only via Authelia (SecurityPolicy ./authelia.yaml)
+    labels:
+      auth: authelia
     hostnames:
       - vmsingle.laboratory.casa
     parentRefs:
@@ -131,6 +134,9 @@ alertmanager:
         memory: 256Mi
   route:
     enabled: true
+    # Admin-only via Authelia (SecurityPolicy ./authelia.yaml)
+    labels:
+      auth: authelia
     hostnames:
       - alertmanager.laboratory.casa
     parentRefs:
