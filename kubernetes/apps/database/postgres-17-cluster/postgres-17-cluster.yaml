@@ -54,7 +54,7 @@ spec:
     extensions:
       - name: postgis
         image:
-          reference: ghcr.io/cloudnative-pg/postgis-extension:3.6.2-18-trixie@sha256:b6a84752393f6cf970c9e0aceb5b16c494c662ce5e2dfe825ae641ed7caeffde
+          reference: ghcr.io/cloudnative-pg/postgis-extension:3.6.2-18-trixie@sha256:93584892e25a57e47e988b0f80ad9988035d1396d4a87824307eddf2242348c8
         ld_library_path:
           - system
 
