@@ -262,10 +262,13 @@
     },
     {
       customType: "regex",
-      description: ["Process cloudnative-pg imageName field"],
+      description: [
+        "Process cloudnative-pg imageName (postgres) and image-volume extension reference (postgis) fields.",
+        "The value is tag@sha256:digest - currentValue must stop at '@' or the digest becomes part of the version and Renovate never offers an update.",
+      ],
       managerFilePatterns: ["/(^|/)kubernetes/.+\\.ya?ml(?:\\.j2)?$/"],
       matchStrings: [
-        "imageName: (?<depName>(?<registryUrl>[^/]+)/(?<packageName>[^:]+)):(?<currentValue>[^\\s]+)",
+        "(?:imageName|reference): (?<depName>(?<registryUrl>[^/]+)/(?<packageName>[^:]+)):(?<currentValue>[^\\s@]+)(?:@(?<currentDigest>sha256:[a-f0-9]+))?",
       ],
       datasourceTemplate: "docker",
       versioningTemplate: "docker",
