@@ -1,7 +1,17 @@
 ---
 controllers:
   cloudflared:
+    # 2 connectors on different nodes: one node drain must not drop the tunnel.
+    replicas: 2
     strategy: RollingUpdate
+    pod:
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/instance: cloudflared
     annotations:
       reloader.stakater.com/auto: "true"
     containers:
