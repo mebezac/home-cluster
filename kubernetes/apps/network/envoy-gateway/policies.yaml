@@ -51,7 +51,8 @@ spec:
     xForwardedFor:
       # Trust X-Forwarded-For only from pods. That is the cloudflared tunnels,
       # which set it to the real visitor IP. LAN clients reach the internal
-      # Gateway SNATed to a node IP, so it uses the peer address for them.
+      # Gateway with their real IP (Cilium DSR, no SNAT), so it uses the peer
+      # address for them.
       trustedCIDRs:
         - 10.69.0.0/16
   headers:

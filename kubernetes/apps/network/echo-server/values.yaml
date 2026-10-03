@@ -62,7 +62,7 @@ serviceMonitor:
 # combination of Gateway and auth.
 route:
   # 1. Internal Gateway, no auth. Proves the Gateway comes up, LB IPAM hands it
-  #    10.25.30.121, the wildcard cert is served, and k8s-gateway answers
+  #    10.25.30.117, the wildcard cert is served, and k8s-gateway answers
   #    internal DNS for an HTTPRoute (not just an Ingress).
   internal:
     hostnames:
