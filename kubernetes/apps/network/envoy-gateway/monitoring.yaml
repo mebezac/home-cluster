@@ -35,3 +35,69 @@ spec:
   selector:
     matchLabels:
       control-plane: envoy-gateway
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/monitoring.coreos.com/prometheusrule_v1.json
+# Envoy is the single front door for every HTTPRoute; alert when it (or what
+# it routes to) breaks. The VM operator converts this to a VMRule; vmalert
+# loads rules from every namespace (ruleNamespaceSelector: {}).
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: envoy-gateway
+spec:
+  groups:
+    - name: envoy-gateway
+      rules:
+        - alert: EnvoyProxyDown
+          expr: kube_deployment_status_replicas_available{namespace="network", deployment=~"envoy-(internal|external)"} == 0
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: "{{ $labels.deployment }} has no available Envoy proxy"
+            description: "Every site on the {{ $labels.deployment }} Gateway is down."
+        - alert: EnvoyProxyDegraded
+          expr: |
+            kube_deployment_status_replicas_available{namespace="network", deployment=~"envoy-(internal|external)"}
+              < kube_deployment_spec_replicas{namespace="network", deployment=~"envoy-(internal|external)"}
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "{{ $labels.deployment }} runs {{ $value }} proxy replica(s), fewer than desired"
+        - alert: EnvoyGatewayControllerDown
+          expr: kube_deployment_status_replicas_available{namespace="network", deployment="envoy-gateway"} == 0
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Envoy Gateway controller is down"
+            description: "Proxies keep serving their last config, but route and policy changes do not apply."
+        - alert: EnvoyProxyMetricsAbsent
+          expr: absent(up{job="network/envoy-proxy"} == 1)
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "No Envoy proxy is being scraped"
+            description: "Envoy alerts below cannot fire without these metrics."
+        - alert: EnvoyRouteNoHealthyBackend
+          expr: max by (envoy_cluster_name) (envoy_cluster_membership_healthy{envoy_cluster_name=~"httproute/.+"}) == 0
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "{{ $labels.envoy_cluster_name }} has no healthy backend"
+            description: "Envoy answers 503 for this route."
+        - alert: EnvoyRouteHigh5xx
+          expr: |
+            (
+              sum by (envoy_cluster_name) (rate(envoy_cluster_upstream_rq_xx{envoy_response_code_class="5"}[5m]))
+                / sum by (envoy_cluster_name) (rate(envoy_cluster_upstream_rq_xx[5m]))
+            ) > 0.05
+            and sum by (envoy_cluster_name) (rate(envoy_cluster_upstream_rq_xx[5m])) > 0.05
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "{{ $labels.envoy_cluster_name }} returns {{ $value | humanizePercentage }} 5xx"
