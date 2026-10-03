@@ -63,15 +63,21 @@ vmagent:
           operator: NotIn
           values:
             - kube-prometheus-stack
+    # With a scrape selector set, a nil namespace selector means "only the
+    # VMAgent's own namespace". {} = every namespace (envoy, cilium, CNPG, argo...).
+    serviceScrapeNamespaceSelector: {}
+    podScrapeNamespaceSelector: {}
     scrapeInterval: 30s
     externalLabels:
       cluster: home-cluster
     resources:
+      # 7d metrics (2026-10-02): peak 437Mi while scraping observability only;
+      # cluster-wide scraping adds ~28 scrape objects (8 cilium-agents).
       requests:
         cpu: 50m
-        memory: 128Mi
-      limits:
         memory: 512Mi
+      limits:
+        memory: 1Gi
 
 # VMAlert - replaces Prometheus alerting rules engine
 vmalert:
@@ -84,6 +90,8 @@ vmalert:
           operator: NotIn
           values:
             - kube-prometheus-stack
+    # nil = only rules in observability; {} = rules from every namespace.
+    ruleNamespaceSelector: {}
     evaluationInterval: 30s
     datasource:
       url: http://vmsingle-victoria-metrics-stack.observability.svc:8428
