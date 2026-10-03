@@ -1,6 +1,9 @@
 controllers:
   authelia:
-    replicas: 1
+    # Stateless (storage in central PG, sessions in valkey). 2 replicas + PDB
+    # because the Envoy SecurityPolicy is failOpen: false - with one pod, every
+    # restart blocks all auth: authelia routes and every OIDC login.
+    replicas: 2
     strategy: RollingUpdate
     annotations:
       reloader.stakater.com/auto: "true"
