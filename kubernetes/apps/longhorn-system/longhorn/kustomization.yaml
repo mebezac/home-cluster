@@ -5,4 +5,5 @@ generators:
   - ./secret-generator.yaml
 resources:
   - ./authelia.yaml
+  - ./recurring-jobs.yaml
   - ./single-replica-storage-class.yaml
