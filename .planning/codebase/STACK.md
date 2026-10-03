@@ -51,7 +51,6 @@
 **Utility & Automation:**
 - Reloader (Stakater) - Pod restarter for config changes
 - Spegel - Registry mirror/cache
-- Reflector - Secret/ConfigMap sync across namespaces (no longer used for TLS)
 - Node Feature Discovery - Hardware capability detection
 - Metrics Server - Resource metrics provider
 
@@ -94,13 +93,12 @@
 - `https://kubernetes-sigs.github.io/node-feature-discovery/charts` - NFD
 - `https://openebs.github.io/openebs` - OpenEBS
 - `https://ori-edge.github.io/k8s_gateway` - K8s Gateway
-- `https://stakater.github.io/stakater-charts` - Stakater (reloader, reflector)
+- `https://stakater.github.io/stakater-charts` - Stakater (reloader)
 - `https://victoriametrics.github.io/helm-charts` - Victoria Metrics
 - `https://pkgs.tailscale.com/helmcharts` - Tailscale Operator
 - `https://piraeus.io/helm-charts/` - LINSTOR
 - `https://intel.github.io/helm-charts` - Intel GPU plugins
 - `https://coredns.github.io/helm` - CoreDNS
-- `https://raw.githubusercontent.com/kubernetes-csi/csi-driver-smb/master/charts` - SMB CSI
 
 **Custom:**
 - `https://zac.pizza/helm-charts` - Custom organizational charts

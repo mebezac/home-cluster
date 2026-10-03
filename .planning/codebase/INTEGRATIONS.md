@@ -55,7 +55,6 @@
   - `longhorn-single-replica` - Database storage
   - `openebs-hostpath` - Local path provisioning (OpenEBS)
 - CSI Drivers:
-  - SMB CSI - Network file shares (Windows/Samba)
   - Democratic-CSI - Advanced storage management
 
 ## Caching & Sessions
