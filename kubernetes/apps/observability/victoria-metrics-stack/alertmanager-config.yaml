@@ -15,9 +15,19 @@ stringData:
       repeat_interval: 12h
       receiver: pushover
       routes:
+        # Dead-man's switch: Watchdog always fires, so HetrixTools gets a
+        # heartbeat every ~2m and alerts if the vmalert -> alertmanager
+        # pipeline stops. Hetrix expects one ping per 5m.
+        - receiver: heartbeat
+          matchers:
+            - alertname = "Watchdog"
+          group_wait: 0s
+          group_interval: 1m
+          repeat_interval: 2m
+          continue: false
         - receiver: 'null'
           matchers:
-            - alertname =~ "InfoInhibitor|Watchdog"
+            - alertname = "InfoInhibitor"
           continue: false
         - receiver: pushover
           matchers:
@@ -30,6 +40,10 @@ stringData:
         equal: ['alertname', 'namespace']
     receivers:
       - name: 'null'
+      - name: heartbeat
+        webhook_configs:
+          - url_file: /etc/vm/secrets/victoria-metrics-alertmanager-secret/HETRIX_HEARTBEAT_URL
+            send_resolved: false
       - name: pushover
         pushover_configs:
           - html: true
