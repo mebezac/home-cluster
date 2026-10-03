@@ -8,7 +8,7 @@ spec:
   instances: 3
   # NOTE: Yes I know everything is called *-17-*, even though the version is now higher
   # That was an oversight when first making the cluster, but I don't care enough to fix it now
-  imageName: ghcr.io/cloudnative-pg/postgresql:18.3-standard-trixie@sha256:3a83f577034d7c9b5f41c60e753d8380b94360a2a7088f5d6a60ba8e09d30285
+  imageName: ghcr.io/cloudnative-pg/postgresql:18.3-standard-trixie@sha256:9f9f53c9e07e5b2924945e6eaeb9168f7e856786d221839866ac85ccd703b3ba
   # info (the CNPG default): the instance manager emits PostgreSQL's own log
   # records at info, so 'warning' dropped every server log line - auth
   # failures, missing databases, too many connections were all invisible.
