@@ -5,6 +5,15 @@ kind: CiliumLoadBalancerIPPool
 metadata:
   name: pool
 spec:
-  allowFirstLastIPs: "Yes"
+  # LoadBalancer IPs live in 10.25.30.50-127 only, so an unpinned Service can
+  # never take the router, a node or the NAS. Holes in the range:
+  #   .78  zigbee hub (LAN device, network/external-services/zigbee-hub.yaml)
+  #   .116 control-plane VIP (bootstrap/talos/topf.yaml)
+  #   .127 Talos certSAN (bootstrap/talos/all/10-cluster.yaml)
   blocks:
-    - cidr: "10.25.30.1/24"
+    - start: "10.25.30.50"
+      stop: "10.25.30.77"
+    - start: "10.25.30.79"
+      stop: "10.25.30.115"
+    - start: "10.25.30.117"
+      stop: "10.25.30.126"
