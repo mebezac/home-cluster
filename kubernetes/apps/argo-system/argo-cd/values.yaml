@@ -60,6 +60,10 @@ controller:
       enabled: true
       additionalLabels:
         release: victoria-metrics-stack
+# Login is OIDC straight to Authelia (configs.cm oidc.config), so Dex has
+# nothing to do.
+dex:
+  enabled: false
 redis:
   exporter:
     enabled: true
