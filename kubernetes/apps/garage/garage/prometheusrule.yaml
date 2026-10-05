@@ -1,0 +1,37 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/monitoring.coreos.com/prometheusrule_v1.json
+# Garage runs 3 nodes (zones k8s, truenas, hh-chi-10tb), replication_factor 3.
+# Only the in-cluster node is scraped, but every node reports the whole
+# cluster's view, so one scrape covers all three.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: garage
+spec:
+  groups:
+    - name: garage
+      rules:
+        - alert: GarageNodeDisconnected
+          expr: cluster_layout_node_connected{job="garage"} == 0
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Garage node in zone {{ $labels.role_zone }} is disconnected"
+            description: "Node {{ $labels.id }} is unreachable. The cluster still has quorum, but one more failure stops S3."
+        - alert: GarageClusterUnavailable
+          expr: cluster_available{job="garage"} == 0
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: Garage has lost quorum
+            description: "S3 reads and writes fail: CNPG WAL archive and backups, oCIS, Forgejo."
+        - alert: GarageMetricsMissing
+          expr: absent(cluster_available{job="garage"})
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: No Garage metrics
+            description: The in-cluster Garage node is not scraped, so the other Garage alerts cannot fire.

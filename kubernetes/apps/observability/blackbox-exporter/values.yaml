@@ -38,13 +38,6 @@ config:
         follow_redirects: true
         tls_config:
           insecure_skip_verify: true
-    # Any S3 answer (anonymous requests get 403) proves Garage is serving.
-    s3_alive:
-      prober: http
-      timeout: 10s
-      http:
-        preferred_ip_protocol: ip4
-        valid_status_codes: [200, 400, 403, 404]
 serviceMonitor:
   enabled: true
   defaults:
@@ -52,16 +45,13 @@ serviceMonitor:
     scrapeTimeout: 15s
   targets:
     # TrueNAS (10.25.30.36) can hang with ping still up: track the host and
-    # the services on it separately.
+    # its UI separately. Garage on TrueNAS is covered by GarageNodeDisconnected.
     - name: truenas-icmp
       url: 10.25.30.36
       module: icmp
     - name: truenas-ui
       url: https://10.25.30.36/ui/
       module: http_2xx_insecure
-    - name: truenas-garage-s3
-      url: http://10.25.30.36:30188/
-      module: s3_alive
 prometheusRule:
   enabled: true
   rules:
@@ -77,14 +67,14 @@ prometheusRule:
     # the disks hangs. Suppressed while NASDown fires.
     - alert: NASServiceUnresponsive
       expr: |
-        probe_success{target=~"truenas-.+", target!="truenas-icmp"} == 0
+        probe_success{target="truenas-ui"} == 0
           unless on() (probe_success{target="truenas-icmp"} == 0)
       for: 5m
       labels:
         severity: critical
       annotations:
-        summary: "{{ $labels.target }} on TrueNAS does not respond"
-        description: TrueNAS answers ping, but {{ $labels.instance }} hangs or errors. The NAS is likely stalled.
+        summary: TrueNAS answers ping, but its UI does not respond
+        description: The NAS is likely stalled. Expect the Longhorn backup share (CIFS) and Garage on TrueNAS to hang too.
     - alert: NASProbeMissing
       expr: absent(probe_success{target="truenas-icmp"})
       for: 10m
