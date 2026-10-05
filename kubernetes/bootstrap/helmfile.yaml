@@ -35,7 +35,7 @@ releases:
     chart: coredns/coredns
     # changelog: see kubernetes/argo/apps/kube-system/coredns.yaml - same chart, and this version
     # must be bumped in lockstep with the targetRevision there.
-    version: 1.48.1
+    version: 1.48.2
     values:
       - ../apps/kube-system/coredns/values.yaml
     needs:
