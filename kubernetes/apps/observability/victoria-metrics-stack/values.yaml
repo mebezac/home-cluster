@@ -179,6 +179,26 @@ defaultRules:
     kubernetes-system-controller-manager:
       enabled: false
 
+# apiserver /metrics grows with every new verb/resource pair it serves (a
+# namespace deletion adds one per API type) and outgrew the 16MiB default.
+# Raise the cap, and drop the big histograms no rule or dashboard reads.
+# apiserver_request_sli_duration_seconds_bucket stays: the SLO rules use it.
+kubeApiServer:
+  vmScrape:
+    spec:
+      endpoints:
+        - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+          port: https
+          scheme: https
+          tlsConfig:
+            caFile: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+            serverName: kubernetes
+          max_scrape_size: 64MiB
+          metricRelabelConfigs:
+            - action: drop
+              sourceLabels: [__name__]
+              regex: (apiserver_request_duration_seconds|apiserver_request_body_size_bytes|etcd_request_duration_seconds)_bucket
+
 kubeControllerManager:
   enabled: false
 
