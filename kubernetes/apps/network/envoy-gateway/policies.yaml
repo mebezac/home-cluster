@@ -13,12 +13,12 @@ spec:
     - group: gateway.networking.k8s.io
       kind: Gateway
       name: envoy-external
-  # ingress-nginx had brotli on; gzip is the fallback for everything else.
-  compressor:
-    - type: Brotli
-      brotli: {}
-    - type: Gzip
-      gzip: {}
+  # No compressor. On a route with compression, Envoy Gateway strips the
+  # client's Accept-Encoding before the backend sees it. That broke clients that
+  # sign the header (Garage S3 via aws-sdk-go-v2: "signed header
+  # `accept-encoding` is not present") and stopped apps from compressing their
+  # own responses. LAN is fast enough without it, and Cloudflare compresses for
+  # visitors on envoy-external.
   tcpKeepalive:
     idleTime: 60s
     interval: 10s
