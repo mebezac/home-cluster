@@ -41,6 +41,9 @@ controller:
         ephemeral-storage: 5Gi
     verbosityLevel: 0
   driver:
+    image:
+      registry: docker.io/democraticcsi/democratic-csi
+      tag: v1.9.5@sha256:fc3b7d7ed3a616714139525075312758e23a5d425ffb539ad12c9bd20fb6001f
     logLevel: warn
     resources:
       requests:
@@ -85,6 +88,9 @@ driver:
     driver: freenas-api-nfs
 node:
   driver:
+    image:
+      registry: docker.io/democraticcsi/democratic-csi
+      tag: v1.9.5@sha256:fc3b7d7ed3a616714139525075312758e23a5d425ffb539ad12c9bd20fb6001f
     logLevel: warn
     resources:
       requests:
