@@ -1,0 +1,95 @@
+fullnameOverride: blackbox-exporter
+image:
+  # changelog: GH releases prometheus/blackbox_exporter
+  tag: v0.28.0@sha256:e753ff9f3fc458d02cca5eddab5a77e1c175eee484a8925ac7d524f04366c2fc
+podSecurityContext:
+  # Unprivileged ICMP: lets a non-root process open ping sockets, so the icmp
+  # module works without NET_RAW. A namespaced "safe" sysctl.
+  sysctls:
+    - name: net.ipv4.ping_group_range
+      value: "0 2147483647"
+securityContext:
+  runAsUser: 3000
+  runAsGroup: 3000
+  runAsNonRoot: true
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop: ["ALL"]
+resources:
+  requests:
+    cpu: 10m
+    memory: 32Mi
+  limits:
+    memory: 64Mi
+config:
+  modules:
+    icmp:
+      prober: icmp
+      timeout: 5s
+      icmp:
+        preferred_ip_protocol: ip4
+    # TrueNAS serves a self-signed cert on its IP.
+    http_2xx_insecure:
+      prober: http
+      timeout: 10s
+      http:
+        preferred_ip_protocol: ip4
+        follow_redirects: true
+        tls_config:
+          insecure_skip_verify: true
+    # Any S3 answer (anonymous requests get 403) proves Garage is serving.
+    s3_alive:
+      prober: http
+      timeout: 10s
+      http:
+        preferred_ip_protocol: ip4
+        valid_status_codes: [200, 400, 403, 404]
+serviceMonitor:
+  enabled: true
+  defaults:
+    interval: 30s
+    scrapeTimeout: 15s
+  targets:
+    # TrueNAS (10.25.30.36) can hang with ping still up: track the host and
+    # the services on it separately.
+    - name: truenas-icmp
+      url: 10.25.30.36
+      module: icmp
+    - name: truenas-ui
+      url: https://10.25.30.36/ui/
+      module: http_2xx_insecure
+    - name: truenas-garage-s3
+      url: http://10.25.30.36:30188/
+      module: s3_alive
+prometheusRule:
+  enabled: true
+  rules:
+    - alert: NASDown
+      expr: probe_success{target="truenas-icmp"} == 0
+      for: 2m
+      labels:
+        severity: critical
+      annotations:
+        summary: TrueNAS (10.25.30.36) does not answer ping
+        description: Garage S3 (CNPG WAL archive and backups, oCIS) and the Longhorn backup share are offline.
+    # The 2026-10-04 failure mode: ping answers, but everything that touches
+    # the disks hangs. Suppressed while NASDown fires.
+    - alert: NASServiceUnresponsive
+      expr: |
+        probe_success{target=~"truenas-.+", target!="truenas-icmp"} == 0
+          unless on() (probe_success{target="truenas-icmp"} == 0)
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: "{{ $labels.target }} on TrueNAS does not respond"
+        description: TrueNAS answers ping, but {{ $labels.instance }} hangs or errors. The NAS is likely stalled.
+    - alert: NASProbeMissing
+      expr: absent(probe_success{target="truenas-icmp"})
+      for: 10m
+      labels:
+        severity: warning
+      annotations:
+        summary: No blackbox probe data for TrueNAS
+        description: blackbox-exporter is not scraped, so NASDown cannot fire.

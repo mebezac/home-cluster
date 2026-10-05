@@ -1,0 +1,32 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: blackbox-exporter
+  namespace: argo-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: kubernetes
+  sources:
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/apps/observability/blackbox-exporter
+      targetRevision: main
+      ref: blackbox-exporter-repo
+    - repoURL: ghcr.io/prometheus-community/charts
+      chart: prometheus-blackbox-exporter
+      # changelog: prometheus-community/helm-charts GH releases (prometheus-blackbox-exporter-*; not in PR body)
+      targetRevision: 11.19.1
+      helm:
+        releaseName: blackbox-exporter
+        valueFiles:
+          - $blackbox-exporter-repo/kubernetes/apps/observability/blackbox-exporter/values.yaml
+  destination:
+    name: in-cluster
+    namespace: observability
+  syncPolicy:
+    automated:
+      allowEmpty: true
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
