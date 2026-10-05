@@ -1,3 +1,7 @@
+[settings]
+# mise decrypts the _.file below itself; it does not read SOPS_AGE_KEY_FILE from [env].
+sops.age_key_file = "{{config_root}}/age.key"
+
 [env]
 _.python.venv = { path = "{{config_root}}/.venv", create = true }
 KUBECONFIG = "{{config_root}}/kubeconfig"
@@ -6,6 +10,10 @@ TALOSCONFIG = "{{config_root}}/kubernetes/bootstrap/talos/talosconfig"
 TOPFCONFIG = "{{config_root}}/kubernetes/bootstrap/talos/topf.yaml"
 TASK_X_ENV_PRECEDENCE = 1
 TASK_X_MAP_VARIABLES = 0
+# ARGOCD_API_TOKEN for the argocd-mcp server in .mcp.json (token of the ArgoCD
+# account "mcp"). Claude Code passes its own environment to MCP servers, so
+# restart it after changing this file. A missing file is skipped.
+_.file = { path = "{{config_root}}/mcp-secrets.sops.json", redact = true }
 
 [tools]
 # Template tools
@@ -38,3 +46,31 @@ uv = "0.12.21"
 node = "24.21.0"
 # libzip 3.2.2 was hand-published by the yarn lead (arcanis) without provenance; 3.2.0/3.2.1 had it via yarnbot
 "npm:renovate" = { version = "44.125.1", trust_policy_excludes = ["@yarnpkg/libzip@3.2.2"] }
+
+[tasks.argocd-mcp-token]
+description = "Generate a token for the ArgoCD account mcp into mcp-secrets.sops.json (restart Claude Code after)"
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+# argocd --core reads Argo CD from the kube context's namespace. An overlay
+# kubeconfig sets argo-system without touching ./kubeconfig.
+overlay=$(mktemp)
+trap 'rm -f "$overlay" mcp-secrets.sops.json.new' EXIT
+ctx=$(kubectl config current-context)
+cat > "$overlay" <<YAML
+apiVersion: v1
+kind: Config
+current-context: $ctx
+contexts:
+  - name: $ctx
+    context:
+      cluster: $(kubectl config view --minify -o jsonpath='{.contexts[0].context.cluster}')
+      user: $(kubectl config view --minify -o jsonpath='{.contexts[0].context.user}')
+      namespace: argo-system
+YAML
+KUBECONFIG="$overlay:$KUBECONFIG" argocd account generate-token --core --account mcp --id "claude-code-$(date +%Y%m%d-%H%M%S)" \
+  | jq -eR 'select(length > 0) | {ARGOCD_API_TOKEN: .}' \
+  | sops encrypt --input-type json --output-type json --filename-override mcp-secrets.sops.json /dev/stdin > mcp-secrets.sops.json.new
+mv mcp-secrets.sops.json.new mcp-secrets.sops.json
+echo "Wrote mcp-secrets.sops.json. Restart Claude Code so argocd-mcp gets the token."
+'''

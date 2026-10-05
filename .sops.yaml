@@ -12,6 +12,10 @@ creation_rules:
     key_groups:
       - age:
           - "age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p"
+  - path_regex: (^|/)mcp-secrets\.sops\.json$
+    key_groups:
+      - age:
+          - "age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p"
 stores:
   yaml:
     indent: 2
