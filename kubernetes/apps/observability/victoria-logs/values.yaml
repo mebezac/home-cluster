@@ -1,6 +1,13 @@
 server:
   enabled: true
-  
+  image:
+    repository: victoriametrics/victoria-logs
+    # changelog: GH releases VictoriaMetrics/VictoriaLogs. Keep in lockstep with the chart's
+    # appVersion (kubernetes/argo/apps/observability/victoria-logs.yaml) and the vlagent tag in
+    # ../victoria-logs-collector/values.yaml - chart bumps no longer move this image. The VM chart
+    # strips "@sha256..." from the version label, so the digest is safe here.
+    tag: v1.53.0@sha256:251121fa882af99b95ba0c230a4a2f412ea602d2698c64a96c58dc9842bb755d
+
   # Data retention period (14 days same as Loki)
   retentionPeriod: 14d
   

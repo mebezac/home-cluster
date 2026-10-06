@@ -85,6 +85,48 @@
       enabled: false,
     },
     {
+      description: [
+        "Intel Device Plugins Group",
+        "operator >=0.37.1 rejects a plugin image older than itself, so a lone operator bump fails the sync.",
+      ],
+      groupName: "Intel Device Plugins",
+      group: {
+        commitMessageTopic: "{{{groupName}}} group",
+      },
+      matchPackageNames: ["intel-device-plugins-operator", "intel-device-plugins-gpu"],
+    },
+    {
+      description: ["Network Optimizer Group", "network-optimizer and speedtest ship in lockstep from one compose file."],
+      groupName: "Network Optimizer",
+      group: {
+        commitMessageTopic: "{{{groupName}}} group",
+      },
+      matchPackageNames: ["/ozark-connect/"],
+    },
+    {
+      description: [
+        "VictoriaLogs Group",
+        "The server and vlagent images are pinned in values.yaml, so chart bumps no longer move them;",
+        "keep both charts and both images on one VictoriaLogs version.",
+      ],
+      groupName: "VictoriaLogs",
+      group: {
+        commitMessageTopic: "{{{groupName}}} group",
+      },
+      matchPackageNames: ["victoria-logs-single", "victoria-logs-collector", "/victoriametrics/victoria-logs/", "/victoriametrics/vlagent/"],
+    },
+    {
+      description: [
+        "External DNS Group",
+        "The image is pinned in all three external-dns values.yaml, so chart bumps no longer move it.",
+      ],
+      groupName: "External DNS",
+      group: {
+        commitMessageTopic: "{{{groupName}}} group",
+      },
+      matchPackageNames: ["external-dns", "/external-dns/external-dns/"],
+    },
+    {
       matchDatasources: ["docker"],
       matchUpdateTypes: ["major"],
       commitMessagePrefix: "feat(container)!: ",

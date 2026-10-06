@@ -1,5 +1,12 @@
 fullnameOverride: victoria-logs-collector
 
+image:
+  repository: victoriametrics/vlagent
+  # changelog: GH releases VictoriaMetrics/VictoriaLogs (vlagent ships with VictoriaLogs). Keep equal
+  # to the server tag in ../victoria-logs/values.yaml and the chart appVersion - chart bumps no
+  # longer move this image.
+  tag: v1.53.0@sha256:a82f93ffecc153fb068606903e512368b070272739d823abe99fad0eff6e1849
+
 remoteWrite:
   - url: http://victoria-logs-victoria-logs-single-server.observability.svc.cluster.local:9428
     headers:
