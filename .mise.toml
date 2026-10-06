@@ -19,7 +19,7 @@ _.file = { path = "{{config_root}}/mcp-secrets.sops.json", redact = true }
 # Template tools
 python = "3.14.8"
 # changelog: astral-sh/uv CHANGELOG.md (Renovate truncates the body on multi-patch jumps - read CHANGELOG.md directly)
-uv = "0.12.21"
+uv = "0.12.23"
 # Operations tools
 "aqua:argoproj/argo-cd" = "3.5.3"
 # changelog: repo RELEASE_NOTES per-release + CHANGES.md for breaking flags - the GH release body is checksums only.
