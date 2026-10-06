@@ -35,7 +35,7 @@ uv = "0.12.23"
 "aqua:helmfile/helmfile" = "1.8.1"
 "aqua:jqlang/jq" = "1.7.1"
 "aqua:kubernetes-sigs/kustomize" = "5.6.0"
-"aqua:kubernetes/kubectl" = "1.32.2"
+"aqua:kubernetes/kubectl" = "1.36.5"
 "aqua:mikefarah/yq" = "4.54.1"
 "aqua:siderolabs/talos" = "1.14.2"
 # topf renders + applies Talos machine configs from kubernetes/bootstrap/talos/topf.yaml (replaced archived talhelper)
