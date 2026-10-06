@@ -8,7 +8,8 @@ spec:
   instances: 3
   # NOTE: Yes I know everything is called *-17-*, even though the version is now higher
   # That was an oversight when first making the cluster, but I don't care enough to fix it now
-  imageName: ghcr.io/cloudnative-pg/postgresql:18.3-standard-trixie@sha256:3a83f577034d7c9b5f41c60e753d8380b94360a2a7088f5d6a60ba8e09d30285
+  # changelog: postgresql.org/docs/release/<version>/ (PR body has none; check every minor in the range - 18.5 was never released)
+  imageName: ghcr.io/cloudnative-pg/postgresql:18.6-standard-trixie@sha256:79be0d10e78b7ac4520cf6c5db199a8bb7f6de53b3229f47e90cab5865528a0d
   # info (the CNPG default): the instance manager emits PostgreSQL's own log
   # records at info, so 'warning' dropped every server log line - auth
   # failures, missing databases, too many connections were all invisible.
@@ -51,12 +52,6 @@ spec:
     # touching it - cache hit ratio is 99.98% overall (worst database:
     # authelia at 99.01%) against 311MB of total data. There is nothing to
     # gain, and changing it would cost a rolling restart of the shared cluster.
-    extensions:
-      - name: postgis
-        image:
-          reference: ghcr.io/cloudnative-pg/postgis-extension:3.6.2-18-trixie@sha256:b6a84752393f6cf970c9e0aceb5b16c494c662ce5e2dfe825ae641ed7caeffde
-        ld_library_path:
-          - system
 
   storage:
     size: 16Gi
