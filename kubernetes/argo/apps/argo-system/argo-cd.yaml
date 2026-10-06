@@ -6,6 +6,11 @@ metadata:
   namespace: argo-system
   annotations:
     argocd.argoproj.io/sync-wave: "0"
+    # The bootstrap helmfile installed these objects as field manager `helm`
+    # (client-side Update). Under ServerSideApply, fields that `helm` still
+    # co-owns survive their removal from values.yaml. The CSA migration moves
+    # `helm` ownership to argocd-controller on the next sync.
+    argocd.argoproj.io/client-side-apply-migration-manager: helm
   labels:
     argocd.argoproj.io/instance: argo
 spec:
@@ -41,4 +46,3 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
-      - ClientSideApplyMigration=false
