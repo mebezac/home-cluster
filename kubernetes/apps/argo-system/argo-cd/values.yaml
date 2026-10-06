@@ -115,8 +115,6 @@ repoServer:
   env:
     - name: HELM_PLUGINS
       value: /custom-tools/helm-plugins/
-    - name: HELM_SECRETS_CURL_PATH
-      value: /custom-tools/curl
     - name: HELM_SECRETS_SOPS_PATH
       value: /custom-tools/sops
     - name: HELM_SECRETS_VALS_PATH
