@@ -16,7 +16,7 @@ spec:
     - repoURL: https://intel.github.io/helm-charts
       chart: intel-device-plugins-operator
       # changelog: gh release view vX.Y.Z -R intel/intel-device-plugins-for-kubernetes (chart release/PR body are stubs); helm pull + diff crds/ for removed CRDs
-      targetRevision: 0.37.0
+      targetRevision: 0.37.1
       helm:
         releaseName: intel-device-plugins-operator
     - repoURL: https://intel.github.io/helm-charts
