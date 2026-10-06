@@ -75,6 +75,16 @@
       matchPackageNames: ["/envoyproxy/gateway-helm/", "/envoyproxy/gateway-crds-helm/", "kubernetes-sigs/gateway-api"],
     },
     {
+      description: [
+        "The argocd manager also reads gateway-api-crds.yaml (git repoURL + targetRevision) under the",
+        "depName https://github.com/kubernetes-sigs/gateway-api, which opens a duplicate PR that escapes",
+        "the Envoy Gateway group. The `# renovate:` regex comment in that file is the one source of truth.",
+      ],
+      matchManagers: ["argocd"],
+      matchFileNames: ["kubernetes/argo/apps/kube-system/gateway-api-crds.yaml"],
+      enabled: false,
+    },
+    {
       matchDatasources: ["docker"],
       matchUpdateTypes: ["major"],
       commitMessagePrefix: "feat(container)!: ",
