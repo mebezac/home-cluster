@@ -12,6 +12,10 @@ defaultBackupStore:
 defaultSettings:
   allowCollectingLonghornUsageMetrics: false
   autoDeletePodWhenVolumeDetachedUnexpectedly: true
+  # Live-upgrade volume engines to the new default engine image after a chart bump,
+  # one volume per node at a time. 0 (the default) leaves every volume on the old
+  # engine until someone upgrades it by hand in the UI.
+  concurrentAutomaticEngineUpgradePerNodeLimit: 1
   createDefaultDiskLabeledNodes: true
   # Empty since the first commit = do-nothing: an RWO pod on a dead node stayed
   # Terminating forever and its volume never moved. Force-delete the pod so the
