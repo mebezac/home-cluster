@@ -45,7 +45,7 @@ uv = "0.12.23"
 # renovate provides `renovate-config-validator` for checking .github/renovate.json5; needs node ^24.11
 node = "24.21.0"
 # libzip 3.2.2 was hand-published by the yarn lead (arcanis) without provenance; 3.2.0/3.2.1 had it via yarnbot
-"npm:renovate" = { version = "44.144.1", trust_policy_excludes = ["@yarnpkg/libzip@3.2.2"] }
+"npm:renovate" = { version = "44.145.1", trust_policy_excludes = ["@yarnpkg/libzip@3.2.2"] }
 
 [tasks.argocd-mcp-token]
 description = "Generate a token for the ArgoCD account mcp into mcp-secrets.sops.json (restart Claude Code after)"
