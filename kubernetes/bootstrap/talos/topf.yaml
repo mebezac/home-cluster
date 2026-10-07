@@ -9,7 +9,7 @@ clusterEndpoint: https://10.25.30.116:6443
 # so this tracks github-releases on siderolabs/talos, not an installer image.
 # renovate: datasource=github-releases depName=siderolabs/talos
 talosVersion: v1.14.2
-# changelog: kubernetes/kubernetes CHANGELOG-1.36.md (siderolabs/kubelet images ship no release notes and the PR body is always empty)
+# changelog: kubernetes/kubernetes CHANGELOG/CHANGELOG-<minor>.md (siderolabs/kubelet images ship no release notes and the PR body is always empty)
 # renovate: datasource=docker depName=ghcr.io/siderolabs/kubelet
 kubernetesVersion: v1.36.5
 
