@@ -21,7 +21,7 @@ python = "3.14.8"
 # changelog: astral-sh/uv CHANGELOG.md (Renovate truncates the body on multi-patch jumps - read CHANGELOG.md directly)
 uv = "0.12.23"
 # Operations tools
-"aqua:argoproj/argo-cd" = "3.5.3"
+"aqua:argoproj/argo-cd" = "3.5.4"
 # changelog: repo RELEASE_NOTES per-release + CHANGES.md for breaking flags - the GH release body is checksums only.
 # Keep in step with the 3 cloudflared container pins under kubernetes/apps/network/cloudflared*/values.yaml
 "aqua:cloudflare/cloudflared" = "2026.10.0"
