@@ -22,8 +22,8 @@ controllers:
       app:
         image:
           repository: ghcr.io/n8n-io/n8n
-          # changelog: GH releases n8n-io/n8n tag "n8n@<version>" (PR body is a stub; upstream skips some patch numbers entirely - check git refs, not just the release list; check Latest vs Pre-release - n8n tags its "next" channel as GH pre-releases)
-          tag: 2.41.7@sha256:bcef56dd44014e09774219536a3f8cb07f1b553fcba94044bd9fc0f21f8676a3
+          # changelog: GH releases n8n-io/n8n tag "n8n@<version>" (PR body is a stub; upstream skips some patch numbers entirely - check git refs, not just the release list; check Latest vs Pre-release - n8n tags its "next" channel as GH pre-releases and Renovate offers them anyway; docker tag :stable = current Latest)
+          tag: 2.42.4@sha256:9c0862a08090c79122069e23131d27529c250b92e90c9d51a6ec406fe1527c4e
         env:
           DB_TYPE: postgresdb
           DB_POSTGRESDB_SCHEMA: public
