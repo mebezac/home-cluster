@@ -15,7 +15,7 @@ spec:
     - repoURL: ghcr.io/prometheus-community/charts
       chart: prometheus-blackbox-exporter
       # changelog: prometheus-community/helm-charts GH releases (prometheus-blackbox-exporter-*; not in PR body)
-      targetRevision: 11.19.1
+      targetRevision: 11.20.0
       helm:
         releaseName: blackbox-exporter
         valueFiles:
