@@ -138,8 +138,11 @@ controllers:
           IMMICH_CONFIG_FILE: /config/immich-config.json
           IMMICH_SERVER_URL: http://immich-server.immich.svc.cluster.local:2283
           IMMICH_MACHINE_LEARNING_URL: http://immich-machine-learning.immich.svc.cluster.local:3003
-          MACHINE_LEARNING_PRELOAD__CLIP__TEXTUAL: ViT-B-16-SigLIP__webli
-          MACHINE_LEARNING_PRELOAD__CLIP__VISUAL: ViT-B-16-SigLIP__webli
+          # Opt-in optimized models (v3.3.0): faster, less memory, outputs equal to v1 so no re-run needed
+          MACHINE_LEARNING_MODEL_REVISION: v2
+          # Must match machineLearning.clip.modelName in immich-config.json
+          MACHINE_LEARNING_PRELOAD__CLIP__TEXTUAL: ViT-B-32__openai
+          MACHINE_LEARNING_PRELOAD__CLIP__VISUAL: ViT-B-32__openai
           MACHINE_LEARNING_PRELOAD__FACIAL_RECOGNITION__RECOGNITION: buffalo_l
           MACHINE_LEARNING_PRELOAD__FACIAL_RECOGNITION__DETECTION: buffalo_l
           MPLCONFIGDIR: "/cache/matplotlib"
@@ -253,7 +256,9 @@ persistence:
     type: persistentVolumeClaim
     storageClass: longhorn
     accessMode: ReadWriteOnce
-    size: 4Gi
+    # v3.3.0 writes a prepared copy of each model graph here on first load
+    # (4Gi filled up: ENOSPC crashloop), and revision v2 adds new downloads
+    size: 16Gi
     suffix: model-cache
     advancedMounts:
       machine-learning:
