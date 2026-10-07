@@ -82,6 +82,7 @@ route:
 
 persistence:
   data:
+    forceRename: zigbee2mqtt
     enabled: true
     type: persistentVolumeClaim
     storageClass: longhorn

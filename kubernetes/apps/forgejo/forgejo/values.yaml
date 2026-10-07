@@ -192,6 +192,7 @@ serviceMonitor:
 
 persistence:
   data:
+    forceRename: forgejo
     type: persistentVolumeClaim
     storageClass: longhorn
     accessMode: ReadWriteOnce

@@ -211,6 +211,7 @@ persistence:
       - path: /config/immich-config.json
         subPath: immich-config.json
   library:
+    suffix: library
     enabled: true
     type: persistentVolumeClaim
     storageClass: freenas-api-nfs

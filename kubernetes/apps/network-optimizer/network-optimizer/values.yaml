@@ -142,6 +142,7 @@ route:
 
 persistence:
   data:
+    suffix: data
     type: persistentVolumeClaim
     storageClass: longhorn
     accessMode: ReadWriteOnce
@@ -152,6 +153,7 @@ persistence:
           - path: /app/data
             subPath: data
   ssh-keys:
+    suffix: ssh-keys
     type: persistentVolumeClaim
     storageClass: longhorn
     accessMode: ReadWriteOnce
@@ -162,6 +164,7 @@ persistence:
           - path: /app/ssh-keys
             subPath: ssh-keys
   logs:
+    suffix: logs
     type: persistentVolumeClaim
     storageClass: longhorn
     accessMode: ReadWriteOnce

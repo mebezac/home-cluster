@@ -53,6 +53,7 @@ route:
 
 persistence:
   config:
+    forceRename: pgadmin
     type: persistentVolumeClaim
     storageClass: longhorn
     accessMode: ReadWriteOnce

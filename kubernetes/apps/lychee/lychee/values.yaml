@@ -102,6 +102,7 @@ persistence:
       - path: /app/storage/logs
         subPath: logs
   uploads:
+    suffix: uploads
     enabled: true
     type: persistentVolumeClaim
     storageClass: freenas-api-nfs

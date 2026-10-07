@@ -117,6 +117,7 @@ route:
 
 persistence:
   data:
+    forceRename: n8n
     type: persistentVolumeClaim
     storageClass: longhorn
     accessMode: ReadWriteOnce

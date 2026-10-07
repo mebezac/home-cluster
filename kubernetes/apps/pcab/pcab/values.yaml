@@ -102,6 +102,7 @@ route:
 
 persistence:
   storage:
+    forceRename: pcab
     type: persistentVolumeClaim
     storageClass: longhorn
     accessMode: ReadWriteOnce

@@ -53,6 +53,7 @@ route:
             port: http
 persistence:
   config:
+    forceRename: changedetection
     type: persistentVolumeClaim
     storageClass: longhorn
     accessMode: ReadWriteOnce
