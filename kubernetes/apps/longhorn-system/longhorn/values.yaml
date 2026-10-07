@@ -1,6 +1,9 @@
 ---
 csi:
-  storageMinimalAvailablePercentage: 15
+  # Chart default (true) grants the CSI controller sidecars cluster-wide get on
+  # Secrets. None of our StorageClasses or PVs carry provisioner/controller Secret
+  # parameters and no volume is encrypted, so the grant is unused.
+  allowControllerSecretAccess: false
 # NOTE: manager/instanceManager were pinned to v1.11.0-hotfix-1 on 2026-02-15 for
 # longhorn/longhorn#12573 (runaway instance-manager memory on v1.11.0, stopgap images
 # built in #12576). That root bug is milestoned v1.12.0 and closed 2026-02-02, so the
@@ -17,10 +20,28 @@ defaultSettings:
   # engine until someone upgrades it by hand in the UI.
   concurrentAutomaticEngineUpgradePerNodeLimit: 1
   createDefaultDiskLabeledNodes: true
+  # Was set under csi: (not a chart key, so it rendered nothing); the live 15 came
+  # from a UI edit. Here git owns it.
+  storageMinimalAvailablePercentage: 15
   # Empty since the first commit = do-nothing: an RWO pod on a dead node stayed
   # Terminating forever and its volume never moved. Force-delete the pod so the
   # controller reschedules it and Longhorn reattaches the volume elsewhere.
   nodeDownPodDeletionPolicy: delete-both-statefulset-and-deployment-pod
+metrics:
+  serviceMonitor:
+    # The VM operator converts this to a VMServiceScrape for vmagent.
+    enabled: true
+networkPolicies:
+  # restrictInternalTraffic (chart default true) enforces a longhorn-manager
+  # NetworkPolicy that drops vmagent's scrape of TCP/9500 unless it is listed here.
+  # 9500 also serves the manager REST API, so keep this to the vmagent pods only.
+  metricsScrapeSources:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: observability
+      podSelector:
+        matchLabels:
+          app.kubernetes.io/name: vmagent
 httproute:
   enabled: true
   parentRefs:
