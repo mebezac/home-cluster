@@ -169,6 +169,7 @@ pin down the repo-side choices:
    - media / recordings / backups → tens of Gi+, and consider NFS instead of
      Longhorn for genuinely large bulk data.
    When unsure, pick the smaller number.
+   **Every chart-managed PVC gets `suffix: <key>`** (see Gotchas).
 6. **Secrets.** 0a's secret env → ksops (Phase 2); non-secret env → `env:`.
 7. **Database.** 0a's Postgres dep → **central PG init pattern** (Phase 3), not
    a bundled DB. redis → central valkey. Any other datastore → confirm with user.
@@ -230,6 +231,7 @@ route:                                     # omit whole block if no HTTP route
 persistence:                              # omit if stateless
   data:
     type: persistentVolumeClaim
+    suffix: data                           # REQUIRED: pins the name to <app>-data
     storageClass: longhorn
     accessMode: ReadWriteOnce
     size: 1Gi                              # right-size DOWN; easy to expand, not shrink (128Mi is common)
@@ -426,6 +428,11 @@ For redis, don't deploy one — point the app at
 - **Right-size PVCs DOWN.** Longhorn by default; start small (128Mi is common),
   grow later. Expanding is easy, shrinking isn't — never over-provision "to be
   safe". Size by content: config = tiny, media/recordings = big (or NFS).
+- **Pin every chart-managed PVC name with `suffix: <key>`.** Without it,
+  app-template names a lone PVC `<release>` and switches to `<release>-<key>`
+  once there are two or more. A later PVC add or remove then renames it, and
+  Argo prunes the old one, which loses its data (see `AGENTS.md` → "Always pin
+  chart-managed PVC names").
 - **Unconsumed `ref:` panics the app-controller** — only include it when a
   second source references `$<app>-repo`.
 - **Encrypt secrets before committing.** You have SOPS access

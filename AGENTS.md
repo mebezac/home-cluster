@@ -460,10 +460,30 @@ persistence:
     storageClass: longhorn
     accessMode: ReadWriteOnce
     size: 1Gi
-    suffix: data # Optional: creates PVC named <app>-data
+    suffix: data # Required: pins the PVC name to <app>-data (see below)
     globalMounts:
       - path: /data
 ```
+
+### Always pin chart-managed PVC names
+
+Every chart-managed PVC (`type: persistentVolumeClaim` without `existingClaim`)
+must set `suffix: <key>`. Without it, app-template names the PVC `<release>` while it is
+the only chart-managed PVC and `<release>-<key>` once there are two or more. So
+adding, removing, or converting another PVC to `existingClaim` renames this one.
+Argo then creates an empty PVC and prunes the old one, and with reclaim
+`Delete` the data is gone. This wiped jdownloader2's config once.
+
+- New PVC: `suffix: <key>`.
+- Existing PVC that is already named bare `<release>`: use
+  `forceRename: <release>`. Adding `suffix` would itself rename it.
+- Before any change that drops or renames a PVC, render with `helm template` and
+  diff the PVC names. Multi-PVC renders come out in random order, so compare
+  sorted docs.
+- Moving data to a new PVC (e.g. changing the storage class, which is
+  immutable): create the new PVC, copy, and annotate the old live PVC
+  `argocd.argoproj.io/sync-options: Prune=false` before switching, so the old
+  one survives until the copy is verified. Then delete it by hand.
 
 ### Multiple Mount Points from Single PVC
 
