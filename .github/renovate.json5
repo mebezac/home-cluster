@@ -44,9 +44,12 @@
       matchUpdateTypes: ["minor", "patch"],
     },
     {
-      description: ["Argo Operator Group"],
+      description: [
+        "Argo Operator Group",
+        "github-releases pulls in the argocd CLI (aqua:argoproj/argo-cd in .mise.toml) so it tracks the server.",
+      ],
       groupName: "Argo Operator",
-      matchDatasources: ["docker"],
+      matchDatasources: ["docker", "github-releases"],
       group: {
         commitMessageTopic: "{{{groupName}}} group",
       },
@@ -60,6 +63,28 @@
         commitMessageTopic: "{{{groupName}}} group",
       },
       matchPackageNames: ["/siderolabs/talosctl/", "/siderolabs/installer/", "/siderolabs/talos/"],
+    },
+    {
+      description: [
+        "Kubernetes Group",
+        "kubelet (topf.yaml kubernetesVersion) and the kubectl client move together, as in commit 1ac21971.",
+        "Merging does NOT upgrade the cluster - run `task talos:upgrade-k8s` (dry-run first) before any topf apply.",
+      ],
+      groupName: "Kubernetes",
+      group: {
+        commitMessageTopic: "{{{groupName}}} group",
+      },
+      matchPackageNames: ["/siderolabs/kubelet/", "aqua:kubernetes/kubectl"],
+    },
+    {
+      description: [
+        "n8n publishes its beta channel as plain semver docker tags (GH pre-releases), so Renovate",
+        "offers them as normal updates - twice we had to hand-pin back to stable (ac5dde00, c3c9e218).",
+        "Approve on the Dependency Dashboard only once the target is GH 'Latest' (= the :stable docker tag).",
+      ],
+      matchDatasources: ["docker"],
+      matchPackageNames: ["ghcr.io/n8n-io/n8n"],
+      dependencyDashboardApproval: true,
     },
     {
       description: [
