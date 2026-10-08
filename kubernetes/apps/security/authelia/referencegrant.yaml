@@ -24,6 +24,10 @@ spec:
     - group: gateway.envoyproxy.io
       kind: SecurityPolicy
       namespace: observability
+    # home-cluster-private
+    - group: gateway.envoyproxy.io
+      kind: SecurityPolicy
+      namespace: ps5
   to:
     - group: ""
       kind: Service
