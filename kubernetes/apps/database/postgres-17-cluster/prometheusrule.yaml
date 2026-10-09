@@ -51,6 +51,14 @@ spec:
             severity: warning
           annotations:
             summary: "Newest postgres-17-cluster base backup is {{ $value | humanizeDuration }} old"
+        - alert: CNPGBackupFailed
+          expr: max(barman_cloud_cloudnative_pg_io_last_failed_backup_timestamp{namespace="database"}) > max(barman_cloud_cloudnative_pg_io_last_available_backup_timestamp{namespace="database"})
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: 'The latest postgres-17-cluster backup failed'
+            description: 'The most recent barman backup attempt failed after the last good one. Check the Backup resources in the database namespace.'
         - alert: CNPGReplicationLag
           expr: max by (pod) (cnpg_pg_replication_lag) > 300
           for: 15m

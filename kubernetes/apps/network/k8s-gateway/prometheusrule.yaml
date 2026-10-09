@@ -1,0 +1,19 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/monitoring.coreos.com/prometheusrule_v1.json
+# k8s-gateway is the only resolver for laboratory.casa / heremag.free.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: k8s-gateway
+spec:
+  groups:
+    - name: k8s-gateway
+      rules:
+        - alert: K8sGatewayDown
+          expr: kube_deployment_status_replicas_available{namespace="network", deployment="k8s-gateway"} == 0
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: 'k8s-gateway has no running pods'
+            description: 'laboratory.casa and heremag.free names do not resolve on the LAN.'

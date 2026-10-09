@@ -1,0 +1,36 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/monitoring.coreos.com/prometheusrule_v1.json
+# Covers all three tunnels (laboratory.casa, zac.pizza, heremag.free): every
+# public hostname is behind one of them.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: cloudflared
+spec:
+  groups:
+    - name: cloudflared
+      rules:
+        - alert: CloudflaredTunnelDown
+          expr: sum by (job) (cloudflared_tunnel_ha_connections) < 1
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: 'Cloudflare tunnel {{ $labels.job }} has no connections'
+            description: 'Public sites behind this tunnel are unreachable from the internet.'
+        - alert: CloudflaredPodsDown
+          expr: kube_deployment_status_replicas_available{namespace="network", deployment=~"cloudflared.*"} == 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: 'Cloudflare tunnel {{ $labels.deployment }} has no running pods'
+            description: 'Public sites behind this tunnel are unreachable from the internet.'
+        - alert: CloudflaredTunnelDegraded
+          expr: sum by (job) (cloudflared_tunnel_ha_connections) < 4
+          for: 30m
+          labels:
+            severity: warning
+          annotations:
+            summary: 'Cloudflare tunnel {{ $labels.job }} has {{ $value }} edge connections'
+            description: 'Fewer edge connections than usual for 30m; one pod or edge location may be failing.'

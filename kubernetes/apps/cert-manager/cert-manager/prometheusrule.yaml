@@ -1,0 +1,35 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/monitoring.coreos.com/prometheusrule_v1.json
+# Let's Encrypt certs renew at 30 days left, so under 14 days means renewal is failing.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: cert-manager
+spec:
+  groups:
+    - name: cert-manager
+      rules:
+        - alert: CertificateExpiringSoon
+          expr: (certmanager_certificate_expiration_timestamp_seconds - time()) < 14 * 86400
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: 'Certificate {{ $labels.exported_namespace }}/{{ $labels.name }} expires in {{ $value | humanizeDuration }}'
+            description: 'cert-manager has not renewed it. Check the Certificate and its Order/Challenge resources.'
+        - alert: CertificateExpiringCritical
+          expr: (certmanager_certificate_expiration_timestamp_seconds - time()) < 3 * 86400
+          for: 10m
+          labels:
+            severity: critical
+          annotations:
+            summary: 'Certificate {{ $labels.exported_namespace }}/{{ $labels.name }} expires in {{ $value | humanizeDuration }}'
+            description: 'Sites using it break when it expires.'
+        - alert: CertificateNotReady
+          expr: certmanager_certificate_ready_status{condition="False"} == 1
+          for: 30m
+          labels:
+            severity: warning
+          annotations:
+            summary: 'Certificate {{ $labels.exported_namespace }}/{{ $labels.name }} is not ready'
+            description: 'kubectl describe certificate -n {{ $labels.exported_namespace }} {{ $labels.name }}'

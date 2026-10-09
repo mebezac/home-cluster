@@ -1,0 +1,35 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/monitoring.coreos.com/prometheusrule_v1.json
+# Two AdGuard Home Pis (pi-02, pi-03) serve the LAN; one down is a warning, both down is critical.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: adguard
+spec:
+  groups:
+    - name: adguard
+      rules:
+        - alert: AdGuardDown
+          expr: adguard_running == 0
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: 'AdGuard {{ $labels.server }} is not running'
+            description: 'The other Pi still answers DNS. Check the AdGuardHome service on the Pi.'
+        - alert: AdGuardAllDown
+          expr: (count(adguard_running == 1) or vector(0)) == 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: 'No AdGuard DNS server is running'
+            description: 'LAN DNS is down. Both pi-02 and pi-03 are unreachable or stopped.'
+        - alert: AdGuardProtectionDisabled
+          expr: adguard_protection_enabled == 0
+          for: 2h
+          labels:
+            severity: warning
+          annotations:
+            summary: 'AdGuard {{ $labels.server }} has protection disabled'
+            description: 'Filtering has been off for 2h. Turn it back on in the AdGuard UI if this was not intended.'

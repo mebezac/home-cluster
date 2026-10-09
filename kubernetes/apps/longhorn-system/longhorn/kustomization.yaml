@@ -4,6 +4,7 @@ kind: Kustomization
 generators:
   - ./secret-generator.yaml
 resources:
+  - ./prometheusrule.yaml
   - ./authelia.yaml
   - ./recurring-jobs.yaml
   - ./single-replica-storage-class.yaml

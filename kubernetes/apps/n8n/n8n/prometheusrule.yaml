@@ -1,0 +1,19 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/monitoring.coreos.com/prometheusrule_v1.json
+# n8n creates n8n_workflow_failed_total on the first failure (message event bus metrics).
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: n8n
+spec:
+  groups:
+    - name: n8n
+      rules:
+        - alert: N8nWorkflowFailed
+          expr: sum by (workflow_name) (increase(n8n_workflow_failed_total[15m])) > 0
+          for: 0m
+          labels:
+            severity: warning
+          annotations:
+            summary: 'n8n workflow "{{ $labels.workflow_name }}" failed'
+            description: '{{ $value | humanize }} failed execution(s) in the last 15m. See Executions in n8n.'

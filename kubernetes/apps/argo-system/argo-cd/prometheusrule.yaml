@@ -1,0 +1,27 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/monitoring.coreos.com/prometheusrule_v1.json
+# Every app has automated sync + selfHeal, so a long OutOfSync means a stuck sync.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: argo-cd
+spec:
+  groups:
+    - name: argo-cd
+      rules:
+        - alert: ArgoAppUnhealthy
+          expr: argocd_app_info{health_status!~"Healthy|Progressing"} == 1
+          for: 30m
+          labels:
+            severity: warning
+          annotations:
+            summary: 'Argo app {{ $labels.name }} is {{ $labels.health_status }}'
+            description: 'Health has been {{ $labels.health_status }} for 30m.'
+        - alert: ArgoAppOutOfSync
+          expr: argocd_app_info{sync_status="OutOfSync"} == 1
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: 'Argo app {{ $labels.name }} has been OutOfSync for 1h'
+            description: 'Automated sync is not converging. Check the last sync operation for errors.'

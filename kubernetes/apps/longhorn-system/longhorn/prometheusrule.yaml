@@ -1,0 +1,60 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/monitoring.coreos.com/prometheusrule_v1.json
+# Volume health uses the one-hot longhorn_volume_robustness{state=...}. Backup
+# age assumes the daily-backup recurring job (06:52 UTC, group default).
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: longhorn
+spec:
+  groups:
+    - name: longhorn
+      rules:
+        - alert: LonghornVolumeFaulted
+          expr: longhorn_volume_robustness{state="faulted"} == 1
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: 'Longhorn volume {{ $labels.pvc_namespace }}/{{ $labels.pvc }} is faulted'
+            description: 'No healthy replica is left; the workload using it cannot read or write.'
+        - alert: LonghornVolumeDegraded
+          expr: longhorn_volume_robustness{state="degraded"} == 1
+          for: 30m
+          labels:
+            severity: warning
+          annotations:
+            summary: 'Longhorn volume {{ $labels.pvc_namespace }}/{{ $labels.pvc }} is degraded'
+            description: 'A replica has been missing for 30m and has not rebuilt. Check the node and disk in the Longhorn UI.'
+        - alert: LonghornBackupStale
+          expr: (time() - longhorn_volume_last_backup_at > 129600) and longhorn_volume_last_backup_at > 0
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: 'Longhorn backup for {{ $labels.pvc_namespace }}/{{ $labels.pvc }} is older than 36h'
+            description: 'The daily-backup recurring job did not complete for this volume. Last backup {{ $value | humanizeDuration }} ago.'
+        - alert: LonghornBackupTargetUnavailable
+          expr: longhorn_backup_target_status{condition="unavailable"} == 1
+          for: 30m
+          labels:
+            severity: warning
+          annotations:
+            summary: 'Longhorn backup target {{ $labels.backup_target }} is unavailable'
+            description: 'Backups cannot be written. Check the backup target credentials and the object store.'
+        - alert: LonghornNodeNotReady
+          expr: longhorn_node_status{condition="ready"} == 0
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: 'Longhorn node {{ $labels.node }} is not ready'
+            description: 'Replicas on this node are unavailable; volumes will degrade.'
+        - alert: LonghornDiskFillingUp
+          expr: longhorn_disk_usage_bytes / longhorn_disk_capacity_bytes > 0.85
+          for: 30m
+          labels:
+            severity: warning
+          annotations:
+            summary: 'Longhorn disk {{ $labels.disk }} on {{ $labels.node }} is {{ $value | humanizePercentage }} full'
+            description: 'Free space below 15%. New replicas will not schedule here and existing ones may fail to grow.'

@@ -1,0 +1,26 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/monitoring.coreos.com/prometheusrule_v1.json
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: victoria-logs-collector
+spec:
+  groups:
+    - name: victoria-logs-collector
+      rules:
+        - alert: VLAgentDroppingLogs
+          expr: sum by (pod) (increase(vlagent_remotewrite_packets_dropped_total[15m])) > 0
+          for: 0m
+          labels:
+            severity: warning
+          annotations:
+            summary: 'vlagent {{ $labels.pod }} dropped log blocks'
+            description: 'Logs were lost on the way to VictoriaLogs. Check that VictoriaLogs is up and has disk space.'
+        - alert: VLAgentRemoteWriteBacklog
+          expr: sum by (pod) (vlagent_remotewrite_pending_data_bytes) > 64 * 1024 * 1024
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: 'vlagent {{ $labels.pod }} has {{ $value | humanize1024 }}B of logs waiting'
+            description: 'VictoriaLogs is not accepting writes fast enough or at all.'
