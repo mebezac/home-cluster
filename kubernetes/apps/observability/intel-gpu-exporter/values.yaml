@@ -1,0 +1,51 @@
+---
+# intel_gpu_top (i915 PMU) per GPU node: engine busy %, frequency, power, IMC
+# bandwidth. Needs privileged + hostPID for perf events and /dev/dri.
+controllers:
+  intel-gpu-exporter:
+    type: daemonset
+    pod:
+      hostPID: true
+      nodeSelector:
+        intel.feature.node.kubernetes.io/gpu: "true"
+    containers:
+      app:
+        image:
+          repository: ghcr.io/clambin/intel-gpu-exporter
+          # changelog: GH releases clambin/intel-gpu-exporter
+          tag: 0.7.4@sha256:d78761fef018834c759db154fe9dcf3dd9db5974703fa50ca21f6abc35221be1
+        args:
+          - --interval=15s
+        securityContext:
+          privileged: true
+        resources:
+          requests:
+            cpu: 10m
+            memory: 32Mi
+          limits:
+            memory: 128Mi
+
+service:
+  app:
+    controller: intel-gpu-exporter
+    ports:
+      metrics:
+        port: 9100
+
+serviceMonitor:
+  app:
+    serviceName: intel-gpu-exporter
+    endpoints:
+      - port: metrics
+        path: /metrics
+        relabelings:
+          - sourceLabels: [__meta_kubernetes_pod_node_name]
+            targetLabel: node
+
+persistence:
+  dev-dri:
+    type: hostPath
+    hostPath: /dev/dri
+    hostPathType: Directory
+    globalMounts:
+      - path: /dev/dri
