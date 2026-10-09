@@ -104,8 +104,10 @@ controllers:
           IMMICH_SERVER_URL: http://immich-server.immich.svc.cluster.local:2283
           IMMICH_MACHINE_LEARNING_URL: http://immich-machine-learning.immich.svc.cluster.local:3003
           IMMICH_WORKERS_EXCLUDE: api
-          # Prometheus /metrics on :8082 (microservices worker)
+          # Prometheus /metrics; microservices defaults to :8082, moved to :8081
+          # so the existing Service port (named metrics) did not have to change.
           IMMICH_TELEMETRY_INCLUDE: all
+          IMMICH_MICROSERVICES_METRICS_PORT: "8081"
         resources:
           requests:
             cpu: 100m
@@ -190,7 +192,7 @@ service:
     controller: microservices
     ports:
       metrics:
-        port: 8082
+        port: 8081
   machine-learning:
     controller: machine-learning
     ports:
