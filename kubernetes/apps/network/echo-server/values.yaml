@@ -49,15 +49,6 @@ service:
     ports:
       http:
         port: 8080
-serviceMonitor:
-  app:
-    serviceName: echo-server
-    endpoints:
-      - port: http
-        scheme: http
-        path: /metrics
-        interval: 1m
-        scrapeTimeout: 10s
 # echo-server is the test surface for the Envoy Gateway: one route per
 # combination of Gateway and auth.
 route:

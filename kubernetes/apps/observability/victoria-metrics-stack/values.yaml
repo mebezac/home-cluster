@@ -7,6 +7,31 @@ defaultDashboards:
   dashboards:
     node-exporter-full:
       enabled: false
+    # No Windows/AIX/macOS nodes, one cluster, no Prometheus server.
+    k8s-resources-multicluster:
+      enabled: false
+    k8s-resources-windows-cluster:
+      enabled: false
+    k8s-resources-windows-namespace:
+      enabled: false
+    k8s-resources-windows-pod:
+      enabled: false
+    k8s-windows-cluster-rsrc-use:
+      enabled: false
+    k8s-windows-node-rsrc-use:
+      enabled: false
+    nodes-aix:
+      enabled: false
+    nodes-darwin:
+      enabled: false
+    prometheus:
+      enabled: false
+    prometheus-remote-write:
+      enabled: false
+    # Built on the apiserver SLO recording rules (disabled below);
+    # kubernetes-system-api-server reads raw metrics and stays.
+    apiserver:
+      enabled: false
 
 # Enable Prometheus CRD conversion for smooth migration
 victoria-metrics-operator:
@@ -178,11 +203,21 @@ defaultRules:
       enabled: false
     kubernetes-system-controller-manager:
       enabled: false
+    # apiserver SLO/burn-rate rules need apiserver_request_sli_duration_seconds_bucket
+    # (~49k series, the single biggest metric). Not worth it for one user.
+    kube-apiserver-availability.rules:
+      enabled: false
+    kube-apiserver-burnrate.rules:
+      enabled: false
+    kube-apiserver-histogram.rules:
+      enabled: false
+    kube-apiserver-slos:
+      enabled: false
 
 # apiserver /metrics grows with every new verb/resource pair it serves (a
 # namespace deletion adds one per API type) and outgrew the 16MiB default.
-# Raise the cap, and drop the big histograms no rule or dashboard reads.
-# apiserver_request_sli_duration_seconds_bucket stays: the SLO rules use it.
+# Raise the cap, and drop the big histograms no rule or dashboard reads
+# (the SLO rule groups that read the sli buckets are disabled above).
 kubeApiServer:
   vmScrape:
     spec:
@@ -197,7 +232,10 @@ kubeApiServer:
           metricRelabelConfigs:
             - action: drop
               sourceLabels: [__name__]
-              regex: (apiserver_request_duration_seconds|apiserver_request_body_size_bytes|etcd_request_duration_seconds)_bucket
+              regex: (apiserver_request_duration_seconds|apiserver_request_body_size_bytes|apiserver_request_sli_duration_seconds|apiserver_watch_list_duration_seconds|apiserver_response_sizes|apiserver_watch_cache_read_wait_seconds|apiserver_watch_events_sizes|etcd_request_duration_seconds|rest_client_request_duration_seconds)_bucket
+            - action: drop
+              sourceLabels: [__name__]
+              regex: kubernetes_feature_enabled
 
 kubeControllerManager:
   enabled: false
@@ -225,9 +263,20 @@ kubelet:
   vmScrape:
     spec:
       interval: 30s
+      # Setting this list replaces the chart defaults, so the first two entries
+      # restore them (uid/id/name labels, rest_client histograms).
       metricRelabelConfigs:
         - action: labeldrop
+          regex: (uid|id|name)
+        - action: drop
+          sourceLabels: [__name__]
+          regex: (rest_client_request_duration_seconds_bucket|rest_client_request_duration_seconds_sum|rest_client_request_duration_seconds_count|kubernetes_feature_enabled)
+        - action: labeldrop
           regex: (feature_node_kubernetes_io_.+|extensions_talos_dev_.+|gpu_.+|intel_feature_node_kubernetes_io_.+|beta_kubernetes_io_.+)
+        # Pod sandbox (pause) series duplicate the pod cgroup, except network:
+        # cAdvisor only reports pod network counters on the sandbox.
+        - action: drop
+          if: '{image=~".*/pause:.*", __name__!~"container_network_.+"}'
       relabelConfigs:
         - sourceLabels: [__meta_kubernetes_node_name]
           targetLabel: node
