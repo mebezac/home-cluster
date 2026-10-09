@@ -3,7 +3,7 @@ kind: Secret
 metadata:
   name: homeassistant-metrics
 stringData:
-  token: ENC[AES256_GCM,data:2jThvHbyvVEUSQsNwTHuuCm5VwXkJwKZZTX/19n2RvL9/TFJC7qrN/j+Sdk1L/FNT+RDIQ1ykaet7XHTib9UylNUKIreLdPh50/2X3CIUjv64pGddP5cj1uG4JV8WXPU0GsOLiOAw2b6q7MgqUU8rgmLMaBW8bc0mHe8ujJ/2belS2M4W5CtneeivObpYILjmKlQf86z4Nqhb51Nzrn2GE/7n9WFdRUeChoJS8B6U6BxIp//rmcc,iv:ShBwZuHdTYM7Fn4B8OZLvgnkqQxATd9EOcKaaIGzlAM=,tag:U9jKtnK8MBDRRKq32qu8OQ==,type:str]
+  token: ENC[AES256_GCM,data:eGzCcuQnP4DAfAURNQJS8lS/lJU0FhjvSkMG1nCCVTzDysp60Yo0ZvaoAm7DAL3W6gKeMvOjobzai4QQhR/qhHnSI1iZhobVLCxPKoRpI1pzhv9FJucpNJL9Aa0oXiz6TEK8rVNDYbu5AIeIDefD3MQwjIbhQuE0Eq6JF6DL0UutmEDYKrqr79/bAhcRb/+CX6BJ4sRX6TNrTFhDZDElm9sHgWlQoiXtJlGi30kmDoUl04W2aLXH,iv:k5sGFcOpB3+3G5TrAKBwcTah6GEHPNcVbAU7lY7NSd8=,tag:7HbOTKbhTMS7ZlCJBs9ClA==,type:str]
 sops:
   age:
     - enc: |
@@ -16,7 +16,7 @@ sops:
         -----END AGE ENCRYPTED FILE-----
       recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
   encrypted_regex: ^(data|stringData)$
-  lastmodified: "2026-10-09T16:35:45Z"
-  mac: ENC[AES256_GCM,data:LmQ0gpBW9zWfeuF+ML2FLzWwHpDqJXh8VofO3T128lP6LKnOEcltT4HJUNVTMdHClG2TZimZSQfFlUBct/F4n6l/od81z66+cxQvvIuhyYDM42qdXFh4rqZPYou2oMPK6KLSwuvaqomi1iJi61+5ZnYwAbrBKK04kKsvh21j8qM=,iv:kgM0CXOtQhGwfT7BzrKm/6YTvAiEzAl3iPOKs+hrcwk=,tag:+iHmVFmiQTMvi98XpaljPQ==,type:str]
+  lastmodified: "2026-10-09T16:51:19Z"
+  mac: ENC[AES256_GCM,data:88x3V56lR1zFz33fJJnGbTzZvhThww82rhfTb2DyftHBlFRLwOsRZUrVpVhp0N/crkRPKf5mCD3BGaKCUw2vuaf8a5sMjWRtZB4LjnJ7yZpQy30puGOJ/j5lzX4BqO07mSThHl2dw+pn2KRURtYibier+jZQhJEDFiYwau/C264=,iv:JF2iFi799iHNySLz0ZgWpS8owcCGGwa+riswjHktR0o=,tag:U64t49h33SxwV830PMsu3w==,type:str]
   mac_only_encrypted: true
   version: 3.13.3
