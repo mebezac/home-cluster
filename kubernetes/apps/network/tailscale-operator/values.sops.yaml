@@ -14,6 +14,8 @@ operatorConfig:
     limits:
       cpu: 500m
       memory: 256Mi
+proxyConfig:
+  defaultProxyClass: metrics
 sops:
   age:
     - enc: |
@@ -26,7 +28,7 @@ sops:
         -----END AGE ENCRYPTED FILE-----
       recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
   encrypted_regex: (client.*)
-  lastmodified: "2026-08-24T17:08:29Z"
-  mac: ENC[AES256_GCM,data:HR+2EeBWa2Q+27Qy6525ZKDKOlQswiup1O2YPVAQ62E7zScILCWdmTsyY4xaU2IKq24b5UlR5+ImzHPZJOHZIg38zvJ+eG29L6MLCqI2XnqNKlVNj0Jw/1b+gAIy5Yu/0WMLWmjKr3dsLdsl4Y7NxbiSVSiQ45vU0nPG8afsdFI=,iv:wRvU0Dq4agu3ZFvqGndgI8oSDVqZqH+kASjbOj2lozY=,tag:S1PtWWnlIugrH5ay6j4jTQ==,type:str]
+  lastmodified: "2026-10-09T16:08:45Z"
+  mac: ENC[AES256_GCM,data:DXilbqQsVaH4W7/5reoQYJumcbYJ2461+UvNZ2qP0UTi6JodIPD0kmo6NeLvvLjCD+cSOdaeUaUQx1Qxw893OnrRYFGRgkd/rawHUiWJL3FqjAfGhxd1WVTVmlF0FlRdXwOMBsYAuhQTQWup+UGxbfs1RQrVWYsRmjjsCctrmis=,iv:vP4c6YfxxVtcB1sSx1qCB4CZkPy/ZtgAEeO6Wu4OQYY=,tag:E1tICXqxUTURGkSXFxqnVg==,type:str]
   mac_only_encrypted: true
   version: 3.13.3

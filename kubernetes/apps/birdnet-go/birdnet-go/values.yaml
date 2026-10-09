@@ -30,6 +30,17 @@ service:
     ports:
       http:
         port: 8080
+      # Settings > Integrations > Telemetry (realtime.telemetry in /config/config.yaml,
+      # no env override): enabled, listen 0.0.0.0:8090
+      metrics:
+        port: 8090
+
+serviceMonitor:
+  app:
+    serviceName: birdnet-go
+    endpoints:
+      - port: metrics
+        path: /metrics
 
 route:
   app:

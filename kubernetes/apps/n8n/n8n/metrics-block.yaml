@@ -1,0 +1,12 @@
+---
+# n8n serves /metrics on its app port and the route is on envoy-external.
+# Answer it at the gateway so the scrape (pod → port, in-cluster) still works
+# but the internet gets a 404.
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: HTTPRouteFilter
+metadata:
+  name: block-metrics
+  namespace: n8n
+spec:
+  directResponse:
+    statusCode: 404

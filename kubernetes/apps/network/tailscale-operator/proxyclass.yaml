@@ -1,0 +1,12 @@
+---
+# Default for every Service/Ingress proxy (operator proxyConfig.defaultProxyClass):
+# per-proxy tailscaled metrics on :9002 plus a ServiceMonitor in this namespace.
+apiVersion: tailscale.com/v1alpha1
+kind: ProxyClass
+metadata:
+  name: metrics
+spec:
+  metrics:
+    enable: true
+    serviceMonitor:
+      enable: true

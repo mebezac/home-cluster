@@ -31,6 +31,8 @@ controllers:
           IMMICH_SERVER_URL: http://immich-server.immich.svc.cluster.local:2283
           IMMICH_MACHINE_LEARNING_URL: http://immich-machine-learning.immich.svc.cluster.local:3003
           IMMICH_WORKERS_INCLUDE: api
+          # Prometheus /metrics on :8081 (api worker)
+          IMMICH_TELEMETRY_INCLUDE: all
         envFrom:
           - secretRef:
               name: *secret
@@ -102,6 +104,8 @@ controllers:
           IMMICH_SERVER_URL: http://immich-server.immich.svc.cluster.local:2283
           IMMICH_MACHINE_LEARNING_URL: http://immich-machine-learning.immich.svc.cluster.local:3003
           IMMICH_WORKERS_EXCLUDE: api
+          # Prometheus /metrics on :8082 (microservices worker)
+          IMMICH_TELEMETRY_INCLUDE: all
         resources:
           requests:
             cpu: 100m
@@ -186,12 +190,24 @@ service:
     controller: microservices
     ports:
       metrics:
-        port: 8081
+        port: 8082
   machine-learning:
     controller: machine-learning
     ports:
       http:
         port: *mlport
+
+serviceMonitor:
+  server:
+    serviceName: immich-server
+    endpoints:
+      - port: metrics
+        path: /metrics
+  microservices:
+    serviceName: immich-microservices
+    endpoints:
+      - port: metrics
+        path: /metrics
 
 route:
   main:

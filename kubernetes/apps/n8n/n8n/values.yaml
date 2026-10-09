@@ -51,6 +51,11 @@ controllers:
           N8N_RUNNERS_TASK_TIMEOUT: 300
           N8N_COMPRESSION_NODE_MAX_DECOMPRESSED_SIZE_BYTES: 2147483648
           N8N_COMPRESSION_NODE_MAX_ZIP_ENTRIES: 5000
+          # Prometheus /metrics on the app port (blocked publicly, see metrics-block.yaml)
+          N8N_METRICS: true
+          N8N_METRICS_INCLUDE_MESSAGE_EVENT_BUS_METRICS: true
+          N8N_METRICS_INCLUDE_WORKFLOW_NAME_LABEL: true
+          N8N_METRICS_INCLUDE_WORKFLOW_STATISTICS: true
         envFrom: *envFrom
         probes:
           startup:
@@ -111,9 +116,29 @@ route:
         namespace: network
         sectionName: https
     rules:
+      - matches:
+          - path:
+              type: PathPrefix
+              value: /metrics
+        filters:
+          - type: ExtensionRef
+            extensionRef:
+              group: gateway.envoyproxy.io
+              kind: HTTPRouteFilter
+              name: block-metrics
+        backendRefs:
+          - identifier: app
+            port: http
       - backendRefs:
           - identifier: app
             port: http
+
+serviceMonitor:
+  app:
+    serviceName: n8n
+    endpoints:
+      - port: http
+        path: /metrics
 
 persistence:
   data:
