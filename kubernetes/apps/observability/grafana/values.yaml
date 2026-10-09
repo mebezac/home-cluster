@@ -291,10 +291,31 @@ dashboards:
             }
           ]
         }
+    n8n:
+      # renovate: depName="n8n System Health Overview"
+      gnetId: 24474
+      revision: 1
+      datasource:
+        - { name: DS_PROMETHEUS, value: Prometheus }
   kubernetes:
-    argo:
-      url: https://raw.githubusercontent.com/argoproj/argo-cd/refs/heads/master/examples/dashboard.json
+    # argo-cd's own examples/dashboard.json hardcodes job="argocd-server-metrics" etc.
+    # and 20 of its 49 queries never match our job names; the argo-cd-mixin ones do.
+    argocd-application:
+      # renovate: depName="ArgoCD / Application / Overview"
+      gnetId: 19974
+      revision: 8
       datasource: Prometheus
+    argocd-operational:
+      # renovate: depName="ArgoCD / Operational / Overview"
+      gnetId: 19993
+      revision: 9
+      datasource: Prometheus
+    longhorn:
+      # renovate: depName="Longhorn Monitoring & Backups"
+      gnetId: 16888
+      revision: 14
+      datasource:
+        - { name: DS_PROMETHEUS, value: Prometheus }
     volumes:
       # renovate: depName="K8s / Storage / Volumes / Cluster"
       gnetId: 11454
@@ -330,6 +351,23 @@ dashboards:
       gnetId: 15038
       revision: 3
       datasource: Prometheus
+    cloudflared:
+      # renovate: depName="Cloudflare Tunnel"
+      gnetId: 24874
+      revision: 4
+      datasource:
+        - { name: DS_PROMETHEUS, value: Prometheus }
+    adguard:
+      # renovate: depName="AdGuard Home Exporter"
+      gnetId: 20799
+      revision: 8
+      datasource:
+        - { name: DS_PROMETHEUS, value: Prometheus }
+    authelia:
+      # Keep the tag equal to the running Authelia (security/authelia).
+      url: https://raw.githubusercontent.com/authelia/authelia/v4.39.28/examples/grafana-dashboards/simple.json
+      datasource:
+        - { name: DS_PROMETHEUS, value: Prometheus }
   system:
     node-exporter:
       # renovate: depName="Node Exporter"
@@ -347,6 +385,23 @@ dashboards:
       revision: 2
       datasource:
         - { name: DS_PROMETHEUS, value: Prometheus }
+    garage:
+      # Keep the tag equal to the running Garage (garage/garage). Its input is DS_DS_PROMETHEUS.
+      url: https://raw.githubusercontent.com/deuxfleurs-org/garage/v2.4.1/script/telemetry/grafana-garage-dashboard-prometheus.json
+      datasource:
+        - { name: DS_DS_PROMETHEUS, value: Prometheus }
+    victorialogs:
+      # renovate: depName="VictoriaLogs - single-node"
+      gnetId: 22084
+      revision: 12
+      datasource:
+        - { name: DS_PROMETHEUS, value: Prometheus }
+    vlagent:
+      # renovate: depName="VictoriaLogs - vlagent"
+      gnetId: 24513
+      revision: 3
+      datasource:
+        - { name: DS_PROMETHEUS, value: Prometheus }
   database:
     immich-postgres-exporter:
       # renovate: depName="PostgreSQL Database"
@@ -354,7 +409,9 @@ dashboards:
       revision: 8
       datasource: Prometheus
     postgres-17-cluster:
-      url: https://raw.githubusercontent.com/cloudnative-pg/grafana-dashboards/refs/heads/main/charts/cluster/grafana-dashboard.json
+      # Pinned to a main commit: tag cluster-v0.0.5 predates the barman-cloud plugin
+      # metrics (backup panels read barman_cloud_* or cnpg_collector_*).
+      url: https://raw.githubusercontent.com/cloudnative-pg/grafana-dashboards/47e4c51219fdbb3c7ef2c4d91a2d8855e9ca1880/charts/cluster/grafana-dashboard.json
       datasource: Prometheus
     valkey:
       url: https://raw.githubusercontent.com/oliver006/redis_exporter/refs/heads/master/contrib/grafana_prometheus_redis_dashboard.json

@@ -3,3 +3,21 @@ kind: Kustomization
 namespace: observability
 generators:
   - secret-generator.yaml
+# Custom Homelab dashboards (Grafana folder "Homelab"); the Media one lives in
+# the private repo. The sidecar loads any grafana_dashboard ConfigMap.
+generatorOptions:
+  disableNameSuffixHash: true
+  labels:
+    grafana_dashboard: "1"
+  annotations:
+    grafana_folder: Homelab
+configMapGenerator:
+  - name: dashboard-homelab-overview
+    files:
+      - dashboards/homelab-overview.json
+  - name: dashboard-homelab-home
+    files:
+      - dashboards/homelab-home.json
+  - name: dashboard-homelab-network-storage
+    files:
+      - dashboards/homelab-network-storage.json
