@@ -102,6 +102,12 @@ notifications:
         release: victoria-metrics-stack
 repoServer:
   replicas: 1
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+      additionalLabels:
+        release: victoria-metrics-stack
   serviceAccount:
     create: true
     name: argocd-repo-server
@@ -176,3 +182,10 @@ repoServer:
       volumeMounts:
         - mountPath: /custom-tools
           name: custom-tools
+applicationSet:
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+      additionalLabels:
+        release: victoria-metrics-stack

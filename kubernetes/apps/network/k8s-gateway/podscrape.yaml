@@ -1,0 +1,16 @@
+---
+# The chart enables CoreDNS's prometheus plugin on :9153 but ships no
+# Service port or monitor for it.
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMPodScrape
+metadata:
+  name: k8s-gateway
+  namespace: network
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: k8s-gateway
+      app.kubernetes.io/instance: k8s-gateway
+  podMetricsEndpoints:
+    - port: metrics
+      path: /metrics

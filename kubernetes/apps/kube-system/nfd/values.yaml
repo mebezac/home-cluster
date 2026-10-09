@@ -22,3 +22,6 @@ worker:
   config:
     core:
       sources: ["pci", "usb", "kernel", "cpu", "custom"]
+prometheus:
+  enable: true
+  scrapeInterval: 30s
