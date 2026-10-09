@@ -13,7 +13,8 @@ stringData:
       group_wait: 1m
       group_interval: 10m
       repeat_interval: 12h
-      receiver: pushover
+      # Unrouted alerts (warning or no severity) go out at normal priority.
+      receiver: pushover-warning
       routes:
         # Dead-man's switch: Watchdog always fires, so HetrixTools gets a
         # heartbeat every ~2m and alerts if the vmalert -> alertmanager
@@ -29,9 +30,15 @@ stringData:
           matchers:
             - alertname = "InfoInhibitor"
           continue: false
-        - receiver: pushover
+        # critical: priority 1 (bypasses quiet hours), repeats every 4h.
+        - receiver: pushover-critical
           matchers:
             - severity = "critical"
+          repeat_interval: 4h
+        # info: never sent; visible in Alertmanager / Grafana only.
+        - receiver: 'null'
+          matchers:
+            - severity =~ "info|none"
     inhibit_rules:
       - source_matchers:
           - severity = "critical"
@@ -44,12 +51,44 @@ stringData:
         webhook_configs:
           - url_file: /etc/vm/secrets/victoria-metrics-alertmanager-secret/HETRIX_HEARTBEAT_URL
             send_resolved: false
-      - name: pushover
+      - name: pushover-critical
         pushover_configs:
           - html: true
             send_resolved: true
             sound: gamelan
             priority: '{{ if eq .Status "firing" }}1{{ else }}0{{ end }}'
+            title: >-
+              [{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}]
+              {{ .CommonLabels.alertname }}
+            message: |-
+              {{- range .Alerts }}
+                {{- if ne .Annotations.description "" }}
+                  {{ .Annotations.description }}
+                {{- else if ne .Annotations.summary "" }}
+                  {{ .Annotations.summary }}
+                {{- else if ne .Annotations.message "" }}
+                  {{ .Annotations.message }}
+                {{- else }}
+                  Alert description not available
+                {{- end }}
+                {{- if gt (len .Labels.SortedPairs) 0 }}
+                  <small>
+                    {{- range .Labels.SortedPairs }}
+                      <b>{{ .Name }}:</b> {{ .Value }}
+                    {{- end }}
+                  </small>
+                {{- end }}
+              {{- end }}
+            url_title: View in Alertmanager
+            expire: 86400s
+            user_key_file: /etc/vm/secrets/victoria-metrics-alertmanager-secret/PUSHOVER_USER_KEY
+            token_file: /etc/vm/secrets/victoria-metrics-alertmanager-secret/PUSHOVER_ALERTMANAGER_KEY
+      - name: pushover-warning
+        pushover_configs:
+          - html: true
+            send_resolved: true
+            sound: pushover
+            priority: '0'
             title: >-
               [{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}]
               {{ .CommonLabels.alertname }}
