@@ -48,3 +48,11 @@ serviceMonitor:
     endpoints:
       - port: metrics
         path: /metrics
+        # The exporter rebuilds these histograms from the last 1000 query-log
+        # entries on every scrape and adds them again, so their rates are
+        # ~1000/interval regardless of real traffic. AdGuard's own counters
+        # (adguard_queries*, adguard_avg_processing_time_seconds) are kept.
+        metricRelabelings:
+          - action: drop
+            sourceLabels: [__name__]
+            regex: adguard_(queries_details_histogram|processing_time_(milliseconds|seconds))_.+

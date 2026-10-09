@@ -1,6 +1,10 @@
 ---
 # yaml-language-server: $schema=https://k8s-schemas.home-operations.com/monitoring.coreos.com/prometheusrule_v1.json
-# Two AdGuard Home Pis (pi-02, pi-03) serve the LAN; one down is a warning, both down is critical.
+# Two AdGuard Home Pis (pi-02, pi-03) serve the LAN; one down is a warning, both
+# down is critical. "Down" is judged per expected Pi (a Pi missing from the
+# exporter's output counts as down, not as absent) and ONLY while the exporter
+# itself is being scraped: losing the exporter means "can't tell", which is
+# AdGuardExporterDown (warning), never a page.
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
@@ -10,21 +14,31 @@ spec:
     - name: adguard
       rules:
         - alert: AdGuardDown
-          expr: adguard_running == 0
+          expr: >-
+            (label_replace(vector(1), "server", "http://10.25.30.32", "", "") or label_replace(vector(1), "server", "http://10.25.30.38", "", "")) unless on (server) (max by (server) (adguard_running) == 1) and on () (max(up{job="adguard-exporter"}) == 1)
           for: 10m
           labels:
             severity: warning
           annotations:
             summary: 'AdGuard {{ $labels.server }} is not running'
-            description: 'The other Pi still answers DNS. Check the AdGuardHome service on the Pi.'
+            description: 'The exporter is up but this Pi is not reporting as running. The other Pi still answers DNS; check the AdGuardHome service on the Pi.'
         - alert: AdGuardAllDown
-          expr: (count(adguard_running == 1) or vector(0)) == 0
+          expr: >-
+            count((label_replace(vector(1), "server", "http://10.25.30.32", "", "") or label_replace(vector(1), "server", "http://10.25.30.38", "", "")) unless on (server) (max by (server) (adguard_running) == 1) and on () (max(up{job="adguard-exporter"}) == 1)) == 2
           for: 5m
           labels:
             severity: critical
           annotations:
             summary: 'No AdGuard DNS server is running'
-            description: 'LAN DNS is down. Both pi-02 and pi-03 are unreachable or stopped.'
+            description: 'The exporter is up and neither pi-02 nor pi-03 reports as running: LAN DNS is likely down.'
+        - alert: AdGuardExporterDown
+          expr: absent(up{job="adguard-exporter"} == 1)
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: 'AdGuard metrics are missing'
+            description: 'adguard-exporter (observability) is not being scraped, so AdGuard health is unknown. DNS itself may be fine.'
         - alert: AdGuardProtectionDisabled
           expr: adguard_protection_enabled == 0
           for: 2h
