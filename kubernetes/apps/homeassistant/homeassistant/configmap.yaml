@@ -31,6 +31,11 @@ data:
           - 10.25.30.223
           - 10.25.30.224
 
+    # /api/prometheus, scraped with a long-lived token (homeassistant-metrics secret)
+    prometheus:
+      namespace: hass
+      requires_auth: true
+
     auth_oidc:
       client_id: 'SWm7hj4WCxjlpcDcuGq24Fs3kt14YgES_tmXLzfN7IUq7Yo5geag.2NewaRVB-cMCfBV2MlQ'
       client_secret: !secret oidc_client_secret

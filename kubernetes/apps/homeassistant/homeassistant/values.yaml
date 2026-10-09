@@ -44,6 +44,17 @@ service:
         port: 1400
         targetPort: 1400
 
+serviceMonitor:
+  main:
+    serviceName: homeassistant
+    endpoints:
+      - port: http
+        path: /api/prometheus
+        interval: 1m
+        bearerTokenSecret:
+          name: homeassistant-metrics
+          key: token
+
 route:
   main:
     hostnames:
