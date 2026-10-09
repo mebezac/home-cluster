@@ -79,7 +79,7 @@ controllers:
           # S3 down for the window -> CNPG barman WAL backpressure + forgejo/ocis 5xx, so merge in
           # a quiet window away from the @daily backup
           repository: rclone/rclone
-          tag: 1.75.1@sha256:45401ad7410db1d67ffdb58e19059ad20b0d8e0285a60e38bbec55cc1019c7a5
+          tag: 1.75.2@sha256:2687085f718d3c628f7fdfb77c52a1d344332aed543110bb88088f2c70d43eb5
         command:
           - /bin/sh
           - -c
