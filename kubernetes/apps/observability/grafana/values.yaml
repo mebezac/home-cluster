@@ -322,8 +322,11 @@ dashboards:
       revision: 14
       datasource: Prometheus
     nfd:
+      # Panels use ${DS_PROMETHEUS} with no datasource variable, so it must be
+      # substituted (list form); the string form only rewrites legacy refs.
       url: https://raw.githubusercontent.com/kubernetes-sigs/node-feature-discovery/master/examples/grafana-dashboard.json
-      datasource: Prometheus
+      datasource:
+        - { name: DS_PROMETHEUS, value: Prometheus }
     # spegel:
     #   # renovate: depName="Spegel"
     #   gnetId: 18089
@@ -412,7 +415,11 @@ dashboards:
       # Pinned to a main commit: tag cluster-v0.0.5 predates the barman-cloud plugin
       # metrics (backup panels read barman_cloud_* or cnpg_collector_*).
       url: https://raw.githubusercontent.com/cloudnative-pg/grafana-dashboards/47e4c51219fdbb3c7ef2c4d91a2d8855e9ca1880/charts/cluster/grafana-dashboard.json
-      datasource: Prometheus
+      # DS_EXPRESSION (an operator-status math expression) has no datasource
+      # variable; __expr__ is Grafana's built-in expression datasource uid.
+      datasource:
+        - { name: DS_PROMETHEUS, value: Prometheus }
+        - { name: DS_EXPRESSION, value: __expr__ }
     valkey:
       url: https://raw.githubusercontent.com/oliver006/redis_exporter/refs/heads/master/contrib/grafana_prometheus_redis_dashboard.json
       datasource: Prometheus
