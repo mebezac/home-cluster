@@ -1,0 +1,50 @@
+---
+# AdGuard Home on pi-02 and pi-03 (outside the cluster). Logs in as the
+# `metrics` user from the infra repo's adguard_pi role.
+controllers:
+  adguard-exporter:
+    annotations:
+      reloader.stakater.com/auto: "true"
+    pod:
+      securityContext:
+        runAsUser: 3000
+        runAsGroup: 3000
+        runAsNonRoot: true
+        seccompProfile: { type: RuntimeDefault }
+    containers:
+      app:
+        image:
+          repository: ghcr.io/henrywhitaker3/adguard-exporter
+          # changelog: GH releases henrywhitaker3/adguard-exporter
+          tag: v1.2.1@sha256:42a9581bae4a91e6d4985415d1fe89ab9b1f50fbe2945a1c122d212d6354b747
+        env:
+          INTERVAL: 30s
+        envFrom:
+          - secretRef:
+              name: adguard-exporter
+        resources:
+          requests:
+            cpu: 5m
+            memory: 16Mi
+          limits:
+            memory: 64Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+              - ALL
+
+service:
+  app:
+    controller: adguard-exporter
+    ports:
+      metrics:
+        port: 9618
+
+serviceMonitor:
+  app:
+    serviceName: adguard-exporter
+    endpoints:
+      - port: metrics
+        path: /metrics
