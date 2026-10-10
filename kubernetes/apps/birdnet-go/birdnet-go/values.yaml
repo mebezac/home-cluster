@@ -12,7 +12,7 @@ controllers:
           repository: ghcr.io/tphakala/birdnet-go
           # changelog: GH releases tphakala/birdnet-go — release name "BirdNET-Go <tag>" (PR body is digest-only)
           # tags are date-based YYYYMMDD; regex versioning override lives in .github/renovate.json5
-          tag: 20260823@sha256:233b94f1d3b27b261ec8d997364db0cb953f3e3b3362a89e9e22ad4a589143d6
+          tag: 20261010@sha256:d412e7cc07cd77e7a1ef9d91fbffad1428106277a745c5accd90904a7cfb8b73
         env:
           TZ: America/New_York
           BIRDNET_UID: "1000"
