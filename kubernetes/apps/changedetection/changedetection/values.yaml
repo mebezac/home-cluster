@@ -14,7 +14,7 @@ controllers:
           # a migration does run the app writes its own before-update-N-<ts>.tar.gz into /datastore.
           # Driver contract to re-check on any bump: content_fetchers/__init__.py still reading
           # PLAYWRIGHT_DRIVER_URL (our browserless sidecar).
-          tag: 0.60.8@sha256:34df3680db1cbffc45ac1e9c1514bc0507dd0c5b5fde47d1992fe6f14a7b40e4
+          tag: 0.60.9@sha256:04eaae7915bad711160cb15abe160f6d3fabe98bbbd658509d4b7a654000fb2d
         env:
           TZ: America/New_York
           PORT: &port 5000
