@@ -86,7 +86,8 @@ controllers:
           startup:
             enabled: true
             spec:
-              failureThreshold: 30
+              # alembic runs BEFORE gunicorn; 5.4.0 migrations take 15-20 min
+              failureThreshold: 300
               periodSeconds: 5
         resources:
           # 7d metrics (2026-10-02): peak 1376Mi, p95 1181Mi (90% of the old
