@@ -127,13 +127,9 @@ controllers:
           # allows ~150s for the sftp remote to come up.
           startup:
             enabled: true
-            custom: true
+            type: COMMAND
+            command: ["/bin/sh", "-c", "test -f /data/garage-marker"]
             spec:
-              exec:
-                command:
-                  - /bin/sh
-                  - -c
-                  - test -f /data/garage-marker
               initialDelaySeconds: 3
               periodSeconds: 5
               timeoutSeconds: 5
