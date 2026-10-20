@@ -1,4 +1,7 @@
 ---
+# limits libp2p (:5001) to spegel peers; registry :5000 and metrics :9090 stay open
+networkPolicy:
+  enabled: true
 serviceMonitor:
   enabled: true
 spegel:

@@ -51,7 +51,7 @@ controllers:
       app:
         image:
           repository: ghcr.io/rommapp/romm
-          # changelog: GH releases rommapp/romm. Alembic migrations run on startup; MariaDB-only warnings in the notes do NOT apply (we use ROMM_DB_DRIVER=postgresql)
+          # changelog: GH releases rommapp/romm. Alembic migrations run on startup; MariaDB-only warnings in the notes do NOT apply (we use ROMM_DB_DRIVER=postgresql). Check the release CAUTION for migration duration - alembic runs BEFORE gunicorn, so the startup probe below must cover it
           tag: 5.4.0@sha256:03295f95a6290e752641f9553ac4198b0e5b71b879d57f7b2371b98f608feb54
 
         env:

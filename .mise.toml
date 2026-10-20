@@ -16,11 +16,10 @@ TASK_X_MAP_VARIABLES = 0
 _.file = { path = "{{config_root}}/mcp-secrets.sops.json", redact = true }
 
 [tools]
-# Template tools
+# changelog: docs.python.org/3.<minor>/whatsnew (PR body is a bare compare link); only consumer: stdlib python3 -c in .claude/skills/talos-upgrade/scripts/talmac-upgrade.sh
 python = "3.15.0"
-# changelog: astral-sh/uv CHANGELOG.md (Renovate truncates the body on multi-patch jumps - read CHANGELOG.md directly)
-uv = "0.13.3"
 # Operations tools
+# changelog: GH releases argoproj/argo-cd; keep = appVersion of the argo-cd chart in kubernetes/argo/apps/argo-system/argo-cd.yaml
 "aqua:argoproj/argo-cd" = "3.5.5"
 # changelog: repo RELEASE_NOTES per-release + CHANGES.md for breaking flags - the GH release body is checksums only.
 # Keep in step with the 3 cloudflared container pins under kubernetes/apps/network/cloudflared*/values.yaml
@@ -37,6 +36,7 @@ uv = "0.13.3"
 "aqua:kubernetes-sigs/kustomize" = "5.6.0"
 "aqua:kubernetes/kubectl" = "1.36.5"
 "aqua:mikefarah/yq" = "4.54.1"
+# changelog: see kubernetes/bootstrap/talos/topf.yaml talosVersion - same release, bump in lockstep (Renovate does not group them)
 "aqua:siderolabs/talos" = "1.14.4"
 # topf renders + applies Talos machine configs from kubernetes/bootstrap/talos/topf.yaml (replaced archived talhelper)
 "github:postfinance/topf" = "0.6.1"
@@ -44,6 +44,7 @@ uv = "0.13.3"
 "asdf:janpieper/asdf-ksops" = "4.3.3"
 # renovate provides `renovate-config-validator` for checking .github/renovate.json5; needs node ^24.11
 node = "24.22.0"
+# changelog: GH releases renovatebot/renovate (PR body truncates on big jumps; list releases between tags). Local use is renovate-config-validator only; the Mend bot runs its own version
 # libzip 3.2.2 was hand-published by the yarn lead (arcanis) without provenance; 3.2.0/3.2.1 had it via yarnbot
 "npm:renovate" = { version = "44.171.9", trust_policy_excludes = ["@yarnpkg/libzip@3.2.2"] }
 

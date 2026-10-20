@@ -137,7 +137,7 @@ controllers:
       main:
         image:
           repository: ghcr.io/immich-app/immich-machine-learning
-          # changelog: GH releases immich-app/immich (PR body only has compare links). v3 note: migration guide at immich.app/blog/v3-migration; watch ffmpeg config enum changes (libopus→opus)
+          # changelog: GH releases immich-app/immich (PR body only has compare links). v3 note: migration guide at immich.app/blog/v3-migration; watch ffmpeg config enum changes (libopus→opus). PATCH releases can carry DB migrations - check server/src/schema/migrations in the compare
           tag: v3.3.4@sha256:1ab8674e7cec41009abb3812de62a16cc1917e73d486233a5471b048d26fc14d
         env:
           TZ: Etc/UTC

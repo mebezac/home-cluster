@@ -17,7 +17,7 @@ controllers:
       app:
         image:
           repository: lycheeorg/lychee
-          # changelog: GH releases LycheeOrg/Lychee (full notes in PR body). Laravel migrations run on container start; watch SECURITY_HEADER_* CSP env when notes touch CSP/WASM
+          # changelog: GH releases LycheeOrg/Lychee (full notes in PR body). Laravel migrations run on container start; watch SECURITY_HEADER_* CSP env when notes touch CSP/WASM. Skip releases titled BROKEN (v7.11.0)
           tag: v7.11.1@sha256:51d867c272c26d2a6a4c6a200e26ed888a35a7ad4652c1871953a85519a78eba
         resources:
           # 7d metrics (2026-09-08): peak 650Mi, p95 648Mi - steady, and well
@@ -59,7 +59,9 @@ controllers:
               initialDelaySeconds: 0
               timeoutSeconds: 1
               periodSeconds: 10
-              failureThreshold: 30
+              # entrypoint chowns the whole upload dir, then runs migrations, before
+              # serving; 7.11.1 took ~3 of the old 5 min and it grows with the library
+              failureThreshold: 90
               httpGet:
                 path: /
                 port: *appPort

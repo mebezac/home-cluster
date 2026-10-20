@@ -19,7 +19,8 @@ controllers:
           BIRDNET_GID: "1000"
         resources:
           requests:
-            cpu: 200m
+            # 542m on 20260823, ~890m on 20261014 (false-positive filter, Lenient)
+            cpu: 900m
             memory: 512Mi
           limits:
             memory: 2Gi
@@ -74,9 +75,3 @@ persistence:
     existingClaim: birdnet-go-clips
     globalMounts:
       - path: /data/clips
-  hls:
-    type: emptyDir
-    medium: Memory
-    sizeLimit: 64Mi
-    globalMounts:
-      - path: /config/hls
