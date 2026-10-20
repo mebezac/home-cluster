@@ -23,7 +23,8 @@
 # Synced/Healthy op=Succeeded from the PREVIOUS operation before its own sync
 # starts (seen on the self-managed `argo` app).
 #
-# Exit: 0 done+healthy, 1 failed/degraded, 2 timed out. Prints a status line
+# Exit: 0 done+healthy, 1 failed/degraded AT the target (a Degraded state from
+# before --rev/--chart lands keeps waiting), 2 timed out. Prints a status line
 # every 30s so a stalled rollout is visible, not silent.
 #
 # Keep this a bash script: the Claude Code Bash tool runs zsh, which does NOT
@@ -91,7 +92,9 @@ while :; do
 
   line="$app: $sync $health op=$phase rev=${synced:0:8}${chart:+ $chart=$crev}$ds_msg"
   (( op_ok )) || line+=" (last sync op not yet at target)"
-  if [[ $phase == Failed || $phase == Error || $health == Degraded ]]; then
+  # Only fail on the target's own state: an app that is already Degraded (the
+  # bump you are fixing) reads Degraded at the OLD revision until Argo polls.
+  if (( op_ok && rev_ok )) && [[ $phase == Failed || $phase == Error || $health == Degraded ]]; then
     echo "FAILED  $line"; exit 1
   fi
   if [[ $sync == Synced && $health == Healthy && $phase != Running \
