@@ -45,7 +45,7 @@ controllers:
         image:
           repository: ghcr.io/tailscale/tailscale
           # changelog: tailscale.com/changelog is sparse for patches; read commits via gh api repos/tailscale/tailscale/compare/vOLD...vNEW
-          tag: v1.102.5@sha256:c507f3a2a6ab1cabd8d809b98edeb41edbd5c3fb6ad9632ffd098b4c7d0b4065
+          tag: v1.104.1@sha256:87c55d6be56ad85b3d8bceca5f87f73de288c609131460dd1be1874c250cc41d
         securityContext:
           privileged: true
           runAsUser: 0
@@ -79,7 +79,7 @@ controllers:
           # S3 down for the window -> CNPG barman WAL backpressure + forgejo/ocis 5xx, so merge in
           # a quiet window away from the @daily backup
           repository: rclone/rclone
-          tag: 1.75.1@sha256:45401ad7410db1d67ffdb58e19059ad20b0d8e0285a60e38bbec55cc1019c7a5
+          tag: 1.75.2@sha256:2687085f718d3c628f7fdfb77c52a1d344332aed543110bb88088f2c70d43eb5
         command:
           - /bin/sh
           - -c
