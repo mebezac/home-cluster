@@ -413,6 +413,13 @@ sha exits 64 immediately) for image/values bumps: right after a merge the app
 still reads `Synced`/`Healthy` at the *old* revision, and without `--rev` the
 script passes on that stale state. For chart bumps `--chart` covers it.
 
+**Private-repo apps** (anything under the `private-apps` parent, merged in
+`home-cluster-private`): run the script from that checkout, or pass
+`--repo ../home-cluster-private`. The merge sha only exists in the repo that was
+merged; the script searches the cwd's repo first, then its own, and exits 64
+naming both if neither has it. For their chart bumps the first hop is
+`private-apps`, not `apps`.
+
 **Concurrent waits are safe.** `--rev` passes when Argo has synced your merge
 commit *or any later commit containing it*, so you can keep merging while
 earlier waits run — each one still finishes. (Before this, an exact-sha match

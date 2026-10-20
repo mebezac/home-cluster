@@ -2,7 +2,7 @@
 # Wait for an ArgoCD Application to finish deploying a merged bump, then print
 # one status line. Read-only: only `kubectl get`.
 #
-# Usage: wait-for-app.sh <app> [--rev <sha>] [--chart <name> <version>] [--ds <ns>/<name>] [--timeout <sec>]
+# Usage: wait-for-app.sh <app> [--rev <sha>] [--repo <path>] [--chart <name> <version>] [--ds <ns>/<name>] [--timeout <sec>]
 #   app       Application name (NOT always the file name - argo-cd's app is `argo`)
 #   --rev     require the synced git revision to be this sha (your merge commit)
 #             OR A LATER COMMIT that contains it. Without it, an app that hasn't
@@ -13,6 +13,10 @@
 #             commit isn't local), so it works for concurrent waits. A commit
 #             that renders no change for this app (comments only) passes as soon
 #             as the app is Synced at it - Argo runs no sync op for a no-op.
+#   --repo    git checkout that --rev belongs to. Default: the first of the
+#             current directory's repo, then this script's repo (home-cluster),
+#             that has the commit after a fetch - so running it from
+#             home-cluster-private for a private-repo merge just works.
 #   --chart   also require that source's targetRevision == version (chart bumps
 #             propagate in two hops: `apps` first, then the app itself)
 #   --ds      also require the DaemonSet to be fully rolled (updated == available == desired).
@@ -34,19 +38,19 @@
 set -uo pipefail
 
 app=$1; shift
-chart="" version="" ds="" rev="" timeout=600
+chart="" version="" ds="" rev="" repo="" timeout=600
 while [[ $# -gt 0 ]]; do
   case $1 in
     --chart) chart=$2 version=$3; shift 3 ;;
     --ds) ds=$2; shift 2 ;;
     --rev) rev=$2; shift 2 ;;
+    --repo) repo=$2; shift 2 ;;
     --timeout) timeout=$2; shift 2 ;;
     *) echo "unknown arg: $1" >&2; exit 64 ;;
   esac
 done
 
 k() { kubectl --request-timeout=15s "$@"; }
-repo=$(cd "$(dirname "$0")" && git rev-parse --show-toplevel)
 
 # True if commit $1 is $rev or descends from it.
 reached() {
@@ -57,9 +61,26 @@ reached() {
   git -C "$repo" merge-base --is-ancestor "$rev" "$c" 2>/dev/null
 }
 
-if [[ -n $rev ]] && ! git -C "$repo" cat-file -e "$rev^{commit}" 2>/dev/null; then
-  git -C "$repo" fetch -q origin 2>/dev/null
-  git -C "$repo" cat-file -e "$rev^{commit}" 2>/dev/null || { echo "unknown --rev $rev (not in $repo after fetch)" >&2; exit 64; }
+# Pick the checkout --rev lives in: --repo if given, else the cwd's repo, then
+# this script's repo. Each Argo app tracks one repo, and a private-repo sha is
+# never in home-cluster, so don't assume the script's own checkout.
+has_rev() {
+  git -C "$1" cat-file -e "$rev^{commit}" 2>/dev/null && return 0
+  git -C "$1" fetch -q origin 2>/dev/null
+  git -C "$1" cat-file -e "$rev^{commit}" 2>/dev/null
+}
+if [[ -n $rev ]]; then
+  if [[ -n $repo ]]; then
+    cands=("$repo")
+  else
+    cands=()
+    t=$(git rev-parse --show-toplevel 2>/dev/null) && cands+=("$t")
+    cands+=("$(cd "$(dirname "$0")" && git rev-parse --show-toplevel)")
+  fi
+  found=""
+  for c in "${cands[@]}"; do has_rev "$c" && { found=$c; break; }; done
+  [[ -n $found ]] || { echo "unknown --rev $rev (not in ${cands[*]} after fetch)" >&2; exit 64; }
+  repo=$found
 fi
 deadline=$((SECONDS + timeout)) last_print=-30
 
