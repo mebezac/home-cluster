@@ -16,6 +16,7 @@ controllers:
           labelSelector:
             matchLabels:
               app.kubernetes.io/instance: immich
+              app.kubernetes.io/controller: server
     containers:
       main:
         image:
@@ -133,6 +134,7 @@ controllers:
           labelSelector:
             matchLabels:
               app.kubernetes.io/instance: immich
+              app.kubernetes.io/controller: machine-learning
     containers:
       main:
         image:
