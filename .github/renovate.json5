@@ -101,6 +101,16 @@
     },
     {
       description: [
+        "The group above still opens a lone gateway-api PR when EG has no update (#2572: v1.6.3 while",
+        "EG v1.9.2 bundled v1.6.1). Gate it: approve on the Dependency Dashboard only once an EG release",
+        "bundles that version. Approval is per branch, so a combined EG+gateway-api PR waits too; an",
+        "EG-only bump still opens normally.",
+      ],
+      matchPackageNames: ["kubernetes-sigs/gateway-api"],
+      dependencyDashboardApproval: true,
+    },
+    {
+      description: [
         "The argocd manager also reads gateway-api-crds.yaml (git repoURL + targetRevision) under the",
         "depName https://github.com/kubernetes-sigs/gateway-api, which opens a duplicate PR that escapes",
         "the Envoy Gateway group. The `# renovate:` regex comment in that file is the one source of truth.",
