@@ -10,7 +10,9 @@
 #             immediately. "Later" matters when several PRs merge while you wait:
 #             Argo syncs HEAD, so the app may never sit at your exact sha.
 #             Uses `git merge-base --is-ancestor` in this repo (fetches if the
-#             commit isn't local), so it works for concurrent waits.
+#             commit isn't local), so it works for concurrent waits. A commit
+#             that renders no change for this app (comments only) passes as soon
+#             as the app is Synced at it - Argo runs no sync op for a no-op.
 #   --chart   also require that source's targetRevision == version (chart bumps
 #             propagate in two hops: `apps` first, then the app itself)
 #   --ds      also require the DaemonSet to be fully rolled (updated == available == desired).
@@ -79,6 +81,11 @@ while :; do
     op_rev_ok=0
     IFS=, read -ra ops <<<"$oprevs"
     for o in "${ops[@]}"; do reached "$o" && { op_rev_ok=1; break; }; done
+    # A commit that doesn't change this app's rendered manifests (a comment, or
+    # another app's file) never gets a sync operation: Argo compares, finds
+    # nothing to apply, and marks it Synced at the new revision. Live == desired
+    # at the target then, so that counts too.
+    [[ $sync == Synced ]] && (( rev_ok )) && op_rev_ok=1
     (( op_rev_ok )) || op_ok=0
   fi
 
