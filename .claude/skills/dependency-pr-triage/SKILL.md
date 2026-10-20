@@ -407,10 +407,18 @@ mise exec -- .claude/skills/dependency-pr-triage/scripts/wait-for-app.sh <app> \
   --rev <merge-sha> [--chart <chart> <version>] [--ds <ns>/<daemonset>] [--timeout 600]
 ```
 
-Always pass `--rev` with the merge commit (`gh pr view <n> --json mergeCommit`)
-for image/values bumps: right after a merge the app still reads
-`Synced`/`Healthy` at the *old* revision, and without `--rev` the script
-passes on that stale state. For chart bumps `--chart` covers it.
+Always pass `--rev` with the merge commit (`gh pr view <n> --json mergeCommit -q .mergeCommit.oid`
+— copy it from that output, never type or extend a sha from memory; an unknown
+sha exits 64 immediately) for image/values bumps: right after a merge the app
+still reads `Synced`/`Healthy` at the *old* revision, and without `--rev` the
+script passes on that stale state. For chart bumps `--chart` covers it.
+
+**Concurrent waits are safe.** `--rev` passes when Argo has synced your merge
+commit *or any later commit containing it*, so you can keep merging while
+earlier waits run — each one still finishes. (Before this, an exact-sha match
+meant a second merge left every earlier wait stuck forever at "last sync op not
+yet at target".) Start one background wait per app you care about, each with its
+own merge sha.
 
 It exits `0 DONE` / `1 FAILED` / `2 TIMEOUT` and prints a `waiting` line every
 30s, so a stall is visible. Run it with `run_in_background` and let the

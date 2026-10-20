@@ -4,9 +4,13 @@
 #
 # Usage: wait-for-app.sh <app> [--rev <sha>] [--chart <name> <version>] [--ds <ns>/<name>] [--timeout <sec>]
 #   app       Application name (NOT always the file name - argo-cd's app is `argo`)
-#   --rev     require the synced git revision to start with this sha (your merge
-#             commit). Without it, an app that hasn't polled yet reads
-#             Synced/Healthy at the OLD revision and passes immediately.
+#   --rev     require the synced git revision to be this sha (your merge commit)
+#             OR A LATER COMMIT that contains it. Without it, an app that hasn't
+#             polled yet reads Synced/Healthy at the OLD revision and passes
+#             immediately. "Later" matters when several PRs merge while you wait:
+#             Argo syncs HEAD, so the app may never sit at your exact sha.
+#             Uses `git merge-base --is-ancestor` in this repo (fetches if the
+#             commit isn't local), so it works for concurrent waits.
 #   --chart   also require that source's targetRevision == version (chart bumps
 #             propagate in two hops: `apps` first, then the app itself)
 #   --ds      also require the DaemonSet to be fully rolled (updated == available == desired).
@@ -39,6 +43,21 @@ while [[ $# -gt 0 ]]; do
 done
 
 k() { kubectl --request-timeout=15s "$@"; }
+repo=$(cd "$(dirname "$0")" && git rev-parse --show-toplevel)
+
+# True if commit $1 is $rev or descends from it.
+reached() {
+  local c=$1
+  [[ $c =~ ^[0-9a-f]{40}$ ]] || return 1
+  [[ $c == "$rev"* ]] && return 0
+  git -C "$repo" cat-file -e "$c^{commit}" 2>/dev/null || git -C "$repo" fetch -q origin 2>/dev/null
+  git -C "$repo" merge-base --is-ancestor "$rev" "$c" 2>/dev/null
+}
+
+if [[ -n $rev ]] && ! git -C "$repo" cat-file -e "$rev^{commit}" 2>/dev/null; then
+  git -C "$repo" fetch -q origin 2>/dev/null
+  git -C "$repo" cat-file -e "$rev^{commit}" 2>/dev/null || { echo "unknown --rev $rev (not in $repo after fetch)" >&2; exit 64; }
+fi
 deadline=$((SECONDS + timeout)) last_print=-30
 
 while :; do
@@ -53,7 +72,14 @@ while :; do
   # The finished operation must itself have deployed the wanted chart / commit.
   op_ok=1
   if [[ -n $chart ]] && [[ ",$oprevs," != *",$version,"* ]]; then op_ok=0; fi
-  if [[ -n $rev ]] && [[ ",$oprevs" != *",$rev"* ]]; then op_ok=0; fi
+  rev_ok=1
+  if [[ -n $rev ]]; then
+    reached "$synced" || rev_ok=0
+    op_rev_ok=0
+    IFS=, read -ra ops <<<"$oprevs"
+    for o in "${ops[@]}"; do reached "$o" && { op_rev_ok=1; break; }; done
+    (( op_rev_ok )) || op_ok=0
+  fi
 
   ds_ok=1 ds_msg=""
   if [[ -n $ds ]]; then
@@ -69,7 +95,7 @@ while :; do
     echo "FAILED  $line"; exit 1
   fi
   if [[ $sync == Synced && $health == Healthy && $phase != Running \
-        && ( -z $chart || $crev == "$version" ) && ( -z $rev || $synced == "$rev"* ) && $ds_ok == 1 && $op_ok == 1 ]]; then
+        && ( -z $chart || $crev == "$version" ) && $rev_ok == 1 && $ds_ok == 1 && $op_ok == 1 ]]; then
     echo "DONE    $line"; exit 0
   fi
   if (( SECONDS >= deadline )); then echo "TIMEOUT $line"; exit 2; fi
