@@ -21,8 +21,10 @@ controllers:
     containers:
       app:
         image:
-          repository: ghcr.io/n8n-io/n8n
-          # changelog: GH releases n8n-io/n8n tag "n8n@<version>" (PR body is a stub; upstream skips some patch numbers entirely - check git refs, not just the release list; check Latest vs Pre-release - n8n tags its "next" channel as GH pre-releases and Renovate offers them anyway; docker tag :stable = current Latest)
+          # Docker Hub, not ghcr: only Docker Hub gives Renovate publish dates, which the
+          # 10-day minimumReleaseAge in .github/renovate.json5 needs (same digests on both).
+          repository: n8nio/n8n
+          # changelog: GH releases n8n-io/n8n tag "n8n@<version>" (PR body is a stub; upstream skips some patch numbers - check git refs). Check the target is NOT a GH Pre-release: the age gate can land on an aged beta patch (e.g. x.y.1) while the stable x.y.N is still too young - hand-bump to the newest non-pre-release patch of that minor
           tag: 2.42.7@sha256:906dd7fb0a2f23869001d1767168359489c518ff34d4f67427abf2dc59e868fe
         env:
           DB_TYPE: postgresdb

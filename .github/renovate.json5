@@ -78,13 +78,15 @@
     },
     {
       description: [
-        "n8n publishes its beta channel as plain semver docker tags (GH pre-releases), so Renovate",
-        "offers them as normal updates - twice we had to hand-pin back to stable (ac5dde00, c3c9e218).",
-        "Approve on the Dependency Dashboard only once the target is GH 'Latest' (= the :stable docker tag).",
+        "n8n publishes its beta channel as plain semver docker tags (GH pre-releases only), so Renovate",
+        "cannot tell beta from stable. A new minor goes GH 'Latest' 3-8 days after its .0 (2.36-2.44),",
+        "so hold every n8n version for 10 days. Needs Docker Hub (n8nio/n8n): ghcr has no publish dates.",
+        "Caveat: the newest aged version can be an old beta patch of a now-stable minor - check in triage.",
       ],
       matchDatasources: ["docker"],
-      matchPackageNames: ["ghcr.io/n8n-io/n8n"],
-      dependencyDashboardApproval: true,
+      matchPackageNames: ["n8nio/n8n", "docker.io/n8nio/n8n"],
+      minimumReleaseAge: "10 days",
+      internalChecksFilter: "strict",
     },
     {
       description: [
