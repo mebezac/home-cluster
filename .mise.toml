@@ -43,7 +43,7 @@ python = "3.15.1"
 "aqua:yannh/kubeconform" = "0.8.0"
 "asdf:janpieper/asdf-ksops" = "4.3.3"
 # renovate provides `renovate-config-validator` for checking .github/renovate.json5; needs node ^24.11
-node = "24.22.0"
+node = "24.22.1"
 # changelog: GH releases renovatebot/renovate (PR body truncates on big jumps; list releases between tags). Local use is renovate-config-validator only; the Mend bot runs its own version
 # libzip 3.2.2 was hand-published by the yarn lead (arcanis) without provenance; 3.2.0/3.2.1 had it via yarnbot
 "npm:renovate" = { version = "44.171.9", trust_policy_excludes = ["@yarnpkg/libzip@3.2.2"] }
