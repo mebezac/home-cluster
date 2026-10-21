@@ -23,6 +23,13 @@ controllers:
           HTTPPROXY_LISTENING_ADDRESS: ":8888"
           HTTPPROXY_STEALTH: "on"
           SERVER_REGIONS: US East, US Central, US West
+          # Refresh the Windscribe server list daily. With UPDATER_PERIOD=0
+          # gluetun used only the list built into the image (1 Oct), and many
+          # of those servers are gone: each dead pick cost a 60s TLS timeout
+          # (EHOSTUNREACH), so a rotation took a median 231s and the proxy was
+          # down ~2h/day (audit 2026-10-21).
+          UPDATER_PERIOD: 24h
+          UPDATER_VPN_SERVICE_PROVIDERS: windscribe
         envFrom:
           - secretRef:
               name: gluetun-proxy-secret
@@ -51,17 +58,43 @@ controllers:
         args:
           # -f/set -e: a failed call must fail the Job. Until 2026-10-02 this
           # targeted a non-existent "gluetun-proxy-main" Service and -s hid it.
+          # After the restart, wait for traffic to flow through the proxy and
+          # print the new exit IP. Fail the Job if the tunnel is not back within
+          # 10 minutes, so a broken rotation shows up as a failed Job.
           - |
             set -e
-            api=http://gluetun-proxy.gluetun-proxy.svc.cluster.local:8000/v1/vpn/status
-            echo "Rotating IP..."
+            svc=gluetun-proxy.gluetun-proxy.svc.cluster.local
+            api=http://$svc:8000/v1/vpn/status
+            px="-x http://$svc:8888 --proxy-user $HTTPPROXY_USER:$HTTPPROXY_PASSWORD"
+            old=$(curl -fsS -m 10 $px https://ipinfo.io/ip || echo unknown)
+            echo "Rotating IP (was $old)..."
             curl -fsS -X PUT "$api" -H "Content-Type: application/json" -d '{"status":"stopped"}'
             sleep 5
             curl -fsS -X PUT "$api" -H "Content-Type: application/json" -d '{"status":"running"}'
-            echo "IP rotation complete"
+            i=0
+            while [ $i -lt 60 ]; do
+              sleep 10; i=$((i+1))
+              if new=$(curl -fsS -m 8 $px https://ipinfo.io/ip 2>/dev/null); then
+                echo "IP rotation complete after $((i*10))s: $old -> $new"
+                exit 0
+              fi
+            done
+            echo "Tunnel not back after 10 minutes" >&2
+            exit 1
+        env:
+          HTTPPROXY_USER:
+            valueFrom:
+              secretKeyRef:
+                name: gluetun-proxy-secret
+                key: HTTPPROXY_USER
+          HTTPPROXY_PASSWORD:
+            valueFrom:
+              secretKeyRef:
+                name: gluetun-proxy-secret
+                key: HTTPPROXY_PASSWORD
         securityContext:
-          runAsUser: 1000
-          runAsGroup: 1000
+          runAsUser: 3000
+          runAsGroup: 3000
           runAsNonRoot: true
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
@@ -85,3 +118,10 @@ service:
 persistence:
   config:
     type: emptyDir
+  # The updated servers.json lives here, so a container restart keeps it.
+  gluetun-data:
+    type: emptyDir
+    advancedMounts:
+      main:
+        gluetun:
+          - path: /gluetun
