@@ -14,9 +14,11 @@ description: >-
   rules and current upstream best practice via context7/web/git-grep. The parent
   runs the cross-cutting sweeps subagents cannot see (image pinning, SOPS
   hygiene, deprecated APIs), sizes resources from 7 DAYS of VictoriaMetrics
-  history rather than a point-in-time snapshot, then publishes an ASD-STE100
-  Simplified Technical English report as an Artifact and works the fixes
-  interactively — only ever with explicit per-item permission. Reach for this for
+  history rather than a point-in-time snapshot, starts from the previous audit's
+  report (listed in audits.md) as a baseline without limiting itself to it, then
+  publishes a new ASD-STE100 Simplified Technical English report as an Artifact,
+  logs it in audits.md, and works the fixes interactively — only ever with
+  explicit per-item permission, updating the report after each decisive action. Reach for this for
   periodic health reviews, before/after a big migration, or when something feels
   off but nothing is alerting.
 ---
@@ -32,13 +34,41 @@ Sister skills: `debug-alerts` (one firing alert), `dependency-pr-triage`
 
 ## The shape
 
+0. Parent reads the last audit's report as a baseline
 1. Parent takes inventory (cheap, keeps context clean)
 2. Parent fans out ~9 domain subagents **in one message** so they run in parallel
 3. Parent runs the cross-cutting sweeps subagents structurally cannot do
-4. Parent publishes the report as an Artifact
-5. Fix loop — one item at a time, explicit permission each time
+4. Parent publishes the report as a NEW Artifact and logs it in `audits.md`
+5. Fix loop — one item at a time, explicit permission each time; the Artifact
+   is updated after every decisive action
 
 ---
+
+## 0. Baseline — read the last audit first, then look past it
+
+[`audits.md`](audits.md) (next to this file) lists every past report, newest
+first. Before inventory, read the newest one with the `Artifact` tool
+(`action: "read"`, `url: <link>`). If the user pastes a link, use that.
+
+From it, extract:
+
+- every item **not** marked done (open "fix now", "fix soon", resource rows,
+  clean-up, hygiene). Each one goes into the brief of the slice that owns it,
+  as "re-check: still true?". The new report marks each as carried, closed or
+  changed — say which.
+- items marked done: spot-check the important ones. A fix can regress
+  (e.g. a scrape selector reverted by a chart bump).
+- its HTML: the new report reuses the same visual system (see §5).
+
+**The baseline is a checklist, not the scope.** Do the full deep-dive anyway.
+Every brief must say "find what the last audit missed". The 2026-10-21 run found
+its most important item (a control-plane node that stalled when it ran out of
+memory, caused by unused hugepages) because the platform auditor dug past the
+carried "hugepages" line. Last time that line was ranked low, as a memory-saving
+nicety. Re-rank carried items on new evidence, never on their old position.
+
+Also read `git log --since=<last audit date>` for both repos. Changes since the
+baseline (major bumps, new apps, new namespaces) are where new defects hide.
 
 ## 1. Inventory (parent, before any subagent)
 
@@ -71,15 +101,18 @@ namespaces explicitly so nothing is audited twice or missed:
 
 | Slice | Covers |
 |---|---|
-| Networking | `network`, `network-optimizer`, `cilium-secrets`, + cilium/coredns/k8s-gateway in kube-system |
-| Storage | `longhorn-system`, `openebs-system`, `storage`, `garage` |
+| Networking | `network`, `network-optimizer`, `cilium-secrets`, + cilium/coredns/k8s-gateway/spegel in kube-system |
+| Storage | `longhorn-system`, `storage`, `garage` |
 | Database | `database`, `valkey` |
-| Observability | `observability` + metrics-server |
+| Observability | `observability` + metrics-server — **and list every firing/pending alert** (vmalert `/api/v1/alerts`) |
 | Security/GitOps | `security`, `cert-manager`, `argo-system`, `forgejo` |
-| Media | `jellyfin`, `immich`, `audiobookshelf`, `calibre-web-automated`, `romm`, `music-assistant`, `podcasts`, `lychee`, `downloads`, `gluetun-proxy` |
+| Media | `jellyfin`, `immich`, `audiobookshelf`, `calibre-web-automated`, `romm`, `music-assistant`, `lychee`, `downloads`, `gluetun-proxy`, `ps5` (private) |
 | Home automation | `homeassistant`, `birdnet-go` |
-| Web apps | `n8n`, `umami`, `jotty`, `lubelog`, `changedetection`, `trek`, `reckage`, `lastglance`, `heremag`, `owncloud`, `smee`, `default` |
-| Platform/capacity | rest of kube-system + **cluster-wide node capacity** |
+| Web apps | `n8n`, `umami`, `jotty`, `lubelog`, `changedetection`, `trek`, `reckage`, `lastglance`, `heremag`, `owncloud`, `pcab`, `default` |
+| Platform/capacity | rest of kube-system + **cluster-wide node capacity** (per-node MemAvailable 7d minimum, not just requests) |
+
+The namespace list drifts. Diff `kubectl get ns` against this table at inventory
+time and put any new namespace in a slice.
 
 Every brief must include:
 
@@ -98,6 +131,13 @@ They get rates and aggregates wrong. Last run one reported oCIS token errors at
 published no versioned tags — it publishes `0.1.0` and `0.2.0`, just past the
 first page of a 256-tag list. **Re-derive any number you are about to put in the
 report or act on.**
+
+When two subagents explain one event differently, build the timeline yourself.
+On 2026-10-21 one blamed a Cilium rollout for a burst of restarts. Per-node
+`node_memory_MemAvailable_bytes` at 2.5-min steps showed that the rollout ended
+16 min earlier and that one node fell to 212 Mi at the time of the restarts.
+Also check a subagent's "everything is pinned" claim against the live pod specs.
+Pod-spec image strings are the ground truth.
 
 ## 3. Cross-cutting sweeps (parent only — subagents can't see across slices)
 
@@ -154,6 +194,34 @@ only the 7d window reveals it.
 Load `artifact-design` first, write HTML, publish with the `Artifact` tool.
 This is the deliverable the user keeps; it is worth real care.
 
+**One new Artifact per audit, same look every time.** Write it to
+`<scratchpad>/cluster-audit-YYYY-MM-DD.html`, `<title>Cluster Audit YYYY-MM-DD</title>`,
+`icon: "checklist"`. Do not overwrite the previous audit's Artifact; it is the
+historical record. Copy the `<style>` block and the tokens from the baseline
+report's HTML, so the reports read as a series. The IBM Plex Sans Condensed,
+Sans and Mono faces and the slate/blue palette with severity tokens come from it.
+Keep this section order, and drop a section only when it has nothing in it:
+
+1. Header: eyebrow (date · Talos · k8s · nodes · apps · pods), one-paragraph
+   lede that says the outcome first, tally chips
+2. Incident panel (only if something happened): a timeline of what happened
+   and when, with the evidence
+3. **Fix now**: numbered work order, `what / why / fix` per item
+4. **Fix soon**: unordered
+5. **Resources**: the 7-day table (p95, peak, request/limit, proposal)
+6. Clean-up, then Hygiene (house rules)
+7. **Closed since <baseline date>**: what the last audit flagged that is now fixed
+8. **What is good**: a grid; always present
+9. Footer: method, the repo commits audited, the baseline used
+
+Tag carried items with a `from <baseline date>` chip, so the user sees what has
+been open for more than one cycle.
+
+**Log it right away.** As soon as the first publish succeeds, add a row at the
+top of [`audits.md`](audits.md) with the date, the link, the baseline used and
+a status. Commit it with the next fix commit, or on its own if no fix follows.
+Keep that row free of sensitive detail, because the repo is public.
+
 - **ASD-STE100**: short sentences, active voice, present tense, one idea per
   sentence, plain approved vocabulary, consistent terms. Write for someone with
   ADHD scanning under load.
@@ -163,8 +231,7 @@ This is the deliverable the user keeps; it is worth real care.
 - Machine identifiers in mono; severity as a chip **and** a left stripe.
 - **Always include a "What is good" section.** Most of the cluster is fine and
   the user needs to see that, not just a wall of problems.
-- Re-publish the same file path as work lands so the URL is stable; mark rows
-  done with a strikethrough and record the verified result inline.
+- See §6 for keeping the report current during the fix loop.
 
 ## 6. Fix loop — explicit permission, one item at a time
 
@@ -188,6 +255,30 @@ Never batch-apply findings. For each item the user picks:
   the dependent apps' logs clean.
 - No attribution trailers in commit messages (repo convention).
 
+### Keep the report current — update it after every decisive action
+
+The Artifact is the user's record, so update it as each decisive action lands,
+not only at the end. Decisive actions: a fix verified in the cluster; a
+decision ("leave it", "defer to the Talos upgrade", "hold for my call"); a
+manual operation (data deleted or restarted); and a finding proved wrong.
+
+- Republish the **same file path** with `edits` (old_str/new_str copied from
+  the file), so the URL stays the same. From a later session, the scratchpad
+  file is gone: `Artifact` `read` the link from `audits.md`, edit the HTML it
+  returns, and publish with `url:` set to that link.
+- Done item: add class `done` to the `<li>` (strikethrough plus fade), and add a
+  `<p class="result">` with the commit hash(es) and the **verified** result in
+  numbers (e.g. "231 s → 10 s", "14.1 GB → 365 MB").
+- Held or deferred item: leave it as is. Add a chip (`on hold`,
+  `with Talos upgrade`) and a one-line `result` that says why and what is
+  needed.
+- When a fix needed more than one attempt, say so in the result. That history
+  is useful the next time.
+- Update the header tally chips and the footer, and the status column of the
+  row in `audits.md`.
+- Batch the update when several items land together, but do it before you
+  report back to the user.
+
 ### Gotchas this repo has already paid for
 
 - **Container ordering** needs **native sidecars** (`initContainers` with
@@ -209,6 +300,20 @@ Never batch-apply findings. For each item the user picks:
 - **A "full" Longhorn disk may not be Longhorn.** Check
   `storageScheduled` and `imageFs.usedBytes` from the node stats summary before
   blaming storage — on talmac-01 the culprit was 147.7GB of container images.
+- **`container_*` series come twice** (`/metrics/cadvisor` and
+  `/metrics/resource`). `max by` is safe. `sum` doubles every value. Filter on
+  `metrics_path="/metrics/cadvisor"` when you need a sum.
+- **VictoriaLogs fields** are `kubernetes.pod_name`, `kubernetes.pod_namespace`
+  and `kubernetes.pod_node_name` (not `node_name`). The server pod has no wget;
+  query it from the vmalert pod.
+- **oCIS upload sessions**: "expired" includes complete uploads stuck in
+  processing, which can be real user files. List with `--json` first. Clean
+  partial ones with `--expired --processing=false --clean`. Ask before you clean
+  the processing ones. The CLI only works inside the oCIS pod, because it needs
+  oCIS's 127.0.0.1 services.
+- **gluetun's firewall blocks all traffic outside the tunnel**, its own server-list
+  updater included. Fetch the list in an init container, before the firewall
+  starts.
 - Commits are signed via Secretive (Touch ID). A `git commit` may hang waiting
   for approval — retry once, then hand the command to the user rather than
   reaching for `--no-gpg-sign`.
