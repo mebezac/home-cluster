@@ -240,6 +240,28 @@ Keep this section order, and drop a section only when it has nothing in it:
 Tag carried items with a `from <baseline date>` chip, so the user sees what has
 been open for more than one cycle.
 
+**Give every actionable item its own number, so the user can say "do #14".**
+- One sequence across the whole report: Fix now first (1–N), then Fix soon,
+  then each open Resources row and each leftover resource note, then
+  Clean-up, then Hygiene. Not-actionable sections (incident, Closed since,
+  What is good) get no numbers.
+- Show the number as a `<span class="id">#14</span>` badge, and put
+  `id="i14"` on the element, so `<link>#i14` jumps to it. Fix now draws its
+  number with the CSS counter and still gets the `id`.
+- Clean-up and Hygiene are an `<ol class="ids">` of numbered rows, not a bullet
+  list. A Resources row gets a `#` column. Rows already applied show ✓ and no
+  number.
+- Under the header tally, add one line that gives the ranges ("Fix now is
+  1–10, fix soon is 11–30, …").
+- **Numbers never change inside a report.** A done item keeps its number,
+  struck through. An item found during the fix loop gets the next free number
+  at the end, even if it belongs in an earlier section. Never renumber to tidy
+  up: the user refers to the old numbers.
+- In the next audit, numbering starts again at 1. A carried item shows its old
+  number in the chip (`from 2 Oct #14`), so the user can trace it.
+- Copy the `.id`, `ol.ids` and `tr.done` styles from the baseline report along
+  with the rest of its `<style>`.
+
 **Log it right away.** As soon as the first publish succeeds, add a row at the
 top of [`audits.md`](audits.md) with the date, the link, the baseline used and
 a status. Commit it with the next fix commit, or on its own if no fix follows.
@@ -289,7 +311,10 @@ manual operation (data deleted or restarted); and a finding proved wrong.
   the file), so the URL stays the same. From a later session, the scratchpad
   file is gone: `Artifact` `read` the link from `audits.md`, edit the HTML it
   returns, and publish with `url:` set to that link.
-- Done item: add class `done` to the `<li>` (strikethrough plus fade), and add a
+- When the user names an item by number ("#14"), work that item. In the reply
+  and the commit message, mention the number ("fixes audit 2026-10-21 #14").
+- Done item: add class `done` to the `<li>` (strikethrough plus fade). Keep its
+  number. Add a
   `<p class="result">` with the commit hash(es) and the **verified** result in
   numbers (e.g. "231 s → 10 s", "14.1 GB → 365 MB").
 - Held or deferred item: leave it as is. Add a chip (`on hold`,
