@@ -13,6 +13,11 @@ controllers:
         envFrom:
           - secretRef:
               name: lldap-initdb-secret
+        # container-level: not inherited from the pod securityContext. Without
+        # it the namespace cannot enforce PodSecurity "restricted".
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities: { drop: ["ALL"] }
     pod:
       # lldap ran as ROOT because it bound :80 and :389, both privileged.
       # Container ports moved to lldap's own defaults (17170/3890) so it can
