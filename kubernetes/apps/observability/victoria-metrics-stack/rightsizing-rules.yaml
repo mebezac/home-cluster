@@ -1,0 +1,35 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/monitoring.coreos.com/prometheusrule_v1.json
+# Memory for right-sizing requests. container_memory_working_set_bytes still
+# counts ACTIVE page cache, which an app that copies big files over NFS fills
+# (sonarr: working_set 1.9Gi, own memory 369Mi). The kernel reclaims that cache
+# before it OOM-kills, so it is not a reason to raise a request.
+#
+# nofile = working_set - active_file = anon + shared memory + kernel. Do not
+# size from RSS alone: it leaves out shared memory (Postgres shared_buffers),
+# so immich-db would look 3x too small.
+#
+# Only the /metrics/cadvisor series: /metrics/resource duplicates working_set.
+# Dashboard: Homelab / Right-sizing.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: rightsizing
+spec:
+  groups:
+    - name: rightsizing
+      interval: 1m
+      rules:
+        - record: container_memory_nofile_bytes
+          expr: |
+            container_memory_working_set_bytes{metrics_path="/metrics/cadvisor",container!="",container!="POD"}
+              - container_memory_total_active_file_bytes{metrics_path="/metrics/cadvisor",container!="",container!="POD"}
+        # One series per workload container: pod-name hashes stripped and all
+        # pods merged first, so percentiles over time are not skewed by
+        # short-lived pods (restarts, rollouts).
+        - record: workload_container:container_memory_nofile_bytes:max
+          expr: |
+            max by (namespace, workload, container) (
+              label_replace(container_memory_nofile_bytes, "workload", "$1", "pod",
+                "^(.+?)(?:(?:-[a-z0-9]{8,10})?-[a-z0-9]{5})?$")
+            )

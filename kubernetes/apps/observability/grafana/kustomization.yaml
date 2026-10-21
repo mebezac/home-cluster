@@ -21,3 +21,6 @@ configMapGenerator:
   - name: dashboard-homelab-network-storage
     files:
       - dashboards/homelab-network-storage.json
+  - name: dashboard-homelab-rightsizing
+    files:
+      - dashboards/homelab-rightsizing.json

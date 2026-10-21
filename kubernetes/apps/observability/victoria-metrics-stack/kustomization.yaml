@@ -3,5 +3,6 @@ kind: Kustomization
 resources:
   - alertmanager-config.yaml
   - authelia.yaml
+  - rightsizing-rules.yaml
 generators:
   - secret-generator.yaml

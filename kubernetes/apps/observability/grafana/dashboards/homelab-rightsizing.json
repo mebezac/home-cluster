@@ -1,0 +1,507 @@
+{
+  "uid": "homelab-rightsizing",
+  "title": "Homelab Right-sizing",
+  "tags": [
+    "homelab",
+    "resources"
+  ],
+  "schemaVersion": 39,
+  "editable": true,
+  "time": {
+    "from": "now-14d",
+    "to": "now"
+  },
+  "refresh": "",
+  "templating": {
+    "list": [
+      {
+        "name": "datasource",
+        "type": "datasource",
+        "query": "prometheus",
+        "current": {}
+      },
+      {
+        "name": "namespace",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${datasource}"
+        },
+        "query": {
+          "query": "label_values(kube_pod_info, namespace)",
+          "refId": "ns"
+        },
+        "refresh": 2,
+        "multi": true,
+        "includeAll": true,
+        "allValue": ".*",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        },
+        "sort": 1
+      },
+      {
+        "name": "window",
+        "type": "custom",
+        "query": "7d,14d,30d",
+        "current": {
+          "text": "14d",
+          "value": "14d"
+        },
+        "options": []
+      },
+      {
+        "name": "container",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${datasource}"
+        },
+        "query": {
+          "query": "label_values(container_memory_working_set_bytes{namespace=~\"$namespace\",container!=\"\",container!=\"POD\"}, container)",
+          "refId": "c"
+        },
+        "refresh": 2,
+        "sort": 1
+      }
+    ]
+  },
+  "panels": [
+    {
+      "type": "text",
+      "title": "How to read this",
+      "gridPos": {
+        "h": 4,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "**Own mem** = `working_set \u2212 active_file`: the app's memory, without file cache the kernel can reclaim. Size requests from it, not from `working_set` (apps that copy big files over NFS show 2\u20135\u00d7 more) and not from RSS alone (it misses shared memory, e.g. Postgres). All pods of a workload are merged before the percentile. **Request / p99**: red = under-requested (< 90%), green = fine, blue = more than 2\u00d7. Suggested request = p99 \u00d7 1.1; suggested limit = at least 2 \u00d7 max. CPU in cores. Data starts ~2026-10-09."
+      }
+    },
+    {
+      "type": "table",
+      "title": "Right-sizing by workload container ($window)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "h": 22,
+        "w": 24,
+        "x": 0,
+        "y": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "max by (namespace, workload, container) (label_replace(kube_pod_container_resource_requests{resource=\"memory\",namespace=~\"$namespace\"}, \"workload\", \"$1\", \"pod\", \"^(.+?)(?:(?:-[a-z0-9]{8,10})?-[a-z0-9]{5})?$\"))",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "max by (namespace, workload, container) (label_replace(kube_pod_container_resource_limits{resource=\"memory\",namespace=~\"$namespace\"}, \"workload\", \"$1\", \"pod\", \"^(.+?)(?:(?:-[a-z0-9]{8,10})?-[a-z0-9]{5})?$\"))",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "refId": "C",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "quantile_over_time(0.99, (max by (namespace, workload, container) (label_replace(container_memory_working_set_bytes{metrics_path=\"/metrics/cadvisor\",container!=\"\",container!=\"POD\",namespace=~\"$namespace\"} - container_memory_total_active_file_bytes{metrics_path=\"/metrics/cadvisor\",container!=\"\",container!=\"POD\",namespace=~\"$namespace\"}, \"workload\", \"$1\", \"pod\", \"^(.+?)(?:(?:-[a-z0-9]{8,10})?-[a-z0-9]{5})?$\")))[$window:5m])",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "refId": "D",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "max_over_time((max by (namespace, workload, container) (label_replace(container_memory_working_set_bytes{metrics_path=\"/metrics/cadvisor\",container!=\"\",container!=\"POD\",namespace=~\"$namespace\"} - container_memory_total_active_file_bytes{metrics_path=\"/metrics/cadvisor\",container!=\"\",container!=\"POD\",namespace=~\"$namespace\"}, \"workload\", \"$1\", \"pod\", \"^(.+?)(?:(?:-[a-z0-9]{8,10})?-[a-z0-9]{5})?$\")))[$window:5m])",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "refId": "E",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "max_over_time((max by (namespace, workload, container) (label_replace(container_memory_working_set_bytes{metrics_path=\"/metrics/cadvisor\",container!=\"\",container!=\"POD\",namespace=~\"$namespace\"}, \"workload\", \"$1\", \"pod\", \"^(.+?)(?:(?:-[a-z0-9]{8,10})?-[a-z0-9]{5})?$\")))[$window:5m])",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "refId": "F",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "max_over_time((max by (namespace, workload, container) (label_replace(container_memory_rss{metrics_path=\"/metrics/cadvisor\",container!=\"\",container!=\"POD\",namespace=~\"$namespace\"}, \"workload\", \"$1\", \"pod\", \"^(.+?)(?:(?:-[a-z0-9]{8,10})?-[a-z0-9]{5})?$\")))[$window:5m])",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "refId": "G",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "quantile_over_time(0.99, (max by (namespace, workload, container) (label_replace(container_memory_working_set_bytes{metrics_path=\"/metrics/cadvisor\",container!=\"\",container!=\"POD\",namespace=~\"$namespace\"} - container_memory_total_active_file_bytes{metrics_path=\"/metrics/cadvisor\",container!=\"\",container!=\"POD\",namespace=~\"$namespace\"}, \"workload\", \"$1\", \"pod\", \"^(.+?)(?:(?:-[a-z0-9]{8,10})?-[a-z0-9]{5})?$\")))[$window:5m]) * 1.1",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "refId": "H",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "max_over_time((max by (namespace, workload, container) (label_replace(container_memory_working_set_bytes{metrics_path=\"/metrics/cadvisor\",container!=\"\",container!=\"POD\",namespace=~\"$namespace\"} - container_memory_total_active_file_bytes{metrics_path=\"/metrics/cadvisor\",container!=\"\",container!=\"POD\",namespace=~\"$namespace\"}, \"workload\", \"$1\", \"pod\", \"^(.+?)(?:(?:-[a-z0-9]{8,10})?-[a-z0-9]{5})?$\")))[$window:5m]) * 2",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "refId": "I",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "max by (namespace, workload, container) (label_replace(kube_pod_container_resource_requests{resource=\"memory\",namespace=~\"$namespace\"}, \"workload\", \"$1\", \"pod\", \"^(.+?)(?:(?:-[a-z0-9]{8,10})?-[a-z0-9]{5})?$\")) / quantile_over_time(0.99, (max by (namespace, workload, container) (label_replace(container_memory_working_set_bytes{metrics_path=\"/metrics/cadvisor\",container!=\"\",container!=\"POD\",namespace=~\"$namespace\"} - container_memory_total_active_file_bytes{metrics_path=\"/metrics/cadvisor\",container!=\"\",container!=\"POD\",namespace=~\"$namespace\"}, \"workload\", \"$1\", \"pod\", \"^(.+?)(?:(?:-[a-z0-9]{8,10})?-[a-z0-9]{5})?$\")))[$window:5m])",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "refId": "J",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "quantile_over_time(0.95, (max by (namespace, workload, container) (label_replace(rate(container_cpu_usage_seconds_total{metrics_path=\"/metrics/cadvisor\",container!=\"\",container!=\"POD\",namespace=~\"$namespace\"}[5m]), \"workload\", \"$1\", \"pod\", \"^(.+?)(?:(?:-[a-z0-9]{8,10})?-[a-z0-9]{5})?$\")))[$window:5m])",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "refId": "K",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "max by (namespace, workload, container) (label_replace(kube_pod_container_resource_requests{resource=\"cpu\",namespace=~\"$namespace\"}, \"workload\", \"$1\", \"pod\", \"^(.+?)(?:(?:-[a-z0-9]{8,10})?-[a-z0-9]{5})?$\"))",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "indexByName": {
+              "namespace": 0,
+              "workload": 1,
+              "container": 2,
+              "Value #A": 3,
+              "Value #B": 4,
+              "Value #C": 5,
+              "Value #D": 6,
+              "Value #E": 7,
+              "Value #F": 8,
+              "Value #G": 9,
+              "Value #H": 10,
+              "Value #I": 11,
+              "Value #J": 12,
+              "Value #K": 13
+            },
+            "renameByName": {
+              "Value #A": "Mem request",
+              "Value #B": "Mem limit",
+              "Value #C": "Own mem p99",
+              "Value #D": "Own mem max",
+              "Value #E": "working_set max",
+              "Value #F": "RSS max",
+              "Value #G": "Suggested request",
+              "Value #H": "Suggested limit (min)",
+              "Value #I": "Request / p99",
+              "Value #J": "CPU p95",
+              "Value #K": "CPU request",
+              "namespace": "Namespace",
+              "workload": "Workload",
+              "container": "Container"
+            }
+          }
+        }
+      ],
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "sortBy": [
+          {
+            "displayName": "Request / p99",
+            "desc": false
+          }
+        ],
+        "footer": {
+          "show": false
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "decimals": 0,
+          "custom": {
+            "align": "auto",
+            "filterable": true
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Request / p99"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percentunit"
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "red",
+                      "value": null
+                    },
+                    {
+                      "color": "green",
+                      "value": 0.9
+                    },
+                    {
+                      "color": "blue",
+                      "value": 2
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "CPU.*"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "decimals",
+                "value": 3
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Suggested request"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Memory components: $container",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 26
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "max(container_memory_working_set_bytes{metrics_path=\"/metrics/cadvisor\",namespace=~\"$namespace\",container=\"$container\"})",
+          "legendFormat": "working_set",
+          "range": true
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "max(container_memory_working_set_bytes{metrics_path=\"/metrics/cadvisor\",namespace=~\"$namespace\",container=\"$container\"} - container_memory_total_active_file_bytes{metrics_path=\"/metrics/cadvisor\",namespace=~\"$namespace\",container=\"$container\"})",
+          "legendFormat": "own memory (no file cache)",
+          "range": true
+        },
+        {
+          "refId": "C",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "max(container_memory_rss{metrics_path=\"/metrics/cadvisor\",namespace=~\"$namespace\",container=\"$container\"})",
+          "legendFormat": "RSS",
+          "range": true
+        },
+        {
+          "refId": "D",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "max(container_memory_total_active_file_bytes{metrics_path=\"/metrics/cadvisor\",namespace=~\"$namespace\",container=\"$container\"})",
+          "legendFormat": "active file cache",
+          "range": true
+        },
+        {
+          "refId": "E",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "max(kube_pod_container_resource_requests{resource=\"memory\",namespace=~\"$namespace\",container=\"$container\"})",
+          "legendFormat": "request",
+          "range": true
+        },
+        {
+          "refId": "F",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "max(kube_pod_container_resource_limits{resource=\"memory\",namespace=~\"$namespace\",container=\"$container\"})",
+          "legendFormat": "limit",
+          "range": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 0
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "own memory (no file cache)"
+            },
+            "properties": [
+              {
+                "id": "custom.lineWidth",
+                "value": 2
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "request|limit"
+            },
+            "properties": [
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "fill": "dash",
+                  "dash": [
+                    10,
+                    10
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "max",
+            "p95"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    }
+  ]
+}
