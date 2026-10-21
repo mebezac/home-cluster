@@ -7,4 +7,6 @@ resources:
   - ./prometheusrule.yaml
   - postgres-17-cluster.yaml
   - scheduled-backup.yaml
-  - service.yaml
+# No LoadBalancer: the old 10.25.30.120:5432 Service put the superuser on the
+# LAN. Every client is in-cluster (postgres-17-cluster-rw.database.svc). For a
+# desktop client use: kubectl port-forward -n database svc/postgres-17-cluster-rw 5432
