@@ -52,6 +52,13 @@ configs:
       g, mcp, role:admin
 controller:
   replicas: 1
+  # non-file memory (working_set - active_file), 14d to 2026-10-21: p99 790Mi, max 1079Mi (2026-10-02 audit saw 1599Mi). CPU p95 90m.
+  resources:
+    requests:
+      cpu: 100m
+      memory: 896Mi
+    limits:
+      memory: 3Gi
   metrics:
     enabled: true
     applicationLabels:
@@ -102,6 +109,13 @@ notifications:
         release: victoria-metrics-stack
 repoServer:
   replicas: 1
+  # non-file memory (working_set - active_file), 14d to 2026-10-21: p99 71Mi, max 314Mi (helm/ksops renders spike). CPU p95 168m.
+  resources:
+    requests:
+      cpu: 150m
+      memory: 128Mi
+    limits:
+      memory: 2Gi
   metrics:
     enabled: true
     serviceMonitor:

@@ -30,11 +30,10 @@ controllers:
           Logging__LogLevel__Default: Information
           Logging__LogLevel__NetworkOptimizer: Information
         resources:
-          # 7d metrics (2026-09-08): peak 494Mi, p95 478Mi - request was
-          # roughly half of real usage.
+          # non-file memory (working_set - active_file), 14d to 2026-10-21: p99 411Mi, max 427Mi.
           requests:
             cpu: 10m
-            memory: 640Mi
+            memory: 448Mi
           limits:
             memory: 1Gi
         probes:

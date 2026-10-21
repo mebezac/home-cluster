@@ -33,10 +33,11 @@ controllers:
               failureThreshold: 3
           readiness: *probes
         resources:
-          # 7d metrics (2026-10-02): peak 929Mi, p95 627Mi; OOMKilled at 1Gi.
+          # non-file memory (working_set - active_file), 14d to 2026-10-21: p99 238Mi, max 360Mi. working_set reaches ~1Gi from download page
+          # cache. The 2026-10-02 OOM kill was at a 1Gi limit; keep the 2Gi limit.
           requests:
             cpu: 10m
-            memory: 640Mi
+            memory: 256Mi
           limits:
             gpu.intel.com/i915: 1
             memory: 2Gi

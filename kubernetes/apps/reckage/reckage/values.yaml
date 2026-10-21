@@ -65,7 +65,8 @@ controllers:
               initialDelaySeconds: 5
               periodSeconds: 15
         resources:
-          requests: { cpu: 10m, memory: 128Mi }
+          # non-file memory (working_set - active_file), 14d to 2026-10-21: p99 11Mi, max 18Mi.
+          requests: { cpu: 10m, memory: 32Mi }
           limits: { memory: 512Mi }
 
 service:

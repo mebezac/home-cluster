@@ -40,7 +40,8 @@ controllers:
         resources:
           requests:
             cpu: 25m
-            memory: 192M
+            # non-file memory (working_set - active_file), 14d to 2026-10-21: p99 360Mi, max 360Mi.
+            memory: 400Mi
           limits:
             memory: 768M
 service:

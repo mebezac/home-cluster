@@ -21,9 +21,11 @@ controllers:
           - secretRef:
               name: immich-db-secret
         resources:
+          # non-file memory (working_set - active_file), 14d to 2026-10-21: p99 901Mi, max 992Mi. Mostly shared_buffers (shared memory), which
+          # RSS does not show (RSS max 343Mi). CPU p95 4m.
           requests:
-            cpu: 1000m
-            memory: 250Mi
+            cpu: 100m
+            memory: 960Mi
           limits:
             memory: 2Gi
 

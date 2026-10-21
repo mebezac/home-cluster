@@ -34,7 +34,8 @@ controllers:
         resources:
           requests:
             cpu: 5m
-            memory: 16Mi
+            # non-file memory (working_set - active_file), 14d to 2026-10-21: p99 36Mi, max 145Mi (INFO used_memory_peak 297M over 19d).
+            memory: 64Mi
           limits:
             memory: 640Mi
         securityContext:

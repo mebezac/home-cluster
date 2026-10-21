@@ -32,10 +32,12 @@ controllers:
             drop:
               - ALL
         resources:
+          # non-file memory (working_set - active_file), 14d to 2026-10-21: max 34Mi. A limit with no request made the request 512Mi.
           requests:
             cpu: 10m
+            memory: 64Mi
           limits:
-            memory: 512Mi
+            memory: 256Mi
 defaultPodOptions:
   securityContext:
     runAsNonRoot: true

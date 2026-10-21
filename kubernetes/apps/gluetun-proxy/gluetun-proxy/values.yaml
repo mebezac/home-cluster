@@ -45,6 +45,13 @@ controllers:
         envFrom:
           - secretRef:
               name: gluetun-proxy-secret
+        resources:
+          # non-file memory (working_set - active_file), 14d to 2026-10-21: p99 105Mi, max 124Mi.
+          requests:
+            cpu: 10m
+            memory: 128Mi
+          limits:
+            memory: 320Mi
         securityContext:
           capabilities:
             add:

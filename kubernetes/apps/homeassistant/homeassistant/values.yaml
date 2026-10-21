@@ -24,9 +24,10 @@ controllers:
         # Not privileged: HA mounts no device (Z-Wave/Zigbee run in their own
         # pods), and containerd's default caps still include NET_RAW for ping.
         resources:
+          # non-file memory (working_set - active_file), 14d to 2026-10-21: p99 752Mi, max 767Mi.
           requests:
             cpu: 100m
-            memory: 512Mi
+            memory: 800Mi
           limits:
             memory: 2Gi
 

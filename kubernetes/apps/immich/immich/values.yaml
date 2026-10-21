@@ -38,9 +38,10 @@ controllers:
           - secretRef:
               name: *secret
         resources:
+          # non-file memory (working_set - active_file), 14d to 2026-10-21: p99 668Mi, max 746Mi.
           requests:
             cpu: 100m
-            memory: 250Mi
+            memory: 704Mi
           limits:
             memory: 2Gi
         probes:
@@ -113,10 +114,11 @@ controllers:
           requests:
             cpu: 100m
             gpu.intel.com/i915: 1
-            memory: 1500Mi
+            # non-file memory (working_set - active_file), 14d to 2026-10-21: p99 1783Mi, max 2417Mi. working_set reads ~700Mi higher (file cache).
+            memory: 1920Mi
           limits:
             gpu.intel.com/i915: 1
-            memory: 4Gi
+            memory: 5Gi
 
   machine-learning:
     annotations:
@@ -158,12 +160,11 @@ controllers:
           - secretRef:
               name: *secret
         resources:
-          # 7d metrics (2026-09-08): peak 1.9Gi, p95 1.4Gi. The 250Mi request
-          # was ~6x below real usage and the 8Gi limit was the single largest
-          # limit reservation on talmac-02.
+          # non-file memory (working_set - active_file), 14d to 2026-10-21: p99 407Mi, max 1745Mi (while models load). The limit covers the
+          # load peak; the request covers the steady state.
           requests:
             cpu: 100m
-            memory: 1536Mi
+            memory: 512Mi
           limits:
             memory: 3Gi
         probes:

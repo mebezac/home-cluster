@@ -29,10 +29,13 @@ spec:
                 - gateway.envoyproxy.io/owning-gateway-name
         container:
           resources:
+            # non-file memory (working_set - active_file), 14d to 2026-10-21: max 70Mi per proxy. A limit with no request made the request
+            # 1Gi, so 4 proxies reserved 4Gi.
             requests:
               cpu: 100m
+              memory: 128Mi
             limits:
-              memory: 1Gi
+              memory: 512Mi
       envoyPDB:
         minAvailable: 1
       envoyService:

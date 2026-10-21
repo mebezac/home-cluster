@@ -57,9 +57,10 @@ vmsingle:
         requests:
           storage: 20Gi
     resources:
+      # non-file memory (working_set - active_file), 14d to 2026-10-21: p99 1429Mi, max 1580Mi. CPU p95 232m.
       requests:
-        cpu: 100m
-        memory: 1Gi
+        cpu: 250m
+        memory: 1536Mi
       limits:
         memory: 4Gi
   route:
@@ -99,11 +100,10 @@ vmagent:
     externalLabels:
       cluster: home-cluster
     resources:
-      # 7d metrics (2026-10-02): peak 437Mi while scraping observability only;
-      # cluster-wide scraping adds ~28 scrape objects (8 cilium-agents).
+      # non-file memory (working_set - active_file), 14d to 2026-10-21: p99 255Mi, max 278Mi (scraping every namespace). CPU p95 226m.
       requests:
-        cpu: 50m
-        memory: 512Mi
+        cpu: 250m
+        memory: 320Mi
       limits:
         memory: 1Gi
 

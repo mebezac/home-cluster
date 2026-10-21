@@ -21,7 +21,8 @@ controllers:
           requests:
             # 542m on 20260823, ~890m on 20261014 (false-positive filter, Lenient)
             cpu: 900m
-            memory: 512Mi
+            # non-file memory (working_set - active_file), 14d to 2026-10-21: p99 735Mi, max 766Mi.
+            memory: 800Mi
           limits:
             memory: 2Gi
 
