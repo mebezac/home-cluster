@@ -5,7 +5,7 @@ metadata:
   name: private-apps
   namespace: argo-system
 spec:
-  project: default
+  project: kubernetes
   source:
     repoURL: https://github.com/mebezac/home-cluster-private.git
     path: kubernetes/argo/apps
@@ -24,8 +24,11 @@ spec:
       - CreateNamespace=true
       - ServerSideApply=true
       - RespectIgnoreDifferences=true
+  # Only the automated block is ignored (same as apps.yaml), so auto-sync can
+  # still be paused by hand on a child app. Ignoring all of /spec/syncPolicy
+  # silently dropped git edits to syncOptions and managedNamespaceMetadata.
   ignoreDifferences:
     - group: argoproj.io
       kind: Application
       jsonPointers:
-        - /spec/syncPolicy
+        - /spec/syncPolicy/automated
