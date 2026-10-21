@@ -14,7 +14,7 @@ controllers:
       init-config:
         image:
           repository: docker.io/owncloud/ocis
-          tag: 8.2.1@sha256:155c8daf63991772640ffcd5a505b41c0484b56ae519fcbf119c0811804968b1
+          tag: 8.2.2@sha256:9d23fef10e2ee883b73e7c67698da70a62124128e49245396718e94a4cfd7a02
         command:
           - /bin/sh
           - -c
@@ -32,7 +32,7 @@ controllers:
           # PROXY_AUTOPROVISION_* / external-OIDC upgrade notes do not apply. Keep this digest in
           # sync with the init-config container above - they must be the same build.
           # digest-only bumps: the REVISION build-arg is NOT an owncloud/ocis commit; compare `go version -m usr/bin/ocis` (vcs.revision + Go version) from the binary layer via crane blob
-          tag: 8.2.1@sha256:155c8daf63991772640ffcd5a505b41c0484b56ae519fcbf119c0811804968b1
+          tag: 8.2.2@sha256:9d23fef10e2ee883b73e7c67698da70a62124128e49245396718e94a4cfd7a02
         env:
           DEMO_USERS: false
           OCIS_LOG_COLOR: false
