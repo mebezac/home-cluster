@@ -40,6 +40,14 @@ resources:
   limits:
     memory: 160Mi
 
+# Run on the control-plane nodes too. Without this, logs from apiserver,
+# scheduler, controller-manager and cilium on those 3 nodes were never
+# collected (audit 2026-10-21, after the wyse-5070-03 stall on 2026-10-20).
+tolerations:
+  - key: node-role.kubernetes.io/control-plane
+    operator: Exists
+    effect: NoSchedule
+
 podMonitor:
   enabled: true
   vm: true
