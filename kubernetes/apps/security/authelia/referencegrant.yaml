@@ -28,6 +28,9 @@ spec:
     - group: gateway.envoyproxy.io
       kind: SecurityPolicy
       namespace: ps5
+    - group: gateway.envoyproxy.io
+      kind: SecurityPolicy
+      namespace: changedetection
   to:
     - group: ""
       kind: Service

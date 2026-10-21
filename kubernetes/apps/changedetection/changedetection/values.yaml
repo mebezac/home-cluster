@@ -1,3 +1,11 @@
+defaultPodOptions:
+  securityContext:
+    # The app container runs as 3000 (below). browserless runs as its own
+    # non-root user (999), so runAsUser is set per container, not here.
+    fsGroup: 3000
+    fsGroupChangePolicy: OnRootMismatch
+    seccompProfile: { type: RuntimeDefault }
+
 controllers:
   changedetection:
     annotations:
@@ -20,6 +28,23 @@ controllers:
           PORT: &port 5000
           USE_X_SETTINGS: 1
           PLAYWRIGHT_DRIVER_URL: ws://localhost:3000/?stealth=1&--disable-web-security=true&--user-data-dir=~/browserless-cache-123
+          # The image's HOME is /root, which uid 3000 cannot write.
+          HOME: /tmp
+        securityContext:
+          runAsUser: 3000
+          runAsGroup: 3000
+          runAsNonRoot: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+        resources:
+          # non-file memory (working_set - active_file), 14d to 2026-10-21: p99 ~72Mi.
+          requests:
+            cpu: 10m
+            memory: 96Mi
+          limits:
+            memory: 256Mi
       browser:
         image:
           repository: ghcr.io/browserless/chrome
@@ -33,6 +58,13 @@ controllers:
           ENABLE_DEBUGGER: "false"
           CONNECTION_TIMEOUT: "300000"
           MAX_CONCURRENT_SESSIONS: "10"
+        resources:
+          # non-file memory, 14d to 2026-10-21: p99 277Mi, max 281Mi (idle Chrome).
+          requests:
+            cpu: 10m
+            memory: 320Mi
+          limits:
+            memory: 1Gi
 service:
   app:
     controller: changedetection
@@ -41,6 +73,10 @@ service:
         port: *port
 route:
   app:
+    # No OIDC upstream; the built-in single password has no 2FA. Authelia
+    # forward auth (./authelia.yaml) gives SSO + 2FA.
+    labels:
+      auth: authelia
     hostnames:
       - changedetection.laboratory.casa
     parentRefs:
@@ -60,3 +96,9 @@ persistence:
     size: 512Mi
     globalMounts:
       - path: /datastore
+  tmp:
+    type: emptyDir
+    advancedMounts:
+      changedetection:
+        app:
+          - path: /tmp
