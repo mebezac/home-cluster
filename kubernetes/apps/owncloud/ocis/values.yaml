@@ -2,6 +2,8 @@ controllers:
   ocis:
     annotations:
       reloader.stakater.com/auto: "true"
+    serviceAccount:
+      identifier: ocis
     pod:
       securityContext:
         runAsUser: 1000
@@ -81,6 +83,96 @@ controllers:
             drop:
               - ALL
 
+  # Weekly: delete abandoned partial uploads. On 2026-10-21 these held 13.7 GiB
+  # of the 14.1 GiB on ocis-data (user files live on S3). The CLI needs oCIS's
+  # internal services on 127.0.0.1, so it must run inside the ocis pod; a
+  # standalone pod with the same volume hangs. Complete uploads stuck in
+  # processing are NOT cleaned (--processing=false) - decide on those by hand:
+  # `ocis storage-users uploads sessions --processing`.
+  upload-cleanup:
+    type: cronjob
+    serviceAccount:
+      identifier: cleanup
+    cronjob:
+      schedule: "30 4 * * 0"
+      concurrencyPolicy: Forbid
+      successfulJobsHistory: 1
+      failedJobsHistory: 1
+      backoffLimit: 0
+    pod:
+      automountServiceAccountToken: true
+      securityContext:
+        runAsUser: 3000
+        runAsGroup: 3000
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+    containers:
+      clean:
+        image:
+          repository: registry.k8s.io/kubectl
+          tag: v1.36.5@sha256:0667e3f3e6ef435d7cd4c16684244703ebd67314c17511c2a9f87ea44f6cdf6b
+        args:
+          - exec
+          - -n
+          - owncloud
+          - deploy/ocis
+          - -c
+          - ocis
+          - --
+          - ocis
+          - storage-users
+          - uploads
+          - sessions
+          - --expired
+          - --processing=false
+          - --clean
+        env:
+          HOME: /tmp
+        resources:
+          requests:
+            cpu: 10m
+            memory: 32Mi
+          limits:
+            memory: 128Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+              - ALL
+
+serviceAccount:
+  ocis:
+    forceRename: ocis
+  cleanup:
+    forceRename: ocis-upload-cleanup
+
+rbac:
+  roles:
+    cleanup:
+      type: Role
+      forceRename: ocis-upload-cleanup
+      rules:
+        - apiGroups: ["apps"]
+          resources: ["deployments"]
+          resourceNames: ["ocis"]
+          verbs: ["get"]
+        - apiGroups: [""]
+          resources: ["pods"]
+          verbs: ["get", "list"]
+        - apiGroups: [""]
+          resources: ["pods/exec"]
+          verbs: ["create"]
+  bindings:
+    cleanup:
+      type: RoleBinding
+      forceRename: ocis-upload-cleanup
+      roleRef:
+        identifier: cleanup
+      subjects:
+        - identifier: cleanup
+
 service:
   app:
     controller: ocis
@@ -114,10 +206,15 @@ persistence:
   config:
     type: configMap
     name: ocis
-    globalMounts:
-      - path: /etc/ocis/web.yaml
-        subPath: web.yaml
-        readOnly: true
+    # advancedMounts (not globalMounts) for config and data, so the
+    # upload-cleanup CronJob pod does not try to attach the RWO volume.
+    advancedMounts:
+      ocis:
+        ocis: &webyaml
+          - path: /etc/ocis/web.yaml
+            subPath: web.yaml
+            readOnly: true
+        init-config: *webyaml
   data:
     enabled: true
     type: persistentVolumeClaim
@@ -126,11 +223,14 @@ persistence:
     suffix: data
     # 2026-10-02: 96% full (15.1 of 15.7 GB). Longhorn expands online.
     size: 30Gi
-    globalMounts:
-      - path: /var/lib/ocis
-        subPath: data
-      - path: /etc/ocis
-        subPath: config
+    advancedMounts:
+      ocis:
+        ocis: &datamounts
+          - path: /var/lib/ocis
+            subPath: data
+          - path: /etc/ocis
+            subPath: config
+        init-config: *datamounts
   tmpfs:
     type: emptyDir
     globalMounts:
