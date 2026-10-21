@@ -1,0 +1,35 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/monitoring.coreos.com/prometheusrule_v1.json
+# The upstream etcdDatabaseHighFragmentationRatio only fires when more than
+# 100MiB is IN USE. This etcd uses ~50MB, so it never fires, while the file on
+# disk grew from 51MB to 114MB in 3 weeks after a defrag (2026-10-02 -> 10-21).
+# Fragmentation is normal for bbolt and harmless until the file nears the
+# quota. Defrag by hand (talosctl etcd defrag, one member at a time, leader
+# last), e.g. during a Talos upgrade.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: etcd-local
+spec:
+  groups:
+    - name: etcd-local
+      rules:
+        - alert: EtcdFragmented
+          expr: |
+            etcd_mvcc_db_total_size_in_bytes{job=~".*etcd.*"} > 250 * 1024 * 1024
+            and
+            (1 - etcd_mvcc_db_total_size_in_use_in_bytes{job=~".*etcd.*"} / etcd_mvcc_db_total_size_in_bytes{job=~".*etcd.*"}) > 0.5
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: 'etcd {{ $labels.instance }} file is {{ $value | humanize1024 }}B and over half is free pages'
+            description: 'Run talosctl etcd defrag on one member at a time, leader last. See kubernetes/apps/observability/victoria-metrics-stack/etcd-rules.yaml.'
+        - alert: EtcdDatabaseNearQuota
+          expr: etcd_mvcc_db_total_size_in_bytes{job=~".*etcd.*"} / etcd_server_quota_backend_bytes{job=~".*etcd.*"} > 0.5
+          for: 15m
+          labels:
+            severity: critical
+          annotations:
+            summary: 'etcd {{ $labels.instance }} uses {{ $value | humanizePercentage }} of its quota'
+            description: 'At 100% etcd goes read-only and the cluster stops accepting changes. Defrag now; if in-use size is the cause, find what grew.'

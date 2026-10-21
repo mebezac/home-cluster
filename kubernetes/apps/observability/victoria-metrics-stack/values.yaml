@@ -197,6 +197,14 @@ defaultRules:
     # ReplicaSets, standalone Jobs or bare pods). Keep it off.
     RecordingRulesNoData:
       enabled: false
+    # Talos kubelets expose only the client cert metrics, not
+    # kubelet_certificate_manager_server_* / kubelet_server_expiration_renew_errors,
+    # so these two can never fire. Serving certs are self-signed (metrics-server
+    # uses --kubelet-insecure-tls), so there is nothing to watch yet.
+    KubeletServerCertificateExpiration:
+      enabled: false
+    KubeletServerCertificateRenewalErrors:
+      enabled: false
   groups:
     vmcluster:
       enabled: false

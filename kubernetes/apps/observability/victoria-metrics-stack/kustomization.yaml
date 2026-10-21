@@ -4,5 +4,6 @@ resources:
   - alertmanager-config.yaml
   - authelia.yaml
   - rightsizing-rules.yaml
+  - etcd-rules.yaml
 generators:
   - secret-generator.yaml

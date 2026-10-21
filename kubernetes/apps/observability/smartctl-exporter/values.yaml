@@ -16,6 +16,24 @@ serviceMonitor:
 prometheusRules:
   enabled: true
   rules:
+    # All 5 monitored disks are SATA (interface="sat"). These three read
+    # NVMe-only fields and can never fire; the SATA rule below replaces them.
+    smartCTLDeviceMediaErrors:
+      enabled: false
+    smartCTLDeviceCriticalWarning:
+      enabled: false
+    smartCTLDeviceAvailableSpareUnderThreshold:
+      enabled: false
+    smartCTLDeviceSectorErrors:
+      enabled: true
+      alert: SmartCTLDeviceSectorErrors
+      expr: increase(smartctl_device_attribute{attribute_name=~"Reallocated_Sector_Ct|Current_Pending_Sector|Offline_Uncorrectable|Reported_Uncorrect",attribute_value_type="raw"}[1d]) > 0
+      for: 0m
+      annotations:
+        summary: '{{ $labels.attribute_name }} grew on {{ $labels.device }}'
+        description: 'Disk {{ $labels.device }} on {{ $labels.instance }} gained bad or pending sectors in the last day. Check it with smartctl and its Longhorn replicas.'
+      labels:
+        severity: warning
     smartCTLDDeviceTemperature:
       enabled: true
       alert: SmartCTLDDeviceTemperature
