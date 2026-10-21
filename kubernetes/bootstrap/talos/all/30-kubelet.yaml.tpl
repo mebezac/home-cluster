@@ -21,6 +21,9 @@ machine:
       # re-pulled from another node over the LAN rather than from the internet.
       # Must stay above imageMinimumGCAge (2m0s).
       imageMaximumGCAge: 168h
+      # Kubelet serving certs signed by the cluster CA (CSR approved by kubelet-csr-approver
+      # in kube-system), so metrics-server can verify kubelet TLS (audit 2026-10-21 #45).
+      serverTLSBootstrap: true
     extraMounts:
       - destination: /var/lib/longhorn
         type: bind

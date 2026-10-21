@@ -14,6 +14,13 @@ certExtraSANs:
   - 10.25.30.116
   - 10.25.30.127
   - 127.0.0.1
+# Talos defaults to requests 200m / 512Mi. 7-day p95 is 2.7-2.8Gi, peak 3.4-3.8Gi,
+# CPU p95 0.39-0.57 cores (audit 2026-10-21 #2). No memory limit: an OOM-killed
+# apiserver hurts more than a tight node.
+resources:
+  requests:
+    cpu: 500m
+    memory: 3Gi
 ---
 apiVersion: v1alpha1
 kind: KubeControllerManagerConfig
