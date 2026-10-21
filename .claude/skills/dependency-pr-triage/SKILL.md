@@ -300,6 +300,18 @@ kubernetes MCP (read-only) for these, e.g.:
   `mcp__kubernetes-mcp-server__pods_list_in_namespace`, `..._pods_log`.
 - Anything where "is this even deployed / healthy right now" changes whether the
   user wants to touch it this weekend.
+- **A chart bump (not a digest bump) in a namespace that enforces PodSecurity
+  `restricted`** — today `security` (authelia, lldap) and `cert-manager`; check
+  `kubectl get ns -L pod-security.kubernetes.io/enforce` for the current list.
+  A new container or a dropped `securityContext` in the new chart version makes
+  admission **refuse** the pod. It does not crash, so no crash-loop alert
+  fires, and the old pods keep running until something restarts them. For
+  Authelia that means SSO goes down on the next restart. Before you merge,
+  render the PR's chart version and do
+  `helm template … | kubectl apply --dry-run=server -n <ns> -f -`. Any
+  `violates PodSecurity "restricted"` line is a blocker. After merge, a stuck
+  rollout shows as `KubeDeploymentRolloutStuck` (~25 min) and as
+  `FailedCreate … violates PodSecurity` in the ReplicaSet's events.
 
 Don't reflexively hit the cluster for every PR — only when it materially changes
 the recommendation. A digest bump of a leaf app never needs it.
