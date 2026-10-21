@@ -82,12 +82,13 @@ plugins:
   - victoriametrics-metrics-datasource
   - victoriametrics-logs-datasource
 # non-file memory (working_set - active_file), 14d to 2026-10-21: grafana p99 151Mi, max 153Mi; each k8s-sidecar max ~77Mi.
+# First limit on this container: >= 4x the recorded max, because 5-minute samples miss startup spikes (copyparty, 2026-10-21).
 resources:
   requests:
     cpu: 30m
     memory: 160Mi
   limits:
-    memory: 512Mi
+    memory: 1Gi
 
 sidecar:
   resources:
@@ -95,7 +96,7 @@ sidecar:
       cpu: 5m
       memory: 96Mi
     limits:
-      memory: 256Mi
+      memory: 384Mi
   datasources:
     enabled: true
     searchNamespace: ALL

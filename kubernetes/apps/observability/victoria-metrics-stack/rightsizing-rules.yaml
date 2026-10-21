@@ -33,3 +33,18 @@ spec:
               label_replace(container_memory_nofile_bytes, "workload", "$1", "pod",
                 "^(.+?)(?:(?:-[a-z0-9]{8,10})?-[a-z0-9]{5})?$")
             )
+    # A memory limit that is too tight shows up only as restarts. copyparty
+    # crash-looped for 35 minutes on 2026-10-21 and nothing alerted.
+    - name: oom
+      rules:
+        - alert: ContainerOOMKilled
+          expr: |
+            (increase(kube_pod_container_status_restarts_total[15m]) >= 1)
+            and on (namespace, pod, container)
+            (max_over_time(kube_pod_container_status_last_terminated_reason{reason="OOMKilled"}[15m]) == 1)
+          for: 0m
+          labels:
+            severity: warning
+          annotations:
+            summary: '{{ $labels.namespace }}/{{ $labels.pod }} {{ $labels.container }} was OOM-killed'
+            description: 'The container hit its memory limit and restarted. Raise the limit (Right-sizing dashboard), or find the leak.'

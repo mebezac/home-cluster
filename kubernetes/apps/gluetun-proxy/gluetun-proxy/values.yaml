@@ -50,8 +50,9 @@ controllers:
           requests:
             cpu: 10m
             memory: 128Mi
+          # First limit on this container: >= 4x the recorded max, because 5-minute samples miss startup spikes (copyparty, 2026-10-21).
           limits:
-            memory: 320Mi
+            memory: 512Mi
         securityContext:
           capabilities:
             add:
