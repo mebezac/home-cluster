@@ -36,7 +36,8 @@ controllers:
     # (01-tailscale / 02-rclone) or rclone will block on a mount it cannot make
     # while tailscale waits behind it - a permanent deadlock.
     # Both sidecars still start before garage, which also fixes garage racing
-    # tailscale for its replication peers.
+    # tailscale for its replication peers - tailscale's startupProbe on /healthz
+    # (200 only once the node has a tailnet IP) is what makes that wait real.
     # Bonus: sidecars are torn down AFTER regular containers, so rclone's
     # preStop unmount now runs after garage has stopped writing, instead of
     # racing it.
@@ -54,6 +55,8 @@ controllers:
           TS_KUBE_SECRET: "tailscale-auth"
           TS_USERSPACE: "false"
           TS_DEBUG_FIREWALL_MODE: "auto"
+          # Serves /healthz on [::]:9002 (TS_LOCAL_ADDR_PORT default); gates the startupProbe below
+          TS_ENABLE_HEALTH_CHECK: "true"
           POD_NAME:
             valueFrom:
               fieldRef:
@@ -69,6 +72,21 @@ controllers:
           limits:
             devic.es/tun: "1"
         restartPolicy: Always
+        probes:
+          # Without this, kubelet marks the sidecar Started as soon as the
+          # process runs, before the node has a tailnet IP.
+          startup:
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /healthz
+                port: 9002
+              periodSeconds: 2
+              timeoutSeconds: 2
+              failureThreshold: 30
+          liveness: { enabled: false }
+          readiness: { enabled: false }
       rclone:
         image:
           # changelog: rclone.org/changelog (PR body is just a link). This mount IS garage's
