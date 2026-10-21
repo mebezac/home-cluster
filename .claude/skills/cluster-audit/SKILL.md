@@ -168,26 +168,49 @@ stayed current. Prefer switching to a real version stream over adding a
 reading will make you shrink something that bursts, and miss things that are
 chronically under-requested.
 
+**Start from the Grafana dashboard Homelab / Right-sizing** (`homelab-rightsizing`).
+It shows every workload container with request, own-memory p99/max,
+`working_set` max, RSS max, a suggested request and limit, and request/p99 as a
+coloured cell. Then confirm the rows you will act on with the queries below.
+
+**Size memory from `working_set − active_file`, never from `working_set`.**
+`working_set` still counts *active* page cache. An app that copies big files over
+NFS fills that cache, and the kernel reclaims it before it OOM-kills anything.
+On 2026-10-21 this audit told sonarr to go to 1.4Gi/3.5Gi off a 1.9Gi
+`working_set` peak. Its own memory peaked at 369Mi, and there was never an OOM
+kill. pinchflat, qbittorrent, vmsingle and immich-microservices were over-read
+the same way. **RSS alone is also wrong**: it leaves out shared memory, so
+Postgres-type apps look far too small (immich-db RSS 343Mi, real 992Mi).
+The recording rule `container_memory_nofile_bytes` (and
+`workload_container:container_memory_nofile_bytes:max`) holds this metric from
+2026-10-21 on. For a window that starts earlier, use the raw expression.
+
+**Merge all pods of a workload before you take a percentile.** The max of each
+pod's own p95 lets a short-lived pod (restart, rollout) set the number. Strip the
+pod hash with `label_replace` and take `max by` at each step. Every pod
+generation is still included, because the max over pods is taken at each step,
+so the old lesson still holds (jellyfin's 1.1Gi transcode peak was in an older
+pod).
+
 ```bash
 VM=http://vmsingle-victoria-metrics-stack.observability.svc.cluster.local:8428
-# run curl from a throwaway pod; RETRY, the transient pods are flaky
-max by (namespace,pod,container) (max_over_time(container_memory_working_set_bytes{container!=""}[7d]))
-max by (namespace,pod,container) (quantile_over_time(0.95, container_memory_working_set_bytes{container!=""}[7d]))
-max by (namespace,pod,container) (max_over_time(rate(container_cpu_usage_seconds_total{container!=""}[5m])[7d:5m]))
+# query via: kubectl exec -n observability <vmalert pod> -c vmalert -- wget -qO- --post-data="query=<urlencoded>" $VM/api/v1/query
+RE='^(.+?)(?:(?:-[a-z0-9]{8,10})?-[a-z0-9]{5})?$'     # always matches, so StatefulSets keep a workload label
+S='metrics_path="/metrics/cadvisor",container!="",container!="POD"'   # /metrics/resource duplicates working_set
+NOFILE = max by (namespace,wl,container) (label_replace(container_memory_working_set_bytes{S} - container_memory_total_active_file_bytes{S}, "wl","$1","pod",RE))
+quantile_over_time(0.99, (NOFILE)[14d:5m])      # request ≈ this × 1.1
+max_over_time((NOFILE)[14d:5m])                 # limit ≥ 2 × this
+# CPU: same wrapping on rate(container_cpu_usage_seconds_total{S}[5m]), p95
 ```
 
-**Query per-pod, and keep every pod generation.** Aggregating
-`by (namespace,container)` — or stripping replicaset hashes and merging — silently
-drops older pods. That is exactly what hid the two findings that mattered:
-
-- **jellyfin** showed 183Mi live; an older pod had peaked at **1.1Gi** mid-transcode
-- **sonarr** looked oversized at ~200Mi; it had peaked at **986Mi**, so its
-  existing 384Mi/2Gi was correct and the right action was *no change*
-
-Sizing rule: **request ≈ p95**, **memory limit ≈ 2× true peak**, CPU request from
-p95 with no CPU limit (repo convention). Expect requests to go **up** for several
-apps — being under-requested is as real a defect as being over-provisioned, and
-only the 7d window reveals it.
+Sizing rule: **memory request ≈ own-memory p99 × 1.1**, **memory limit ≥ 2 ×
+own-memory max**, CPU request from p95 with no CPU limit (repo convention). Keep
+an existing limit when it is above that. For a big-I/O app the limit also bounds
+its page cache, and a tight limit just makes the cache reclaim more often.
+**A limit with no request sets the request equal to the limit.** That is how
+4 Envoy proxies reserved 4Gi for 260Mi of use, so always set both. Expect some
+requests to go up and some to go down. Under-requesting is as real a defect as
+over-provisioning.
 
 ## 5. The report — Artifact, ASD-STE100 Simplified Technical English
 
