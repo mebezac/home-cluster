@@ -1,4 +1,11 @@
 fullnameOverride: k8s-gateway
+# The chart (3.7.2, newest on ghcr) still defaults to image 1.7.0 while its
+# labels say 1.8.0. Pin the image ourselves. 1.8.x is dependency bumps only.
+# changelog: GH releases k8s-gateway/k8s_gateway
+image:
+  registry: ghcr.io
+  repository: k8s-gateway/k8s_gateway
+  tag: 1.8.2@sha256:e7d334bc486fc78e2f2366da2029b7308240d500330e85d2367d4d9cc46a5e52
 # 2 replicas + PDB (pdb.yaml): this is the ONLY in-cluster resolver for
 # laboratory.casa / heremag.free. At 1 replica a node drain took cluster
 # DNS for those zones down entirely. The chart ships no PDB, so it lives
