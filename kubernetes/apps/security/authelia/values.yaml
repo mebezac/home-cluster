@@ -16,9 +16,9 @@ controllers:
         envFrom:
           - secretRef:
               name: authelia-initdb-secret
-        # PodSecurity "restricted" is enforced here and the app container
-        # already satisfies it; init-db did not, so admission logged a warning
-        # on every rollout. readOnlyRootFilesystem is deliberately NOT set:
+        # Namespace `security` enforces PodSecurity "restricted" (labels via
+        # managedNamespaceMetadata in kubernetes/argo/apps/security/authelia.yaml,
+        # since 2026-10-21). Every container here must set these two fields. readOnlyRootFilesystem is deliberately NOT set:
         # "restricted" does not require it, and postgres-init may need scratch
         # space - no reason to risk authelia failing to start over it.
         securityContext:
