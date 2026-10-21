@@ -121,6 +121,15 @@ Every brief must include:
 - **judge each hit** — real problem or expected noise; report only real ones with the exact line and how often it repeats
 - **resources**: compare `resources.txt` against `top-pods.txt`
 - **best practice, both halves**: (a) this repo's CLAUDE.md rules — images pinned `tag@sha256`, never `latest`; `laboratory.casa` + `internal`/`external`; runAs 3000; `stringData` with no `type:`; `ghcr.io/bjw-s-labs/helm`; single-source Argo app must not carry an unconsumed `ref:`; central PG + central valkey. (b) upstream current practice via `mcp__context7__query-docs`, `mcp__git-grep__searchGitHub`, web search
+- **move to git**: list app settings that live only in the app's UI, database or
+  volume (e.g. HA `.storage/*`, Jellyfin `network.xml`, Z-Wave JS UI
+  `settings.json`, *arr settings in their SQLite, Grafana dashboards in its
+  DB) and say for each whether git can own it: an env var (`<APP>__SECTION__KEY`
+  for the *arr apps), a config file from a ConfigMap or sops secret, a provisioning
+  mechanism (Grafana), or an init container that sets just those keys at
+  start. Read-only: look at the files with `kubectl exec … cat`, never edit
+  them. Check upstream docs before you claim an option exists. Skip settings
+  that the app rewrites at runtime, or that are only runtime state.
 - **return findings as text, not a file** — subagents are blocked from writing report files; ask for a ~800-word structured summary (Critical / Warning / Resources / Best practice / Healthy)
 - "Every finding needs concrete evidence (log line, number, file:line). **Do NOT change anything.**"
 
@@ -240,7 +249,11 @@ Keep this section order, and drop a section only when it has nothing in it:
 3. **Fix now**: numbered work order, `what / why / fix` per item
 4. **Fix soon**: unordered
 5. **Resources**: the 7-day table (p95, peak, request/limit, proposal)
-6. Clean-up, then Hygiene (house rules)
+6. Clean-up, then Hygiene (house rules), then **Move to git**: one numbered
+   row per setting that lives only in an app's UI/DB/volume, with the way
+   git could own it. Every setting the fix loop changes by hand inside an app
+   (not in git) also becomes a Move-to-git row, so manual changes never go
+   unrecorded.
 7. **Closed since <baseline date>**: what the last audit flagged that is now fixed
 8. **What is good**: a grid; always present
 9. Footer: method, the repo commits audited, the baseline used
@@ -251,7 +264,7 @@ been open for more than one cycle.
 **Give every actionable item its own number, so the user can say "do #14".**
 - One sequence across the whole report: Fix now first (1–N), then Fix soon,
   then each open Resources row and each leftover resource note, then
-  Clean-up, then Hygiene. Not-actionable sections (incident, Closed since,
+  Clean-up, then Hygiene, then Move to git. Not-actionable sections (incident, Closed since,
   What is good) get no numbers.
 - Show the number as a `<span class="id">#14</span>` badge, and put
   `id="i14"` on the element, so `<link>#i14` jumps to it. Fix now draws its
