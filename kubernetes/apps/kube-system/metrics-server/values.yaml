@@ -1,9 +1,8 @@
 ---
+# The chart's defaultArgs already set --kubelet-preferred-address-types, --kubelet-use-node-status-port
+# and --metric-resolution=15s (the upstream minimum). Kubelet serving certs are signed by the cluster CA
+# (Talos kubelet serverTLSBootstrap + kubelet-csr-approver), so kubelet TLS is verified (audit 2026-10-21 #45).
 args:
-  - --kubelet-insecure-tls
-  - --kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname
-  - --kubelet-use-node-status-port
-  - --metric-resolution=10s
   - --kubelet-request-timeout=2s
 metrics:
   enabled: true
