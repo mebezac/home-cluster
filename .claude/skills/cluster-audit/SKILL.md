@@ -207,6 +207,14 @@ Sizing rule: **memory request ≈ own-memory p99 × 1.1**, **memory limit ≥ 2 
 own-memory max**, CPU request from p95 with no CPU limit (repo convention). Keep
 an existing limit when it is above that. For a big-I/O app the limit also bounds
 its page cache, and a tight limit just makes the cache reclaim more often.
+**5-minute samples miss startup spikes.** copyparty peaked at 231Mi in 14 days of
+data, so it got a 512Mi limit. It was then OOM-killed ~10s after every start
+(378Mi seen at startup) and crash-looped for 35 minutes before anyone noticed.
+When you add a limit to a container that had **none**, give it ≥ 4 × the
+recorded max (or 2Gi), watch the first restart with `kubectl top` for 3
+minutes, and sweep `lastState.terminated.reason=="OOMKilled"` across the
+cluster after the batch lands. Tighten later, from data recorded under the
+new limit.
 **A limit with no request sets the request equal to the limit.** That is how
 4 Envoy proxies reserved 4Gi for 260Mi of use, so always set both. Expect some
 requests to go up and some to go down. Under-requesting is as real a defect as
