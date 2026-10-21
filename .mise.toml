@@ -46,7 +46,7 @@ python = "3.15.1"
 node = "24.22.1"
 # changelog: GH releases renovatebot/renovate (PR body truncates on big jumps; list releases between tags). Local use is renovate-config-validator only; the Mend bot runs its own version
 # libzip 3.2.2 was hand-published by the yarn lead (arcanis) without provenance; 3.2.0/3.2.1 had it via yarnbot
-"npm:renovate" = { version = "44.175.5", trust_policy_excludes = ["@yarnpkg/libzip@3.2.2"] }
+"npm:renovate" = { version = "44.176.0", trust_policy_excludes = ["@yarnpkg/libzip@3.2.2"] }
 
 [tasks.argocd-mcp-token]
 description = "Generate a token for the ArgoCD account mcp into mcp-secrets.sops.json (restart Claude Code after)"
