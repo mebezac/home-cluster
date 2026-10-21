@@ -27,6 +27,11 @@ defaultSettings:
   # Terminating forever and its volume never moved. Force-delete the pod so the
   # controller reschedules it and Longhorn reattaches the volume elsewhere.
   nodeDownPodDeletionPolicy: delete-both-statefulset-and-deployment-pod
+  # Empty = orphaned replica dirs (from deleted volumes or replaced replicas) stay on disk
+  # forever; 5 had piled up on the talmac USB disks (audit 2026-10-21 #35). Longhorn
+  # deletes orphan data and leftover instance processes after the grace period
+  # (default 300s). It never touches orphans on failed or unknown nodes.
+  orphanResourceAutoDeletion: replica-data;instance
 metrics:
   serviceMonitor:
     # The VM operator converts this to a VMServiceScrape for vmagent.
