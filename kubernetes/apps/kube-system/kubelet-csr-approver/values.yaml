@@ -1,0 +1,21 @@
+---
+# Approves kubelet serving-cert CSRs (Talos kubelet serverTLSBootstrap: true), so
+# metrics-server can verify kubelet TLS instead of --kubelet-insecure-tls (audit 2026-10-21 #45).
+# A CSR is approved only if its hostname matches providerRegex and every IP SAN is in
+# providerIpPrefixes. Node names are not in DNS, so the DNS check is bypassed.
+providerRegex: ^(elitebook-0[0-9]|wyse-5070-0[0-9]|talmac-0[0-9])(-talos-k3s-(main|worker)-0[0-9])?$
+providerIpPrefixes:
+  - 10.25.30.0/24
+bypassDnsResolution: true
+maxExpirationSeconds: "31622400" # 366 days
+image:
+  tag: v1.2.15@sha256:6469ef517d2b6d3cb108fce8a913483533a48b1cd78b5d4af307fa09e04a7818
+resources:
+  requests:
+    cpu: 10m
+    memory: 32Mi
+  limits:
+    memory: 128Mi
+metrics:
+  serviceMonitor:
+    enabled: true
