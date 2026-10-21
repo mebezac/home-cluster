@@ -31,8 +31,10 @@ kind: HTTPRoute
 metadata:
   name: garage-tc-console
 spec:
+  # LAN/tailnet only (2026-10-21): it was public with only the Garage Web UI's
+  # own login in front. external-dns removes the Cloudflare record.
   parentRefs:
-    - name: envoy-external
+    - name: envoy-internal
       sectionName: https
   hostnames:
     - garage-tc-console.laboratory.casa
