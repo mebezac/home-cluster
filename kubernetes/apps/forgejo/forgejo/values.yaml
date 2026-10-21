@@ -29,6 +29,19 @@ controllers:
         securityContext:
           allowPrivilegeEscalation: false
           capabilities: { drop: ["ALL"] }
+      # Forgejo exits at startup (storage.Init ... connection refused) when
+      # Garage is not up, e.g. when Renovate rolls both in the same minute
+      # (2026-10-21: 2 restarts). Wait for the S3 port first.
+      wait-for-garage:
+        image:
+          repository: busybox
+          tag: 1.38.0@sha256:fd7dc98638c8e305f4dc34e979f1c0fdfdcaeb0fbf8fcff77ae834b6da3d7e6e
+        command: ["/bin/sh", "-c"]
+        args:
+          - until nc -z -w 2 garage-s3.garage.svc.cluster.local 3900; do echo "waiting for garage-s3:3900"; sleep 2; done
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities: { drop: ["ALL"] }
     containers:
       app:
         image:
