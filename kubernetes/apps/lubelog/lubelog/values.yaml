@@ -31,6 +31,10 @@ controllers:
         env:
           TZ: America/New_York
           LC_ALL: en_US.UTF-8
+          # ASP.NET keeps its DataProtection keys in $HOME/.aspnet. The image's
+          # HOME is /, and uid 3000 cannot reach /root, so keys stayed in memory
+          # and every restart logged everyone out. Point HOME at the keys mount.
+          HOME: /home/lubelog
         envFrom: *envFrom
         resources:
           # 7d metrics (2026-09-08): peak 37Mi, CPU peak 10m.
@@ -77,7 +81,7 @@ persistence:
         subPath: images
       - path: /App/log
         subPath: log
-      - path: /root/.aspnet/DataProtection-Keys
+      - path: /home/lubelog/.aspnet/DataProtection-Keys
         subPath: keys
   tmp:
     type: emptyDir
