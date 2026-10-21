@@ -9,5 +9,5 @@ neutral summary. Findings and their detail belong in the Artifact, not here.
 
 | Date | Report | Baseline used | Status |
 |---|---|---|---|
-| 2026-10-21 | https://claude.ai/artifact/3y9tNH7y8hKq69TtgeKCWn | 2026-10-02 | Fix-now 4, 5, 7–10 done; 6 kept; 3 withdrawn. Fix-soon 12, 14, 16–20, 22–25, 27, 28 closed; 22 tested and enabled; 11 waits for Talos upgrade. 1–2 wait for Talos upgrade. |
+| 2026-10-21 | https://claude.ai/artifact/3y9tNH7y8hKq69TtgeKCWn | 2026-10-02 | Fix-now 4, 5, 7–10 done; 6 kept; 3 withdrawn. Fix-soon 12, 14, 16–20, 22–25, 27–29 closed; 22 tested and enabled; 11 waits for Talos upgrade. 1–2 wait for Talos upgrade. |
 | 2026-10-02 | https://claude.ai/artifact/1TdaUmP962GS6Nt6y3RFXG | none (first run) | All 10 fix-now done. Most "fix soon" items done; the rest carried into 2026-10-21. |
