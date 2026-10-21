@@ -7,11 +7,21 @@ controllers:
       app:
         image:
           repository: ghcr.io/esphome/esphome
-          # changelog: esphome.io/changelog/<major.minor>.0.html ONLY - a patch page 404s, patch notes live in the GH release. A bump changes the DASHBOARD only - devices keep old firmware until reflashed
+          # changelog: esphome.io/changelog/<major.minor>.0.html ONLY - a patch page 404s, patch notes live in the GH release. Since 2026.10 that page only lists PRs; breaking changes + upgrade checklist are in the linked blog post esphome.io/blog/YYYY/MM/DD/esphome-YYYY-MM/. A bump changes the DASHBOARD only - devices keep old firmware until reflashed
           tag: 2026.10.0@sha256:1dff19a59070cdb523b76576cdc74d200f862d43c1407809088855920cf57145
         env:
           - name: TZ
             value: "America/New_York"
+          # Dashboard auth (also gates the /api/mcp endpoint added in 2026.10). The
+          # Device Builder reads ESPHOME_*; bare USERNAME/PASSWORD is the deprecated
+          # legacy pair. With a password set, HA's mcp integration cannot connect.
+          - name: ESPHOME_USERNAME
+            value: "esp"
+          - name: ESPHOME_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: esphome-secret
+                key: password
           - name: ESPHOME_DASHBOARD_USE_PING
             value: "true"
         resources:
