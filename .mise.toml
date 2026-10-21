@@ -17,7 +17,7 @@ _.file = { path = "{{config_root}}/mcp-secrets.sops.json", redact = true }
 
 [tools]
 # changelog: docs.python.org/3.<minor>/whatsnew (PR body is a bare compare link); only consumer: stdlib python3 -c in .claude/skills/talos-upgrade/scripts/talmac-upgrade.sh
-python = "3.15.0"
+python = "3.15.1"
 # Operations tools
 # changelog: GH releases argoproj/argo-cd; keep = appVersion of the argo-cd chart in kubernetes/argo/apps/argo-system/argo-cd.yaml
 "aqua:argoproj/argo-cd" = "3.5.5"
