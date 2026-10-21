@@ -21,8 +21,8 @@ controllers:
         env:
           - name: TZ
             value: "America/New_York"
-        securityContext:
-          privileged: true
+        # Not privileged: HA mounts no device (Z-Wave/Zigbee run in their own
+        # pods), and containerd's default caps still include NET_RAW for ping.
         resources:
           requests:
             cpu: 100m
