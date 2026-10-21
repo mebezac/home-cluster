@@ -28,6 +28,17 @@ prometheusRule:
       for: 2m
       labels:
         severity: critical
+    # Central valkey runs maxmemory-policy noeviction: at the cap, writes fail
+    # (Authelia sessions, immich/BullMQ queues). Peak so far: 297MB of 448MB.
+    # (max_bytes > 0: argo's own redis reports no maxmemory, ratio = +Inf.)
+    - alert: ValkeyMemoryHigh
+      annotations:
+        summary: 'Valkey uses {{ "{{" }} $value | humanizePercentage {{ "}}" }} of maxmemory'
+        description: Central valkey refuses writes at 100% (noeviction). Find the database that grows (INFO keyspace), or raise maxmemory and the 640Mi limit together.
+      expr: redis_memory_used_bytes{job="prometheus-redis-exporter"} / (redis_memory_max_bytes{job="prometheus-redis-exporter"} > 0) > 0.8
+      for: 10m
+      labels:
+        severity: warning
 auth:
   enabled: true
   secret:
