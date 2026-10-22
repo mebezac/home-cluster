@@ -69,7 +69,10 @@ persistence:
     storageClass: longhorn
     accessMode: ReadWriteOnce
     suffix: data
-    size: 5Gi
+    # 5Gi filled up on 2026-10-22: after a library-wide rename Jellyfin gave
+    # every renamed file a new item (new metadata and image folders), and it
+    # refuses to start with less than 2GiB free in /config/data.
+    size: 20Gi
     globalMounts:
       - path: /config
         subPath: config
