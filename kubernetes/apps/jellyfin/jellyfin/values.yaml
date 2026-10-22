@@ -18,14 +18,18 @@ controllers:
           # 7d metrics (2026-09-08): peak 1.1Gi during transcoding, p95 770Mi.
           # The peak came from an OLDER pod generation - the running pod was
           # only at 183Mi, so a snapshot would have sized this far too low and
-          # OOM-killed a transcode. 2Gi limit keeps ~2x headroom over the peak.
+          # OOM-killed a transcode.
+          # 2026-10-22: OOM-killed at the 2Gi limit by a bulk Sonarr/Radarr rename
+          # (~2,300 files, one library update per series at once); 1-minute
+          # samples never showed it above 554Mi, so the spike was short. 4Gi
+          # gives library scans room; the node has 32Gi.
           requests:
             cpu: 100m
             gpu.intel.com/i915: 1
             memory: 768Mi
           limits:
             gpu.intel.com/i915: 1
-            memory: 2Gi
+            memory: 4Gi
 
 service:
   main:
