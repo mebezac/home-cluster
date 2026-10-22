@@ -31,6 +31,10 @@ spec:
     - group: gateway.envoyproxy.io
       kind: SecurityPolicy
       namespace: changedetection
+    # policy lives in kubernetes/apps/homeassistant/zwave-js-ui/authelia.yaml
+    - group: gateway.envoyproxy.io
+      kind: SecurityPolicy
+      namespace: homeassistant
   to:
     - group: ""
       kind: Service

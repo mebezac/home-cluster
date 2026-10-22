@@ -63,6 +63,10 @@ service:
 
 route:
   main:
+    # zwave-js-ui has its own login turned off (gateway.authEnabled false), so
+    # Authelia guards the UI. HA reaches the ws server on :3000 via the Service.
+    labels:
+      auth: authelia
     hostnames:
       - zwave.laboratory.casa
     parentRefs:
