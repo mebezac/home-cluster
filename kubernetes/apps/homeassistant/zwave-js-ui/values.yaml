@@ -25,6 +25,12 @@ controllers:
           readiness: *probes
           startup:
             enabled: false
+        # S0/S2/LR network keys (audit 2026-10-22). They were only in settings.json on
+        # the PVC; zwave-js-ui reads KEY_* / KEY_LR_* env over the file, so git now
+        # holds them and a lost PVC no longer means re-including every device.
+        envFrom:
+          - secretRef:
+              name: zwave-js-ui-secret
         securityContext:
           privileged: true
         resources:
