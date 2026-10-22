@@ -27,6 +27,8 @@ controllers:
           TZ: America/New_York
           PORT: &port 5000
           USE_X_SETTINGS: 1
+          # Links in notifications ({{ base_url }}); the UI field is empty, so env wins.
+          BASE_URL: https://changedetection.laboratory.casa
           PLAYWRIGHT_DRIVER_URL: ws://localhost:3000/?stealth=1&--disable-web-security=true&--user-data-dir=~/browserless-cache-123
           # The image's HOME is /root, which uid 3000 cannot write.
           HOME: /tmp
