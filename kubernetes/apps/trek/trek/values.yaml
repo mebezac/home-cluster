@@ -34,6 +34,9 @@ controllers:
           OIDC_SCOPE: openid email profile groups
           OIDC_ADMIN_CLAIM: groups
           OIDC_ADMIN_VALUE: apps_admin
+          # SSO only: replaces the UI-only "no password registration" toggle and turns
+          # off password login (the one user is an OIDC admin). Audit 2026-10-22.
+          OIDC_ONLY: "true"
         envFrom:
           - secretRef:
               name: trek-secret

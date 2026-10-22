@@ -29,6 +29,7 @@ controllers:
         env:
           EMAIL_VERIFICATION_DISABLED: "1"
           DANGEROUSLY_ALLOW_WEBHOOK_INTERNAL_URLS: "1"
+          TELEMETRY_DISABLED: "1"
         envFrom: *envFrom
         resources:
           # 7d metrics (2026-09-08): CPU peak 2m against a 500m request - the
