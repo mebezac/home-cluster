@@ -50,14 +50,14 @@ controllers:
           # future release (deprecation warnings as of 2.33.0). Set explicitly so the
           # change is a decision, not a silent inherit.
           N8N_UNVERIFIED_PACKAGES_ENABLED: true
+          N8N_RUNNERS_TASK_TIMEOUT: 300
+          N8N_COMPRESSION_NODE_MAX_DECOMPRESSED_SIZE_BYTES: 2147483648
+          N8N_COMPRESSION_NODE_MAX_ZIP_ENTRIES: 5000
           # Community nodes from git (audit 2026-10-22): n8n installs, updates and
           # REMOVES packages to match this list on start. The Formbricks node was
           # installed in the UI; "Formbricks to Dropbox" uses it.
           N8N_COMMUNITY_PACKAGES_MANAGED_BY_ENV: true
           N8N_COMMUNITY_PACKAGES: '[{"name":"@formbricks/n8n-nodes-formbricks","version":"1.0.2"}]'
-          N8N_RUNNERS_TASK_TIMEOUT: 300
-          N8N_COMPRESSION_NODE_MAX_DECOMPRESSED_SIZE_BYTES: 2147483648
-          N8N_COMPRESSION_NODE_MAX_ZIP_ENTRIES: 5000
           # Prometheus /metrics on the app port (blocked publicly, see metrics-block.yaml)
           N8N_METRICS: true
           N8N_METRICS_INCLUDE_MESSAGE_EVENT_BUS_METRICS: true
