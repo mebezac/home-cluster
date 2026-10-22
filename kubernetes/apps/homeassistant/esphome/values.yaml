@@ -66,3 +66,28 @@ persistence:
     size: 10Gi
     globalMounts:
       - path: /config
+  # Device YAMLs and their secrets.yaml come from git (audit 2026-10-22); before
+  # that they lived only on the PVC. Read-only, so the dashboard can't save an
+  # edit that a restart would lose: change config/*.yaml and push. Build cache
+  # (.esphome/) and dashboard state stay on the PVC. New device: add its file
+  # here, to the kustomization, and to the list below.
+  devices:
+    type: configMap
+    name: esphome-devices
+    globalMounts:
+      - path: /config/plug-sb-01-esphome.yaml
+        subPath: plug-sb-01-esphome.yaml
+        readOnly: true
+      - path: /config/plug-sb-06-esphome.yaml
+        subPath: plug-sb-06-esphome.yaml
+        readOnly: true
+      - path: /config/plug-sb-07-esphome.yaml
+        subPath: plug-sb-07-esphome.yaml
+        readOnly: true
+  secrets:
+    type: secret
+    name: esphome-secret
+    globalMounts:
+      - path: /config/secrets.yaml
+        subPath: secrets.yaml
+        readOnly: true
