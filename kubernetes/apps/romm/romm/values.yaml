@@ -133,10 +133,14 @@ persistence:
   config:
     type: configMap
     name: romm-config
-    globalMounts:
-      - path: /romm/config/config.yml
-        subPath: config.yml
-        readOnly: true
+    # app only: the fix-permissions init container chowns /romm/config and
+    # fails on a read-only file.
+    advancedMounts:
+      romm:
+        app:
+          - path: /romm/config/config.yml
+            subPath: config.yml
+            readOnly: true
 
   nas:
     enabled: true
