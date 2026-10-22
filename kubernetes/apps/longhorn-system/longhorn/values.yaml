@@ -15,6 +15,14 @@ defaultBackupStore:
 defaultSettings:
   allowCollectingLonghornUsageMetrics: false
   autoDeletePodWhenVolumeDetachedUnexpectedly: true
+  # These five were UI edits; git owns them since 2026-10-22 (audit). One backup and
+  # one restore at a time, each allowed 10 min (default 1): the CIFS target on the
+  # NAS is slow. Replica timeout 15s (default 8) rides out talmac USB-disk stalls.
+  backupConcurrentLimit: 1
+  restoreConcurrentLimit: 1
+  backupExecutionTimeout: 10
+  engineReplicaTimeout: '{"v1":"15","v2":"15"}'
+  logLevel: Warn
   # Live-upgrade volume engines to the new default engine image after a chart bump,
   # one volume per node at a time. 0 (the default) leaves every volume on the old
   # engine until someone upgrades it by hand in the UI.
