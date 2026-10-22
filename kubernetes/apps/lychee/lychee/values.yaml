@@ -35,6 +35,10 @@ controllers:
           PHP_TZ: America/New_York
           REDIS_PORT: 6379
           TRUSTED_PROXIES: "*"
+          # Was set only in a stale /app/.env on the PVC (removed 2026-10-22, audit).
+          # Every other key there matched Laravel's defaults (file cache and
+          # sessions, sync queue). Code default is false.
+          LOG_VIEWER_ENABLED: "true"
           SECURITY_HEADER_SCRIPT_SRC_ALLOW: https://analytics.laboratory.casa/script.js
           SECURITY_HEADER_CSP_CONNECT_SRC: https://analytics.laboratory.casa/script.js
         envFrom: *envFrom
@@ -94,8 +98,6 @@ persistence:
     suffix: data
     size: 2Gi
     globalMounts:
-      - path: /app/.env
-        subPath: conf/.env
       - path: /sym
         subPath: sym
       - path: /app/storage/app
