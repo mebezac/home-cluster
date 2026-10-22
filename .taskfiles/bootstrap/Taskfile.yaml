@@ -43,7 +43,7 @@ tasks:
       - kubectl apply --server-side --filename {{.KUBERNETES_DIR}}/argo
     vars:
       SOPS_SECRET_EXISTS:
-        sh: kubectl --namespace argo-system get secret sops-age &>/dev/null && echo true || echo false
+        sh: kubectl --namespace argo-system get secret helm-secrets-private-keys &>/dev/null && echo true || echo false
     preconditions:
       - test -f {{.KUBECONFIG}}
       - test -f {{.KUBERNETES_DIR}}/bootstrap/helmfile.yaml
