@@ -130,6 +130,13 @@ persistence:
         subPath: config
       - path: /romm/assets
         subPath: assets
+  config:
+    type: configMap
+    name: romm-config
+    globalMounts:
+      - path: /romm/config/config.yml
+        subPath: config.yml
+        readOnly: true
 
   nas:
     enabled: true

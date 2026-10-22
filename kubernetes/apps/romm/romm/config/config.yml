@@ -1,0 +1,58 @@
+# RomM config.yml, from git since 2026-10-22 (audit); copied from the live file.
+# Mounted read-only, so the UI cannot edit exclusions or platform bindings
+# (RomM shows the config as not writable): change them here.
+emulatorjs:
+  cache_limit: null
+  controls: {}
+  debug: false
+  settings: {}
+exclude:
+  platforms: []
+  roms:
+    multi_file:
+      names: []
+      parts:
+        extensions: []
+        names: []
+    single_file:
+      extensions: []
+      names:
+      - .DS_Store
+filesystem:
+  structure:
+    default: "roms/{platform}/{game}"
+    firmware: "bios/{platform}"
+scan:
+  priority:
+    artwork:
+    - igdb
+    - moby
+    - ss
+    - ra
+    - lb
+    - hasheous
+    - tgdb
+    - flashpoint
+    - hltb
+    language:
+    - en
+    - fr
+    metadata:
+    - igdb
+    - moby
+    - ss
+    - ra
+    - lb
+    - hasheous
+    - tgdb
+    - flashpoint
+    - hltb
+    region:
+    - us
+    - wor
+    - ss
+    - eu
+    - jp
+system:
+  platforms: {}
+  versions: {}
