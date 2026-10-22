@@ -66,13 +66,29 @@ persistence:
     size: 1Gi
     globalMounts:
       - path: /config
+  # data and clips were made by hand with kubectl in 2026-07 (the v2 move) and
+  # used as existingClaim. Now the chart owns them under their old names, with
+  # the live spec copied exactly (storageClass and accessMode are immutable).
+  # Prune=false,Delete=false: Argo never deletes them, even if this key goes away.
   data:
     # db, cache, logs, models — kept on Longhorn (SQLite needs durability + safe locking)
-    existingClaim: birdnet-go-data-v2
+    forceRename: birdnet-go-data-v2
+    type: persistentVolumeClaim
+    storageClass: longhorn
+    accessMode: ReadWriteOnce
+    size: 5Gi
+    annotations:
+      argocd.argoproj.io/sync-options: Prune=false,Delete=false
     globalMounts:
       - path: /data
   clips:
     # audio recordings — bulk, non-critical data on TrueNAS NFS (no replication needed)
-    existingClaim: birdnet-go-clips
+    forceRename: birdnet-go-clips
+    type: persistentVolumeClaim
+    storageClass: freenas-api-nfs
+    accessMode: ReadWriteOnce
+    size: 50Gi
+    annotations:
+      argocd.argoproj.io/sync-options: Prune=false,Delete=false
     globalMounts:
       - path: /data/clips
