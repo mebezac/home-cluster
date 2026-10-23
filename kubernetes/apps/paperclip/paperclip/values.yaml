@@ -1,0 +1,152 @@
+defaultPodOptions:
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 3000
+    runAsGroup: 3000
+    fsGroup: 3000
+    fsGroupChangePolicy: OnRootMismatch
+    seccompProfile: { type: RuntimeDefault }
+  # Agents run as child processes of the server. Upstream gives them 90s to
+  # finish and write their state before the pod is killed.
+  terminationGracePeriodSeconds: 90
+
+controllers:
+  paperclip:
+    annotations:
+      reloader.stakater.com/auto: "true"
+    initContainers:
+      # The app user owns its database, so the migrations can create the
+      # trusted extensions they need (pg_trgm, fuzzystrmatch).
+      init-db:
+        image:
+          repository: ghcr.io/home-operations/postgres-init
+          tag: 18.6@sha256:87627baaddb0cabed4ebe033e75038e5c7b6b081c18e86514c99067179a90719
+          pullPolicy: IfNotPresent
+        envFrom: &envFrom
+          - secretRef:
+              name: paperclip-secret
+    containers:
+      app:
+        image:
+          repository: ghcr.io/paperclipai/paperclip
+          # changelog: GH releases paperclipai/paperclip (date-based versions)
+          tag: 2026.1012.0@sha256:1661b3dd3fdf7a9b59542d1ced464c3faf9dc8309798b4d15a9923ed32795307
+        env:
+          TZ: America/New_York
+          HOST: 0.0.0.0
+          PORT: &port 3100
+          # Own email+password login. No SSO exists, and Authelia in front
+          # would block the agents' Bearer-token API calls.
+          PAPERCLIP_DEPLOYMENT_MODE: authenticated
+          PAPERCLIP_DEPLOYMENT_EXPOSURE: private
+          PAPERCLIP_PUBLIC_URL: https://paperclip.laboratory.casa
+          # The private hostname guard rejects any other Host header. The
+          # webhook hostname is the envoy-external route below.
+          PAPERCLIP_ALLOWED_HOSTNAMES: paperclip-webhooks.laboratory.casa
+          PAPERCLIP_CHAT_WEBHOOK_PUBLIC_URL: https://paperclip-webhooks.laboratory.casa
+          # Envoy pods sit on pod IPs (10.x). Trust them for X-Forwarded-For.
+          TRUST_PROXY: uniquelocal
+          PAPERCLIP_MIGRATION_AUTO_APPLY: "true"
+          # The central CNPG cluster has daily backups; skip the hourly pg_dump.
+          PAPERCLIP_DB_BACKUP_ENABLED: "false"
+          PAPERCLIP_TELEMETRY_DISABLED: "1"
+          DO_NOT_TRACK: "1"
+        envFrom: *envFrom
+        probes:
+          # /api/health is 503 while Postgres is down. Liveness checks only the
+          # socket, so a database failover does not restart the pod and kill
+          # running agents. Probes send Host: localhost because the hostname
+          # guard rejects the pod IP.
+          startup:
+            enabled: true
+            custom: true
+            spec:
+              httpGet: &health
+                path: /api/health
+                port: *port
+                httpHeaders:
+                  - name: Host
+                    value: localhost
+              periodSeconds: 5
+              timeoutSeconds: 5
+              failureThreshold: 60
+          liveness:
+            enabled: true
+            custom: true
+            spec:
+              tcpSocket:
+                port: *port
+              periodSeconds: 30
+              timeoutSeconds: 5
+              failureThreshold: 3
+          readiness:
+            enabled: true
+            custom: true
+            spec:
+              httpGet: *health
+              periodSeconds: 10
+              timeoutSeconds: 5
+              failureThreshold: 3
+        resources:
+          # The agent CLIs (claude, codex, opencode) run inside this container.
+          # Upstream's ECS example gives the task 2 vCPU and 4 GB. Size from
+          # metrics once the org is busy.
+          requests:
+            cpu: 250m
+            memory: 1Gi
+          limits:
+            memory: 8Gi
+
+service:
+  app:
+    controller: paperclip
+    ports:
+      http:
+        port: *port
+
+route:
+  app:
+    hostnames:
+      - paperclip.laboratory.casa
+    parentRefs:
+      - name: envoy-internal
+        namespace: network
+        sectionName: https
+    rules:
+      - backendRefs:
+          - identifier: app
+            port: http
+  # Internet callers (Telegram, Slack, GitHub, routine triggers) reach only the
+  # webhook paths. Everything else on this hostname gets a 404.
+  webhooks:
+    hostnames:
+      - paperclip-webhooks.laboratory.casa
+    parentRefs:
+      - name: envoy-external
+        namespace: network
+        sectionName: https
+    rules:
+      - matches:
+          - path:
+              type: PathPrefix
+              value: /api/chat-webhooks/
+          - path:
+              type: PathPrefix
+              value: /api/voice-webhooks/
+          - path:
+              type: PathPrefix
+              value: /api/routine-triggers/public/
+        backendRefs:
+          - identifier: app
+            port: http
+
+persistence:
+  # PAPERCLIP_HOME and HOME: agent workspaces, uploads, logs, CLI logins.
+  data:
+    type: persistentVolumeClaim
+    suffix: data
+    storageClass: longhorn
+    accessMode: ReadWriteOnce
+    size: 20Gi
+    globalMounts:
+      - path: /paperclip
