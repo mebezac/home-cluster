@@ -16,6 +16,8 @@ endpointRoutes:
   enabled: true
 envoy:
   enabled: false
+  # Pinned: chart 1.20.4 stopped rendering a default (was ads), so agents fell back to split.
+  xdsMode: split
 dashboards:
   enabled: true
 hubble:
