@@ -122,10 +122,15 @@ route:
         namespace: network
         sectionName: https
     rules:
+      # Gateway API paths are case-sensitive but n8n's Express router is not, so
+      # /METRICS got past a plain PathPrefix match (deep-dive 2026-10-23 NET-1).
       - matches:
           - path:
               type: PathPrefix
               value: /metrics
+          - path:
+              type: RegularExpression
+              value: "(?i)/metrics(/.*)?"
         filters:
           - type: ExtensionRef
             extensionRef:
