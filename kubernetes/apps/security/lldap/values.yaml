@@ -4,20 +4,7 @@ controllers:
     strategy: RollingUpdate
     annotations:
       reloader.stakater.com/auto: "true"
-    initContainers:
-      init-db:
-        image:
-          repository: ghcr.io/home-operations/postgres-init
-          tag: 18.6@sha256:87627baaddb0cabed4ebe033e75038e5c7b6b081c18e86514c99067179a90719
-          pullPolicy: IfNotPresent
-        envFrom:
-          - secretRef:
-              name: lldap-initdb-secret
-        # container-level: not inherited from the pod securityContext. Without
-        # it the namespace cannot enforce PodSecurity "restricted".
-        securityContext:
-          allowPrivilegeEscalation: false
-          capabilities: { drop: ["ALL"] }
+    # No postgres-init: CNPG owns the lldap role and database (database/postgres-17-cluster).
     pod:
       # lldap ran as ROOT because it bound :80 and :389, both privileged.
       # Container ports moved to lldap's own defaults (17170/3890) so it can

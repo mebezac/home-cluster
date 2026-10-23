@@ -7,29 +7,12 @@ controllers:
     strategy: RollingUpdate
     annotations:
       reloader.stakater.com/auto: "true"
-    initContainers:
-      init-db:
-        image:
-          repository: ghcr.io/home-operations/postgres-init
-          tag: 18.6@sha256:87627baaddb0cabed4ebe033e75038e5c7b6b081c18e86514c99067179a90719
-          pullPolicy: IfNotPresent
-        envFrom:
-          - secretRef:
-              name: authelia-initdb-secret
-        # Namespace `security` enforces PodSecurity "restricted" (labels via
-        # managedNamespaceMetadata in kubernetes/argo/apps/security/authelia.yaml,
-        # since 2026-10-21). Every container here must set these two fields. readOnlyRootFilesystem is deliberately NOT set:
-        # "restricted" does not require it, and postgres-init may need scratch
-        # space - no reason to risk authelia failing to start over it.
-        securityContext:
-          allowPrivilegeEscalation: false
-          capabilities: { drop: ["ALL"] }
+    # No postgres-init: CNPG owns the authelia role and database (database/postgres-17-cluster).
     pod:
       securityContext:
         runAsUser: 568
         runAsGroup: 568
         runAsNonRoot: true
-        # set at pod level so it covers app AND init-db in one place
         seccompProfile: { type: RuntimeDefault }
       topologySpreadConstraints:
         - maxSkew: 1
