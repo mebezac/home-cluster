@@ -1,0 +1,90 @@
+---
+# Scheduled etcd snapshots (deep-dive 2026-10-23 PLAT-1). talos-backup asks the Talos API on
+# the node it runs on for an etcd snapshot, compresses it (zstd), encrypts it with age to the
+# repo's age recipient, and uploads it to Garage bucket talos-etcd-backup. Garage keeps 3
+# copies across k8s, the NAS and hh-chi, so the snapshots leave the cluster.
+#
+# Talos API access: kubernetes/bootstrap/talos/control-plane/10-talos-api-access.yaml allows
+# role os:etcd:backup for kube-system; ./serviceaccount.yaml asks Talos for that credential.
+# Retention: a bucket lifecycle rule in Garage deletes snapshots after 30 days.
+#
+# Restore: download the newest object, `age -d -i age.key <file> | zstd -d > db.snapshot`, then
+# `talosctl -n <cp> bootstrap --recover-from=./db.snapshot` (Talos disaster recovery guide).
+defaultPodOptions:
+  automountServiceAccountToken: false
+  nodeSelector:
+    node-role.kubernetes.io/control-plane: ""
+  tolerations:
+    - key: node-role.kubernetes.io/control-plane
+      operator: Exists
+      effect: NoSchedule
+  securityContext:
+    runAsUser: 3000
+    runAsGroup: 3000
+    runAsNonRoot: true
+    seccompProfile:
+      type: RuntimeDefault
+
+controllers:
+  talos-backup:
+    type: cronjob
+    cronjob:
+      # Every 6 hours, off the hour.
+      schedule: "17 */6 * * *"
+      concurrencyPolicy: Forbid
+      successfulJobsHistory: 1
+      failedJobsHistory: 2
+      backoffLimit: 2
+    pod:
+      restartPolicy: OnFailure
+    containers:
+      app:
+        image:
+          repository: ghcr.io/siderolabs/talos-backup
+          # Upstream publishes git-describe tags from main; this build adds USE_PATH_STYLE.
+          tag: v0.1.0-beta.3-10-gb9fd478@sha256:7fc186ff37a3137f470082cb609bf1dc3bcece13dd9a6421ec09cfdf4f33ae6c
+        command:
+          - /talos-backup
+        workingDir: /tmp
+        env:
+          HOME: /tmp
+          CLUSTER_NAME: home-cluster
+          BUCKET: talos-etcd-backup
+          CUSTOM_S3_ENDPOINT: http://garage-s3.garage.svc.cluster.local:3900
+          USE_PATH_STYLE: "true"
+          AWS_REGION: us-east-1 # garage.toml s3_region
+          ENABLE_COMPRESSION: "true"
+          # Public half of home-cluster age.key (same recipient as .sops.yaml).
+          AGE_RECIPIENT_PUBLIC_KEY: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
+        envFrom:
+          - secretRef:
+              name: talos-backup-secret
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+              - ALL
+        resources:
+          requests:
+            cpu: 10m
+            memory: 64Mi
+          limits:
+            memory: 512Mi
+
+persistence:
+  tmp:
+    type: emptyDir
+    globalMounts:
+      - path: /tmp
+  talos:
+    type: emptyDir
+    globalMounts:
+      - path: /.talos
+  talos-secrets:
+    type: secret
+    # Created by Talos from ./serviceaccount.yaml (same name as the talos.dev ServiceAccount).
+    name: talos-backup
+    globalMounts:
+      - path: /var/run/secrets/talos.dev
+        readOnly: true
