@@ -136,6 +136,18 @@ spec:
         inherit: true
         passwordSecret:
           name: pg-role-forgejo
+      - name: lldap
+        ensure: present
+        login: true
+        inherit: true
+        passwordSecret:
+          name: pg-role-lldap
+      - name: authelia
+        ensure: present
+        login: true
+        inherit: true
+        passwordSecret:
+          name: pg-role-authelia
   resources:
     # Raised 2026-09-22 from 512Mi/1Gi: romm 5.3.0's startup migration (a
     # full-table UPDATE on roms with new row triggers) OOM-killed the primary
