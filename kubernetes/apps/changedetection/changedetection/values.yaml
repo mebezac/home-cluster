@@ -58,8 +58,8 @@ controllers:
           SCREEN_HEIGHT: "1024"
           SCREEN_DEPTH: "16"
           ENABLE_DEBUGGER: "false"
-          CONNECTION_TIMEOUT: "300000"
-          MAX_CONCURRENT_SESSIONS: "10"
+          TIMEOUT: "300000"
+          CONCURRENT: "10"
         resources:
           # non-file memory, 14d to 2026-10-21: p99 277Mi, max 281Mi (idle Chrome).
           requests:
