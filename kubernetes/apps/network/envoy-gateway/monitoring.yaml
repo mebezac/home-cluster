@@ -49,7 +49,7 @@ spec:
     - name: envoy-gateway
       rules:
         - alert: EnvoyProxyDown
-          expr: kube_deployment_status_replicas_available{namespace="network", deployment=~"envoy-(internal|external)"} == 0
+          expr: kube_deployment_status_replicas_available{namespace="network", deployment=~"envoy-(internal|external|guest)"} == 0
           for: 2m
           labels:
             severity: critical
@@ -58,8 +58,8 @@ spec:
             description: "Every site on the {{ $labels.deployment }} Gateway is down."
         - alert: EnvoyProxyDegraded
           expr: |
-            kube_deployment_status_replicas_available{namespace="network", deployment=~"envoy-(internal|external)"}
-              < kube_deployment_spec_replicas{namespace="network", deployment=~"envoy-(internal|external)"}
+            kube_deployment_status_replicas_available{namespace="network", deployment=~"envoy-(internal|external|guest)"}
+              < kube_deployment_spec_replicas{namespace="network", deployment=~"envoy-(internal|external|guest)"}
           for: 15m
           labels:
             severity: warning

@@ -82,3 +82,38 @@ spec:
             name: heremag-free-production-tls
           - kind: Secret
             name: zac-pizza-production-tls
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/gateway.networking.k8s.io/gateway_v1.json
+# For friends who don't live here: they reach it over the tailnet (its own
+# tag, tag:k8s-guest, is all the tailnet policy grants them). envoy-internal
+# can't be shared that way: it also serves apps with no Authelia in front, and
+# a tailnet grant can't filter by hostname. Every route on this Gateway goes
+# through Authelia (authelia.yaml), whose <app>-<group> rule decides which
+# friend may open what. Routes attach from other repos; the hostnames live
+# there and in the tailnet DNS.
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: envoy-guest
+spec:
+  gatewayClassName: envoy
+  infrastructure:
+    annotations:
+      lbipam.cilium.io/ips: 10.25.30.119
+      tailscale.com/expose: "true"
+      tailscale.com/tags: tag:k8s-guest
+  listeners:
+    # HTTPS only: guests are given https:// links, and no port 80 means no
+    # redirect route to keep outside Authelia.
+    - name: https
+      protocol: HTTPS
+      port: 443
+      # Authelia's session cookie is for laboratory.casa only.
+      hostname: "*.laboratory.casa"
+      allowedRoutes:
+        namespaces:
+          from: All
+      tls:
+        certificateRefs:
+          - kind: Secret
+            name: laboratory-casa-production-tls

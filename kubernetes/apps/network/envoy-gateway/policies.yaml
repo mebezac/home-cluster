@@ -1,6 +1,6 @@
 ---
 # yaml-language-server: $schema=https://k8s-schemas.home-operations.com/gateway.envoyproxy.io/backendtrafficpolicy_v1alpha1.json
-# Envoy -> app settings for every route on both Gateways.
+# Envoy -> app settings for every route on all three Gateways.
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: BackendTrafficPolicy
 metadata:
@@ -13,6 +13,9 @@ spec:
     - group: gateway.networking.k8s.io
       kind: Gateway
       name: envoy-external
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: envoy-guest
   # No compressor. On a route with compression, Envoy Gateway strips the
   # client's Accept-Encoding before the backend sees it. That broke clients that
   # sign the header (Garage S3 via aws-sdk-go-v2: "signed header
@@ -33,8 +36,8 @@ spec:
       streamIdleTimeout: 1h
 ---
 # yaml-language-server: $schema=https://k8s-schemas.home-operations.com/gateway.envoyproxy.io/clienttrafficpolicy_v1alpha1.json
-# Client -> Envoy settings for both Gateways. (A Gateway takes only one
-# ClientTrafficPolicy, so this one covers both.)
+# Client -> Envoy settings for envoy-internal and envoy-external. (A Gateway
+# takes only one ClientTrafficPolicy; envoy-guest has its own below.)
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: ClientTrafficPolicy
 metadata:
@@ -68,6 +71,44 @@ spec:
     lateResponseHeaders:
       # ingress-nginx defaults: hsts-max-age 31449600 + includeSubDomains,
       # hide-headers X-Powered-By.
+      addIfAbsent:
+        - name: Strict-Transport-Security
+          value: max-age=31449600; includeSubDomains
+      remove:
+        - X-Powered-By
+  http2:
+    onInvalidMessage: TerminateStream
+  tcpKeepalive:
+    idleTime: 60s
+    interval: 10s
+    probes: 3
+  tls:
+    minVersion: "1.2"
+    alpnProtocols:
+      - h2
+      - http/1.1
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/gateway.envoyproxy.io/clienttrafficpolicy_v1alpha1.json
+# Same as `envoy` above, except clientIPDetection. Guests arrive through the
+# Tailscale operator's proxy pod, which SNATs to its pod IP and adds no
+# X-Forwarded-For, so trusting that header from pods (as `envoy` does for
+# cloudflared) would only let a guest pick their own client IP. Envoy uses the
+# peer address instead: the proxy pod for tailnet clients, the real IP on the LAN.
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: ClientTrafficPolicy
+metadata:
+  name: envoy-guest
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: envoy-guest
+  headers:
+    withUnderscoresAction: DropHeader
+    earlyRequestHeaders:
+      remove:
+        - X-Real-IP
+    lateResponseHeaders:
       addIfAbsent:
         - name: Strict-Transport-Security
           value: max-age=31449600; includeSubDomains

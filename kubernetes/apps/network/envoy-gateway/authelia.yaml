@@ -39,3 +39,36 @@ spec:
         - Remote-Groups
         - Remote-Name
         - Remote-Email
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/gateway.envoyproxy.io/securitypolicy_v1alpha1.json
+# Authelia for EVERY route on envoy-guest, from any namespace, labelled or not:
+# guests must never reach an app without it. A route's own SecurityPolicy
+# (the per-namespace `authelia` above) replaces this one, with the same result.
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: authelia-guest
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: envoy-guest
+  extAuth:
+    failOpen: false
+    headersToExtAuth:
+      - accept
+      - authorization
+      - cookie
+      - proxy-authorization
+      - x-forwarded-proto
+    http:
+      backendRefs:
+        - name: authelia
+          namespace: security
+          port: 80
+      path: /api/authz/ext-authz/
+      headersToBackend:
+        - Remote-User
+        - Remote-Groups
+        - Remote-Name
+        - Remote-Email
