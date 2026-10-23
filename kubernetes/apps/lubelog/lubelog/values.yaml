@@ -11,15 +11,8 @@ controllers:
   lubelog:
     annotations:
       reloader.stakater.com/auto: "true"
-    initContainers:
-      init-db:
-        image:
-          repository: ghcr.io/home-operations/postgres-init
-          tag: 18.6@sha256:87627baaddb0cabed4ebe033e75038e5c7b6b081c18e86514c99067179a90719
-          pullPolicy: IfNotPresent
-        envFrom: &envFrom
-          - secretRef:
-              name: lubelog-secret
+    # The database and role are CNPG-managed (database/postgres-17-cluster: managed.roles +
+    # databases.yaml), so there is no postgres-init container and no superuser password here.
     containers:
       app:
         image:
@@ -35,7 +28,10 @@ controllers:
           # HOME is /, and uid 3000 cannot reach /root, so keys stayed in memory
           # and every restart logged everyone out. Point HOME at the keys mount.
           HOME: /home/lubelog
-        envFrom: *envFrom
+        envFrom:
+          # POSTGRES_CONNECTION only; the password must match database/postgres-17-cluster/roles/lubelog.sops.yaml
+          - secretRef:
+              name: lubelog-secret
         resources:
           # 7d metrics (2026-09-08): peak 37Mi, CPU peak 10m.
           requests:
