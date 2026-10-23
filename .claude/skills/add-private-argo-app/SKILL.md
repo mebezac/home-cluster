@@ -90,11 +90,20 @@ Valkey / run-as 3000 / domain are identical to add-argo-app's table.
 
 **Central Postgres is NOT private-safe as-is.** Roles are CNPG-managed in the
 PUBLIC repo (`managed.roles` in `kubernetes/apps/database/postgres-17-cluster/`),
-so a private app's role and database name would land in public git. Before
-giving a private app a central database, ask the user: a neutral role/db name
-(e.g. `priv01`) in the public spec, or SQLite/a bundled DB instead. Keep the
-password itself only in the private repo's app secret and in a `roles/*.sops.yaml`
-whose filename does not name the app.
+so a private app's role and database name would land in public git. The
+names are arbitrary, so the default is a **generic name** (`priv01`, `priv02`, ...)
+that says nothing about the app:
+- PUBLIC repo, only: the `managed.roles` entry (`name: priv01`, login + inherit,
+  `passwordSecret: pg-role-priv01`). This is the one thing that must be in the
+  public Cluster spec. No comment naming the app.
+- PRIVATE repo: the `pg-role-priv01` Secret (`username`/`password`, label
+  `cnpg.io/reload: "true"`) and the `Database` CR (`name`/`owner: priv01`,
+  `databaseReclaimPolicy: retain`), both with `namespace: database`, shipped by
+  the private app's own kustomization; plus the app's connection string
+  (`postgresql://priv01:<pw>@postgres-17-cluster-rw.database.svc.cluster.local:5432/priv01`).
+  Keep the private-repo mapping `priv01 -> <app>` in a comment there.
+Confirm with the user before adding one. SQLite or a bundled DB avoids the
+public entry entirely.
 
 ### Phase 0b — decisions
 
