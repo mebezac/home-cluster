@@ -15,17 +15,6 @@ controllers:
   reckage:
     annotations:
       reloader.stakater.com/auto: "true" # restart on secret change
-    initContainers:
-      # Provisions the reckage database/role on the central CNPG cluster before
-      # the app starts. Reads INIT_POSTGRES_* from the ksops secret.
-      init-db:
-        image:
-          repository: ghcr.io/home-operations/postgres-init
-          tag: 18.6@sha256:87627baaddb0cabed4ebe033e75038e5c7b6b081c18e86514c99067179a90719
-          pullPolicy: IfNotPresent
-        envFrom: &envFrom
-          - secretRef:
-              name: reckage-secret
     containers:
       app:
         image:
@@ -48,7 +37,9 @@ controllers:
           NOTIFICATIONS_ENABLED: "false"
           MUSICBRAINZ_USER_AGENT: "Reckage/1.0 (https://reckage.laboratory.casa)"
         # DB creds, OIDC client secret, and optional catalog/Pushover API keys.
-        envFrom: *envFrom
+        envFrom:
+          - secretRef:
+              name: reckage-secret
         probes:
           liveness:
             enabled: true

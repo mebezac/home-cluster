@@ -34,6 +34,8 @@ apiVersion: postgresql.cnpg.io/v1
 kind: Database
 metadata:
   name: paperclip
+# The app role must own its database: paperclip's migrations create the trusted
+# extensions they need (pg_trgm, fuzzystrmatch).
 spec:
   cluster:
     name: postgres-17-cluster

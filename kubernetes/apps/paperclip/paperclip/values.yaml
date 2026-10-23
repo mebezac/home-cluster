@@ -14,17 +14,6 @@ controllers:
   paperclip:
     annotations:
       reloader.stakater.com/auto: "true"
-    initContainers:
-      # The app user owns its database, so the migrations can create the
-      # trusted extensions they need (pg_trgm, fuzzystrmatch).
-      init-db:
-        image:
-          repository: ghcr.io/home-operations/postgres-init
-          tag: 18.6@sha256:87627baaddb0cabed4ebe033e75038e5c7b6b081c18e86514c99067179a90719
-          pullPolicy: IfNotPresent
-        envFrom: &envFrom
-          - secretRef:
-              name: paperclip-secret
     containers:
       app:
         image:
@@ -51,7 +40,9 @@ controllers:
           PAPERCLIP_DB_BACKUP_ENABLED: "false"
           PAPERCLIP_TELEMETRY_DISABLED: "1"
           DO_NOT_TRACK: "1"
-        envFrom: *envFrom
+        envFrom:
+          - secretRef:
+              name: paperclip-secret
         probes:
           # /api/health is 503 while Postgres is down. Liveness checks only the
           # socket, so a database failover does not restart the pod and kill

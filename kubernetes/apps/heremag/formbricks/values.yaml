@@ -11,15 +11,6 @@ controllers:
   formbricks:
     annotations:
       reloader.stakater.com/auto: "true"
-    initContainers:
-      init-db:
-        image:
-          repository: ghcr.io/home-operations/postgres-init
-          tag: 18.6@sha256:87627baaddb0cabed4ebe033e75038e5c7b6b081c18e86514c99067179a90719
-          pullPolicy: IfNotPresent
-        envFrom: &envFrom
-          - secretRef:
-              name: formbricks-secret
     containers:
       app:
         image:
@@ -30,7 +21,9 @@ controllers:
           EMAIL_VERIFICATION_DISABLED: "1"
           DANGEROUSLY_ALLOW_WEBHOOK_INTERNAL_URLS: "1"
           TELEMETRY_DISABLED: "1"
-        envFrom: *envFrom
+        envFrom:
+          - secretRef:
+              name: formbricks-secret
         resources:
           # 7d metrics (2026-09-08): CPU peak 2m against a 500m request - the
           # single largest CPU over-request in the cluster. Memory peak 300Mi,
