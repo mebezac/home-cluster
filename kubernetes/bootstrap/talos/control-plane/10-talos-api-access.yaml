@@ -1,0 +1,10 @@
+# Lets pods in kube-system get a Talos API client (a talos.dev ServiceAccount) limited to
+# os:etcd:backup, so the talos-backup CronJob (kubernetes/apps/kube-system/talos-backup)
+# can take etcd snapshots. Control plane only: the job runs on these nodes.
+# The multi-doc form replaces the deprecated .machine.features.kubernetesTalosAPIAccess.
+apiVersion: v1alpha1
+kind: KubeTalosAPIAccessConfig
+allowedRoles:
+  - os:etcd:backup
+allowedKubernetesNamespaces:
+  - kube-system
