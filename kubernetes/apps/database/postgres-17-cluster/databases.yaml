@@ -1,0 +1,19 @@
+---
+# One CNPG Database per app (deep-dive 2026-10-23 WEB-1/DATA-8). The owner role is in
+# postgres-17-cluster.yaml under managed.roles.
+#
+# databaseReclaimPolicy: retain = deleting one of these objects (or removing it from git)
+# never drops the database; drop it by hand when an app is decommissioned.
+# Encoding/locale are left unset: every existing database is UTF8 / C (the cluster's
+# initdb default), which is what CREATE DATABASE gives a new one anyway.
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: lubelog
+spec:
+  cluster:
+    name: postgres-17-cluster
+  name: lubelog
+  owner: lubelog
+  ensure: present
+  databaseReclaimPolicy: retain
