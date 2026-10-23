@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: pg-role-reckage
+  labels:
+    cnpg.io/reload: "true"
+stringData:
+  username: ENC[AES256_GCM,data:U1v2/Y40zw==,iv:uIzRsUk7ApCWqfwtKdfXb1oF4sUWcorHMhE1CDvM+ro=,tag:w3SfxfnJn5n0AzTeALEW2A==,type:str]
+  password: ENC[AES256_GCM,data:vwxnmnwSq1N4GAoXkbXC/mZ1SHBudQLKkBcFA1cwDQ==,iv:8WsrMnUnQ6NxidgJx4GBdgtoskBZykEplmdsn5xK0l4=,tag:zYbimo95ci1C6KGsCoTpwA==,type:str]
+sops:
+  age:
+    - enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBFTEFETEhpbnRJTTRwT2dJ
+        cUJ1OTR1cFA4aEV1NENocTJHNVg2NHhhNVVRCmx2NExVVkVUdFF0a3JoNTBtcWJz
+        bTdsZ0FRV3FGeGZ0UmFaRGx4MHA1QkkKLS0tIEovbkgzNFNvcU9iR3ZtcndCVTVE
+        MHJjNXRkRXEvQmo0d3FYWWEwVlIrRHMKGGz0OnW4pD2JqZ5JK5a0y4MeThIxuGKo
+        OZZxstrL5FHEI26BLIKRj42qxFe9/pTnj0dWSxTKs85WeZifLeJmrw==
+        -----END AGE ENCRYPTED FILE-----
+      recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
+  encrypted_regex: ^(data|stringData)$
+  lastmodified: "2026-10-23T16:14:07Z"
+  mac: ENC[AES256_GCM,data:T9A5JmnNkKjYr27AaStJ/D6506U058ZkQohtyeR9MTY/vVSQAUVoz7Cz5GRMZZ7onz8iTwUbbyAdTsIO98PUcZez4KysXb+NiRd7QRcm/TH3tX6VTppa6NnZ7KWcsptadt/gUPR7IL7JIr9RtKzXd8neBsZY4eUQcLKyFchO1C4=,iv:L2aARJ5DS4tzUFHNbqoVHFNaBQDFTUqFs9N/uY+NPGg=,tag:ZaUWAnLbKM8KM5ED3aFqsw==,type:str]
+  mac_only_encrypted: true
+  version: 3.13.3

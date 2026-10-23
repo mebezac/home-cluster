@@ -76,6 +76,66 @@ spec:
         inherit: true
         passwordSecret:
           name: pg-role-lubelog
+      - name: pcab
+        ensure: present
+        login: true
+        inherit: true
+        passwordSecret:
+          name: pg-role-pcab
+      - name: paperclip
+        ensure: present
+        login: true
+        inherit: true
+        passwordSecret:
+          name: pg-role-paperclip
+      - name: umami
+        ensure: present
+        login: true
+        inherit: true
+        passwordSecret:
+          name: pg-role-umami
+      - name: reckage
+        ensure: present
+        login: true
+        inherit: true
+        passwordSecret:
+          name: pg-role-reckage
+      - name: grafana
+        ensure: present
+        login: true
+        inherit: true
+        passwordSecret:
+          name: pg-role-grafana
+      - name: lychee
+        ensure: present
+        login: true
+        inherit: true
+        passwordSecret:
+          name: pg-role-lychee
+      - name: n8n
+        ensure: present
+        login: true
+        inherit: true
+        passwordSecret:
+          name: pg-role-n8n
+      - name: romm
+        ensure: present
+        login: true
+        inherit: true
+        passwordSecret:
+          name: pg-role-romm
+      - name: formbricks
+        ensure: present
+        login: true
+        inherit: true
+        passwordSecret:
+          name: pg-role-formbricks
+      - name: forgejo
+        ensure: present
+        login: true
+        inherit: true
+        passwordSecret:
+          name: pg-role-forgejo
   resources:
     # Raised 2026-09-22 from 512Mi/1Gi: romm 5.3.0's startup migration (a
     # full-table UPDATE on roms with new row triggers) OOM-killed the primary

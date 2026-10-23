@@ -17,3 +17,123 @@ spec:
   owner: lubelog
   ensure: present
   databaseReclaimPolicy: retain
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: pcab
+spec:
+  cluster:
+    name: postgres-17-cluster
+  name: pcab
+  owner: pcab
+  ensure: present
+  databaseReclaimPolicy: retain
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: paperclip
+spec:
+  cluster:
+    name: postgres-17-cluster
+  name: paperclip
+  owner: paperclip
+  ensure: present
+  databaseReclaimPolicy: retain
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: umami
+spec:
+  cluster:
+    name: postgres-17-cluster
+  name: umami
+  owner: umami
+  ensure: present
+  databaseReclaimPolicy: retain
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: reckage
+spec:
+  cluster:
+    name: postgres-17-cluster
+  name: reckage
+  owner: reckage
+  ensure: present
+  databaseReclaimPolicy: retain
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: grafana
+spec:
+  cluster:
+    name: postgres-17-cluster
+  name: grafana
+  owner: grafana
+  ensure: present
+  databaseReclaimPolicy: retain
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: lychee
+spec:
+  cluster:
+    name: postgres-17-cluster
+  name: lychee
+  owner: lychee
+  ensure: present
+  databaseReclaimPolicy: retain
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: n8n
+spec:
+  cluster:
+    name: postgres-17-cluster
+  name: n8n
+  owner: n8n
+  ensure: present
+  databaseReclaimPolicy: retain
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: romm
+spec:
+  cluster:
+    name: postgres-17-cluster
+  name: romm
+  owner: romm
+  ensure: present
+  databaseReclaimPolicy: retain
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: formbricks
+spec:
+  cluster:
+    name: postgres-17-cluster
+  name: formbricks
+  owner: formbricks
+  ensure: present
+  databaseReclaimPolicy: retain
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: forgejo
+spec:
+  cluster:
+    name: postgres-17-cluster
+  name: forgejo
+  owner: forgejo
+  ensure: present
+  databaseReclaimPolicy: retain
