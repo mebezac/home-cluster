@@ -67,14 +67,14 @@
     {
       description: [
         "Kubernetes Group",
-        "kubelet (topf.yaml kubernetesVersion) and the kubectl client move together, as in commit 1ac21971.",
+        "kubelet (topf.yaml kubernetesVersion), the kubectl client and the registry.k8s.io/kubectl image (oCIS cleanup CronJob) move together, as in commit 1ac21971.",
         "Merging does NOT upgrade the cluster - run `task talos:upgrade-k8s` (dry-run first) before any topf apply.",
       ],
       groupName: "Kubernetes",
       group: {
         commitMessageTopic: "{{{groupName}}} group",
       },
-      matchPackageNames: ["/siderolabs/kubelet/", "aqua:kubernetes/kubectl"],
+      matchPackageNames: ["/siderolabs/kubelet/", "aqua:kubernetes/kubectl", "registry.k8s.io/kubectl"],
     },
     {
       description: [
