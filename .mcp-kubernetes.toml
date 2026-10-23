@@ -1,0 +1,6 @@
+# kubernetes-mcp-server config, used by .mcp.json. Since 0.0.68 the server takes
+# runtime settings only from TOML; the old --read-only / --cluster-provider flags
+# make it exit with "unknown flag". The kubeconfig comes from $KUBECONFIG.
+read_only = true
+# Skip provider auto-detection (it hung the stdio handshake in 0.0.64).
+cluster_provider_strategy = "kubeconfig"

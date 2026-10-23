@@ -4,11 +4,9 @@
       "command": "npx",
       "args": [
         "-y",
-        "kubernetes-mcp-server@latest",
-        "--read-only",
-        "--cluster-provider",
-        "kubeconfig",
-        "--disable-multi-cluster"
+        "kubernetes-mcp-server@0.0.68",
+        "--config",
+        ".mcp-kubernetes.toml"
       ],
       "env": {
         "KUBECONFIG": "${HOME_CLUSTER_KUBECONFIG:-./kubeconfig}"
