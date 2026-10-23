@@ -9,11 +9,21 @@ defaultPodOptions:
   # Agents run as child processes of the server. Upstream gives them 90s to
   # finish and write their state before the pod is killed.
   terminationGracePeriodSeconds: 90
+  # Chart default, stated here on purpose: no token at the standard path. The
+  # observer token is projected explicitly below (persistence.k8s-observer).
+  automountServiceAccountToken: false
+
+# Dedicated ServiceAccount. The chart already created this one by default;
+# declaring it pins the name that observer-rbac.yaml binds.
+serviceAccount:
+  paperclip: {}
 
 controllers:
   paperclip:
     annotations:
       reloader.stakater.com/auto: "true"
+    serviceAccount:
+      identifier: paperclip
     containers:
       app:
         image:
@@ -141,3 +151,28 @@ persistence:
     size: 20Gi
     globalMounts:
       - path: /paperclip
+  # Read-only Kubernetes observer identity (LAB-1, ClusterRole
+  # paperclip-observer). The kubelet rotates the token before it expires;
+  # clients must reread the file for each request. Every process in the app
+  # container can read it: this is one shared identity, not per agent.
+  k8s-observer:
+    type: custom
+    volumeSpec:
+      projected:
+        defaultMode: 0440
+        sources:
+          - serviceAccountToken:
+              # The API server's only accepted audience (--api-audiences).
+              audience: https://10.25.30.116:6443
+              expirationSeconds: 3600
+              path: token
+          - configMap:
+              name: kube-root-ca.crt
+              items:
+                - key: ca.crt
+                  path: ca.crt
+    advancedMounts:
+      paperclip:
+        app:
+          - path: /var/run/secrets/paperclip-observer
+            readOnly: true

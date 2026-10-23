@@ -1,0 +1,64 @@
+---
+# Read-only cluster inventory for the paperclip ServiceAccount (LAB-1).
+# get/list only, on an explicit allowlist. No Secrets, ConfigMaps, logs,
+# exec/attach/port-forward, proxy, token, impersonation or write verbs.
+# Subresources (pods/log, pods/exec, nodes/proxy, ...) are not listed, so they
+# stay denied. No aggregation labels: no built-in role pulls this in, and this
+# role pulls in nothing.
+# Revoke: remove this file from kustomization.yaml and push. A kubectl delete
+# alone does not stick, because Argo self-heals it back.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: paperclip-observer
+rules:
+  - apiGroups: [""]
+    resources:
+      - nodes
+      - namespaces
+      - pods
+      - services
+      - persistentvolumeclaims
+      - persistentvolumes
+      - events
+    verbs: [get, list]
+  - apiGroups: [events.k8s.io]
+    resources: [events]
+    verbs: [get, list]
+  - apiGroups: [discovery.k8s.io]
+    resources: [endpointslices]
+    verbs: [get, list]
+  - apiGroups: [apps]
+    resources: [deployments, statefulsets, daemonsets, replicasets]
+    verbs: [get, list]
+  - apiGroups: [batch]
+    resources: [jobs, cronjobs]
+    verbs: [get, list]
+  - apiGroups: [argoproj.io]
+    resources: [applications]
+    verbs: [get, list]
+  - apiGroups: [gateway.networking.k8s.io]
+    resources: [gateways, httproutes]
+    verbs: [get, list]
+  - apiGroups: [gateway.envoyproxy.io]
+    resources: [securitypolicies]
+    verbs: [get, list]
+  - apiGroups: [postgresql.cnpg.io]
+    resources: [clusters, backups, scheduledbackups]
+    verbs: [get, list]
+  - apiGroups: [longhorn.io]
+    resources: [volumes, backups, backupvolumes, backuptargets]
+    verbs: [get, list]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: paperclip-observer
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: paperclip-observer
+subjects:
+  - kind: ServiceAccount
+    name: paperclip
+    namespace: paperclip
