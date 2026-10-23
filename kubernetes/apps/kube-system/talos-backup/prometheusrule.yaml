@@ -8,15 +8,22 @@ spec:
   groups:
     - name: talos-backup
       rules:
-        # Runs every 6h, so 26h = four missed runs in a row. absent() covers a CronJob that
-        # has never succeeded (no last_successful_time series yet).
+        # Runs every 6h, so 26h = four missed runs in a row.
         - alert: EtcdBackupTooOld
-          expr: |
-            (time() - kube_cronjob_status_last_successful_time{namespace="kube-system", cronjob="talos-backup"}) > 26 * 3600
-            or absent(kube_cronjob_status_last_successful_time{namespace="kube-system", cronjob="talos-backup"})
+          expr: (time() - kube_cronjob_status_last_successful_time{namespace="kube-system", cronjob="talos-backup"}) > 26 * 3600
           for: 1h
           labels:
             severity: warning
           annotations:
             summary: No etcd snapshot has reached Garage in over 26 hours
             description: 'Check the last kube-system/talos-backup Job: kubectl -n kube-system logs job/<name>.'
+        # The series only exists after the first scheduled run succeeds (a Job made by hand
+        # with --from=cronjob does not set it), so give a fresh CronJob one full interval.
+        - alert: EtcdBackupNeverSucceeded
+          expr: absent(kube_cronjob_status_last_successful_time{namespace="kube-system", cronjob="talos-backup"})
+          for: 7h
+          labels:
+            severity: warning
+          annotations:
+            summary: The talos-backup CronJob has no successful scheduled run
+            description: 'Check kube-system/talos-backup Jobs and logs.'
