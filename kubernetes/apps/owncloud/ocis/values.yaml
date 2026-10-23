@@ -96,6 +96,7 @@ controllers:
       clean:
         image:
           repository: registry.k8s.io/kubectl
+          # changelog: not in PR body - kubernetes/kubernetes CHANGELOG/CHANGELOG-1.XX.md (grep "SIG CLI"); client must stay within ±1 minor of the cluster (topf.yaml kubernetesVersion)
           tag: v1.37.1@sha256:b7cab618e281b1ee7484e7b706a96e2135fbb6e072c2a573a7dab4e87d7f2385
         args:
           - exec
