@@ -39,7 +39,7 @@ python = "3.15.1"
 # changelog: see kubernetes/bootstrap/talos/topf.yaml talosVersion - same release, bump in lockstep (Renovate does not group them)
 "aqua:siderolabs/talos" = "1.14.4"
 # topf renders + applies Talos machine configs from kubernetes/bootstrap/talos/topf.yaml (replaced archived talhelper)
-"github:postfinance/topf" = "0.6.1"
+"github:postfinance/topf" = "0.6.2"
 "aqua:yannh/kubeconform" = "0.8.0"
 "asdf:janpieper/asdf-ksops" = "4.3.3"
 # renovate provides `renovate-config-validator` for checking .github/renovate.json5; needs node ^24.11
