@@ -31,7 +31,14 @@ controllers:
           N8N_HOST: n8n.laboratory.casa
           N8N_LOG_LEVEL: info
           N8N_LOG_OUTPUT: console
-          N8N_BLOCK_ENV_ACCESS_IN_NODE: false
+          # Expressions and Code nodes cannot read process.env ($env), which holds the
+          # encryption key and DB password (deep-dive 2026-10-23 WEB-2). No workflow used
+          # $env when this was set. A run that needs it fails with "access to env vars
+          # denied"; use an n8n credential or Variable for that value instead.
+          N8N_BLOCK_ENV_ACCESS_IN_NODE: true
+          # Telemetry to telemetry.n8n.io and the version check are on by default.
+          N8N_DIAGNOSTICS_ENABLED: false
+          N8N_VERSION_NOTIFICATIONS_ENABLED: false
           N8N_GIT_NODE_DISABLE_BARE_REPOS: true
           N8N_WEBHOOK_URL: https://n8n.laboratory.casa
           N8N_PROXY_HOPS: 2
