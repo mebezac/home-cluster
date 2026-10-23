@@ -192,6 +192,6 @@ Both live in `network`, GatewayClass `envoy` (Envoy Gateway, Argo app `envoy-gat
 - Applications use the `kubernetes` project in ArgoCD
 - When making secrets, don't use Opaque, always just do stringData and don't set a type
 - when possible run containers as user 3000
-- remember for future that I use a central PG database where possible and then an init container to provision a database for the apps that need it. You can look at @kubernetes/apps/lubelog/lubelog/ for examples
+- I use a central PG database (CNPG `postgres-17-cluster`) where possible. CNPG creates each app's role and database (`managed.roles` + a `Database` CR in `kubernetes/apps/database/postgres-17-cluster/`); do NOT add a postgres-init init container or put the superuser password in an app namespace. See @kubernetes/apps/lubelog/lubelog/ and the add-argo-app skill Phase 3
 - I use a central valkey deployment as my redis equivalent
 - ALWAYS pin container images to a concrete version-number tag plus sha256 digest (e.g. `tag: 3.1.2@sha256:...`). NEVER use `latest` — it breaks Renovate version tracking and makes rollbacks ambiguous. Only fall back to `latest@sha256:...` when the image publishes no versioned tags at all.

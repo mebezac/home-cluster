@@ -86,8 +86,15 @@ has the larger set of patterns. Older private apps use the
 | SOPS | `$P/.sops.yaml` — same age recipient + `encrypted_regex: ^(data\|stringData)$` as public; `$P/age.key` is the same key |
 | Shared PVCs (namespace `downloads` only) | download staging + NAS media claims — list them with `grep -rh 'existingClaim' "$P/kubernetes/apps" \| sort -u` (names deliberately not written here) |
 
-Central Postgres / postgres-init / valkey / run-as 3000 / domain are identical to
-add-argo-app's table.
+Valkey / run-as 3000 / domain are identical to add-argo-app's table.
+
+**Central Postgres is NOT private-safe as-is.** Roles are CNPG-managed in the
+PUBLIC repo (`managed.roles` in `kubernetes/apps/database/postgres-17-cluster/`),
+so a private app's role and database name would land in public git. Before
+giving a private app a central database, ask the user: a neutral role/db name
+(e.g. `priv01`) in the public spec, or SQLite/a bundled DB instead. Keep the
+password itself only in the private repo's app secret and in a `roles/*.sops.yaml`
+whose filename does not name the app.
 
 ### Phase 0b — decisions
 
@@ -179,8 +186,7 @@ that sit in that tree (gitignored — keep it that way).
    same `gh-pat` HTTPS credential helper as the public repo.
 3. Verify via MCP: `private-apps` should pick it up within its poll; if not,
    `mcp__argocd-mcp__sync_application` on **`private-apps`** (not `apps`). Then
-   `get_application <app>` → Synced/Healthy, pods running in `<ns>`, init-db
-   completed, route hostname responds (expect an Authelia redirect, i.e. 302 to
+   `get_application <app>` → Synced/Healthy, pods running in `<ns>`, route hostname responds (expect an Authelia redirect, i.e. 302 to
    `login.laboratory.casa`, if forward-auth is on).
 
 ## Privacy guardrail — nothing leaks into the public repo

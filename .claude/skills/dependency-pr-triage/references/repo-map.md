@@ -41,8 +41,9 @@ cluster, break GitOps reconciliation, or corrupt data.
   Note the naming mismatch: the file is `argo-system/argo-cd.yaml` and the Helm
   release is `argo-cd`, but **the Application is named `argo`** — that's the name
   to use when verifying the sync.
-- **database** — central Postgres (CloudNativePG). Many apps init a DB against
-  it via `postgres-init` init-containers. Major bumps can imply data migrations;
+- **database** — central Postgres (CloudNativePG). CNPG owns every app role and
+  database (`managed.roles` + `Database` CRs in
+  `kubernetes/apps/database/postgres-17-cluster/`). Major bumps can imply data migrations;
   check running version via the k8s MCP before adopting.
 - **valkey** — central Redis-equivalent shared by multiple apps.
 - **cert-manager** — TLS for the Gateways (wildcard certs in `network`). CRD-bearing; majors may drop old API
@@ -89,10 +90,11 @@ Grounded in `CLAUDE.md` and `AGENTS.md`:
   `targetRevision` in any `kubernetes/argo/apps/**` file that uses it) backs
   most apps — a *chart-structure* change in an app-template bump can ripple
   across every app that uses it; scan broadly for those.
-- **Central Postgres + init-container** pattern: apps needing a DB use a
-  `ghcr.io/home-operations/postgres-init` init-container against the central
-  `database` Postgres (example: `kubernetes/apps/lubelog/lubelog/`). A Postgres
-  major is high blast-radius for this reason.
+- **Central Postgres** pattern: apps needing a DB get a CNPG-managed role and
+  `Database` on the central `database` cluster (no init container; example:
+  `kubernetes/apps/lubelog/lubelog/`). A Postgres major is high blast-radius:
+  13 apps share the cluster. A CNPG operator bump can change managed-role or
+  Database CR behaviour, so read its release notes for those two features.
 - **Central Valkey** as the shared Redis.
 - **Routing**: Gateway API HTTPRoutes (app-template `route:`) on the
   `envoy-internal` / `envoy-external` Gateways, domain `laboratory.casa`

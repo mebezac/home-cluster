@@ -359,7 +359,7 @@ manual operation (data deleted or restarted); and a finding proved wrong.
   NOT inherited from `defaultPodOptions.securityContext`. That is why a pod that
   looks hardened still fails PodSecurity admission.
 - **`readOnlyRootFilesystem` is not required by `restricted`.** Do not set it
-  just to look thorough — it breaks rootless images and postgres-init.
+  just to look thorough — it breaks rootless images that write to their own paths.
 - **Privileged ports.** An app on :80/:389 runs as root for that reason alone.
   Move the container to unprivileged ports and keep the Service on the old ones
   via `targetPort`; consumers never notice.

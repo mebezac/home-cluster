@@ -639,26 +639,28 @@ containers:
 
 ### Apps with Database (PostgreSQL)
 
+The central CNPG cluster (`postgres-17-cluster`, namespace `database`) owns every
+app role and database: `managed.roles` in
+`kubernetes/apps/database/postgres-17-cluster/postgres-17-cluster.yaml`, a
+`Database` per app in `databases.yaml`, and the role password in
+`roles/<app>.sops.yaml` (Secret `pg-role-<app>`, keys `username`/`password`,
+label `cnpg.io/reload: "true"`). There is no postgres-init container and no
+superuser password in app namespaces. The app's own secret carries only its
+connection string, with the same password:
+
 ```yaml
 controllers:
   app:
     annotations:
       reloader.stakater.com/auto: "true"
-    initContainers:
-      init-db:
-        image:
-          repository: ghcr.io/home-operations/postgres-init
-          tag: 18.1
-        envFrom: &envFrom
-          - secretRef:
-              name: <app-name>-secret
     containers:
       app:
-        envFrom: *envFrom
-        env:
-          DB_TYPE: postgres
-          # ... other env vars
+        envFrom:
+          - secretRef:
+              name: <app-name>-secret   # e.g. DATABASE_URL=postgresql://<app>:<pw>@postgres-17-cluster-rw.database.svc.cluster.local:5432/<app>
 ```
+
+Full steps: `.claude/skills/add-argo-app/SKILL.md` Phase 3.
 
 ### Sidecar Containers
 

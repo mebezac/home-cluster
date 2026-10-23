@@ -62,13 +62,18 @@ Enumerate everything before deleting anything. Use the argocd + kubernetes MCP.
      `kubectl get pv <name> -o jsonpath='{.spec.persistentVolumeReclaimPolicy}'`.
    - `Delete` → volume auto-reclaims with the PVC. `Retain` → the PV + backing
      Longhorn/NFS volume will LINGER; flag it for manual cleanup.
-4. **Central Postgres?** This repo uses a central PG (`database` ns) with an
-   init-container provisioning pattern for many apps (see
-   `kubernetes/apps/lubelog/lubelog/`). Check the app's values/secret for a DB
-   name + `postgres.database.svc` host. If it uses central PG, the app's own
-   DB/role remains in the central cluster after removal — decide with the user
-   whether to `DROP DATABASE`/`DROP ROLE`. (Apps with their own bundled postgres
-   + PVC need no central cleanup — the PVC delete takes the data.)
+4. **Central Postgres?** Roles and databases on the central cluster are
+   CNPG-managed in `kubernetes/apps/database/postgres-17-cluster/`: a
+   `managed.roles` entry in `postgres-17-cluster.yaml`, a `Database` in
+   `databases.yaml`, and `roles/<app>.sops.yaml` (+ its line in
+   `secret-generator.yaml`). Removing them from git does NOT drop anything:
+   the Database is `databaseReclaimPolicy: retain`, and a role that leaves the
+   list just becomes unmanaged. Ask the user whether to keep or drop the data.
+   To drop: first commit the role with `ensure: absent` and the Database with
+   `ensure: absent` (CNPG drops them), confirm with `psql -c '\l'` / `\du`
+   on the primary, then delete the entries and the role secret file. (Apps
+   with their own bundled postgres + PVC need no central cleanup: the PVC
+   delete takes the data.)
 5. **Runtime-created orphans (the sneaky one).** If the app had broad RBAC (a
    `Role`/`ClusterRole` with `*` verbs) or is itself a controller/operator, it
    may have created resources at runtime that **no Application owns** — these
@@ -168,7 +173,7 @@ kubectl get clusterrole,clusterrolebinding | grep -i <app>  # (none)  ← the tr
 kubectl get pv | grep -i <app>                              # (none)
 grep -rl "<app>" kubernetes/                                # (none)
 ```
-Plus: central PG has no leftover DB/role (if applicable), and no Retain PV /
+Plus: central PG has no leftover DB/role or CNPG entries (if applicable), and no Retain PV /
 Longhorn volume remains.
 
 ## Interaction & safety

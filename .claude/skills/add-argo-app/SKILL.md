@@ -127,7 +127,7 @@ Phase 0b.
 | Gateways (ns `network`) | `envoy-internal` (LAN, default) / `envoy-external` (internet via cloudflared). HTTPRoutes only — ingress-nginx is gone |
 | Authelia | route label `auth: authelia`; needs an `authelia` SecurityPolicy in the route's namespace (exists in `network`) |
 | Central Postgres (CNPG) | host `postgres-17-cluster-rw.database.svc.cluster.local` |
-| postgres-init image | `ghcr.io/home-operations/postgres-init` (tag `18.4` at last check) |
+| Central PG roles + DBs | CNPG-managed: `managed.roles` in `kubernetes/apps/database/postgres-17-cluster/postgres-17-cluster.yaml`, `Database` CRs in its `databases.yaml` (NO postgres-init, NO superuser password in app namespaces) |
 | Central valkey (redis) | `valkey.valkey.svc.cluster.local:6379` |
 | Default run-as user | `3000` |
 
@@ -171,7 +171,7 @@ pin down the repo-side choices:
    When unsure, pick the smaller number.
    **Every chart-managed PVC gets `suffix: <key>`** (see Gotchas).
 6. **Secrets.** 0a's secret env → ksops (Phase 2); non-secret env → `env:`.
-7. **Database.** 0a's Postgres dep → **central PG init pattern** (Phase 3), not
+7. **Database.** 0a's Postgres dep → **CNPG-managed role + Database on the central cluster** (Phase 3), not
    a bundled DB. redis → central valkey. Any other datastore → confirm with user.
 
 If translating from Flux/compose/manifests, this is where their values land.
@@ -340,41 +340,71 @@ Editing an existing secret: `sops <file>` opens the decrypted buffer, or
 read a value with `sops decrypt <file>`. Re-encryption is automatic on save.
 
 Wire it into the container with `envFrom: [{ secretRef: { name: <app>-secret } }]`
-(a YAML anchor `&envFrom` / `*envFrom` lets an init-container reuse it — see
-below). For non-secret config files use a kustomize `configMapGenerator`
+For non-secret config files use a kustomize `configMapGenerator`
 (AGENTS.md → ConfigMaps).
 
 ## Phase 3 — Central Postgres (only if the app needs a DB)
 
-Don't bundle a per-app Postgres. Provision a database on the central CNPG
-cluster with a `postgres-init` init-container. Put the DB creds in the app's
-ksops secret (`INIT_POSTGRES_*`), then reference the same secret from both the
-init-container and the app. Model = `kubernetes/apps/lubelog/lubelog/`.
+Don't bundle a per-app Postgres, and **don't add a `postgres-init` init container**:
+CNPG creates the role and database itself, so the superuser password never leaves
+the `database` namespace (deep-dive 2026-10-23 WEB-1; all apps migrated off
+postgres-init). Model = `kubernetes/apps/lubelog/lubelog/` plus its entries in
+`kubernetes/apps/database/postgres-17-cluster/`.
 
+Generate ONE random password for the role, then put it in two places:
+
+1. **Role secret in the database namespace**:
+   `kubernetes/apps/database/postgres-17-cluster/roles/<app>.sops.yaml`, listed in
+   that dir's `secret-generator.yaml`. Keys `username` + `password` are required
+   by CNPG; the reload label makes CNPG apply password changes. No `type:`.
+   ```yaml
+   apiVersion: v1
+   kind: Secret
+   metadata:
+     name: pg-role-<app>
+     labels:
+       cnpg.io/reload: "true"
+   stringData:
+     username: <app>
+     password: <generated>
+   ```
+2. **The app's own ksops secret**: whatever the app reads (`DATABASE_URL`,
+   `DB_PASSWORD`, ...) with that same password. Host:
+   `postgres-17-cluster-rw.database.svc.cluster.local`, port 5432, db + user = `<app>`.
+
+Then add the role and database in the same commit:
 ```yaml
-controllers:
-  <app>:
-    annotations:
-      reloader.stakater.com/auto: "true"
-    initContainers:
-      init-db:
-        image:
-          repository: ghcr.io/home-operations/postgres-init
-          tag: 18.4
-        envFrom: &envFrom
-          - secretRef:
-              name: <app>-secret
-    containers:
-      app:
-        envFrom: *envFrom
-        # ...
+# postgres-17-cluster.yaml, under spec.managed.roles. State login + inherit
+# explicitly: CNPG enforces every attribute and login defaults to FALSE.
+      - name: <app>
+        ensure: present
+        login: true
+        inherit: true
+        passwordSecret:
+          name: pg-role-<app>
+---
+# databases.yaml (retain = removing it from git never drops the data)
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: <app>
+spec:
+  cluster:
+    name: postgres-17-cluster
+  name: <app>
+  owner: <app>
+  ensure: present
+  databaseReclaimPolicy: retain
 ```
+Needs extensions? List them under the Database's `spec.extensions` (CNPG
+creates them as superuser) instead of granting the app more rights.
 
-Secret keys the init-container consumes:
-`INIT_POSTGRES_HOST` (=`postgres-17-cluster-rw.database.svc.cluster.local`),
-`INIT_POSTGRES_DBNAME`, `INIT_POSTGRES_USER`, `INIT_POSTGRES_PASS`,
-`INIT_POSTGRES_SUPER_PASS`. Add any app-specific connection string the app
-itself reads (e.g. `POSTGRES_CONNECTION`) as another key in the same secret.
+Order: commit the database side first (or together). A brand-new app may
+crash-loop for a few seconds until CNPG has created its role; that is expected
+and clears on its own. Check with
+`kubectl -n database get cluster postgres-17-cluster -o jsonpath='{.status.managedRolesStatus.byStatus}'`
+(the role under `reconciled`) and `kubectl -n database get databases.postgresql.cnpg.io <app>`
+(`APPLIED true`).
 
 For redis, don't deploy one — point the app at
 `valkey.valkey.svc.cluster.local:6379`.
@@ -389,8 +419,8 @@ For redis, don't deploy one — point the app at
 3. Verify via MCP (the parent `apps` auto-syncs; nudge it if impatient):
    - `mcp__argocd-mcp__get_application` on `<app>` → `sync=Synced`,
      `health=Healthy`.
-   - `kubectl get pods -n <namespace>` → running; if a DB init-container,
-     confirm `init-db` completed (check logs on CrashLoop).
+   - `kubectl get pods -n <namespace>` → running; if it uses the central DB,
+     confirm the role is `reconciled` and the Database `APPLIED` (Phase 3).
    - Hit the route hostname if applicable (`kubectl get httproute -n <namespace>`
      → parent `Accepted`/`ResolvedRefs` True).
 4. If it doesn't appear at all: the parent may not have reconciled — sync `apps`
