@@ -49,9 +49,12 @@ Renovate is the PR author. Filter with `--author "app/renovate"`.
 
 ## Required tooling
 
-Everything this skill needs is pinned in `.mise.toml`, so prefix a call with
-`mise exec --` (or work inside `mise activate`) rather than assuming a bare
-binary is on `PATH`. The ones this skill leans on:
+In Paperclip runs, use the owner's global mise tool versions. The workspace
+repo config is ignored with `MISE_IGNORED_CONFIG_PATHS`. Do not trust or activate
+its `.mise.toml`: its `[env]` can load age keys and SOPS files. Do not read age
+keys or `*.sops.yaml` files. A repo-pinned tool can be selected explicitly, for
+example `mise x npm:renovate@<version> -- ...`, only when already available.
+Do not install tools. The main tools are:
 
 | Tool | `.mise.toml` entry | Used for |
 |-|-|-|
@@ -65,6 +68,35 @@ binary is on `PATH`. The ones this skill leans on:
 could determine without it — never `curl | sh`, never a global package install.
 If a tool is genuinely needed and absent, the fix is to pin it in `.mise.toml`
 so Renovate tracks it, which is a normal repo change for the user to approve.
+
+## Runtime check before any merge
+
+Run this from a fresh checkout in the assigned run workspace:
+
+```bash
+bash .claude/skills/dependency-pr-triage/scripts/preflight.sh
+```
+
+Every check must pass before a merge run. Each failed check prints
+`capability_missing: <name>` and the script exits with status 1. An existing
+mise shim is not enough: the tool must execute. The script checks GitHub auth,
+repo read access, and push auth with a dry run. It uses an explicit kubeconfig
+for live identity, Application and pod reads, and Secret authorization checks.
+It does not read Secrets, print tokens, change refs, or write cluster objects.
+A successful live identity request proves token validity now. It does not
+prove the token's expiry date. The API identity must name `paperclip-observer`;
+a kubeconfig user alias alone does not prove this.
+
+The Secret checks cover get/list/watch in each current namespace and across
+namespaces. They do not exclude a grant limited to an individual Secret name.
+A dry-run push does not prove that a real push or merge will pass branch rules
+or server hooks. Report those limits. Do not change credentials or runtime
+settings to make a failed check pass.
+
+A passing preflight does not authorize a merge. During the read-only trial,
+research and recommend only. A merge run needs a new owner assignment with
+recorded authority. A task can separately authorize a limited branch and PR.
+Never merge that PR without the new assignment.
 
 ## Workflow
 
@@ -493,10 +525,10 @@ failing resource — a merged-but-broken deploy is exactly the outcome the user
 needs to hear about, and the fix is a follow-up commit (a revert or a values
 edit), **never** a live-cluster mutation or an MCP sync/rollback verb.
 
-Setup note: the ArgoCD MCP authenticates as the `mcp` local account
-(`role:admin`) with a token in the shell env — if the MCP tools error on auth,
-that token/config is the thing to check, and it's fine to tell the user the
-verification step is unavailable rather than falling back to guesswork.
+Setup note for Paperclip: use the assigned read-only `paperclip-observer`
+kubeconfig to read Argo Applications with kubectl. Check the API identity,
+not only the kubeconfig user alias. Do not acquire Argo admin credentials or
+look for other tokens. If auth fails, report the missing capability.
 
 ### 8. Hand over the follow-ups
 

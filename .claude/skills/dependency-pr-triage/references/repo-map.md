@@ -116,3 +116,11 @@ Grounded in `CLAUDE.md` and `AGENTS.md`:
 - CRD chart major that "removes v1beta1 X" → check in-cluster whether anything
   still uses v1beta1 X before merging.
 - Empty/cosmetic changelog + no config overlap → safe, batch-mergeable.
+
+
+## Garage release notes
+
+Use the official Forgejo API for Garage release notes:
+`https://git.deuxfleurs.fr/api/v1/repos/Deuxfleurs/garage/releases`.
+The website fetch fails. Read the API release body for the relevant tags.
+Do not treat a failed website fetch as proof that release notes do not exist.
