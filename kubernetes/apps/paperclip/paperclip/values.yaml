@@ -50,6 +50,14 @@ controllers:
           PAPERCLIP_DB_BACKUP_ENABLED: "false"
           PAPERCLIP_TELEMETRY_DISABLED: "1"
           DO_NOT_TRACK: "1"
+          # The DB URL lives in config.json (persistence.config), not in env.
+          # Agents inherit the server env minus PAPERCLIP_* keys, so an
+          # unprefixed DATABASE_URL or BETTER_AUTH_SECRET would reach every
+          # agent. The auth secret is PAPERCLIP_AGENT_JWT_SECRET for the same
+          # reason (better-auth falls back to it). This removes them from the
+          # agent env only: agents still run as the server uid and can read
+          # /proc and this file. Upstream: paperclipai/paperclip#16643.
+          PAPERCLIP_CONFIG: /etc/paperclip/config.json
         envFrom:
           - secretRef:
               name: paperclip-secret
@@ -151,6 +159,19 @@ persistence:
     size: 20Gi
     globalMounts:
       - path: /paperclip
+  # Instance config with the DB connection string. Every path in it is
+  # absolute: the schema defaults are ~/.paperclip/..., which would resolve
+  # to /paperclip/.paperclip/... here. If connectionString is missing, the
+  # server silently starts an empty embedded Postgres instead.
+  config:
+    type: secret
+    name: paperclip-config
+    defaultMode: 0440
+    advancedMounts:
+      paperclip:
+        app:
+          - path: /etc/paperclip
+            readOnly: true
   # Read-only Kubernetes observer identity (LAB-1, ClusterRole
   # paperclip-observer). The kubelet rotates the token before it expires;
   # clients must reread the file for each request. Every process in the app
