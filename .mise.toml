@@ -1,19 +1,6 @@
-[settings]
-# mise decrypts the _.file below itself; it does not read SOPS_AGE_KEY_FILE from [env].
-sops.age_key_file = "{{config_root}}/age.key"
-
-[env]
-_.python.venv = { path = "{{config_root}}/.venv", create = true }
-KUBECONFIG = "{{config_root}}/kubeconfig"
-SOPS_AGE_KEY_FILE = "{{config_root}}/age.key"
-TALOSCONFIG = "{{config_root}}/kubernetes/bootstrap/talos/talosconfig"
-TOPFCONFIG = "{{config_root}}/kubernetes/bootstrap/talos/topf.yaml"
-TASK_X_ENV_PRECEDENCE = 1
-TASK_X_MAP_VARIABLES = 0
-# ARGOCD_API_TOKEN for the argocd-mcp server in .mcp.json (token of the ArgoCD
-# account "mcp"). Claude Code passes its own environment to MCP servers, so
-# restart it after changing this file. A missing file is skipped.
-_.file = { path = "{{config_root}}/mcp-secrets.sops.json", redact = true }
+# Tool pins and tasks only, shared by humans and agents. The age key, kubeconfig,
+# talosconfig and the decrypted MCP token live in .mise.human.toml, which loads
+# only with MISE_ENV=human. Agents run with MISE_ENV=agent.
 
 [tools]
 # changelog: docs.python.org/3.<minor>/whatsnew (PR body is a bare compare link); only consumer: stdlib python3 -c in .claude/skills/talos-upgrade/scripts/talmac-upgrade.sh

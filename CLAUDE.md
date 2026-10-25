@@ -179,7 +179,7 @@ Both live in `network`, GatewayClass `envoy` (Envoy Gateway, Argo app `envoy-gat
 ## Secret Patterns
 
 - Never commit unencrypted secrets — encrypt with `sops --encrypt --in-place <file>.sops.yaml` before `git add`, and verify `stringData` values show `ENC[...]`
-- Encrypt/edit secrets directly yourself: `.sops.yaml` creation rules auto-match `kubernetes/**/*.sops.yaml` and `SOPS_AGE_KEY_FILE` is exported via mise, so no flags are needed (`sops <file>` to edit, `sops decrypt <file>` to read)
+- Encrypt/edit secrets directly yourself: `.sops.yaml` creation rules auto-match `kubernetes/**/*.sops.yaml` and `SOPS_AGE_KEY_FILE` is exported via mise (`.mise.human.toml`, loaded only with `MISE_ENV=human`; agents use `MISE_ENV=agent`), so no flags are needed (`sops <file>` to edit, `sops decrypt <file>` to read)
 - **NEVER commit or push the age PRIVATE key** (`age.key`, `*.agekey`, `*.key`) or any decrypted key material — these are gitignored; only the public age recipient goes in `.sops.yaml`
 - Use descriptive names for secret files (e.g., `authelia-initdb-secret.sops.yaml`)
 - Multiple secrets can be referenced in one secret-generator

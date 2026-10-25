@@ -291,7 +291,10 @@ stringData:
   ```
   `.sops.yaml`'s creation rules auto-match `kubernetes/**/*.sops.yaml` (age
   recipient + `encrypted_regex: ^(data|stringData)$`) and `SOPS_AGE_KEY_FILE`
-  is exported via mise, so no flags are needed. Editing/reading an existing
+  is exported via mise, so no flags are needed. That export, plus `KUBECONFIG`,
+  `TALOSCONFIG` and the MCP token, comes from `.mise.human.toml`, which loads
+  only with `MISE_ENV=human`; `.mise.toml` holds tool pins only, and agent runs
+  use `MISE_ENV=agent`. Editing/reading an existing
   secret: `sops <file>`, `sops set <file> '["stringData"]["KEY"]' '"value"'`,
   or `sops decrypt <file>`.
 - **NEVER commit a plaintext secret.** Encrypt before `git add` and verify the
