@@ -375,5 +375,13 @@
       ],
       datasourceTemplate: "docker",
     },
+    {
+      customType: "regex",
+      description: ["ARG pins with a '# renovate: datasource=... depName=...' comment in our own Dockerfiles (containers/*)"],
+      managerFilePatterns: ["/(^|/)containers/.+/Dockerfile$/"],
+      matchStrings: [
+        "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)\\nARG \\S+=(?<currentValue>\\S+)",
+      ],
+    },
   ],
 }

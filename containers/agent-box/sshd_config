@@ -1,0 +1,26 @@
+# sshd for agent-box. It runs as uid 3000 (non-root): no privilege separation,
+# and only the `agent` account can log in.
+Port 2222
+HostKey /home/agent/.sshd/ssh_host_ed25519_key
+PidFile none
+UsePAM no
+PermitRootLogin no
+AllowUsers agent
+PubkeyAuthentication yes
+PasswordAuthentication no
+KbdInteractiveAuthentication no
+# Mounted from a root-owned, read-only ConfigMap, so the agent cannot add keys.
+AuthorizedKeysFile /etc/agent-box/authorized_keys/%u
+AllowTcpForwarding no
+AllowAgentForwarding no
+AllowStreamLocalForwarding no
+X11Forwarding no
+PermitTunnel no
+GatewayPorts no
+PermitUserEnvironment no
+PrintMotd no
+# Ingress is limited to the Paperclip pod by a CiliumNetworkPolicy; kubelet TCP
+# probes would otherwise earn per-source penalties.
+PerSourcePenalties no
+Subsystem sftp internal-sftp
+LogLevel INFO
