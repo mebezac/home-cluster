@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Read-only runtime check. This script does not grant permission to merge.
-# Run from a fresh checkout. Use the owner's global tool configuration.
+# Run from a fresh checkout in an agent run (MISE_ENV=agent, repo tool pins).
 # Usage: bash .claude/skills/dependency-pr-triage/scripts/preflight.sh
 set -uo pipefail
 
@@ -40,6 +40,16 @@ check_tool curl --version
 for tool in grep diff sort head mktemp sleep dirname rm sed cat paste awk tar; do
   check_tool "$tool" --version
 done
+
+# Agent runs must not see the human-only env from .mise.human.toml (age key,
+# kubeconfig, decrypted MCP token). Only variable names are inspected.
+if [[ ${MISE_ENV:-} == *human* || -n ${SOPS_AGE_KEY_FILE:-} || -n ${ARGOCD_API_TOKEN:-} ]] ||
+   { [[ ${available[mise]} == 1 ]] &&
+     timeout 20s mise env -s bash 2>/dev/null | grep -qE '(SOPS_AGE_KEY_FILE|ARGOCD_API_TOKEN)='; }; then
+  missing human_env_absent
+else
+  passed human_env_absent "MISE_ENV=${MISE_ENV:-unset}"
+fi
 
 if [[ ${available[gh]} == 1 ]]; then
   if timeout 30s gh auth status >/dev/null 2>&1; then
