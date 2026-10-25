@@ -73,6 +73,9 @@ persistence:
   authorized-keys:
     type: configMap
     identifier: authorized-keys
+    # subPath file mount: sshd StrictModes rejects the 0777 directory of a
+    # whole-ConfigMap mount. Reloader restarts the pod when the key changes.
     globalMounts:
-      - path: /etc/agent-box/authorized_keys
+      - path: /etc/agent-box/authorized_keys/agent
+        subPath: agent
         readOnly: true
