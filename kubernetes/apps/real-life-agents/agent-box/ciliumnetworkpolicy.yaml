@@ -1,0 +1,44 @@
+---
+# Default-deny for agent-box, both directions, except:
+#  - ingress: ssh from the Paperclip server pod only
+#  - egress: cluster DNS, and HTTPS to OpenAI (codex with the ChatGPT login)
+# Paperclip relays the agent's API calls over the SSH channel, so the box needs
+# no route back to Paperclip. No LAN, no other pods, no dev box.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: agent-box
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: agent-box
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: paperclip
+            app.kubernetes.io/name: paperclip
+      toPorts:
+        - ports:
+            - port: "2222"
+              protocol: TCP
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: ANY
+          rules:
+            dns:
+              - matchPattern: "*"
+    - toFQDNs:
+        - matchName: chatgpt.com
+        - matchPattern: "*.chatgpt.com"
+        - matchName: auth.openai.com
+        - matchName: api.openai.com
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
