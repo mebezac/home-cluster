@@ -84,7 +84,9 @@ repo read access, and push auth with a dry run. It uses an explicit kubeconfig
 for live identity, Application and pod reads, and Secret authorization checks.
 It does not read Secrets, print tokens, change refs, or write cluster objects.
 A successful live identity request proves token validity now. It does not
-prove the token's expiry date. The API identity must name `paperclip-observer`;
+prove the token's expiry date. The API identity must be
+`system:serviceaccount:paperclip:paperclip` (bound to the read-only
+`paperclip-observer` ClusterRole);
 a kubeconfig user alias alone does not prove this.
 
 The Secret checks cover get/list/watch in each current namespace and across
@@ -525,8 +527,9 @@ failing resource — a merged-but-broken deploy is exactly the outcome the user
 needs to hear about, and the fix is a follow-up commit (a revert or a values
 edit), **never** a live-cluster mutation or an MCP sync/rollback verb.
 
-Setup note for Paperclip: use the assigned read-only `paperclip-observer`
-kubeconfig to read Argo Applications with kubectl. Check the API identity,
+Setup note for Paperclip: use the assigned read-only kubeconfig (service
+account `paperclip:paperclip`, ClusterRole `paperclip-observer`)
+to read Argo Applications with kubectl. Check the API identity,
 not only the kubeconfig user alias. Do not acquire Argo admin credentials or
 look for other tokens. If auth fails, report the missing capability.
 

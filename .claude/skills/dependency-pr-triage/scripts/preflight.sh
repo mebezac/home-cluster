@@ -95,7 +95,7 @@ if (( kube_ready )); then
      [[ $identity == system:serviceaccount:* ]]; then
     passed kubeconfig_token_valid
     # The selected user name is only an alias. Check the API's actual identity.
-    if [[ $identity == system:serviceaccount:*:paperclip-observer ]]; then
+    if [[ $identity == "system:serviceaccount:paperclip:paperclip" ]]; then
       passed kubeconfig_identity "$identity"
     else
       missing kubeconfig_identity
