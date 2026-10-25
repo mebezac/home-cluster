@@ -51,7 +51,19 @@ Renovate is the PR author. Filter with `--author "app/renovate"`.
 
 Everything this skill needs is pinned in `.mise.toml`, so prefix a call with
 `mise exec --` (or work inside `mise activate`) rather than assuming a bare
-binary is on `PATH`. The ones this skill leans on:
+binary is on `PATH`. `.mise.toml` holds tool pins and tasks only. The
+human-only env (age key, kubeconfig, talosconfig, decrypted MCP token) is in
+`.mise.human.toml`, which loads only with `MISE_ENV=human`.
+
+- **Claude Code with the owner:** `MISE_ENV=human`; the repo kubeconfig and
+  the ArgoCD MCP are available.
+- **Paperclip agent runs** (e.g. Dependency Steward over SSH): `MISE_ENV=agent`,
+  so the repo pins load without secret env. Never set `MISE_ENV=human`, never
+  load `.mise.human.toml`, and never read age keys or `*.sops.yaml` files.
+  `git`/`gh` act as the agent-only GitHub user `lab-casa-reme`; the kubeconfig
+  is the read-only one in `$KUBECONFIG`.
+
+The ones this skill leans on:
 
 | Tool | `.mise.toml` entry | Used for |
 |-|-|-|
@@ -65,6 +77,39 @@ binary is on `PATH`. The ones this skill leans on:
 could determine without it — never `curl | sh`, never a global package install.
 If a tool is genuinely needed and absent, the fix is to pin it in `.mise.toml`
 so Renovate tracks it, which is a normal repo change for the user to approve.
+
+## Runtime check before any merge (Paperclip agent runs)
+
+Run this from a fresh checkout in the assigned run workspace:
+
+```bash
+bash .claude/skills/dependency-pr-triage/scripts/preflight.sh
+```
+
+Every check must pass before a merge run. Each failed check prints
+`capability_missing: <name>` and the script exits with status 1. An existing
+mise shim is not enough: the tool must execute. It also fails if the run can
+see human-only env (`MISE_ENV=human`, `SOPS_AGE_KEY_FILE`, or the MCP token).
+The script checks GitHub auth,
+repo read access, and push auth with a dry run. It uses an explicit kubeconfig
+for live identity, Application and pod reads, and Secret authorization checks.
+It does not read Secrets, print tokens, change refs, or write cluster objects.
+A successful live identity request proves token validity now. It does not
+prove the token's expiry date. The API identity must be
+`system:serviceaccount:paperclip:paperclip` (bound to the read-only
+`paperclip-observer` ClusterRole);
+a kubeconfig user alias alone does not prove this.
+
+The Secret checks cover get/list/watch in each current namespace and across
+namespaces. They do not exclude a grant limited to an individual Secret name.
+A dry-run push does not prove that a real push or merge will pass branch rules
+or server hooks. Report those limits. Do not change credentials or runtime
+settings to make a failed check pass.
+
+A passing preflight does not authorize a merge. An agent merges only with
+recorded owner authority: the assigned task, or standing rules in the agent's
+instructions, naming what it may merge and its limits. Without that authority,
+research and recommend only.
 
 ## Workflow
 
@@ -493,10 +538,18 @@ failing resource — a merged-but-broken deploy is exactly the outcome the user
 needs to hear about, and the fix is a follow-up commit (a revert or a values
 edit), **never** a live-cluster mutation or an MCP sync/rollback verb.
 
-Setup note: the ArgoCD MCP authenticates as the `mcp` local account
-(`role:admin`) with a token in the shell env — if the MCP tools error on auth,
-that token/config is the thing to check, and it's fine to tell the user the
-verification step is unavailable rather than falling back to guesswork.
+Setup notes:
+
+- **Claude Code with the owner:** the ArgoCD MCP authenticates as the `mcp`
+  local account (`role:admin`) with a token in the shell env — if the MCP tools
+  error on auth, that token/config is the thing to check, and it's fine to tell
+  the user the verification step is unavailable rather than falling back to
+  guesswork.
+- **Paperclip agent runs:** no ArgoCD MCP. Use the assigned read-only kubeconfig
+  (service account `paperclip:paperclip`, ClusterRole `paperclip-observer`) to
+  read Argo Applications with kubectl. Check the API identity, not only the
+  kubeconfig user alias. Do not acquire Argo admin credentials or look for
+  other tokens. If auth fails, report the missing capability.
 
 ### 8. Hand over the follow-ups
 
