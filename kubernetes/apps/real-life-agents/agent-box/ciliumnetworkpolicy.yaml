@@ -33,6 +33,21 @@ spec:
           rules:
             dns:
               - matchPattern: "*"
+    # Paperclip's governed MCP gateway (connection tools, project tools) is
+    # called at the public URL https://paperclip.laboratory.casa, i.e. through
+    # envoy-internal; it does not use the SSH bridge. Policy applies after the
+    # service DNAT, so match the envoy pods on 10443, and only TLS with this SNI
+    # (no other laboratory.casa apps).
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: network
+            gateway.envoyproxy.io/owning-gateway-name: envoy-internal
+      toPorts:
+        - ports:
+            - port: "10443"
+              protocol: TCP
+          serverNames:
+            - paperclip.laboratory.casa
     - toFQDNs:
         - matchName: chatgpt.com
         - matchPattern: "*.chatgpt.com"
