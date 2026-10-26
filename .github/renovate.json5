@@ -381,6 +381,8 @@
       managerFilePatterns: ["/(^|/)containers/.+/Dockerfile$/"],
       matchStrings: [
         "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)\\nARG \\S+=(?<currentValue>\\S+)",
+        // Upstream with no tags: pin a commit, track a branch head.
+        "# renovate: datasource=(?<datasource>git-refs) depName=(?<depName>\\S+) branch=(?<currentValue>\\S+)\\nARG \\S+=(?<currentDigest>[0-9a-f]{40})",
       ],
     },
   ],
