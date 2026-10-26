@@ -1,0 +1,82 @@
+# agent-box: locked-down SSH target for the Paperclip "Trading" company's agents
+# (Paperclip SSH environment "agent-box"). Image source: containers/agent-box.
+# Same image as real-life-agents/agent-box, separate pod, PVC and SSH key.
+# Isolation from the Paperclip pod and the homelab: own namespace (PSS restricted),
+# own PVC, no SA token, and ciliumnetworkpolicy.yaml (ingress only from Paperclip,
+# egress only DNS + OpenAI).
+defaultPodOptions:
+  automountServiceAccountToken: false
+  enableServiceLinks: false
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 3000
+    runAsGroup: 3000
+    fsGroup: 3000
+    fsGroupChangePolicy: OnRootMismatch
+    seccompProfile: { type: RuntimeDefault }
+
+controllers:
+  agent-box:
+    # RWO home volume.
+    strategy: Recreate
+    annotations:
+      reloader.stakater.com/auto: "true"
+    containers:
+      app:
+        image:
+          repository: ghcr.io/mebezac/agent-box
+          tag: 0.164.0@sha256:f4ef47c5a8f98b06930f1e2727026646304421f386a4cc146cae59c31069adfe
+        env:
+          TZ: America/New_York
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities: { drop: ["ALL"] }
+        probes:
+          liveness:
+            enabled: true
+          readiness:
+            enabled: true
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            memory: 2Gi
+
+service:
+  app:
+    controller: agent-box
+    ports:
+      ssh:
+        port: 2222
+
+configMaps:
+  authorized-keys:
+    data:
+      # Paperclip's SSH environment key (private half: Trading company secret
+      # "agent-box-ssh-key"). "restrict" = no forwarding, no pty, no ~/.ssh/rc.
+      agent: |
+        restrict ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEEVuiEK+u/YLo4arpLLzpaYjyTtlAko3IVzZDv1sMjI paperclip-trading-agent-box
+
+persistence:
+  home:
+    type: persistentVolumeClaim
+    storageClass: longhorn
+    accessMode: ReadWriteOnce
+    size: 5Gi
+    globalMounts:
+      - path: /home/agent
+  tmp:
+    type: emptyDir
+    globalMounts:
+      - path: /tmp
+  authorized-keys:
+    type: configMap
+    identifier: authorized-keys
+    # subPath file mount: sshd StrictModes rejects the 0777 directory of a
+    # whole-ConfigMap mount. Reloader restarts the pod when the key changes.
+    globalMounts:
+      - path: /etc/agent-box/authorized_keys/agent
+        subPath: agent
+        readOnly: true
