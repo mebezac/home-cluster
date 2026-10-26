@@ -1,0 +1,67 @@
+# tastytrade-mcp: tastytrade's official MCP server (stdio) behind supergateway,
+# served as stateful Streamable HTTP for the Paperclip "Trading" company
+# (custom MCP connection, bearer key). Image source: containers/tastytrade-mcp.
+# Read-only: TASTYTRADE_READ_ONLY=1 withholds every order tool, and the OAuth
+# grant has the "read" scope only. ciliumnetworkpolicy.yaml: ingress only from
+# Paperclip, egress only DNS + the tastytrade API.
+defaultPodOptions:
+  automountServiceAccountToken: false
+  enableServiceLinks: false
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 3000
+    runAsGroup: 3000
+    fsGroup: 3000
+    seccompProfile: { type: RuntimeDefault }
+
+controllers:
+  tastytrade-mcp:
+    annotations:
+      reloader.stakater.com/auto: "true"
+    containers:
+      app:
+        image:
+          repository: ghcr.io/mebezac/tastytrade-mcp
+          tag: 1.0.0-7f2bb63@sha256:d0312b59a546498b82c66a7a73aa4a0f3a339066c9dc95d374322d54e00ca73f
+        env:
+          TZ: America/New_York
+          TASTYTRADE_ENV: production
+          TASTYTRADE_READ_ONLY: "1"
+          # Only applies if order tools are ever enabled.
+          MAX_ORDER_NOTIONAL_USD: "1000"
+        envFrom:
+          # SUPERGATEWAY_API_KEY, TASTYTRADE_CLIENT_ID/_SECRET/_REFRESH_TOKEN
+          - secretRef:
+              name: tastytrade-mcp-secret
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities: { drop: ["ALL"] }
+        probes:
+          liveness: &probe
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /healthz
+                port: 8000
+          readiness: *probe
+        resources:
+          requests:
+            cpu: 20m
+            memory: 128Mi
+          limits:
+            memory: 1Gi
+
+service:
+  app:
+    controller: tastytrade-mcp
+    ports:
+      http:
+        port: 8000
+
+persistence:
+  tmp:
+    type: emptyDir
+    globalMounts:
+      - path: /tmp
