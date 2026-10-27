@@ -69,9 +69,8 @@ Enumerate everything before deleting anything. Use the argocd + kubernetes MCP.
    `secret-generator.yaml`). Removing them from git does NOT drop anything:
    the Database is `databaseReclaimPolicy: retain`, and a role that leaves the
    list just becomes unmanaged. Ask the user whether to keep or drop the data.
-   To drop: first commit the role with `ensure: absent` and the Database with
-   `ensure: absent` (CNPG drops them), confirm with `psql -c '\l'` / `\du`
-   on the primary, then delete the entries and the role secret file. (Apps
+   To drop, do it in **Phase 3, after the app's pods are gone** (see Phase 3
+   step 3); doing it earlier just fails while the app is connected. (Apps
    with their own bundled postgres + PVC need no central cleanup: the PVC
    delete takes the data.)
 5. **Runtime-created orphans (the sneaky one).** If the app had broad RBAC (a
@@ -160,7 +159,31 @@ or prune it — and it never managed runtime-created orphans. Sweep both.
    `kubectl get ns <namespace> -o jsonpath='{.status.conditions}'`; do not
    blindly strip namespace finalizers.
 3. If Phase 0 found **Retain PVs** or a **central-PG database/role**, clean
-   those now (with user confirmation for DB drops).
+   those now (with user confirmation for DB drops). For a central-PG drop:
+   1. Commit the role with `ensure: absent` and the Database with `ensure: absent`.
+      The app's pods must already be gone: while they are connected the drop fails
+      with `database "<app>" is being accessed by other users` (the Database CR
+      retries this on its own once the connections close).
+   2. **The role will NOT retry on its own.** CNPG tries the role and the database
+      at the same time; the role drop fails while it still owns the database
+      (`could not perform DELETE on role <app>: owner of database <app>`), and
+      CNPG parks that error in `status.managedRolesStatus.cannotReconcile`, where
+      it stays even after the database is gone. Once the Database shows
+      `APPLIED true`, nudge a reconcile with a metadata-only annotation, then
+      remove it:
+      ```
+      kubectl -n database annotate cluster postgres-17-cluster cnpg.io/reconcile-nudge="$(date +%s)" --overwrite
+      kubectl -n database annotate cluster postgres-17-cluster cnpg.io/reconcile-nudge-
+      ```
+   3. **Check Postgres itself, not the CNPG status** (the status lags and was
+      the reason a removal once looked stuck):
+      ```
+      P=$(kubectl -n database get cluster postgres-17-cluster -o jsonpath='{.status.currentPrimary}')
+      kubectl -n database exec $P -c postgres -- psql -tAc "select count(*) from pg_database where datname='<app>'"   # 0
+      kubectl -n database exec $P -c postgres -- psql -tAc "select count(*) from pg_roles where rolname='<app>'"      # 0
+      ```
+   4. Only then delete the role entry, the Database entry, `roles/<app>.sops.yaml`
+      and its `secret-generator.yaml` line, in one commit.
 
 ## Phase 4 — Verify zero traces
 
@@ -188,6 +211,11 @@ Longhorn volume remains.
   the finalizer, let ArgoCD adopt/reconcile to Synced, then run Phases 1→4.
 
 ## Gotchas learned
+
+- **CNPG role drops don't retry.** A role drop that failed because the role
+  still owned its database sits in `managedRolesStatus.cannotReconcile` until
+  something triggers a reconcile; nudge with an annotation and confirm in psql
+  (Phase 3 step 3). Don't wait on the status field, it goes stale.
 
 - **Non-cascading prune is the default.** No finalizer → prune orphans workloads.
 - **Cluster-scoped resources survive a namespace delete.** Enumerate and verify
