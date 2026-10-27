@@ -194,8 +194,6 @@ final class LlmClassificationExtension extends Minz_Extension {
 					'properties' => [
 						'tags' => [
 							'type' => 'array',
-							'uniqueItems' => true,
-							'maxItems' => count($allowedTags),
 							'items' => ['type' => 'string', 'enum' => $allowedTags],
 						],
 					],
