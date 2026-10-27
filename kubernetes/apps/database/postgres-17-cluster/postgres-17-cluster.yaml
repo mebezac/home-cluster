@@ -76,12 +76,6 @@ spec:
         inherit: true
         passwordSecret:
           name: pg-role-freshrss
-      - name: miniflux
-        ensure: absent
-        login: true
-        inherit: true
-        passwordSecret:
-          name: pg-role-miniflux
       - name: lubelog
         ensure: present
         login: true
