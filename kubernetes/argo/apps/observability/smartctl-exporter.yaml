@@ -15,7 +15,7 @@ spec:
     - repoURL: ghcr.io/prometheus-community/charts
       chart: prometheus-smartctl-exporter
       # changelog: prometheus-community/helm-charts GH releases (prometheus-smartctl-exporter-*; not in PR body)
-      targetRevision: 0.17.1
+      targetRevision: 0.18.0
       helm:
         releaseName: smartctl-exporter
         valueFiles:
