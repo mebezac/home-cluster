@@ -14,8 +14,9 @@ controllers:
     # The role and database are CNPG-managed (database/postgres-17-cluster: managed.roles +
     # databases.yaml), so there is no postgres-init container and no superuser password here.
     initContainers:
-      # Keep the LLM prompt in git: copy it over the user's copy on every start.
-      prompt:
+      # The entrypoint's create-user fails if data/users/zac already exists, so clear
+      # a half-made user dir (no config.php yet). A real user is never touched.
+      clean-user:
         image: &image
           repository: docker.io/freshrss/freshrss
           # changelog: GH releases FreshRSS/FreshRSS. Debian image only: the Alpine one has no OIDC module.
@@ -23,15 +24,26 @@ controllers:
         command:
           - /bin/sh
           - -c
-          - >-
-            mkdir -p /var/www/FreshRSS/data/users/zac/extensions/LlmClassification &&
-            cp /config/prompt.md /var/www/FreshRSS/data/users/zac/extensions/LlmClassification/prompt.md &&
-            chown -R www-data:www-data /var/www/FreshRSS/data/users/zac/extensions
+          - '[ -f /var/www/FreshRSS/data/users/zac/config.php ] || rm -rf /var/www/FreshRSS/data/users/zac'
         securityContext:
           allowPrivilegeEscalation: false
     containers:
       app:
         image: *image
+        # The image's CMD, after copying the LLM prompt from git over the user's copy.
+        # It runs after the entrypoint has created the user.
+        args:
+          - /bin/bash
+          - -o
+          - pipefail
+          - -c
+          - >-
+            mkdir -p /var/www/FreshRSS/data/users/zac/extensions/LlmClassification &&
+            cp /config/prompt.md /var/www/FreshRSS/data/users/zac/extensions/LlmClassification/prompt.md &&
+            chown -R www-data:www-data /var/www/FreshRSS/data/users/zac/extensions &&
+            ([ -z "$CRON_MIN" ] || cron) &&
+            . /etc/apache2/envvars &&
+            exec apache2 -D FOREGROUND -D OIDC_ENABLED
         env:
           TZ: America/New_York
           LISTEN: 0.0.0.0:8080
@@ -140,10 +152,9 @@ persistence:
     name: freshrss-config
     advancedMounts:
       freshrss:
-        prompt:
+        app:
           - path: /config
             readOnly: true
-        app:
           - path: /var/www/FreshRSS/data/config-user.custom.php
             subPath: config-user.custom.php
             readOnly: true
