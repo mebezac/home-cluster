@@ -1,0 +1,2 @@
+# Vendored from github.com/FreshRSS/Extensions xExtension-LlmClassification
+# commit 85fef7a4d510ecd8a3742b6360fce8d32bb46b72 (v0.3.1). Update by re-copying.

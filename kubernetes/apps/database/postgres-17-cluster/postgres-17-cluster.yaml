@@ -70,6 +70,12 @@ spec:
   # postgres-init's createuser made: login, inherit, nothing else.
   managed:
     roles:
+      - name: freshrss
+        ensure: present
+        login: true
+        inherit: true
+        passwordSecret:
+          name: pg-role-freshrss
       - name: miniflux
         ensure: present
         login: true

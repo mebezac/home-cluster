@@ -319,6 +319,23 @@ identity_providers:
           - "profile"
         userinfo_signed_response_alg: "none"
         token_endpoint_auth_method: "client_secret_basic"
+      # FreshRSS. Apache mod_auth_openidc in the image: client_secret_basic, claims
+      # from (unsigned) userinfo, username = preferred_username.
+      - client_id: "j.8guiJ.vm-LBJMVTH.j-9jadqmR5oC.S1eaOAgd71MUXlcleyST010EXB7lEysR7u9QU68t"
+        client_name: "FreshRSS"
+        client_secret: "$pbkdf2-sha512$310000$3/p3yTJwPs0tDprgpllm9A$Daq/kwHuPcZh/3bMOR6QIe05vtyhd9jp7oEOfHGzYokrBr9Qr8D69tqGSk1UEscXDjevr4oBZCd1LQG7QFcvlg"
+        public: false
+        authorization_policy: "one_factor"
+        consent_mode: "implicit"
+        require_pkce: false
+        redirect_uris:
+          - "https://freshrss.laboratory.casa/i/oidc/"
+        scopes:
+          - "openid"
+          - "email"
+          - "profile"
+        userinfo_signed_response_alg: "none"
+        token_endpoint_auth_method: "client_secret_basic"
       # Forgejo — git forge (OIDC source "authelia" added post-boot via
       # `forgejo admin auth add-oauth`). claims_policy "all" hydrates groups
       # into the id_token so Forgejo can map an admin group. PKCE disabled to

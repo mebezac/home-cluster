@@ -175,3 +175,15 @@ spec:
   owner: miniflux
   ensure: present
   databaseReclaimPolicy: retain
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: freshrss
+spec:
+  cluster:
+    name: postgres-17-cluster
+  name: freshrss
+  owner: freshrss
+  ensure: present
+  databaseReclaimPolicy: retain

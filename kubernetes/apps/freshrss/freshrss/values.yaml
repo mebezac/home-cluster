@@ -1,0 +1,163 @@
+defaultPodOptions:
+  # The image's entrypoint must run as root: it rewrites /etc/localtime, php.ini
+  # and the Apache config (OIDC module, Listen, RemoteIP) before Apache starts.
+  # Apache then serves as www-data, and cron runs the refresh as www-data.
+  securityContext:
+    seccompProfile: { type: RuntimeDefault }
+
+controllers:
+  freshrss:
+    annotations:
+      reloader.stakater.com/auto: "true"
+    # Single RWO data volume.
+    strategy: Recreate
+    # The role and database are CNPG-managed (database/postgres-17-cluster: managed.roles +
+    # databases.yaml), so there is no postgres-init container and no superuser password here.
+    initContainers:
+      # Keep the LLM prompt in git: copy it over the user's copy on every start.
+      prompt:
+        image: &image
+          repository: docker.io/freshrss/freshrss
+          # changelog: GH releases FreshRSS/FreshRSS. Debian image only: the Alpine one has no OIDC module.
+          tag: 1.30.4@sha256:af44385229541bee24aa9148d0ff8f3b40e095373c63a2c0f74e09a27d3c59df
+        command:
+          - /bin/sh
+          - -c
+          - >-
+            mkdir -p /var/www/FreshRSS/data/users/zac/extensions/LlmClassification &&
+            cp /config/prompt.md /var/www/FreshRSS/data/users/zac/extensions/LlmClassification/prompt.md &&
+            chown -R www-data:www-data /var/www/FreshRSS/data/users/zac/extensions
+        securityContext:
+          allowPrivilegeEscalation: false
+    containers:
+      app:
+        image: *image
+        env:
+          TZ: America/New_York
+          LISTEN: 0.0.0.0:8080
+          CRON_MIN: "4,19,34,49"
+          # Envoy runs in the pod network; trust its X-Forwarded-For.
+          TRUSTED_PROXY: 10.69.0.0/16
+          # --- SSO: Authelia via Apache mod_auth_openidc on /i/ (client in
+          # security/authelia/authelia-config.yaml). The Google Reader / Fever API
+          # under /api/ is not behind OIDC; it uses the user's API password.
+          OIDC_ENABLED: "1"
+          OIDC_PROVIDER_METADATA_URL: https://login.laboratory.casa/.well-known/openid-configuration
+          OIDC_SCOPES: openid profile email
+          OIDC_REMOTE_USER_CLAIM: preferred_username
+          OIDC_X_FORWARDED_HEADERS: X-Forwarded-Proto
+          OIDC_SESSION_INACTIVITY_TIMEOUT: "86400"
+          OIDC_SESSION_MAX_DURATION: "2592000"
+          # --- First start only (the entrypoint skips both once installed).
+          # $VARS come from freshrss-secret. http_auth = trust Apache's REMOTE_USER (OIDC).
+          FRESHRSS_INSTALL: |-
+            --api-enabled
+            --base-url https://freshrss.laboratory.casa
+            --db-type pgsql
+            --db-host postgres-17-cluster-rw.database.svc.cluster.local:5432
+            --db-base freshrss
+            --db-user freshrss
+            --db-password ${DB_PASSWORD}
+            --default-user zac
+            --auth-type http_auth
+            --language en
+            --disable-update
+          # Filters, saved searches and the LLM extension settings for the new
+          # user come from ./config/config-user.custom.php.
+          FRESHRSS_USER: |-
+            --user zac
+            --password ${FRESHRSS_PASSWORD}
+            --api-password ${API_PASSWORD}
+            --email zac@laboratory.casa
+            --language en
+            --no-default-feeds
+        envFrom:
+          # DB_PASSWORD (must match database/postgres-17-cluster/roles/freshrss.sops.yaml),
+          # FRESHRSS_PASSWORD (unused with OIDC), API_PASSWORD (mobile apps),
+          # OIDC_CLIENT_ID/SECRET/CRYPTO_KEY, LLM_API_KEY (Anthropic, read once by config-user.custom.php).
+          - secretRef:
+              name: freshrss-secret
+        probes:
+          liveness: &probe
+            enabled: true
+            custom: true
+            spec:
+              tcpSocket:
+                port: &port 8080
+              periodSeconds: 30
+          readiness: *probe
+          # First start installs, creates the user and refreshes every feed before Apache listens.
+          startup:
+            enabled: true
+            custom: true
+            spec:
+              tcpSocket:
+                port: *port
+              periodSeconds: 5
+              failureThreshold: 120
+        securityContext:
+          allowPrivilegeEscalation: false
+        resources:
+          requests:
+            cpu: 20m
+            memory: 128Mi
+          limits:
+            memory: 512Mi
+
+service:
+  app:
+    controller: freshrss
+    ports:
+      http:
+        port: *port
+
+route:
+  app:
+    # External so mobile apps (Google Reader API) sync away from home.
+    hostnames:
+      - freshrss.laboratory.casa
+    parentRefs:
+      - name: envoy-external
+        namespace: network
+        sectionName: https
+    rules:
+      - backendRefs:
+          - identifier: app
+            port: http
+
+persistence:
+  data:
+    type: persistentVolumeClaim
+    suffix: data
+    storageClass: longhorn
+    accessMode: ReadWriteOnce
+    # Config, user settings, caches; articles live in Postgres.
+    size: 1Gi
+    globalMounts:
+      - path: /var/www/FreshRSS/data
+  config:
+    type: configMap
+    name: freshrss-config
+    advancedMounts:
+      freshrss:
+        prompt:
+          - path: /config
+            readOnly: true
+        app:
+          - path: /var/www/FreshRSS/data/config-user.custom.php
+            subPath: config-user.custom.php
+            readOnly: true
+  extension:
+    type: configMap
+    name: freshrss-ext-llm
+    items:
+      - { key: extension.php, path: extension.php }
+      - { key: metadata.json, path: metadata.json }
+      - { key: configure.phtml, path: configure.phtml }
+      - { key: i18n-en-ext.php, path: i18n/en/ext.php }
+      - { key: i18n-fr-ext.php, path: i18n/fr/ext.php }
+    advancedMounts:
+      freshrss:
+        app:
+          - path: /var/www/FreshRSS/extensions/xExtension-LlmClassification
+            readOnly: true
