@@ -70,6 +70,12 @@ spec:
   # postgres-init's createuser made: login, inherit, nothing else.
   managed:
     roles:
+      - name: miniflux
+        ensure: present
+        login: true
+        inherit: true
+        passwordSecret:
+          name: pg-role-miniflux
       - name: lubelog
         ensure: present
         login: true

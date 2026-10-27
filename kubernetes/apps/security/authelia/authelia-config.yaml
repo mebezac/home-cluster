@@ -302,6 +302,23 @@ identity_providers:
           - "profile"
         userinfo_signed_response_alg: "none"
         token_endpoint_auth_method: "client_secret_basic"
+      # Miniflux. Always sends PKCE S256 and reads claims from (unsigned) userinfo.
+      - client_id: "9JoTvg~XT4pGGlwArCSkFwk_8yxF6UENrLR5vX-AKEE7SAZvH1kGfQgt~9brF-UdEGppvM13"
+        client_name: "Miniflux"
+        client_secret: "$pbkdf2-sha512$310000$aN3Dkvc4VUC5ALf.yKsHLQ$0jIv9B7DQ5IeDmIAXSHVmRIEpiMVi9jTln7CLqbhaLEIIt4HhA0UQWjVZ83oDt7T6dkIdlqQZx1y432gDZp40Q"
+        public: false
+        authorization_policy: "one_factor"
+        consent_mode: "implicit"
+        require_pkce: true
+        pkce_challenge_method: "S256"
+        redirect_uris:
+          - "https://miniflux.laboratory.casa/oauth2/oidc/callback"
+        scopes:
+          - "openid"
+          - "email"
+          - "profile"
+        userinfo_signed_response_alg: "none"
+        token_endpoint_auth_method: "client_secret_basic"
       # Forgejo — git forge (OIDC source "authelia" added post-boot via
       # `forgejo admin auth add-oauth`). claims_policy "all" hydrates groups
       # into the id_token so Forgejo can map an admin group. PKCE disabled to

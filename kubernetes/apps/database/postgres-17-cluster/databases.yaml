@@ -163,3 +163,15 @@ spec:
   owner: authelia
   ensure: present
   databaseReclaimPolicy: retain
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: miniflux
+spec:
+  cluster:
+    name: postgres-17-cluster
+  name: miniflux
+  owner: miniflux
+  ensure: present
+  databaseReclaimPolicy: retain
