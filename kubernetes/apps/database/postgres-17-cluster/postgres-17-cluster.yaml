@@ -77,7 +77,7 @@ spec:
         passwordSecret:
           name: pg-role-freshrss
       - name: miniflux
-        ensure: present
+        ensure: absent
         login: true
         inherit: true
         passwordSecret:

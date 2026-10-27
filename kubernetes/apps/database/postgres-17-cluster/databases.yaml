@@ -173,7 +173,7 @@ spec:
     name: postgres-17-cluster
   name: miniflux
   owner: miniflux
-  ensure: present
+  ensure: absent
   databaseReclaimPolicy: retain
 ---
 apiVersion: postgresql.cnpg.io/v1
