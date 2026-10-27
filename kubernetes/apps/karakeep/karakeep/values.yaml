@@ -57,8 +57,6 @@ controllers:
           EMBEDDING_ENABLE_AUTO_INDEXING: "true"
           # --- Crawler
           CRAWLER_BROWSER_TIMEZONE: America/New_York
-          CRAWLER_FULL_PAGE_ARCHIVE: "true"
-          CRAWLER_MONOLITH_TIMEOUT_SEC: "60"
           OCR_CACHE_DIR: /data/ocr-cache
           # --- Assets on Garage (SQLite stays on the PVC). The bucket must exist.
           ASSET_STORE_S3_ENDPOINT: http://garage-s3.garage.svc.cluster.local:3900
