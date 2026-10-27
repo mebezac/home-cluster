@@ -5,7 +5,7 @@
 FROM node:24.22.1-trixie-slim@sha256:43b9ba1142b8dcf33fa8f922ca1be85714adc444e0586c7cf7726daaeabc1bea
 
 # renovate: datasource=npm depName=@openai/codex
-ARG CODEX_VERSION=0.164.0
+ARG CODEX_VERSION=0.165.0
 
 # Common CLI tools for agents. No pip/npm registry egress at runtime, so
 # Python is stdlib-only.
