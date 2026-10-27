@@ -45,11 +45,14 @@ controllers:
           FETCH_YOUTUBE_WATCH_TIME: "1"
           # The Karakeep integration posts to the in-cluster service (a private IP).
           INTEGRATION_ALLOW_PRIVATE_NETWORKS: "1"
-          # --- Metrics at /metrics, only from the pod network (vmagent).
+          # --- Metrics at /metrics. The network check alone is not enough: public
+          # requests arrive from Envoy, which is inside the pod network. So it also
+          # needs METRICS_USERNAME/PASSWORD (in the secret, also used by the scrape).
           METRICS_COLLECTOR: "1"
           METRICS_ALLOWED_NETWORKS: 10.69.0.0/16
         envFrom:
           # DATABASE_URL (password must match database/postgres-17-cluster/roles/miniflux.sops.yaml),
+          # METRICS_USERNAME/PASSWORD,
           # OAUTH2_CLIENT_ID/SECRET, MEDIA_PROXY_PRIVATE_KEY.
           - secretRef:
               name: miniflux-secret
@@ -106,6 +109,13 @@ serviceMonitor:
       - port: http
         path: /metrics
         interval: 1m
+        basicAuth:
+          username:
+            name: miniflux-secret
+            key: METRICS_USERNAME
+          password:
+            name: miniflux-secret
+            key: METRICS_PASSWORD
 
 route:
   app:
