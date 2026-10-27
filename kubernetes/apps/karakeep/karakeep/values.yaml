@@ -1,0 +1,249 @@
+defaultPodOptions:
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 3000
+    runAsGroup: 3000
+    fsGroup: 3000
+    fsGroupChangePolicy: OnRootMismatch
+    seccompProfile: { type: RuntimeDefault }
+
+controllers:
+  karakeep:
+    annotations:
+      reloader.stakater.com/auto: "true"
+    # Web, workers and the DB migration share one SQLite file on an RWO PVC.
+    strategy: Recreate
+    containers:
+      app:
+        image:
+          repository: ghcr.io/karakeep-app/karakeep
+          # changelog: GH releases karakeep-app/karakeep
+          tag: 0.34.1@sha256:69ae5315c618b7c14c1af3e34c6e211acdb231793af424ecd1cab0b70691d987
+        # The image runs s6-overlay /init, which needs /run owned by the running uid.
+        # 0.34 chowns /run to node (1000), so 1000 is the only non-root uid that boots
+        # (karakeep #3113/#3114, #865). fsGroup 3000 still owns the PVC.
+        securityContext:
+          runAsUser: 1000
+          runAsGroup: 1000
+        env:
+          TZ: America/New_York
+          DATA_DIR: /data
+          NEXTAUTH_URL: https://karakeep.laboratory.casa
+          MEILI_ADDR: http://karakeep-meilisearch:7700
+          BROWSER_WEB_URL: http://karakeep-chrome:9222
+          DB_WAL_MODE: "true"
+          LOG_LEVEL: info
+          DISABLE_NEW_RELEASE_CHECK: "true"
+          # --- SSO: Authelia only (client in security/authelia/authelia-config.yaml).
+          # Signups stay on: password auth is off, so only Authelia users can sign up.
+          # The first account becomes admin.
+          OAUTH_WELLKNOWN_URL: https://login.laboratory.casa/.well-known/openid-configuration
+          OAUTH_PROVIDER_NAME: Authelia
+          OAUTH_TOKEN_ENDPOINT_AUTH_METHOD: client_secret_basic
+          DISABLE_PASSWORD_AUTH: "true"
+          OAUTH_AUTO_REDIRECT: "true"
+          # --- AI: Claude through Anthropic's OpenAI-compatible endpoint. It ignores
+          # response_format, so ask for JSON in the prompt ("plain").
+          OPENAI_BASE_URL: https://api.anthropic.com/v1/
+          INFERENCE_TEXT_MODEL: claude-haiku-5-5
+          INFERENCE_IMAGE_MODEL: claude-haiku-5-5
+          INFERENCE_OUTPUT_SCHEMA: plain
+          INFERENCE_CONTEXT_LENGTH: "8192"
+          INFERENCE_ENABLE_AUTO_TAGGING: "true"
+          INFERENCE_ENABLE_AUTO_SUMMARIZATION: "true"
+          # Anthropic has no embeddings API; semantic search uses OpenRouter.
+          EMBEDDING_OPENAI_BASE_URL: https://openrouter.ai/api/v1
+          EMBEDDING_TEXT_MODEL: openai/text-embedding-3-small
+          EMBEDDING_ENABLE_AUTO_INDEXING: "true"
+          # --- Crawler
+          CRAWLER_BROWSER_TIMEZONE: America/New_York
+          CRAWLER_FULL_PAGE_ARCHIVE: "true"
+          CRAWLER_MONOLITH_TIMEOUT_SEC: "60"
+          OCR_CACHE_DIR: /data/ocr-cache
+          # --- Assets on Garage (SQLite stays on the PVC). The bucket must exist.
+          ASSET_STORE_S3_ENDPOINT: http://garage-s3.garage.svc.cluster.local:3900
+          ASSET_STORE_S3_REGION: us-east-1
+          ASSET_STORE_S3_BUCKET: karakeep
+          ASSET_STORE_S3_FORCE_PATH_STYLE: "true"
+          # --- Metrics: web /api/metrics on :3000, workers /metrics on a fixed port.
+          WORKERS_HOST: 0.0.0.0
+          WORKERS_PORT: &workersPort 9091
+        envFrom:
+          - secretRef:
+              name: karakeep-secret
+        probes:
+          liveness: &probe
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /api/health
+                port: &port 3000
+              periodSeconds: 30
+              timeoutSeconds: 5
+              failureThreshold: 3
+          readiness: *probe
+          # The DB migration runs before the web server starts.
+          startup:
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /api/health
+                port: *port
+              periodSeconds: 5
+              failureThreshold: 60
+        resources:
+          requests:
+            cpu: 50m
+            memory: 512Mi
+          limits:
+            memory: 2Gi
+
+  chrome:
+    containers:
+      app:
+        image:
+          repository: ghcr.io/karakeep-app/karakeep-chrome
+          # changelog: karakeep-app/karakeep docker/chrome (tag = Chrome version + -rN)
+          tag: 156.0.8078.47-r1@sha256:4ad61127638dd27bfe685222787c5780dd1d083d23a7658c39af657775814c44
+        # The entrypoint adds --no-sandbox, --headless=new and the 9222 socat forward.
+        args:
+          - --disable-gpu
+          - --disable-dev-shm-usage
+          - --hide-scrollbars
+          - --disable-blink-features=AutomationControlled
+          - --window-size=1440,900
+        env:
+          TZ: America/New_York
+          HOME: /tmp
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities: { drop: ["ALL"] }
+        resources:
+          requests:
+            cpu: 20m
+            memory: 256Mi
+          limits:
+            memory: 1Gi
+    pod:
+      # Stand-in for compose `init: true`: the pause container reaps Chrome's zombies.
+      shareProcessNamespace: true
+
+  meilisearch:
+    # Single RWO volume.
+    strategy: Recreate
+    containers:
+      app:
+        image:
+          repository: docker.io/getmeili/meilisearch
+          # Do NOT auto-merge bumps: a newer Meilisearch refuses an older data.ms. Set
+          # MEILI_UPGRADE_DB=true for one start (one-way; back up first), or wipe data.ms
+          # and run Admin > Background Jobs > "Reindex All Bookmarks". Upstream pins v1.41.0.
+          tag: v1.41.0@sha256:860fa4baed04ae1c235de870edab0c8006227546dea1bbb6411fbfc5e27cf1db
+        env:
+          MEILI_NO_ANALYTICS: "true"
+          MEILI_ENV: production
+          MEILI_MASTER_KEY:
+            valueFrom:
+              secretKeyRef:
+                name: karakeep-secret
+                key: MEILI_MASTER_KEY
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities: { drop: ["ALL"] }
+        probes:
+          liveness: &meiliProbe
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /health
+                port: 7700
+              periodSeconds: 30
+          readiness: *meiliProbe
+        resources:
+          requests:
+            cpu: 10m
+            memory: 128Mi
+          limits:
+            memory: 1Gi
+
+service:
+  app:
+    controller: karakeep
+    ports:
+      http:
+        port: *port
+      metrics:
+        port: *workersPort
+  chrome:
+    controller: chrome
+    ports:
+      http:
+        port: 9222
+  meilisearch:
+    controller: meilisearch
+    ports:
+      http:
+        port: 7700
+
+serviceMonitor:
+  app:
+    service:
+      identifier: app
+    endpoints:
+      - port: http
+        path: /api/metrics
+        interval: 1m
+        bearerTokenSecret: &metricsToken
+          name: karakeep-secret
+          key: PROMETHEUS_AUTH_TOKEN
+      - port: metrics
+        path: /metrics
+        interval: 1m
+        bearerTokenSecret: *metricsToken
+
+route:
+  app:
+    # External so the browser extension and mobile app work away from home. No
+    # Authelia forward auth: it would block their API-key calls to /api/*.
+    hostnames:
+      - karakeep.laboratory.casa
+    parentRefs:
+      - name: envoy-external
+        namespace: network
+        sectionName: https
+    rules:
+      - backendRefs:
+          - identifier: app
+            port: http
+
+persistence:
+  data:
+    type: persistentVolumeClaim
+    suffix: data
+    storageClass: longhorn
+    accessMode: ReadWriteOnce
+    # SQLite + queue DB + OCR cache; assets go to Garage.
+    size: 2Gi
+    advancedMounts:
+      karakeep:
+        app:
+          - path: /data
+  meilisearch:
+    type: persistentVolumeClaim
+    suffix: meilisearch
+    storageClass: longhorn
+    accessMode: ReadWriteOnce
+    size: 1Gi
+    advancedMounts:
+      meilisearch:
+        app:
+          - path: /meili_data
+  chrome-tmp:
+    type: emptyDir
+    advancedMounts:
+      chrome:
+        app:
+          - path: /tmp

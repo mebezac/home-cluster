@@ -283,6 +283,25 @@ identity_providers:
           - "groups"
         userinfo_signed_response_alg: "none"
         token_endpoint_auth_method: "client_secret_post"
+      # Karakeep. better-auth always sends PKCE S256. claims_policy "all" puts
+      # email in the id_token (Authelia 4.39+ leaves it out otherwise).
+      - client_id: "3fFvtdvUSPzXMqRgvYfRlDS~.Uaz84kNcmzQ6ZzJn2chbPX9Gcs0NR2u.4wWuPF7tnlfML0X"
+        client_name: "Karakeep"
+        client_secret: "$pbkdf2-sha512$310000$R9Y/tiYxgbe06bUXfcYzVw$FwY3RN6s2/LMXKpD98m3vD6x/GROLr.odMKBcQlXlHKBRS9rRy7NpA4s7B9bqp8D0Z6Vykuw8kAdHLyWF.jZrA"
+        claims_policy: "all"
+        public: false
+        authorization_policy: "one_factor"
+        consent_mode: "implicit"
+        require_pkce: true
+        pkce_challenge_method: "S256"
+        redirect_uris:
+          - "https://karakeep.laboratory.casa/api/auth/callback/custom"
+        scopes:
+          - "openid"
+          - "email"
+          - "profile"
+        userinfo_signed_response_alg: "none"
+        token_endpoint_auth_method: "client_secret_basic"
       # Forgejo — git forge (OIDC source "authelia" added post-boot via
       # `forgejo admin auth add-oauth`). claims_policy "all" hydrates groups
       # into the id_token so Forgejo can map an admin group. PKCE disabled to
