@@ -24,7 +24,7 @@ python = "3.15.1"
 "aqua:kubernetes/kubectl" = "1.36.5"
 "aqua:mikefarah/yq" = "4.54.1"
 # changelog: see kubernetes/bootstrap/talos/topf.yaml talosVersion - same release, bump in lockstep (Renovate does not group them)
-"aqua:siderolabs/talos" = "1.14.4"
+"aqua:siderolabs/talos" = "1.14.5"
 # topf renders + applies Talos machine configs from kubernetes/bootstrap/talos/topf.yaml (replaced archived talhelper)
 "github:postfinance/topf" = "0.6.2"
 "aqua:yannh/kubeconform" = "0.8.0"
