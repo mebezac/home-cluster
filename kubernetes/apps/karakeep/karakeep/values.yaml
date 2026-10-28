@@ -138,7 +138,7 @@ controllers:
           # Do NOT auto-merge bumps: a newer Meilisearch refuses an older data.ms. Set
           # MEILI_UPGRADE_DB=true for one start (one-way; back up first), or wipe data.ms
           # and run Admin > Background Jobs > "Reindex All Bookmarks". Upstream pins v1.41.0.
-          tag: v1.41.0@sha256:860fa4baed04ae1c235de870edab0c8006227546dea1bbb6411fbfc5e27cf1db
+          tag: v1.56.0@sha256:1f578fa865f8251894b3bf38d6668d6209a3f451f8f65ab953e129d4c1db5ef4
         env:
           MEILI_NO_ANALYTICS: "true"
           MEILI_ENV: production
