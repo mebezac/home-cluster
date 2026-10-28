@@ -207,6 +207,25 @@ persistence:
         app:
           - path: /bootstrap/group-configs
             readOnly: true
+  # Service-account passwords. A user entry's "password_file" points here,
+  # and the script sets that password on every run. Source of truth is the
+  # consumer's own secret, so a rotation is one edit: change the value in
+  # authelia-secret; the next run (<= 30 min) sets it in lldap.
+  bootstrap-passwords:
+    type: secret
+    name: authelia-secret
+    items:
+      - key: AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD
+        path: authelia
+    advancedMounts:
+      bootstrap:
+        app:
+          - path: /bootstrap/passwords
+            readOnly: true
+      bootstrap-cron:
+        app:
+          - path: /bootstrap/passwords
+            readOnly: true
   bootstrap-tmp:
     type: emptyDir
     advancedMounts:
