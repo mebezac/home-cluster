@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: lldap-bootstrap-groups
+  namespace: security
+stringData:
+  groups.json: ENC[AES256_GCM,data:AqSIyj5xt08vHX6k2iFbOXXpQ6IIbRK6JUC3CGm95t3o7MBr5AzN+Ic/wD4chZiJQUhHy2BU9R1bL31rFZmnDf80mUKS1i9fq62YaJzrIww08pYQLtW0uErXOzxfeAOPnFh+PQY1bdJ7J5gQdXD9,iv:VvUktL+4iCUjzJ3mGc5wPXChZvK+mK1exEUvKXakPII=,tag:UiVo46l4ykDb6C5QzJZG2g==,type:str]
+sops:
+  age:
+    - enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBZc01jZVBnYkFrdzdIdG9G
+        c0NpSGViM2Fydzl3S0phYWdPWTVoZGp2T1FJCm1QNWVmUHZrOWpWL2RnZXZIUXNN
+        MmZrWERmR3dZa3VYdGszemtBbjYrOVkKLS0tIHZNdkdWdVM0QlM4clNuVkVDcnZl
+        VmpBTXdlL1g3Qi94akJ1VnhPQnQyd00KLmYzEWoE+zRg2DwD+g4OXwyVFGAN+bGv
+        zFr/tH9dAbN4EXGNMls0IyDhJKznhv9Snnft/uIzP3T+btYxZl091A==
+        -----END AGE ENCRYPTED FILE-----
+      recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
+  encrypted_regex: ^(data|stringData)$
+  lastmodified: "2026-10-28T19:19:59Z"
+  mac: ENC[AES256_GCM,data:+B3KSysmErOy1xySeERSdS2DPozYTaV58pF516v+K5m3xoPGmJqdwKuAgf6EPaVtuL74NEUKm987xXDTZtMu6KYxvcOSCwBY0hyEELXO5Pec55Q6dabaV3qsj+gPWW/+nIdGvLgxGv5bRyeum9dPgJ3A3Z+VKLcGLhlxuCbMmPQ=,iv:jLNgSv6D7FgjqP4Gcz3jYKfI23ZN5vvfCI3zj5ALSYk=,tag:UiKtnnvex5JRHUsnBlxavw==,type:str]
+  mac_only_encrypted: true
+  version: 3.13.3

@@ -78,7 +78,8 @@ controllers:
   # example_configs/bootstrap/bootstrap.md).
   #   users:  lldap-bootstrap-users.sops.yaml (encrypted: names and emails;
   #           this repo is public)
-  #   groups: configMaps.bootstrap-groups below
+  #   groups: lldap-bootstrap-groups.sops.yaml (encrypted: a group can be
+  #           named after a person)
   # Passwords are NOT in the config, so the script never touches them:
   # people still set/reset their own in the UI.
   # Do not add a user or group in the UI: with DO_CLEANUP=true the next run
@@ -140,18 +141,6 @@ controllers:
     containers:
       app: *bootstrapContainer
 
-configMaps:
-  bootstrap-groups:
-    forceRename: lldap-bootstrap-groups
-    # Only the bootstrap jobs read it; do not restart lldap on group edits.
-    includeInChecksum: false
-    data:
-      groups.json: |
-        {"name": "apps_admin"}
-        {"name": "apps_readonly"}
-        {"name": "apps_user"}
-        {"name": "frigate_only"}
-
 service:
   app:
     controller: lldap
@@ -196,8 +185,8 @@ persistence:
           - path: /bootstrap/user-configs
             readOnly: true
   bootstrap-groups:
-    type: configMap
-    identifier: bootstrap-groups
+    type: secret
+    name: lldap-bootstrap-groups
     advancedMounts:
       bootstrap:
         app:
