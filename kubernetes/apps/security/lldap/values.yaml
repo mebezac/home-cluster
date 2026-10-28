@@ -26,7 +26,7 @@ controllers:
               app.kubernetes.io/name: lldap
     containers:
       lldap:
-        image:
+        image: &image
           repository: ghcr.io/lldap/lldap
           # changelog: GH releases lldap/lldap. Was pinned to the DATE tag
           # 2025-04-04, which is a dev build off main, not a release - and
@@ -71,6 +71,86 @@ controllers:
             memory: 36M
           limits:
             memory: 128M
+
+  # Users and groups are declared in git, not edited in the UI.
+  # lldap's own /app/bootstrap.sh reads the JSON configs and makes lldap
+  # match them over the GraphQL API (upstream:
+  # example_configs/bootstrap/bootstrap.md).
+  #   users:  lldap-bootstrap-users.sops.yaml (encrypted: names and emails;
+  #           this repo is public)
+  #   groups: configMaps.bootstrap-groups below
+  # Passwords are NOT in the config, so the script never touches them:
+  # people still set/reset their own in the UI.
+  # Do not add a user or group in the UI: with DO_CLEANUP=true the next run
+  # deletes anything not declared here (never admin or the lldap_* groups).
+  #
+  # Runs as an Argo PostSync hook (applies a push right away) and as a
+  # CronJob (reverts UI drift, which Argo cannot see).
+  bootstrap:
+    type: job
+    annotations:
+      argocd.argoproj.io/hook: PostSync
+      argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    job:
+      backoffLimit: 2
+    pod: &bootstrapPod
+      restartPolicy: OnFailure
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 3000
+        runAsGroup: 3000
+        seccompProfile: { type: RuntimeDefault }
+    containers:
+      app: &bootstrapContainer
+        image: *image
+        command: ["/app/bootstrap.sh"]
+        env:
+          LLDAP_URL: http://lldap.security.svc.cluster.local
+          LLDAP_ADMIN_USERNAME: admin
+          LLDAP_ADMIN_PASSWORD:
+            valueFrom:
+              secretKeyRef:
+                name: lldap-secret
+                key: LLDAP_LDAP_USER_PASS
+          USER_CONFIGS_DIR: /bootstrap/user-configs
+          GROUP_CONFIGS_DIR: /bootstrap/group-configs
+          # Delete users, groups and memberships that are not declared.
+          DO_CLEANUP: "false"
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities: { drop: ["ALL"] }
+        resources:
+          requests:
+            cpu: 10m
+            memory: 16M
+          limits:
+            memory: 64M
+  bootstrap-cron:
+    type: cronjob
+    cronjob:
+      schedule: "*/30 * * * *"
+      concurrencyPolicy: Forbid
+      successfulJobsHistory: 1
+      failedJobsHistory: 2
+      backoffLimit: 2
+    pod: *bootstrapPod
+    containers:
+      app: *bootstrapContainer
+
+configMaps:
+  bootstrap-groups:
+    forceRename: lldap-bootstrap-groups
+    # Only the bootstrap jobs read it; do not restart lldap on group edits.
+    includeInChecksum: false
+    data:
+      groups.json: |
+        {"name": "apps_admin"}
+        {"name": "apps_readonly"}
+        {"name": "apps_user"}
+        {"name": "frigate_only"}
+
 service:
   app:
     controller: lldap
@@ -98,3 +178,40 @@ route:
 persistence:
   data:
     type: emptyDir
+    advancedMounts:
+      lldap:
+        lldap:
+          - path: /data
+  bootstrap-users:
+    type: secret
+    name: lldap-bootstrap-users
+    advancedMounts:
+      bootstrap:
+        app:
+          - path: /bootstrap/user-configs
+            readOnly: true
+      bootstrap-cron:
+        app:
+          - path: /bootstrap/user-configs
+            readOnly: true
+  bootstrap-groups:
+    type: configMap
+    identifier: bootstrap-groups
+    advancedMounts:
+      bootstrap:
+        app:
+          - path: /bootstrap/group-configs
+            readOnly: true
+      bootstrap-cron:
+        app:
+          - path: /bootstrap/group-configs
+            readOnly: true
+  bootstrap-tmp:
+    type: emptyDir
+    advancedMounts:
+      bootstrap:
+        app:
+          - path: /tmp
+      bootstrap-cron:
+        app:
+          - path: /tmp
