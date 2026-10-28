@@ -3,7 +3,7 @@
 # process per MCP session, so the dry-run confirmation tokens (kept in memory)
 # survive between calls. Upstream publishes no image and no tags, so the source
 # is pinned by commit.
-ARG NODE_IMAGE=node:24.22.1-trixie-slim@sha256:43b9ba1142b8dcf33fa8f922ca1be85714adc444e0586c7cf7726daaeabc1bea
+ARG NODE_IMAGE=node:24.22.1-trixie-slim@sha256:89c5244bc22a9bc3287d89ebc7e49b9cb5bb84cd40e6175ac3421d5a9f68b95a
 
 FROM ${NODE_IMAGE} AS build
 # renovate: datasource=git-refs depName=https://github.com/tastytrade/tastytrade-mcp branch=main
