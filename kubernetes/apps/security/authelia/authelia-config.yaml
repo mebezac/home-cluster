@@ -44,6 +44,14 @@ access_control:
     ## Per-group apps: <app>-<group>.laboratory.casa is open to members of the
     ## LDAP group <group> (Authelia named regex group). Hostnames without a dash
     ## never match; admins fall through to the rule below.
+    ## Members of password_only get the same per-group hosts with a password
+    ## alone. A rule matches only when ALL criteria match, so this still needs
+    ## the <group> membership; everyone else falls through to two_factor.
+    - domain_regex:
+        - '^[a-z0-9]+-(?P<Group>[a-z0-9]+)\.laboratory\.casa$'
+      policy: one_factor
+      subject:
+        - group:password_only
     - domain_regex:
         - '^[a-z0-9]+-(?P<Group>[a-z0-9]+)\.laboratory\.casa$'
       policy: two_factor

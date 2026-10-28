@@ -419,7 +419,7 @@ Authelia's users and groups live in lldap, and lldap is **declared in git**. lld
 - **Privacy**: this repo is public. Names, emails and person-named groups live only inside those two encrypted files; commit messages, comments and `values.yaml` stay generic.
 - **Passwords**: human users have no `password` key, so the script never touches their passwords. A new user sets one through Authelia "Reset password" at https://login.laboratory.casa. A service account gets `"password_file": "/bootstrap/passwords/<name>"`, backed by a key of the consumer's own secret mounted in `persistence.bootstrap-passwords` (`authelia` reads `authelia-secret`), so the consumer's secret is the single source of truth.
 - **Verify**: after the sync, read `kubectl -n security logs job/lldap-bootstrap`. The script prints a failed mutation and carries on, so the Job can show Complete with an error in its log. Authelia sees LDAP changes within 1 minute (`refresh_interval: 1m`).
-- **Access**: membership of group `<g>` opens `<app>-<g>.laboratory.casa` (regex rule in `kubernetes/apps/security/authelia/authelia-config.yaml`); `apps_admin` opens every `*.laboratory.casa`.
+- **Access**: membership of group `<g>` opens `<app>-<g>.laboratory.casa` with two_factor (regex rule in `kubernetes/apps/security/authelia/authelia-config.yaml`); `apps_admin` opens every `*.laboratory.casa`. Adding `password_only` to a user's groups drops their per-group hosts to one_factor (password alone) and opens nothing extra. Check a rule change with `authelia access-control check-policy --config <file> --url <url> --username <u> --groups <g1,g2>` before pushing; a bad Authelia config is an SSO outage.
 
 ### Timeouts, Upload Size, TLS
 
