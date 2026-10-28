@@ -116,7 +116,8 @@ controllers:
           USER_CONFIGS_DIR: /bootstrap/user-configs
           GROUP_CONFIGS_DIR: /bootstrap/group-configs
           # Delete users, groups and memberships that are not declared.
-          DO_CLEANUP: "false"
+          # Turned on after a first run with "false" printed no warnings.
+          DO_CLEANUP: "true"
         securityContext:
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
