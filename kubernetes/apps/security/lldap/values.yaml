@@ -184,7 +184,10 @@ persistence:
         app:
           - path: /bootstrap/user-configs
             readOnly: true
-  bootstrap-groups:
+  # Key renamed from bootstrap-groups when it went configMap -> secret:
+  # server-side apply merges volumes by name, and one volume with both
+  # types is invalid.
+  bootstrap-group-configs:
     type: secret
     name: lldap-bootstrap-groups
     advancedMounts:
