@@ -15,7 +15,7 @@ spec:
     - repoURL: https://github.com/kubernetes-sigs/gateway-api
       # changelog: GH releases kubernetes-sigs/gateway-api. MUST equal the bundle-version in gateway-crds-helm templates/*gatewayapi-crds.yaml at the EG version in ../network/envoy-gateway.yaml (also check EG go.mod) - a lone bump here breaks lockstep
       # renovate: datasource=github-releases depName=kubernetes-sigs/gateway-api
-      targetRevision: v1.6.1
+      targetRevision: v1.6.3
       path: config/crd/experimental
   destination:
     name: in-cluster

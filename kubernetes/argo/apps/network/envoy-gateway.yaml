@@ -19,7 +19,7 @@ spec:
     # bundles (gateway-crds-helm/templates/*gatewayapi-crds.yaml bundle-version).
     - repoURL: docker.io/envoyproxy
       chart: gateway-crds-helm
-      targetRevision: v1.9.2
+      targetRevision: 1.9.3
       helm:
         releaseName: envoy-gateway-crds
         valuesObject:
@@ -30,7 +30,7 @@ spec:
               enabled: true
     - repoURL: docker.io/envoyproxy
       chart: gateway-helm
-      targetRevision: v1.9.2
+      targetRevision: 1.9.3
       helm:
         releaseName: envoy-gateway
         valueFiles:
