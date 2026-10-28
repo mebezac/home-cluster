@@ -410,6 +410,17 @@ route:
 
 A label-selected Envoy Gateway `SecurityPolicy` named `authelia` **in the route's namespace** makes the ext-authz call. It exists in `network` (`kubernetes/apps/network/envoy-gateway/authelia.yaml`) and in the private repo's `downloads` namespace. For any other namespace, add a copy of that SecurityPolicy to the app AND add the namespace to the ReferenceGrant at `kubernetes/apps/security/authelia/referencegrant.yaml`; otherwise the auth routes fail closed with 500. There are no nginx auth annotations anymore.
 
+### Authelia Users and Groups (lldap)
+
+Authelia's users and groups live in lldap, and lldap is **declared in git**. lldap's own `/app/bootstrap.sh` runs as an Argo PostSync hook and every 30 minutes (CronJob `lldap-bootstrap-cron`, `DO_CLEANUP=true`) and makes lldap match git exactly: it deletes every user, group and membership git does not declare (only `admin` and the built-in `lldap_*` groups are exempt). A user made in the lldap web UI or GraphQL API vanishes within 30 minutes, taking its password and 2FA with it. Every change is a commit:
+
+- **Users**: `sops kubernetes/apps/security/lldap/lldap-bootstrap-users.sops.yaml`, one JSON object per user in `users.json`. Give every field (`id`, `email`, `displayName`, `firstName`, `lastName`, `groups`; `""` for empty), because an omitted field is cleared in lldap. `groups` is the user's complete membership, built-ins (`lldap_admin`, `lldap_password_manager`, `lldap_strict_readonly`) included.
+- **Groups**: `sops kubernetes/apps/security/lldap/lldap-bootstrap-groups.sops.yaml`, one `{"name": "<group>"}` per line in `groups.json`. Built-in `lldap_*` groups need no entry.
+- **Privacy**: this repo is public. Names, emails and person-named groups live only inside those two encrypted files; commit messages, comments and `values.yaml` stay generic.
+- **Passwords**: human users have no `password` key, so the script never touches their passwords. A new user sets one through Authelia "Reset password" at https://login.laboratory.casa. A service account gets `"password_file": "/bootstrap/passwords/<name>"`, backed by a key of the consumer's own secret mounted in `persistence.bootstrap-passwords` (`authelia` reads `authelia-secret`), so the consumer's secret is the single source of truth.
+- **Verify**: after the sync, read `kubectl -n security logs job/lldap-bootstrap`. The script prints a failed mutation and carries on, so the Job can show Complete with an error in its log. Authelia sees LDAP changes within 1 minute (`refresh_interval: 1m`).
+- **Access**: membership of group `<g>` opens `<app>-<g>.laboratory.casa` (regex rule in `kubernetes/apps/security/authelia/authelia-config.yaml`); `apps_admin` opens every `*.laboratory.casa`.
+
 ### Timeouts, Upload Size, TLS
 
 - No per-app config: a gateway-wide `BackendTrafficPolicy` sets `requestTimeout: 0s` and `streamIdleTimeout: 1h`, and Envoy has no request body size limit.
