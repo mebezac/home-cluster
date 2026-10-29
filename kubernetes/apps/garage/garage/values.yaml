@@ -173,6 +173,9 @@ controllers:
           tag: v2.5.0@sha256:677e5b758e4425a325b811c425c026bf35a4bf42f7ddbaa773de3f4fd779a5a5
         env:
           TZ: America/Detroit
+          # v2.5.0+: JSON lines with a flattened top-level `message` (victoria-logs-collector
+          # msgField picks it up), so level/target become searchable fields in VictoriaLogs.
+          GARAGE_LOG_FORMAT: json
         resources:
           requests:
             cpu: 100m
