@@ -14,9 +14,12 @@ controllers:
           repository: mauriceboe/trek
           # changelog: GH releases github.com/liketrek/TREK/releases (repo redirects from
           # mauriceboe/trek; Docker Hub image, never in PR body). Operator-relevant content is under
-          # "Upgrading" OR "Read this first" + "Schema" - the heading is not consistent between
-          # releases, read both. SQLite on our PVC - migrations run automatically at boot and are
-          # one-way, so snapshot trek-data (1Gi, longhorn) on any minor/major
+          # "Upgrading" OR "Read this first" + "Schema" OR (5.x) "Changed > Database / Sign-in and
+          # keys / Defaults that changed" - the heading is not consistent, read all; also
+          # wiki/Updating.md "Upgrading to X". SQLite on our PVC - migrations run at boot and are
+          # one-way. 5.x writes /app/data/pre-migrate-*.db itself before migrating, but 4.3.x starts
+          # on a migrated DB with no check, so a tag revert alone is unsafe. Snapshot trek-data
+          # (1Gi, longhorn) on any minor/major
           tag: 5.0.1@sha256:6f590b97c09158e92e9bc7d914ea1af207077735f07f7b622b1f6fb690442bc3
         env:
           TZ: America/New_York
@@ -37,6 +40,8 @@ controllers:
           # SSO only: replaces the UI-only "no password registration" toggle and turns
           # off password login (the one user is an OIDC admin). Audit 2026-10-22.
           OIDC_ONLY: "true"
+          # Authelia puts the display name in `name` (TREK's default); only used at account creation.
+          OIDC_USERNAME_CLAIM: preferred_username
         envFrom:
           - secretRef:
               name: trek-secret
@@ -47,6 +52,34 @@ controllers:
             memory: 400Mi
           limits:
             memory: 768M
+        # Same as upstream charts/trek defaults: startup gives a first boot / long migration 10 min;
+        # liveness skips the DB so a DB stall does not restart the pod; readiness asks the DB.
+        probes:
+          startup:
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /api/health
+                port: 3000
+              periodSeconds: 10
+              failureThreshold: 60
+          liveness:
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /api/health
+                port: 3000
+              periodSeconds: 30
+          readiness:
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /api/health/ready
+                port: 3000
+              periodSeconds: 10
 service:
   app:
     controller: trek
