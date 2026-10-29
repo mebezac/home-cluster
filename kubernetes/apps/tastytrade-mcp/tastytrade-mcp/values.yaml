@@ -22,7 +22,7 @@ controllers:
       app:
         image:
           repository: ghcr.io/mebezac/tastytrade-mcp
-          tag: 1.0.0-7f2bb63@sha256:d0312b59a546498b82c66a7a73aa4a0f3a339066c9dc95d374322d54e00ca73f
+          tag: 1.0.0-7f2bb63@sha256:24081d6d43b546317129bba9cf1f45186a8c073f2ace68075d23eeaa79a54152
         env:
           TZ: America/New_York
           TASTYTRADE_ENV: production
