@@ -58,6 +58,11 @@ spec:
       # address for them.
       trustedCIDRs:
         - 10.69.0.0/16
+  path:
+    # Envoy Gateway's default (UnescapeAndRedirect) 307s a %2F in the path to a
+    # real '/', so Forgejo API calls on branch names like renovate/foo-1.x hit a
+    # route that does not exist (404). ingress-nginx passed %2F through; keep that.
+    escapedSlashesAction: KeepUnchanged
   headers:
     # Envoy rejects (400) any request header with '_' in its name by default;
     # ingress-nginx silently dropped them. Keep the nginx behaviour.
@@ -103,6 +108,8 @@ spec:
     - group: gateway.networking.k8s.io
       kind: Gateway
       name: envoy-guest
+  path:
+    escapedSlashesAction: KeepUnchanged
   headers:
     withUnderscoresAction: DropHeader
     earlyRequestHeaders:
