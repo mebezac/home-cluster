@@ -4,6 +4,10 @@
 # itself stays on the hosted GitHub app). The RenovateJob lives in renovatejob.yaml.
 # changelog: github releases at mogenius/renovate-operator (docs/ in that repo)
 
+# Without this every object is renovate-operator-renovate-operator, and the Service
+# name is part of webhook.baseUrl and Forgejo's webhook ALLOWED_HOST_LIST.
+fullnameOverride: renovate-operator
+
 image:
   registry: ghcr.io
   repository: mogenius/renovate-operator
