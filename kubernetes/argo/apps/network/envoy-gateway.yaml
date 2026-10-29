@@ -30,6 +30,7 @@ spec:
               enabled: true
     - repoURL: docker.io/envoyproxy
       chart: gateway-helm
+      # changelog: site/content/en/news/releases/notes/<ver>.md at envoyproxy/gateway (GH release + PR body only link to it). Bundled Gateway API = bundle-version in gateway-crds-helm templates/*gatewayapi-crds.yaml + go.mod sigs.k8s.io/gateway-api
       targetRevision: 1.9.3
       helm:
         releaseName: envoy-gateway
