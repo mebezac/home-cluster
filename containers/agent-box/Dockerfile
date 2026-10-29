@@ -2,7 +2,7 @@
 # tooling (the "Real Life" company). Paperclip's SSH environment driver runs
 # `codex` here; the pod is locked down in kubernetes/apps/real-life-agents/.
 # sshd runs as the unprivileged `agent` user (uid 3000), so only that user can log in.
-FROM node:24.22.1-trixie-slim@sha256:89c5244bc22a9bc3287d89ebc7e49b9cb5bb84cd40e6175ac3421d5a9f68b95a
+FROM node:24.22.2-trixie-slim@sha256:54f84b4cf8432b21aaffd5d3ce8d41e12cea0d10d33c09d2f3c9879d49d6b446
 
 # renovate: datasource=npm depName=@openai/codex
 ARG CODEX_VERSION=0.165.0
