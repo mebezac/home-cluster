@@ -17,7 +17,7 @@ controllers:
           # "Upgrading" OR "Read this first" + "Schema" - the heading is not consistent between
           # releases, read both. SQLite on our PVC - migrations run automatically at boot and are
           # one-way, so snapshot trek-data (1Gi, longhorn) on any minor/major
-          tag: 4.3.4@sha256:6b7c8f275cc0ff3ca44979084bf078f553c96a0564493a132c1631ffaf6c3e77
+          tag: 5.0.1@sha256:6f590b97c09158e92e9bc7d914ea1af207077735f07f7b622b1f6fb690442bc3
         env:
           TZ: America/New_York
           NODE_ENV: production
