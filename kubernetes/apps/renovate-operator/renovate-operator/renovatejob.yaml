@@ -26,9 +26,6 @@ spec:
   # renovate-secret: RENOVATE_TOKEN (renovate-bot PAT) and, for github.com
   # changelog/tag lookups without the 60 req/h anonymous limit, RENOVATE_GITHUB_COM_TOKEN.
   secretRef: renovate-secret
-  extraEnv:
-    - name: LOG_LEVEL
-      value: debug
   renovateConfig:
     fileName: config.json
     inline: |
