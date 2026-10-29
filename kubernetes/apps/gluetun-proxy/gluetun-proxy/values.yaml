@@ -73,7 +73,7 @@ controllers:
           # LDAP or HTTP/2 - so TLS/auth CVEs and TLS feature removals (e.g. TLS-SRP dropped in
           # 8.22.0) do not reach us; just confirm -s/-X/-H/-d behaviour is unchanged. Blast radius
           # of a failure: the hourly VPN exit-IP rotation misses a cycle and self-heals next run.
-          tag: 8.23.0@sha256:11e64e28c5f58c8d93ee95fcf22ac055f48b0bc440e0ce7d8013bbb5ad6aa8ac
+          tag: 8.23.0@sha256:3fb7e13e5d179a845c97d78204f3f1064d1907037f26a3ebf91710571151fd93
         command: ["/bin/sh", "-c"]
         args:
           # -f/set -e: a failed call must fail the Job. Until 2026-10-02 this
