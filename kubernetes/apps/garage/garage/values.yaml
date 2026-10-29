@@ -165,7 +165,10 @@ controllers:
           # discovery - N/A here, we use static bootstrap_peers. NOTE: this manifest is only 1 of
           # 3 garage nodes (replication_factor=3 in garage.toml; the other 2 peers run outside
           # this repo, reached via Tailscale) - bumping here alone runs a mixed-version cluster
-          # briefly, which the "no breaking changes" note covers.
+          # briefly, which upstream supports across 2.x. v2.5.0: NO DOWNGRADE once a node has run
+          # it (rollback = restore a metadata snapshot, not just the old tag); bucket lifecycle
+          # Put/Get/Delete now needs an owner-permission key. Bump the Grafana dashboard tag in
+          # observability/grafana/values.yaml with every Garage bump (Renovate doesn't track it).
           repository: dxflrs/garage
           tag: v2.5.0@sha256:677e5b758e4425a325b811c425c026bf35a4bf42f7ddbaa773de3f4fd779a5a5
         env:
