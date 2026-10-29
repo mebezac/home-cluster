@@ -1,0 +1,88 @@
+---
+# mogenius renovate-operator: self-hosted Renovate for the Forgejo repos on
+# git.laboratory.casa (Mend's hosted app/CE does not support Forgejo; home-cluster
+# itself stays on the hosted GitHub app). The RenovateJob lives in renovatejob.yaml.
+# changelog: github releases at mogenius/renovate-operator (docs/ in that repo)
+
+image:
+  registry: ghcr.io
+  repository: mogenius/renovate-operator
+  tag: 6.7.0@sha256:38ef72e3ccd99bf2aa8788e07362efa1b06fe793e401b86405da53c18939e471
+
+# Plain templates instead of the default pre-install hook Job (kubectl + its own
+# ClusterRole): Argo applies the CRDs like any other resource.
+crd:
+  install: true
+  mode: template
+
+config:
+  # Keep finished Jobs one day so their pods' logs stay readable, then GC them.
+  jobTTLSecondsAfterFinished: 86400
+  # Last run's log per project, shown in the UI (valkey DB base+2 = 15).
+  logStorage:
+    mode: valkey
+  # Forwards a Redis cache URL (valkey DB 14) to every Renovate job.
+  forwardCacheToJobs: true
+
+# Central valkey. URL (with password) in renovate-valkey; base DB 13 ->
+# sessions 13, Renovate cache 14, logs 15.
+externalKeyValueStore:
+  existingSecret:
+    name: renovate-valkey
+    urlKey: valkey-url
+
+route:
+  enabled: true
+  hostnames:
+    - renovate.laboratory.casa
+  parentRefs:
+    - name: envoy-internal
+      namespace: network
+      sectionName: https
+
+# Forgejo runs in-cluster, so it delivers hooks straight to the Service (no route).
+# This host must be in Forgejo's webhook ALLOWED_HOST_LIST (forgejo/values.yaml).
+# The chart appends it to policy.allowedHosts itself.
+webhook:
+  enabled: true
+  baseUrl: http://renovate-operator.renovate-operator.svc.cluster.local:8082
+
+# UI login via Authelia (client "Renovate Operator" in security/authelia/authelia-config.yaml).
+# The operator does the OIDC flow itself, so the route has no auth: authelia label.
+auth:
+  oidc:
+    enabled: true
+    issuerUrl: https://login.laboratory.casa
+    clientId: "cP~rEu_wYvlOhPGmPiEJ5IMqgowp4dkcVCyo-3beOvFlEo8.On_4Og2sun77GD~ykuGviOyL"
+    existingSecret: renovate-oidc
+    secretKey: client-secret
+    sessionSecretKey: session-secret
+    redirectScheme: https
+    additionalScopes:
+      - groups
+
+authorization:
+  enabled: true
+  defaults:
+    adminGroups:
+      - apps_admin
+
+# Bounds what a RenovateJob may point at: only our Forgejo, only the official image.
+policy:
+  enabled: true
+  allowedHosts:
+    - git.laboratory.casa
+  allowedImages:
+    - ghcr.io/renovatebot/renovate
+
+resources:
+  requests:
+    cpu: 10m
+    memory: 64Mi
+  limits:
+    memory: 256Mi
+
+metrics:
+  enabled: true
+  serviceMonitor:
+    enabled: true

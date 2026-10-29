@@ -89,6 +89,9 @@ controllers:
           FORGEJO__cache__ADAPTER: redis
           FORGEJO__session__PROVIDER: redis
           FORGEJO__queue__TYPE: redis
+          # --- webhooks: default "external" refuses private IPs. Allow the in-cluster
+          #     renovate-operator receiver (matched by host name before the dial). ---
+          FORGEJO__webhook__ALLOWED_HOST_LIST: external,renovate-operator.renovate-operator.svc.cluster.local
           # --- Forgejo Actions (server side; runner is a separate workload added later) ---
           FORGEJO__actions__ENABLED: "true"
           # keep 90 days of job logs; [cron.cleanup_actions] (on by default, nightly) deletes

@@ -1,0 +1,56 @@
+---
+# Renovate for every Forgejo repo renovate-bot can push to under zac/*.
+# Onboard a repo: add renovate-bot as a collaborator (Admin, so webhook sync can add
+# the repo's hook) and commit a renovate.json5; requireConfig=required skips repos
+# without one (they get an onboarding PR instead).
+apiVersion: renovate-operator.mogenius.com/v1alpha1
+kind: RenovateJob
+metadata:
+  name: forgejo
+  annotations:
+    # The CRD comes from the chart in the same sync.
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  # Discovery + a run of every repo. Each repo's own `schedule` still decides
+  # when PRs may open; Dashboard/PR checkboxes run immediately via the webhook.
+  schedule: "0 * * * *"
+  image: ghcr.io/renovatebot/renovate:44.195.1@sha256:4fdd79853ffea9d72b519713dfc89bb6d1793b30825d36126d1d355271524441
+  parallelism: 1
+  provider:
+    name: forgejo
+    endpoint: https://git.laboratory.casa
+  discoveryFilters:
+    - "zac/*"
+  skipForks: true
+  # renovate-secret: RENOVATE_TOKEN (renovate-bot PAT) and, for github.com
+  # changelog/tag lookups without the 60 req/h anonymous limit, RENOVATE_GITHUB_COM_TOKEN.
+  secretRef: renovate-secret
+  renovateConfig:
+    fileName: config.json
+    inline: |
+      {
+        "gitAuthor": "Renovate Bot <renovate-bot@laboratory.casa>",
+        "onboarding": true,
+        "requireConfig": "required",
+        "onboardingConfig": {
+          "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+          "extends": ["config:recommended"]
+        }
+      }
+  resources:
+    requests:
+      cpu: 100m
+      memory: 512Mi
+    limits:
+      memory: 2Gi
+  webhook:
+    enabled: true
+    authentication:
+      enabled: true
+      secretRef:
+        name: renovate-webhook-token
+        key: token
+    # Adds/removes a Pull request + Issues hook on every discovered repo.
+    sync:
+      enabled: true

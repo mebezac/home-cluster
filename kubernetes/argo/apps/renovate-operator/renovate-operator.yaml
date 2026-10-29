@@ -1,0 +1,34 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: renovate-operator
+  namespace: argo-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: kubernetes
+  sources:
+    # kustomize: ksops secrets + the RenovateJob
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/apps/renovate-operator/renovate-operator
+      targetRevision: main
+      ref: renovate-operator-repo
+    - repoURL: ghcr.io/mogenius/helm-charts
+      chart: renovate-operator
+      targetRevision: 6.7.0
+      helm:
+        releaseName: renovate-operator
+        valueFiles:
+          - $renovate-operator-repo/kubernetes/apps/renovate-operator/renovate-operator/values.yaml
+  destination:
+    name: in-cluster
+    namespace: renovate-operator
+  syncPolicy:
+    automated:
+      allowEmpty: true
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      # The chart's CRDs are too large for client-side apply.
+      - ServerSideApply=true
