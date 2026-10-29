@@ -1,8 +1,10 @@
 ---
-# Renovate for every Forgejo repo renovate-bot can push to under zac/*.
-# Onboard a repo: add renovate-bot as a collaborator (Admin, so webhook sync can add
-# the repo's hook) and commit a renovate.json5; requireConfig=required skips repos
-# without one (they get an onboarding PR instead).
+# Renovate for the Forgejo repos renovate-bot can reach under laboratory-casa/* (and zac/*).
+# laboratory-casa: the org team "renovate" (renovate-bot, Admin on all repos; Admin lets
+# webhook sync add each repo's hook) covers every org repo, so onboarding = commit a
+# renovate.json5 extending local>laboratory-casa/renovate-config (requireConfig=required
+# skips repos without one; they get an onboarding PR instead). zac/* repos need
+# renovate-bot added as an Admin collaborator.
 apiVersion: renovate-operator.mogenius.com/v1alpha1
 kind: RenovateJob
 metadata:
@@ -21,6 +23,7 @@ spec:
     name: forgejo
     endpoint: https://git.laboratory.casa
   discoveryFilters:
+    - "laboratory-casa/*"
     - "zac/*"
   skipForks: true
   # renovate-secret: RENOVATE_TOKEN (renovate-bot PAT) and, for github.com
