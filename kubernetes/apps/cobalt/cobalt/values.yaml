@@ -26,8 +26,9 @@ controllers:
           TZ: America/New_York
           API_PORT: &apiPort 9000
           # Must be the URL the BROWSER uses: tunnel download links are built from it.
-          API_URL: https://cobalt-api.laboratory.casa/
-          # Only the web UI below may call the API from a browser.
+          # Same host as the UI (see route below), so Authelia covers downloads too.
+          API_URL: https://cobalt.laboratory.casa/
+          # No other origin may call the API from a browser.
           CORS_WILDCARD: "0"
           CORS_URL: https://cobalt.laboratory.casa
           # User choice 2026-10-30: no YouTube (no poToken sidecar, no cookies).
@@ -85,7 +86,7 @@ controllers:
             rm -rf /tmp/src
         env:
           HOME: /tmp
-          WEB_DEFAULT_API: https://cobalt-api.laboratory.casa/
+          WEB_DEFAULT_API: https://cobalt.laboratory.casa/
           WEB_HOST: cobalt.laboratory.casa
         securityContext:
           allowPrivilegeEscalation: false
@@ -144,20 +145,40 @@ service:
         port: *webPort
 
 route:
-  # The UI calls the API cross-origin (it keeps only the origin of
-  # WEB_DEFAULT_API), so the API needs its own hostname.
-  web:
-    # Authelia only here: the UI's fetches to the API carry no Authelia cookie,
-    # so auth on the API route would break every request (CORS on a 302).
+  # UI and API share ONE hostname, all behind Authelia. The UI calls the API
+  # only by origin (it drops any path from WEB_DEFAULT_API), so same host means
+  # same-origin fetches that carry the Authelia session cookie. Nothing reaches
+  # the API without a login. Paths the API serves (web/src/lib/api/*.ts):
+  #   POST /         download request       GET /tunnel  file stream + probe
+  #   GET /          server info, via fetch() (Accept: */*), which page loads
+  #                  never send (Accept: text/html,...)
+  #   POST /session  only with Turnstile (unused here)
+  # Everything else is the static UI. A misroute only ever hits another
+  # authenticated backend.
+  app:
     labels:
       auth: authelia
     hostnames:
       - cobalt.laboratory.casa
     parentRefs:
-      - name: envoy-internal
+      - name: envoy-external
         namespace: network
         sectionName: https
     rules:
+      - matches:
+          - path: { type: Exact, value: / }
+            method: POST
+          - path: { type: Exact, value: / }
+            method: GET
+            headers:
+              - name: Accept
+                type: Exact
+                value: "*/*"
+          - path: { type: PathPrefix, value: /tunnel }
+          - path: { type: Exact, value: /session }
+        backendRefs:
+          - identifier: api
+            port: http
       - backendRefs:
           - identifier: web
             port: http
@@ -172,17 +193,6 @@ route:
                   value: same-origin
                 - name: Cross-Origin-Embedder-Policy
                   value: require-corp
-  api:
-    hostnames:
-      - cobalt-api.laboratory.casa
-    parentRefs:
-      - name: envoy-internal
-        namespace: network
-        sectionName: https
-    rules:
-      - backendRefs:
-          - identifier: api
-            port: http
 
 persistence:
   tmp:
