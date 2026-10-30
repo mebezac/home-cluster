@@ -41,6 +41,12 @@ access_control:
       subject:
         - group:apps_user
         - group:frigate_only
+    ## cobalt web UI (the API host cobalt-api has no forward auth)
+    - domain:
+        - "cobalt.laboratory.casa"
+      policy: one_factor
+      subject:
+        - group:apps_user
     ## Per-group apps: <app>-<group>.laboratory.casa is open to members of the
     ## LDAP group <group> (Authelia named regex group). Hostnames without a dash
     ## never match; admins fall through to the rule below.
