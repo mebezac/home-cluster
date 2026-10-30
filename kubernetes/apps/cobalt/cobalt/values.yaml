@@ -1,0 +1,205 @@
+defaultPodOptions:
+  automountServiceAccountToken: false
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 3000
+    runAsGroup: 3000
+    fsGroup: 3000
+    fsGroupChangePolicy: OnRootMismatch
+    seccompProfile: { type: RuntimeDefault }
+
+controllers:
+  # cobalt API: resolves media links and streams them back ("tunnels").
+  # Stateless; no DB, no storage. The upstream compose runs it read_only.
+  api:
+    annotations:
+      reloader.stakater.com/auto: "true"
+    containers:
+      app:
+        image:
+          repository: ghcr.io/imputnet/cobalt
+          # changelog: no GH releases/tags upstream - read the commit log of
+          # imputnet/cobalt api/ between the two versions (version = api/package.json).
+          # Env reference: docs/api-env-variables.md.
+          tag: 11.7.1@sha256:28540f81d2cffbd9d089c08438e39a7689a7cee7e9a5b0f60de93a22d19f5dbe
+        env:
+          TZ: America/New_York
+          API_PORT: &apiPort 9000
+          # Must be the URL the BROWSER uses: tunnel download links are built from it.
+          API_URL: https://cobalt-api.laboratory.casa/
+          # Only the web UI below may call the API from a browser.
+          CORS_WILDCARD: "0"
+          CORS_URL: https://cobalt.laboratory.casa
+          # User choice 2026-10-30: no YouTube (no poToken sidecar, no cookies).
+          DISABLED_SERVICES: youtube
+        probes:
+          liveness: &apiProbe
+            enabled: true
+            custom: true
+            spec:
+              # GET / returns instance info JSON and is not rate limited.
+              httpGet:
+                path: /
+                port: *apiPort
+              periodSeconds: 30
+              timeoutSeconds: 5
+          readiness: *apiProbe
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities: { drop: ["ALL"] }
+        resources:
+          # Node idles ~100Mi; ffmpeg remux/merge runs per download.
+          requests:
+            cpu: 10m
+            memory: 128Mi
+          limits:
+            memory: 1Gi
+
+  # Web UI. No official image: ghcr.io/spotdemo4/cobalt-web ships the cobalt
+  # source with node_modules installed, but its own start script builds as root
+  # inside the image. Instead an init container copies the source to /tmp, runs
+  # the static SvelteKit build there as uid 3000 (WEB_* vars are baked in at
+  # build time, ~10s), and leaves only the output in the `site` emptyDir, which
+  # static-web-server serves read-only.
+  web:
+    annotations:
+      reloader.stakater.com/auto: "true"
+    initContainers:
+      build:
+        image:
+          repository: ghcr.io/spotdemo4/cobalt-web
+          # Third-party image (spotdemo4/cobalt-web-docker). Tag = cobalt web version; it git-clones
+          # imputnet/cobalt main at image build time. We only use /cobalt (source + node_modules),
+          # not its /start.sh.
+          tag: 11.7@sha256:30392487965b2c96f70f04ec5e3ef24a7804eec6ef0c7b9fd7d1e19ed955d1c9
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            set -e
+            rm -rf /tmp/src /site/*
+            cp -r /cobalt/. /tmp/src
+            cd /tmp/src/web
+            ./node_modules/.bin/vite build
+            cp -r build/. /site/
+            rm -rf /tmp/src
+        env:
+          HOME: /tmp
+          WEB_DEFAULT_API: https://cobalt-api.laboratory.casa/
+          WEB_HOST: cobalt.laboratory.casa
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities: { drop: ["ALL"] }
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            memory: 2Gi
+    containers:
+      app:
+        image:
+          repository: joseluisq/static-web-server
+          # changelog: GH releases static-web-server/static-web-server (CHANGELOG.md)
+          tag: 2.44.1@sha256:94618e3d17802265a21926217e6f9e7832b311b6fbf5933684001739fafed06a
+        env:
+          SERVER_PORT: &webPort 8080
+          SERVER_ROOT: /site
+          # SPA fallback: unknown paths boot the app, which routes client side.
+          SERVER_FALLBACK_PAGE: /site/404.html
+          SERVER_HEALTH: "true"
+          SERVER_LOG_LEVEL: warn
+        probes:
+          liveness: &webProbe
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /health
+                port: *webPort
+              periodSeconds: 30
+          readiness: *webProbe
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities: { drop: ["ALL"] }
+        resources:
+          requests:
+            cpu: 10m
+            memory: 16Mi
+          limits:
+            memory: 128Mi
+
+service:
+  api:
+    controller: api
+    ports:
+      http:
+        port: *apiPort
+  web:
+    controller: web
+    ports:
+      http:
+        port: *webPort
+
+route:
+  # The UI calls the API cross-origin (it keeps only the origin of
+  # WEB_DEFAULT_API), so the API needs its own hostname.
+  web:
+    # Authelia only here: the UI's fetches to the API carry no Authelia cookie,
+    # so auth on the API route would break every request (CORS on a 302).
+    labels:
+      auth: authelia
+    hostnames:
+      - cobalt.laboratory.casa
+    parentRefs:
+      - name: envoy-internal
+        namespace: network
+        sectionName: https
+    rules:
+      - backendRefs:
+          - identifier: web
+            port: http
+        filters:
+          # Cross-origin isolation for SharedArrayBuffer: in-browser remux
+          # (libav wasm) needs it. Upstream serves these via a Cloudflare
+          # _headers file, which static-web-server ignores.
+          - type: ResponseHeaderModifier
+            responseHeaderModifier:
+              set:
+                - name: Cross-Origin-Opener-Policy
+                  value: same-origin
+                - name: Cross-Origin-Embedder-Policy
+                  value: require-corp
+  api:
+    hostnames:
+      - cobalt-api.laboratory.casa
+    parentRefs:
+      - name: envoy-internal
+        namespace: network
+        sectionName: https
+    rules:
+      - backendRefs:
+          - identifier: api
+            port: http
+
+persistence:
+  tmp:
+    type: emptyDir
+    advancedMounts:
+      api:
+        app:
+          - path: /tmp
+      web:
+        build:
+          - path: /tmp
+  site:
+    type: emptyDir
+    advancedMounts:
+      web:
+        build:
+          - path: /site
+        app:
+          - path: /site
+            readOnly: true
