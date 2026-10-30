@@ -100,7 +100,7 @@ persistence:
     type: persistentVolumeClaim
     storageClass: longhorn
     accessMode: ReadWriteOnce
-    size: 10Gi
+    size: 30Gi
     globalMounts:
       - path: /app/priv/storage
   # Transcription chunks + ffmpeg scratch for full episodes.
