@@ -14,7 +14,7 @@ controllers:
         image:
           repository: ghcr.io/ozark-connect/network-optimizer
           # changelog: GH releases Ozark-Connect/NetworkOptimizer (Renovate truncates the body - read each minor directly). Both images ship in lockstep from one compose file; bump network-optimizer and speedtest together
-          tag: 2.10.3@sha256:6cca563ef70c5f90f5c965e69bb7e95b1f72a83f2fb2fc54d8fcd7632ba5361c
+          tag: 2.10.4@sha256:0b21b162d80478897cbf2a8dcfec1a1b3c5456387017d0e824225390398646a0
         env:
           TZ: America/New_York
           BIND_LOCALHOST_ONLY: "false"
@@ -86,7 +86,7 @@ controllers:
           repository: ghcr.io/ozark-connect/speedtest
           # changelog: see the network-optimizer image above - both images ship in lockstep from one
           # upstream compose file and MUST be bumped together; never merge a speedtest PR alone.
-          tag: 2.10.3@sha256:92fb30cae6617d6eeb7e6de67a92afc39b790c60985961291b2fbd2ee1e06dd0
+          tag: 2.10.4@sha256:a97eaf99fe39589c18abe92f146933a5918a5d707284321b2fee752e0ba24271
         env:
           TZ: America/New_York
           HOST_NAME: network-optimizer.laboratory.casa
