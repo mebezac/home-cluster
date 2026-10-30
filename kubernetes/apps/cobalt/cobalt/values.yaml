@@ -179,6 +179,25 @@ route:
         backendRefs:
           - identifier: api
             port: http
+      # Cache-Control: static-web-server's defaults (1 day for HTML, 1 YEAR for
+      # the un-hashed /_app/env.js, which holds WEB_DEFAULT_API) left phones on a
+      # stale UI after the API URL changed. Only content-hashed files under
+      # /_app/immutable may be cached for good; everything else revalidates.
+      - matches:
+          - path: { type: PathPrefix, value: /_app/immutable/ }
+        backendRefs:
+          - identifier: web
+            port: http
+        filters:
+          - type: ResponseHeaderModifier
+            responseHeaderModifier:
+              set:
+                - name: Cross-Origin-Opener-Policy
+                  value: same-origin
+                - name: Cross-Origin-Embedder-Policy
+                  value: require-corp
+                - name: Cache-Control
+                  value: public, max-age=31536000, immutable
       - backendRefs:
           - identifier: web
             port: http
@@ -193,6 +212,8 @@ route:
                   value: same-origin
                 - name: Cross-Origin-Embedder-Policy
                   value: require-corp
+                - name: Cache-Control
+                  value: no-cache
 
 persistence:
   tmp:
