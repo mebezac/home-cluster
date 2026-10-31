@@ -69,9 +69,26 @@ The ones this skill leans on:
 |-|-|-|
 | `gh` | (system) | every PR read and every merge |
 | `crane` | `aqua:google/go-containerregistry` | **digest bumps** — see step 2 |
-| `helm` | `aqua:helm/helm` | chart bumps — `helm pull --untar` then diff the trees |
+| `helm` | `aqua:helm/helm` | chart bumps — `helm pull --untar -d "$tmp/<old|new>"` then diff the trees |
 | `jq` / `yq` | `aqua:jqlang/jq`, `aqua:mikefarah/yq` | reading manifests and our values |
 | `kubectl` | `aqua:kubernetes/kubectl` | read-only cluster checks |
+
+**Never write scratch files into the repo.** Pulled charts, rendered
+templates, changelogs and diffs go in a temp directory outside the checkout,
+removed when you are done. `helm pull --untar` without `-d` unpacks into the
+current directory — run from the repo root, that leaves untracked chart trees
+behind (this happened: `a/`, `b/`, `h1.9.2/`, `c1.9.3/` …). Pattern:
+
+```bash
+tmp=$(mktemp -d) && trap 'rm -rf "$tmp"' EXIT
+helm pull <repo-or-oci> --version <old> --untar -d "$tmp/old"
+helm pull <repo-or-oci> --version <new> --untar -d "$tmp/new"
+diff -ru "$tmp/old" "$tmp/new"
+```
+
+If the session has a scratchpad directory, use that instead of `mktemp`.
+Before you finish, `git status --short` must show no new untracked paths from
+this run.
 
 **Do not install anything.** If a tool is missing, say so and report what you
 could determine without it — never `curl | sh`, never a global package install.
