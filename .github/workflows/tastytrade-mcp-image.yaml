@@ -12,6 +12,18 @@ on:
     paths:
       - "containers/tastytrade-mcp/**"
       - ".github/workflows/tastytrade-mcp-image.yaml"
+  # Build-only on PRs (no push), so a Dockerfile change is tested before merge.
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "containers/tastytrade-mcp/**"
+      - ".github/workflows/tastytrade-mcp-image.yaml"
+
+# Builds on main push a mutable tag; run them one at a time so the last merge wins.
+# A newer commit on a PR cancels that PR's older build.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   build:
@@ -37,6 +49,7 @@ jobs:
         uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
 
       - name: Log in to ghcr.io
+        if: github.event_name != 'pull_request'
         uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4
         with:
           registry: ghcr.io
@@ -49,7 +62,7 @@ jobs:
         with:
           context: containers/tastytrade-mcp
           platforms: linux/amd64
-          push: true
+          push: ${{ github.event_name != 'pull_request' }}
           tags: |
             ghcr.io/mebezac/tastytrade-mcp:${{ steps.version.outputs.tag }}
             ghcr.io/mebezac/tastytrade-mcp:sha-${{ github.sha }}
@@ -60,4 +73,5 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Digest
+        if: github.event_name != 'pull_request'
         run: echo "ghcr.io/mebezac/tastytrade-mcp:${{ steps.version.outputs.tag }}@${{ steps.push.outputs.digest }}" >> "$GITHUB_STEP_SUMMARY"
