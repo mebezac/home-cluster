@@ -1,4 +1,10 @@
 fullnameOverride: smartctl-exporter
+# Pinned here (tag@sha256) instead of inheriting the chart appVersion, so Renovate
+# tracks the exporter image on its own. The chart renders "repository:tag".
+image:
+  repository: quay.io/prometheuscommunity/smartctl-exporter
+  # changelog: GH releases prometheus-community/smartctl_exporter
+  tag: v0.15.0@sha256:a76e08dbf5db4781fefd1ed81c65ad46ae8d2849dae6b6d3acebcde2fc4e59d6
 # Skip the T2 Mac nodes (talmac-*). Their disks cannot be SMART-monitored at all:
 # the USB-bridged SSDs (/dev/sd*) don't pass SMART, and the T2-mediated internal
 # NVMe rejects standard SMART log pages (Invalid Log Page 0x109) — yielding zero
