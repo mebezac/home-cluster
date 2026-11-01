@@ -125,6 +125,15 @@ spec:
         inherit: true
         passwordSecret:
           name: pg-role-tofu
+      # Terraform state for truenas-terraform and cloudflare-terraform (pg backend,
+      # one schema per repo). Laptop only: not the tofu role, which CI pods hold,
+      # because this state is not encrypted and holds app secrets.
+      - name: terraform
+        ensure: present
+        login: true
+        inherit: true
+        passwordSecret:
+          name: pg-role-terraform
       - name: n8n
         ensure: present
         login: true

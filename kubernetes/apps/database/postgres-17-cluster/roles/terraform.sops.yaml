@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: pg-role-terraform
+  labels:
+    cnpg.io/reload: "true"
+stringData:
+  username: ENC[AES256_GCM,data:hbaBSvcY71hc,iv:htZJXmQW0djTb3HH7/YhEDB2qlPlIXS6ewvreOEQjL0=,tag:S9+CHFCVjSvJaCYwsM8Jkw==,type:str]
+  password: ENC[AES256_GCM,data:RdZhSnp3KCHQeyv44V4Is6cH3pq5yzhYnl023kXXnpRcveZj50Iu4XqFcl4cUyJ1,iv:c8/wUHNxwdPyLSkO8HGIi6wWBVrWQIaUzKo1Rca64ag=,tag:2nOb3ByMuFjkQOesszdlDg==,type:str]
+sops:
+  age:
+    - enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBtTDhCd0lpRkRXeXhTdzZM
+        VUhiZ2Z5TE8xbzA0cWFCUVFoRjNSQnR2ZnpvCklyQnZGSTFTcjEvTlJuN21TUkZF
+        MXR4aUsyZXBkTjBCMnlHa011RVIyOHcKLS0tIEZhTDlxRG0xWkVJQW1XWFR1ZEox
+        bzVvYWlEWVpwYWI3NGVDc1BQR2ZhOGcKUcBqNKaTHtreJ0Y1njl0Y/rO3HJM7BZ0
+        N0Wx6Han9uhntkNH0h45zyCNMorbKLQhGfpaaJAt3gFfOIa8kJXU+Q==
+        -----END AGE ENCRYPTED FILE-----
+      recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
+  encrypted_regex: ^(data|stringData)$
+  lastmodified: "2026-11-01T20:30:04Z"
+  mac: ENC[AES256_GCM,data:+P5MvB87qsOFa6z6zJqlAslbPdpfWS8Gdbt/Un7U5u0PR/b4JLDxGJECL2mvqpwNXEYOt9KdYYH1lPCAfc5due0BG+t/Ri+X8KaDeLQKZ58WHuH3igUQ5ixc2lr+s8uSK6eU24gbdYuKWhznCfoxZrbTKB2aMo7RQNerspm2plk=,iv:LGjr6qVkl3RPDqqWlg3RbrZFtAyK5cjOErmBaqnPARo=,tag:/w9Yh81L0kD8vOw3SNUvKw==,type:str]
+  mac_only_encrypted: true
+  version: 3.13.3

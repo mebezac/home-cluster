@@ -189,3 +189,18 @@ spec:
   owner: tofu
   ensure: present
   databaseReclaimPolicy: retain
+---
+# Terraform state for truenas-terraform and cloudflare-terraform: schemas
+# truenas and cloudflare. In the cluster (Longhorn), so a NAS rebuild can still
+# read the truenas state. Role terraform is laptop only.
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: terraform-state
+spec:
+  cluster:
+    name: postgres-17-cluster
+  name: terraform_state
+  owner: terraform
+  ensure: present
+  databaseReclaimPolicy: retain
