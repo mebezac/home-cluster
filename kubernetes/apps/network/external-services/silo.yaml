@@ -45,3 +45,27 @@ spec:
     - backendRefs:
         - name: silo
           port: 9000
+---
+# Public S3 on SILO A, ONLY for buckets whose browsers talk to S3 directly
+# (presigned POST/GET). One PathPrefix per bucket, no rewrite (the path is part
+# of the SigV4 signature). Everything else, including /minio/admin and the
+# other buckets, gets a 404 from Envoy. SILO answers CORS itself (any origin).
+#   heremag-formbricks: Formbricks file uploads (forms.heremag.free)
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: silo-public
+spec:
+  parentRefs:
+    - name: envoy-external
+      sectionName: https
+  hostnames:
+    - s3.laboratory.casa
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /heremag-formbricks
+      backendRefs:
+        - name: silo
+          port: 9000
