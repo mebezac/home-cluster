@@ -58,8 +58,9 @@ controllers:
           # --- Crawler
           CRAWLER_BROWSER_TIMEZONE: America/New_York
           OCR_CACHE_DIR: /data/ocr-cache
-          # --- Assets on Garage (SQLite stays on the PVC). The bucket must exist.
-          ASSET_STORE_S3_ENDPOINT: http://garage-s3.garage.svc.cluster.local:3900
+          # --- Assets on SILO A (SQLite stays on the PVC). The bucket comes from
+          # laboratory-casa/silo-tofu; the key (user karakeep) is in karakeep-secret.
+          ASSET_STORE_S3_ENDPOINT: http://silo.network.svc.cluster.local:9000
           ASSET_STORE_S3_REGION: us-east-1
           ASSET_STORE_S3_BUCKET: karakeep
           ASSET_STORE_S3_FORCE_PATH_STYLE: "true"
