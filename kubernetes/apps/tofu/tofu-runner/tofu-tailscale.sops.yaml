@@ -1,0 +1,26 @@
+# One-use tag:tofu auth key for tofu-tailscale (tailscale-proxy.yaml), minted by
+# the Ansible OAuth client (tag:ansible owns tag:tofu). After the first login the
+# node key lives in the Secret tofu-tailscale-state; a new key is only needed if
+# that Secret is lost.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: tofu-tailscale
+stringData:
+  TS_AUTHKEY: ENC[AES256_GCM,data:xL/PTDxESfHtOKfsjjvDspbbdXJU4u4p5AMGhzW+vRi5zxnQY71ENbZb9xNT8Fj4uwiv//N/EUybzOXf4A==,iv:Vt70Ye2wr/f/TDXGIYHhPjZv2Lz9TPtSRmcF2nu3nQ0=,tag:7g1M6zX38hw6AFBkAxSUkg==,type:str]
+sops:
+  age:
+    - enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBtZXExazFXMm9XaytGUVor
+        VnJ2Y3ZlaEMveFk1TmdESW1TNndWaDcxL0g4CmZSRmQzcTF4aHR3aThCMitudzBL
+        R0I0UW1vdDdkQitMVjhBczFDRFdzMlUKLS0tIDltOElnWDFpSWtUaTh6NW9jSWEr
+        MVdPaUhIakRyS1ZqL1k4bXBxUlBDZWcK5LMg4cDHb/b5vx2AFeNNCeyxVnEjbT6c
+        6X060CWGbfbYoyaK7mrs/Vl9aqWZNTLOIfyhTP4FQ6tQhbu5EEvX2Q==
+        -----END AGE ENCRYPTED FILE-----
+      recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
+  encrypted_regex: ^(data|stringData)$
+  lastmodified: "2026-11-01T20:07:13Z"
+  mac: ENC[AES256_GCM,data:HPJG0SysbieTFX5bAHaRKYmw3pAup1xHKaZ67UlWoezo7QLVZfmjOz6ss2Zevh2wvVQUUeThSMKpUyB3vycJ1jEB5TiSG8cfMcdXYk3Yqimd2PTKle+pVxWuzAZSG00U8d8HPA07L1SxSXRu6VKMLM+Wbgqdbn8ryakX3hGGjqY=,iv:gm9QARrOtndL3ca5xbpfcQ7/4tQ0bL6j/6fzaK+McqA=,tag:9NvFHVwjVo6bVqgVE5sRCQ==,type:str]
+  mac_only_encrypted: true
+  version: 3.13.3

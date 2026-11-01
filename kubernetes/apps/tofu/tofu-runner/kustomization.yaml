@@ -4,3 +4,4 @@ generators:
   - secret-generator.yaml
 resources:
   - ./prometheusrule.yaml
+  - ./tailscale-proxy.yaml

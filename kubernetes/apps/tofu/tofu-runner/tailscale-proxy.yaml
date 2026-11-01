@@ -1,0 +1,166 @@
+---
+# tofu-tailscale: the tailnet path for the tofu job pods. SILO A (the NAS,
+# 100.90.84.12:30200) and SILO B (hh-chi-10tb, 100.124.255.12:9000) are only
+# on the tailnet. Cluster pods cannot route there, so the job pods send their
+# S3 calls through this userspace tailscale's HTTP proxy (HTTP_PROXY in
+# values.yaml). Go (tofu and the minio provider) honors HTTP_PROXY; curl and
+# git ignore the upper-case name, so the metric push and the checkout go direct.
+#
+# Userspace mode needs no privileges, so this runs under Pod Security
+# "restricted" as uid 3000. Tailnet identity: tag:tofu. The Tailscale ACL
+# (mebezac/tailscale-acl) lets that tag reach only the two SILO S3 ports. The
+# auth key (tofu-tailscale.sops.yaml) is used once; the node key then lives in
+# the Secret tofu-tailscale-state.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: tofu-tailscale
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: tofu-tailscale
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    # Create cannot be restricted to a resource name.
+    verbs: ["create"]
+  - apiGroups: [""]
+    resourceNames: ["tofu-tailscale-state"]
+    resources: ["secrets"]
+    verbs: ["get", "update", "patch"]
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["get", "create", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: tofu-tailscale
+subjects:
+  - kind: ServiceAccount
+    name: tofu-tailscale
+roleRef:
+  kind: Role
+  name: tofu-tailscale
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tofu-tailscale
+  annotations:
+    reloader.stakater.com/auto: "true"
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: tofu-tailscale
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: tofu-tailscale
+    spec:
+      serviceAccountName: tofu-tailscale
+      securityContext:
+        runAsUser: 3000
+        runAsGroup: 3000
+        runAsNonRoot: true
+        fsGroup: 3000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: tailscale
+          image: ghcr.io/tailscale/tailscale:v1.104.4@sha256:ed6480b33c6eb67c9cbd203ed42b9fb57e361986725b6856def71b7a3d9e276c
+          env:
+            - name: TS_USERSPACE
+              value: "true"
+            - name: TS_KUBE_SECRET
+              value: tofu-tailscale-state
+            - name: TS_HOSTNAME
+              value: tofu-proxy
+            - name: TS_EXTRA_ARGS
+              value: --advertise-tags=tag:tofu
+            - name: TS_ACCEPT_DNS
+              value: "false"
+            - name: TS_AUTH_ONCE
+              value: "true"
+            - name: TS_OUTBOUND_HTTP_PROXY_LISTEN
+              value: ":1055"
+            # Serves /healthz on [::]:9002 (TS_LOCAL_ADDR_PORT default).
+            - name: TS_ENABLE_HEALTH_CHECK
+              value: "true"
+            - name: HOME
+              value: /tmp
+            - name: TS_AUTHKEY
+              valueFrom:
+                secretKeyRef:
+                  name: tofu-tailscale
+                  key: TS_AUTHKEY
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_UID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.uid
+          ports:
+            - name: http-proxy
+              containerPort: 1055
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 9002
+            periodSeconds: 10
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests:
+              cpu: 10m
+              memory: 48Mi
+            limits:
+              memory: 256Mi
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tofu-tailscale
+spec:
+  selector:
+    app.kubernetes.io/name: tofu-tailscale
+  ports:
+    - name: http-proxy
+      port: 1055
+      targetPort: http-proxy
+---
+# Only the tofu job pods may use the proxy. Egress stays open: tailscaled needs
+# the coordination server, DERP and direct UDP to its peers.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: tofu-tailscale
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: tofu-tailscale
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: tofu
+            app.kubernetes.io/name: tofu-runner-job
+      toPorts:
+        - ports:
+            - port: "1055"
+              protocol: TCP

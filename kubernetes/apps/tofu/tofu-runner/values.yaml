@@ -93,6 +93,13 @@ podSpecs:
         env:
           - name: VM_URL
             value: http://vmsingle-victoria-metrics-stack.observability.svc.cluster.local:8428/api/v1/import/prometheus
+          # SILO A and B are on the tailnet only: send the S3 calls through
+          # tofu-tailscale (tailscale-proxy.yaml). Upper case on purpose: Go
+          # honors it, curl and git do not, so they keep going direct.
+          - name: HTTP_PROXY
+            value: http://tofu-tailscale.tofu.svc.cluster.local:1055
+          - name: NO_PROXY
+            value: .svc,.cluster.local,localhost,127.0.0.1,10.0.0.0/8
         securityContext:
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
@@ -130,6 +137,13 @@ podSpecs:
         env:
           - name: VM_URL
             value: http://vmsingle-victoria-metrics-stack.observability.svc.cluster.local:8428/api/v1/import/prometheus
+          # SILO A and B are on the tailnet only: send the S3 calls through
+          # tofu-tailscale (tailscale-proxy.yaml). Upper case on purpose: Go
+          # honors it, curl and git do not, so they keep going direct.
+          - name: HTTP_PROXY
+            value: http://tofu-tailscale.tofu.svc.cluster.local:1055
+          - name: NO_PROXY
+            value: .svc,.cluster.local,localhost,127.0.0.1,10.0.0.0/8
         securityContext:
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
