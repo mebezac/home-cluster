@@ -217,17 +217,7 @@ route:
       - backendRefs:
           - identifier: s3
             port: s3
-  files:
-    hostnames:
-      - files.heremag.free
-    parentRefs:
-      - name: envoy-external
-        namespace: network
-        sectionName: https
-    rules:
-      - backendRefs:
-          - identifier: s3-web
-            port: s3-web
+  # files.heremag.free moved to SILO A (network/external-services/silo.yaml).
 
 persistence:
   config:
