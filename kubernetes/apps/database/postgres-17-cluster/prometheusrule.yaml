@@ -33,7 +33,7 @@ spec:
           labels:
             severity: warning
           annotations:
-            summary: "{{ $labels.pod }}: WAL archiving to garage is failing"
+            summary: "{{ $labels.pod }}: WAL archiving to S3 (SILO A) is failing"
             description: "Point-in-time recovery is degrading and pg_wal is filling up."
         - alert: CNPGWALArchivingStalled
           # CNPG sets archive_timeout=5min, so a healthy primary archives at least that often.
