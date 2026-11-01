@@ -72,7 +72,9 @@ spec:
 ---
 # https://files.heremag.free: public PDFs in the SILO bucket files.heremag.free
 # (anonymous GetObject, no listing; laboratory-casa/silo-tofu). SILO has no S3
-# website endpoint like Garage, so rewrite /<key> to /files.heremag.free/<key>.
+# website endpoint like Garage, so rewrite /<key> to /files.heremag.free/<key>
+# (replacement without a trailing slash: with one, Envoy Gateway drops the "/"
+# between bucket and key).
 # GET and HEAD only. "/" has no index page (SILO answers 403). DNS: the CNAME
 # to external.heremag.free is in cloudflared-heremag-free/config/dnsendpoint.
 apiVersion: gateway.networking.k8s.io/v1
@@ -96,7 +98,7 @@ spec:
           urlRewrite:
             path:
               type: ReplacePrefixMatch
-              replacePrefixMatch: /files.heremag.free/
+              replacePrefixMatch: /files.heremag.free
       backendRefs:
         - name: silo
           port: 9000
@@ -108,7 +110,7 @@ spec:
           urlRewrite:
             path:
               type: ReplacePrefixMatch
-              replacePrefixMatch: /files.heremag.free/
+              replacePrefixMatch: /files.heremag.free
       backendRefs:
         - name: silo
           port: 9000
