@@ -54,9 +54,6 @@ controllers:
           tag: v2.58.1@sha256:8b3ed5293a813ba68a7fca30f4c9c25a6b1933f7c2c93d778c7afe035e59bc60
           pullPolicy: IfNotPresent
         env:
-          SCREEN_WIDTH: "1920"
-          SCREEN_HEIGHT: "1024"
-          SCREEN_DEPTH: "16"
           ENABLE_DEBUGGER: "false"
           TIMEOUT: "300000"
           CONCURRENT: "10"
