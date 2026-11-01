@@ -13,15 +13,15 @@ controllers:
       reloader.stakater.com/auto: "true"
     initContainers:
       # Forgejo exits at startup (storage.Init ... connection refused) when
-      # S3 is not up (seen with Garage on 2026-10-21: 2 restarts). Wait for the
-      # SILO A port first.
-      wait-for-silo:
+      # Garage is not up, e.g. when Renovate rolls both in the same minute
+      # (2026-10-21: 2 restarts). Wait for the S3 port first.
+      wait-for-garage:
         image:
           repository: busybox
           tag: 1.38.0@sha256:a46257e06c82ad85242d0d38077d0a52d9896389ca60a1a59d3463db586e5fa4
         command: ["/bin/sh", "-c"]
         args:
-          - until nc -z -w 2 silo.network.svc.cluster.local 9000; do echo "waiting for silo:9000"; sleep 2; done
+          - until nc -z -w 2 garage-s3.garage.svc.cluster.local 3900; do echo "waiting for garage-s3:3900"; sleep 2; done
         securityContext:
           allowPrivilegeEscalation: false
           capabilities: { drop: ["ALL"] }
@@ -98,9 +98,8 @@ controllers:
           # expired runs' logs + DB rows together. ARTIFACT_RETENTION_DAYS already defaults to 90.
           FORGEJO__actions__LOG_RETENTION_DAYS: "90"
           # --- object storage: packages + repo-archive + actions_artifacts + actions_log in one
-          #     SILO A bucket (laboratory-casa/silo-tofu), each under its own dir. Common S3 conn in
-          #     [storage]; these opt into minio. Key: user forgejo, in forgejo-secret. ---
-          FORGEJO__storage__MINIO_ENDPOINT: silo.network.svc.cluster.local:9000
+          #     Garage bucket, each under its own dir. Common S3 conn in [storage]; these opt into minio. ---
+          FORGEJO__storage__MINIO_ENDPOINT: garage-s3.garage.svc.cluster.local:3900
           FORGEJO__storage__MINIO_BUCKET: forgejo
           FORGEJO__storage__MINIO_LOCATION: us-east-1
           FORGEJO__storage__MINIO_USE_SSL: "false"
