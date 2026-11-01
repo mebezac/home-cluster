@@ -78,6 +78,15 @@
     },
     {
       description: [
+        "Hold the local mise node on 24.x: npm:renovate (renovate-config-validator) declares engines node ^24.11, and the same node runs npx for the MCP servers.",
+        "Container base images (containers/*/Dockerfile) still get node majors. Raise this when renovate's engines include the next LTS.",
+      ],
+      matchManagers: ["mise"],
+      matchDepNames: ["node"],
+      allowedVersions: "<25",
+    },
+    {
+      description: [
         "n8n publishes its beta channel as plain semver docker tags (GH pre-releases only), so Renovate",
         "cannot tell beta from stable. A new minor goes GH 'Latest' 3-8 days after its .0 (2.36-2.44),",
         "so hold every n8n version for 10 days. Needs Docker Hub (n8nio/n8n): ghcr has no publish dates.",
