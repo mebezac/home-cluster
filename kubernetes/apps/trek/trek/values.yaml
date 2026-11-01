@@ -12,8 +12,10 @@ controllers:
       app:
         image:
           repository: mauriceboe/trek
-          # changelog: GH releases github.com/liketrek/TREK/releases (repo redirects from
-          # mauriceboe/trek; Docker Hub image, never in PR body). Operator-relevant content is under
+          # changelog: PR body usually has the notes; else GH releases github.com/liketrek/TREK/releases
+          # (repo redirects from mauriceboe/trek). The notes can omit schema changes (5.1.0 did):
+          # diff the file list of server/src/db/migrations/ between tags (git trees API; the
+          # compare API truncates at 300 files). Operator-relevant content is under
           # "Upgrading" OR "Read this first" + "Schema" OR (5.x) "Changed > Database / Sign-in and
           # keys / Defaults that changed" - the heading is not consistent, read all; also
           # wiki/Updating.md "Upgrading to X". SQLite on our PVC - migrations run at boot and are

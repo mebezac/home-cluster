@@ -10,7 +10,7 @@ controllers:
       app:
         image:
           repository: ghcr.io/tphakala/birdnet-go
-          # changelog: GH releases tphakala/birdnet-go — release name "BirdNET-Go <tag>" (PR body is digest-only)
+          # changelog: PR body usually has full notes; else GH releases tphakala/birdnet-go — release name "BirdNET-Go <tag>". Read "Before you upgrade" against the live /config/config.yaml
           # tags are date-based YYYYMMDD; regex versioning override lives in .github/renovate.json5
           tag: 20261031@sha256:5eebc826c137a78aa7f91f0a4f3a02d9775f1a19d720f63b309ec5ae608b8698
         env:
