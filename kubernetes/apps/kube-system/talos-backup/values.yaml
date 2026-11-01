@@ -1,12 +1,13 @@
 ---
 # Scheduled etcd snapshots (deep-dive 2026-10-23 PLAT-1). talos-backup asks the Talos API on
 # the node it runs on for an etcd snapshot, compresses it (zstd), encrypts it with age to the
-# repo's age recipient, and uploads it to Garage bucket talos-etcd-backup. Garage keeps 3
-# copies across k8s, the NAS and hh-chi, so the snapshots leave the cluster.
+# repo's age recipient, and uploads it to SILO A (the NAS) bucket talos-etcd-backup. SILO A
+# replicates it to SILO B on hh-chi-10tb, so the snapshots leave the cluster and the house.
 #
 # Talos API access: kubernetes/bootstrap/talos/control-plane/10-talos-api-access.yaml allows
 # role os:etcd:backup for kube-system; ./serviceaccount.yaml asks Talos for that credential.
-# Retention: a bucket lifecycle rule in Garage deletes snapshots after 30 days.
+# Retention (laboratory-casa/silo-tofu config/buckets.yaml): COMPLIANCE lock 30 days, expiry
+# after 30 days on A and 60 days on B.
 #
 # Restore: download the newest object, `age -d -i age.key <file> | zstd -d > db.snapshot`, then
 # `talosctl -n <cp> bootstrap --recover-from=./db.snapshot` (Talos disaster recovery guide).
@@ -50,9 +51,11 @@ controllers:
           HOME: /tmp
           CLUSTER_NAME: home-cluster
           BUCKET: talos-etcd-backup
-          CUSTOM_S3_ENDPOINT: http://garage-s3.garage.svc.cluster.local:3900
+          # SILO A. The bucket has Object Lock COMPLIANCE 30 days and the key
+          # (user talos-etcd-backup) can add and read, never delete.
+          CUSTOM_S3_ENDPOINT: http://silo.network.svc.cluster.local:9000
           USE_PATH_STYLE: "true"
-          AWS_REGION: us-east-1 # garage.toml s3_region
+          AWS_REGION: us-east-1
           ENABLE_COMPRESSION: "true"
           # Public half of home-cluster age.key (same recipient as .sops.yaml).
           AGE_RECIPIENT_PUBLIC_KEY: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
