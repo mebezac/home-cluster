@@ -72,11 +72,23 @@ spec:
 ---
 # https://files.heremag.free: public PDFs in the SILO bucket files.heremag.free
 # (anonymous GetObject, no listing; laboratory-casa/silo-tofu). SILO has no S3
-# website endpoint like Garage, so rewrite /<key> to /files.heremag.free/<key>
-# (replacement without a trailing slash: with one, Envoy Gateway drops the "/"
-# between bucket and key).
-# GET and HEAD only. "/" has no index page (SILO answers 403). DNS: the CNAME
-# to external.heremag.free is in cloudflared-heremag-free/config/dnsendpoint.
+# website endpoint like Garage, so rewrite /<key> to /files.heremag.free/<key>.
+# Envoy Gateway turns the standard ReplacePrefixMatch on "/" into a plain string
+# replace and drops the "/" between bucket and key, so this uses its regex
+# rewrite (HTTPRouteFilter). GET and HEAD only. "/" has no index page (403).
+# DNS: the CNAME to external.heremag.free is in cloudflared-heremag-free.
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: HTTPRouteFilter
+metadata:
+  name: files-heremag-free-rewrite
+spec:
+  urlRewrite:
+    path:
+      type: ReplaceRegexMatch
+      replaceRegexMatch:
+        pattern: ^/(.*)$
+        substitution: /files.heremag.free/\1
+---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -87,30 +99,18 @@ spec:
       sectionName: https
   hostnames:
     - files.heremag.free
-  # replacePrefixMatch allows exactly one PathPrefix match per rule, so one rule
-  # per method.
   rules:
     - matches:
         - path: { type: PathPrefix, value: / }
           method: GET
-      filters:
-        - type: URLRewrite
-          urlRewrite:
-            path:
-              type: ReplacePrefixMatch
-              replacePrefixMatch: /files.heremag.free
-      backendRefs:
-        - name: silo
-          port: 9000
-    - matches:
         - path: { type: PathPrefix, value: / }
           method: HEAD
       filters:
-        - type: URLRewrite
-          urlRewrite:
-            path:
-              type: ReplacePrefixMatch
-              replacePrefixMatch: /files.heremag.free
+        - type: ExtensionRef
+          extensionRef:
+            group: gateway.envoyproxy.io
+            kind: HTTPRouteFilter
+            name: files-heremag-free-rewrite
       backendRefs:
         - name: silo
           port: 9000
