@@ -28,6 +28,9 @@ controllers:
           APP_URL: https://trek.laboratory.casa
           TRUST_PROXY: "1"
           ALLOW_INTERNAL_NETWORK: "true"
+          # Opt out of TREK's hosted search/routing/place-details services (5.1.0+):
+          # no install key registration or request reporting to the upstream project.
+          TREK_SERVICES: "off"
           # OIDC SSO via Authelia. Issuer's standard discovery path is used
           # (<issuer>/.well-known/openid-configuration) so OIDC_DISCOVERY_URL is unset.
           # OIDC_CLIENT_ID / OIDC_CLIENT_SECRET come from the trek-secret.
