@@ -12,3 +12,4 @@ resources:
   - ./frigate.yaml
   - ./garage-tc.yaml
   - ./garage-tc-console.yaml
+  - ./silo.yaml

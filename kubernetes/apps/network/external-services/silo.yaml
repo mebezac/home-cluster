@@ -1,0 +1,47 @@
+---
+# SILO A (S3, replaces Garage): the TrueNAS custom app "silo" (truenas-terraform
+# apps.tf), S3 on 10.25.30.36:30200. Apps in the cluster use
+# http://silo.network.svc.cluster.local:9000 (path style, region us-east-1).
+# LAN and tailnet clients use https://silo.laboratory.casa (envoy-internal).
+# Buckets, users and policies come from laboratory-casa/silo-tofu.
+apiVersion: v1
+kind: Service
+metadata:
+  name: silo
+spec:
+  ports:
+    - name: http
+      port: 9000
+      targetPort: 30200
+---
+apiVersion: discovery.k8s.io/v1
+kind: EndpointSlice
+metadata:
+  name: silo
+  labels:
+    kubernetes.io/service-name: silo
+    endpointslice.kubernetes.io/managed-by: home-cluster
+addressType: IPv4
+ports:
+  - name: http
+    port: 30200
+endpoints:
+  - addresses:
+      - 10.25.30.36
+    conditions:
+      ready: true
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: silo
+spec:
+  parentRefs:
+    - name: envoy-internal
+      sectionName: https
+  hostnames:
+    - silo.laboratory.casa
+  rules:
+    - backendRefs:
+        - name: silo
+          port: 9000
