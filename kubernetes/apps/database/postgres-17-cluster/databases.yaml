@@ -175,3 +175,17 @@ spec:
   owner: freshrss
   ensure: present
   databaseReclaimPolicy: retain
+---
+# OpenTofu state for every IaC repo: schema per root (silo_buckets, silo_iam, ...).
+# The tofu pg backend makes its own schemas and tables.
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: tofu-state
+spec:
+  cluster:
+    name: postgres-17-cluster
+  name: tofu_state
+  owner: tofu
+  ensure: present
+  databaseReclaimPolicy: retain

@@ -118,6 +118,13 @@ spec:
         inherit: true
         passwordSecret:
           name: pg-role-lychee
+      # OpenTofu state (laboratory-casa/silo-tofu, pg backend, one schema per root).
+      - name: tofu
+        ensure: present
+        login: true
+        inherit: true
+        passwordSecret:
+          name: pg-role-tofu
       - name: n8n
         ensure: present
         login: true

@@ -1,0 +1,74 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+# Builds containers/tofu-runner (job image for the tofu-runner Forgejo Actions
+# labels) and pushes ghcr.io/mebezac/tofu-runner:<tofu version>. Renovate bumps
+# the base images in the Dockerfile; the cluster pins the result as tag@sha256.
+name: "tofu-runner image"
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["main"]
+    paths:
+      - "containers/tofu-runner/**"
+      - ".github/workflows/tofu-runner-image.yaml"
+  # Build-only on PRs (no push), so a Dockerfile change is tested before merge.
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "containers/tofu-runner/**"
+      - ".github/workflows/tofu-runner-image.yaml"
+
+# Builds on main push a mutable tag; run them one at a time so the last merge wins.
+# A newer commit on a PR cancels that PR's older build.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  build:
+    name: Build and push
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Read tofu version
+        id: version
+        run: |
+          v=$(sed -n 's|^FROM ghcr.io/opentofu/opentofu:\([0-9][0-9.]*\)-minimal.*|\1|p' containers/tofu-runner/Dockerfile)
+          test -n "$v"
+          echo "tofu=$v" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
+
+      - name: Log in to ghcr.io
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        id: push
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
+        with:
+          context: containers/tofu-runner
+          platforms: linux/amd64
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: |
+            ghcr.io/mebezac/tofu-runner:${{ steps.version.outputs.tofu }}
+            ghcr.io/mebezac/tofu-runner:sha-${{ github.sha }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.description=OpenTofu job image for the tofu-runner Forgejo Actions labels
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Digest
+        if: github.event_name != 'pull_request'
+        run: echo "ghcr.io/mebezac/tofu-runner:${{ steps.version.outputs.tofu }}@${{ steps.push.outputs.digest }}" >> "$GITHUB_STEP_SUMMARY"
