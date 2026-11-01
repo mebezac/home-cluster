@@ -85,10 +85,22 @@ spec:
       sectionName: https
   hostnames:
     - files.heremag.free
+  # replacePrefixMatch allows exactly one PathPrefix match per rule, so one rule
+  # per method.
   rules:
     - matches:
         - path: { type: PathPrefix, value: / }
           method: GET
+      filters:
+        - type: URLRewrite
+          urlRewrite:
+            path:
+              type: ReplacePrefixMatch
+              replacePrefixMatch: /files.heremag.free/
+      backendRefs:
+        - name: silo
+          port: 9000
+    - matches:
         - path: { type: PathPrefix, value: / }
           method: HEAD
       filters:
