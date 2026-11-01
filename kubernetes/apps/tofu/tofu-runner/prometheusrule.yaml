@@ -1,0 +1,59 @@
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/monitoring.coreos.com/prometheusrule_v1.json
+# Metrics come from laboratory-casa/silo-tofu scripts/tofu-gate.sh: each CI run
+# pushes them to vmsingle (/api/v1/import/prometheus) with label stack=silo-<root>.
+# They are single samples per run (drift runs every 6 h), hence last_over_time.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: tofu
+spec:
+  groups:
+    - name: tofu
+      rules:
+        - alert: TofuDrift
+          expr: last_over_time(tofu_plan_exit_code[7h]) == 2
+          labels:
+            severity: warning
+          annotations:
+            summary: "{{ $labels.stack }}: SILO differs from Git"
+            description: >-
+              The last plan of {{ $labels.stack }} has changes. Someone changed SILO
+              by hand, or a merged change is not applied yet (silo-iam is applied
+              from the laptop: bin/tf iam apply).
+
+        - alert: TofuChangeHeld
+          expr: last_over_time(tofu_plan_held_changes[7h]) > 0
+          labels:
+            severity: warning
+          annotations:
+            summary: "{{ $labels.stack }}: {{ $value }} change(s) wait for a confirm"
+            description: >-
+              The gate held an update, delete, replace or a risky setting on an existing
+              bucket. Read the plan in the failed Forgejo run, then run the workflow by
+              hand on main with confirm_sha=<hash>.
+
+        - alert: TofuPlanFailed
+          expr: last_over_time(tofu_plan_exit_code[7h]) == 1
+          labels:
+            severity: warning
+          annotations:
+            summary: "{{ $labels.stack }}: tofu plan failed"
+            description: "Read the last Forgejo Actions run of laboratory-casa/silo-tofu."
+
+        - alert: TofuCheckStale
+          expr: time() - last_over_time(tofu_last_plan_timestamp_seconds[2d]) > 8 * 3600
+          labels:
+            severity: warning
+          annotations:
+            summary: "{{ $labels.stack }}: no tofu run for 8 hours"
+            description: "The 6-hourly drift run stopped. Check tofu-runner in namespace tofu."
+
+        - alert: TofuCheckMissing
+          expr: |
+            absent_over_time(tofu_last_plan_timestamp_seconds{stack="silo-buckets"}[1d])
+            or absent_over_time(tofu_last_plan_timestamp_seconds{stack="silo-iam"}[1d])
+          labels:
+            severity: warning
+          annotations:
+            summary: "A SILO tofu root reported nothing for a day"
+            description: "No metrics from silo-buckets or silo-iam in 24 h. Check tofu-runner in namespace tofu."

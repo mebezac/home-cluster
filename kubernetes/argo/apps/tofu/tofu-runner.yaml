@@ -1,0 +1,42 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: tofu-runner
+  namespace: argo-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"   # after forgejo (wave 0)
+spec:
+  project: kubernetes
+  sources:
+    # source 1: repo path - renders the ksops Secrets (runner registration and the
+    # two job-pod keys) and the PrometheusRule, AND provides values.yaml below.
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/apps/tofu/tofu-runner
+      targetRevision: main
+      ref: tofu-runner-repo
+    # source 2: the same chart as forgejo/forgejo-runner; keep both on one version.
+    - repoURL: git.erwanleboucher.dev/eleboucher/charts
+      chart: forgejo-runner
+      targetRevision: 13.2.1
+      helm:
+        releaseName: tofu-runner
+        valueFiles:
+          - $tofu-runner-repo/kubernetes/apps/tofu/tofu-runner/values.yaml
+  destination:
+    name: in-cluster
+    namespace: tofu
+  syncPolicy:
+    automated:
+      allowEmpty: true
+      prune: true
+      selfHeal: true
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: restricted
+        pod-security.kubernetes.io/enforce-version: latest
+        pod-security.kubernetes.io/audit: restricted
+        pod-security.kubernetes.io/audit-version: latest
+        pod-security.kubernetes.io/warn: restricted
+        pod-security.kubernetes.io/warn-version: latest
+    syncOptions:
+      - CreateNamespace=true

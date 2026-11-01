@@ -1,0 +1,32 @@
+# Job-pod env for the tofu-silo-readonly label: pull-request plans and drift (Get/List only).
+# The replicator secret is a dummy on purpose; buckets/replication.tf ignores it.
+# Same values as laboratory-casa/silo-tofu buckets/secrets.sops.env and
+# iam/secrets.sops.env (TF_VAR_user_keys); PG_CONN_STR uses the in-cluster host.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: tofu-silo-readonly
+stringData:
+  PG_CONN_STR: ENC[AES256_GCM,data:o6dk9CqGYrjuAc+nr+UFlUgajyfwh+wlbPfznaqZlfG8mtH6gPsecoSX6Cvc9YgSIyjyKnlrBhIH+8SEeKscnxyBFplY5+UBl1+0aHEADoQJSuIT2Z9WhuDZULx3cZeI1UCpAK3M8dg1ikxvBXFCED8lO0lEFY/r3ljTMd3D7xz/MG2dbjZ2ck+2aioDkWL1e0M=,iv:M03qNiuiUNl5HthYMNHT1xwWbSa3+FFc9rI6TgHTGpw=,tag:sXhM4dA6/W7WbHb1TPOqyw==,type:str]
+  TF_VAR_state_passphrase: ENC[AES256_GCM,data:T+xgovjporIn6S48qXvldaVyMc0kNfI2Bt/poLLxghFw2nsGHvj/IFNtAHTGrC7p,iv:iL9o02biqhOaV3M7IKnb2VfsBIOhfyXrxfWojsItGYw=,tag:1MyCdxIvIoFtFDU5wnC5IQ==,type:str]
+  TF_VAR_silo_a_access_key: ENC[AES256_GCM,data:1kbYnKmFFqPWyc/Vjw==,iv:+gDrhwVdYgUSqyk+Osi1u0zKNReV04Vli8d6U0QzBhU=,tag:oWmfIkiE3XEyb5gQjXgKYg==,type:str]
+  TF_VAR_silo_a_secret_key: ENC[AES256_GCM,data:6qzVImHKyUfU0BTjgjN/WJhmzvgdaLWo6jWwymjfqEI+VBahqMZp6g==,iv:1uLSFOuMGigLGZWSQ/hC6DBkiTNeR/Tm34ddlvNjvm0=,tag:wcS11a1Kk/ETXyH+oNuo2w==,type:str]
+  TF_VAR_silo_b_access_key: ENC[AES256_GCM,data:WgCiRMxguStgTIltOw==,iv:zLbILoFsTjIrU39pCW3jDUgF2EAjjcId77q2URdAxnU=,tag:ldUmmcQfFnYwzFpYdoF3Nw==,type:str]
+  TF_VAR_silo_b_secret_key: ENC[AES256_GCM,data:tRK0zmCGS9jZMwVcVdtyjlbX1kNEsROKDA2V/GuzD05PaxJTW+TCyQ==,iv:WZWJdxJpO9EOESWmxOQxtWDXi4btjCJwo4cq8hxNqf0=,tag:CL3FREg2+UBUnvXaxO3UOQ==,type:str]
+  TF_VAR_replication_secret_key: ENC[AES256_GCM,data:fASpO1hNEHERmQoHIGzW5d2sHsbQgpK1X6S7xfut5w1bo7iPdameqOPb,iv:lIQJT5792OldhNZTRi+6u5yl1KjqEnjPPacpuviXe3c=,tag:xSydN4KCNiPeBJPCpNyv+A==,type:str]
+sops:
+  age:
+    - enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSB0b0lDd3ZKMlhnYk12Uk02
+        T05CTmxDckJlRjVIcFhzME9vaXlYMm9wdTFzCjQ2K2dhdWdlN2cwd3BTQ3l6cHNO
+        cXVYbVZENjY1N0FNUjJwSHgwMzJYY1UKLS0tIDdMc0trN0pkeHhnRm9icmlwSUlI
+        Z3NGUVVjV3EvUExwbzN1MkNaVERXc28K1Gnk/iixif/msxS1xwwEyctRkFm6Hgiu
+        MJVVOnYfU7x0ZIz+oBOvML9POwBjXbZgwhSLh9Wk6gDL/wLzr587kw==
+        -----END AGE ENCRYPTED FILE-----
+      recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
+  encrypted_regex: ^(data|stringData)$
+  lastmodified: "2026-11-01T16:52:29Z"
+  mac: ENC[AES256_GCM,data:4+ru4N9s9c4hG62Wovwhy4tVA3Pi759WTD+oPwQSdmUS7gJgXN9RLco7V1OiDOG+OZrWekjL5sUJSKM9TeIwwwDh4fKCKWVL4Nq3T1fj2DfcqIggnE+mnU3DLoGIu1kGP1wzaygyv0q2sqargCvdsD1KdCTMp4BuBbYOXp4c8OM=,iv:oLa+CkjnohW3rnMdjrg9TZHiooRT1gtatM70pcDTXEw=,tag:8PVQ1opmHjEVE2ovx9Qb1A==,type:str]
+  mac_only_encrypted: true
+  version: 3.13.3

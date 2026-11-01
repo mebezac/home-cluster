@@ -1,0 +1,150 @@
+# A second Forgejo Actions runner, ONLY for laboratory-casa/silo-tofu.
+#
+# Why a second runner: forgejo-runner (namespace forgejo) is instance-scoped, so
+# any repo could ask for its labels. This one is registered with
+# --scope laboratory-casa/silo-tofu, so only that repo's workflows can reach the
+# SILO keys below. Same chart and image pair as forgejo/forgejo-runner: keep the
+# runner, the plugin and the chart on one version (see that values.yaml).
+#
+# Each label is a job-pod spec with its own key, from tofu-silo-<label>.sops.yaml:
+#   tofu-silo-readonly  Secret tofu-silo-readonly  pull-request plans and drift
+#   tofu-silo-buckets   Secret tofu-silo-buckets   gated apply of buckets/ on merge
+# The IAM key (equal to root on SILO) is never here: iam/ is applied from the laptop.
+#
+# Registration (offline shared secret, like forgejo-runner). token + uuid are in
+# tofu-runner-secret.sops.yaml. After the silo-tofu repo exists on Forgejo:
+#   sops decrypt --extract '["stringData"]["token"]' tofu-runner-secret.sops.yaml \
+#   | kubectl -n forgejo exec -i <forgejo-pod> -c app -- \
+#       forgejo forgejo-cli actions register --secret-stdin \
+#       --scope laboratory-casa/silo-tofu --name tofu-runner \
+#       --labels "tofu-silo-readonly,tofu-silo-buckets"
+
+forgejo:
+  url: http://forgejo-app.forgejo.svc.cluster.local:3000
+  existingSecret: tofu-runner-secret
+
+# NOTE: the chart renders repository@digest, so a tag-only bump is a silent no-op. The
+# split-digest customManager in .github/renovate.json5 bumps tag+digest together for
+# this file too - keep repository/tag/digest adjacent (comment lines between are fine).
+image:
+  repository: data.forgejo.org/forgejo/runner
+  tag: "13.2.1"
+  digest: "sha256:568cea8c15ddc01fc8f330124892f572af7db37fa28344a2c1914405793bf61d"
+
+plugin:
+  image:
+    repository: git.erwanleboucher.dev/eleboucher/runner-k8s-plugin
+    tag: "13.2.1"
+    digest: "sha256:d62811841a20fd1a311b2c90c6ffcec37d09e52ebb46834b0c04f3ad2a3bcbe7"
+
+# The namespace enforces Pod Security "restricted" (Argo CD managedNamespaceMetadata).
+podSecurityContext:
+  runAsUser: 3000
+  runAsGroup: 3000
+  runAsNonRoot: true
+  fsGroup: 3000
+  fsGroupChangePolicy: OnRootMismatch
+  seccompProfile:
+    type: RuntimeDefault
+
+# One job at a time: tofu runs are short, and the workflows serialize anyway.
+runnerConfig: |
+  log:
+    level: info
+  container:
+    docker_host: "-"
+    workdir_parent: shared/workdir
+  host:
+    workdir_parent: /data/act
+  plugins:
+    k8s:
+      address: "unix:///plugin/forgejo-runner-k8s.sock"
+      options:
+        namespace: tofu
+        poll_timeout: 10m
+        labels: "app.kubernetes.io/name=tofu-runner-job"
+  runner:
+    capacity: 1
+    labels:
+      - tofu-silo-readonly:k8s:/config/podspec-readonly.yaml
+      - tofu-silo-buckets:k8s:/config/podspec-buckets.yaml
+    timeout: 30m
+    shutdown_timeout: 3m
+
+# Job pods. The image is built by .github/workflows/tofu-runner-image.yaml from
+# containers/tofu-runner; Renovate's kubernetes manager bumps these image lines.
+podSpecs:
+  podspec-readonly.yaml: |
+    automountServiceAccountToken: false
+    securityContext:
+      runAsUser: 3000
+      runAsGroup: 3000
+      runAsNonRoot: true
+      fsGroup: 3000
+      seccompProfile:
+        type: RuntimeDefault
+    containers:
+      - name: main
+        image: ghcr.io/mebezac/tofu-runner:1.13.2@sha256:923aa797d60488201944d4a26f443ad8ca5e2fa07d05b1392d8bf115c16b720f
+        imagePullPolicy: IfNotPresent
+        envFrom:
+          - secretRef:
+              name: tofu-silo-readonly
+        env:
+          - name: VM_URL
+            value: http://vmsingle-victoria-metrics-stack.observability.svc.cluster.local:8428/api/v1/import/prometheus
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop: ["ALL"]
+        volumeMounts:
+          - name: tmp
+            mountPath: /tmp
+        resources:
+          requests:
+            cpu: 50m
+            memory: 256Mi
+          limits:
+            memory: 1Gi
+    volumes:
+      - name: tmp
+        emptyDir: {}
+    restartPolicy: Never
+  podspec-buckets.yaml: |
+    automountServiceAccountToken: false
+    securityContext:
+      runAsUser: 3000
+      runAsGroup: 3000
+      runAsNonRoot: true
+      fsGroup: 3000
+      seccompProfile:
+        type: RuntimeDefault
+    containers:
+      - name: main
+        image: ghcr.io/mebezac/tofu-runner:1.13.2@sha256:923aa797d60488201944d4a26f443ad8ca5e2fa07d05b1392d8bf115c16b720f
+        imagePullPolicy: IfNotPresent
+        envFrom:
+          - secretRef:
+              name: tofu-silo-buckets
+        env:
+          - name: VM_URL
+            value: http://vmsingle-victoria-metrics-stack.observability.svc.cluster.local:8428/api/v1/import/prometheus
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop: ["ALL"]
+        volumeMounts:
+          - name: tmp
+            mountPath: /tmp
+        resources:
+          requests:
+            cpu: 50m
+            memory: 256Mi
+          limits:
+            memory: 1Gi
+    volumes:
+      - name: tmp
+        emptyDir: {}
+    restartPolicy: Never
