@@ -24,7 +24,7 @@ controllers:
       app:
         image:
           repository: ghcr.io/mebezac/agent-box
-          tag: 0.165.0@sha256:328cbee3955381cb950debcbf34855ce1ece5828d17647d1c725d579b647d97e
+          tag: 0.165.0@sha256:2b87e2f98134f8f3c04ec3ca3376fb9b09c52abb10e7e17c795292642feffadd
         env:
           TZ: America/New_York
         securityContext:
