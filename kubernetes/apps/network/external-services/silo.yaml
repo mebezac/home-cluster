@@ -51,6 +51,9 @@ spec:
 # of the SigV4 signature). Everything else, including /minio/admin and the
 # other buckets, gets a 404 from Envoy. SILO answers CORS itself (any origin).
 #   heremag-formbricks: Formbricks file uploads (forms.heremag.free)
+#   files.heremag.free: the heremag website flipbooks workflow (GitHub-hosted
+#     runner, Here-Magazine/website) uploads issue PDFs with the
+#     files.heremag.free key. Readers use https://files.heremag.free instead.
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -66,6 +69,13 @@ spec:
         - path:
             type: PathPrefix
             value: /heremag-formbricks
+      backendRefs:
+        - name: silo
+          port: 9000
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /files.heremag.free
       backendRefs:
         - name: silo
           port: 9000
