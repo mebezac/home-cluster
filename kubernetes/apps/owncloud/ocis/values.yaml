@@ -16,7 +16,7 @@ controllers:
       ocis:
         image:
           repository: docker.io/owncloud/ocis
-          # changelog: GH releases owncloud/ocis. We use the BUILT-IN IdP + s3ng/Garage, so the
+          # changelog: GH releases owncloud/ocis. We use the BUILT-IN IdP + s3ng/SILO, so the
           # PROXY_AUTOPROVISION_* / external-OIDC upgrade notes do not apply.
           # digest-only bumps: the REVISION build-arg is NOT an owncloud/ocis commit; compare `go version -m usr/bin/ocis` (vcs.revision + Go version) from the binary layer via crane blob
           tag: 8.2.2@sha256:08639361baa55e21037442daed4d8aa1a4fc4f2f12d06db92455a14782c29f61
@@ -29,7 +29,9 @@ controllers:
           PROXY_TLS: false
           STORAGE_USERS_DRIVER: s3ng
           STORAGE_SYSTEM_DRIVER: ocis
-          STORAGE_USERS_S3NG_ENDPOINT: https://garage-tc.laboratory.casa
+          # SILO A (laboratory-casa/silo-tofu bucket ocis, user ocis in ocis-secret).
+          # s3ng talks to S3 only from the server, so the in-cluster path is enough.
+          STORAGE_USERS_S3NG_ENDPOINT: http://silo.network.svc.cluster.local:9000
           STORAGE_USERS_S3NG_REGION: us-east-1
           STORAGE_USERS_S3NG_BUCKET: ocis
           OCIS_INSECURE: true
