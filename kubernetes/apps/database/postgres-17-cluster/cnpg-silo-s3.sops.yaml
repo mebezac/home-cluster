@@ -1,0 +1,26 @@
+# SILO A key for barman-cloud (user cloudnative-pg, bucket cloudnative-pg,
+# readwrite: the ObjectStore retentionPolicy deletes old backups and WAL).
+# Not the superuser Secret cloudnative-pg, so a key change cannot touch it.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cnpg-silo-s3
+stringData:
+  ACCESS_KEY_ID: ENC[AES256_GCM,data:VPVjko4YsZC3t4SV9k0=,iv:ekaY1j1aCysF1mPhtfrPvt49TdgZ2P9CWvgey/1qyQE=,tag:gJ6LBmFOb4kIc7/sCJ0WUQ==,type:str]
+  ACCESS_SECRET_KEY: ENC[AES256_GCM,data:z3Mn6eNYWbNZzy/0/1hM4inUyKQjWGbCFraPi0SZZY9Hv4a9U6fUuA==,iv:K0KlOAgUDq2IHbTmlXzlHj7RXakk7NMDYVNEmxkvFqU=,tag:JggUv34dv6nWD4xQ/R2G5Q==,type:str]
+sops:
+  age:
+    - enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBWTUx3Y2tuVzd1c281U0pR
+        dVM3UWpWMmdpTXArMTZvVWY0NVhZNFdkdERjCmpFSDNLaEdSdi9zaHAxRlRBTVc3
+        ZkR0UVBnL2F0V0gvdElpaERoNVBZbmcKLS0tIFQ2QUc1MUZ1R1VONmRmdk5lL0pz
+        bUsrbGVMaUQxazA1WC9pUWdrMWlmVFkK+5w2J5br4C2OzaNNk0os7vee/SlqYtFY
+        09T6iMlSwk6PhIsZQ4hIpiY80hp2Alx+cKwIUw/fPo/r0sRDswRt7A==
+        -----END AGE ENCRYPTED FILE-----
+      recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
+  encrypted_regex: ^(data|stringData)$
+  lastmodified: "2026-11-01T21:42:03Z"
+  mac: ENC[AES256_GCM,data:T320mgN702OsPACdJCXI1dPitGaADM41pVXgHeBA6QvWtvrrzsBRRHtlGqItnhXZ2Gq/cB05+A5sjGPd0YrADuYoYo2ZvnyowPSORz3JGLaY89mz0sdcmRmhfqSr7s/JNpJEl0yth1paw13kfvbFEb95wq5h0SGfrZu+7Ppa0R0=,iv:J0VQAkMQBU3BBkFuXEwA1DRPLHKH84XrLuFNclmcw9c=,tag:Z755FzO52jrjXD0CZEkcmg==,type:str]
+  mac_only_encrypted: true
+  version: 3.13.3

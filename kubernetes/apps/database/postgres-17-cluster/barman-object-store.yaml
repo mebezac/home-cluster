@@ -13,15 +13,19 @@ spec:
         memory: 128Mi
       limits:
         memory: 384Mi
+  # SILO A since 2026-11-01 (the name still says garage: renaming it means a
+  # Cluster spec change and a rolling restart). The bucket has Object Lock
+  # COMPLIANCE 30 days, and SILO A replicates it to SILO B; deletes stay on A.
+  # The old backups up to 2026-11-01 are still in Garage (garage-tc).
   configuration:
-    endpointURL: https://garage-tc.laboratory.casa
+    endpointURL: http://silo.network.svc.cluster.local:9000
     s3Credentials:
       accessKeyId:
-        name: cloudnative-pg
-        key: aws-access-key-id
+        name: cnpg-silo-s3
+        key: ACCESS_KEY_ID
       secretAccessKey:
-        name: cloudnative-pg
-        key: aws-secret-access-key
+        name: cnpg-silo-s3
+        key: ACCESS_SECRET_KEY
     destinationPath: s3://cloudnative-pg/v17
     data:
       compression: bzip2
