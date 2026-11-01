@@ -1,0 +1,35 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kopiur
+  namespace: argo-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: kubernetes
+  sources:
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/apps/kopiur-system/kopiur
+      targetRevision: main
+      ref: kopiur-repo
+    - repoURL: ghcr.io/home-operations/charts
+      chart: kopiur
+      # changelog: GH releases home-operations/kopiur (v1alpha1: read every release for CRD changes)
+      targetRevision: 0.10.16
+      helm:
+        releaseName: kopiur
+        valueFiles:
+          - $kopiur-repo/kubernetes/apps/kopiur-system/kopiur/values.yaml
+  destination:
+    name: in-cluster
+    namespace: kopiur-system
+  syncPolicy:
+    automated:
+      allowEmpty: true
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      # The Repository/ClusterRepository CRDs are bigger than the 256 KB
+      # last-applied annotation, so client-side apply fails on them.
+      - ServerSideApply=true

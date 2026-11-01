@@ -1,0 +1,12 @@
+---
+# Kopiur takes a CSI VolumeSnapshot of each Longhorn PVC, clones it, and backs up
+# the clone. `type: snap` makes an in-cluster Longhorn snapshot only; `type: bak`
+# would also upload a Longhorn backup to the backup target. Not the default class.
+apiVersion: snapshot.storage.k8s.io/v1
+kind: VolumeSnapshotClass
+metadata:
+  name: longhorn-snapshot
+driver: driver.longhorn.io
+deletionPolicy: Delete
+parameters:
+  type: snap

@@ -1,0 +1,10 @@
+# Kopiur: kopia-based PVC backups (https://kopiur.home-operations.com).
+# The chart pins every image by digest for its own appVersion.
+installScope: cluster
+
+monitoring:
+  serviceMonitor:
+    enabled: true
+  # Off until the alert set is tuned for VictoriaMetrics (namespace labels).
+  prometheusRule:
+    enabled: false

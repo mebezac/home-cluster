@@ -8,3 +8,4 @@ resources:
   - ./authelia.yaml
   - ./recurring-jobs.yaml
   - ./single-replica-storage-class.yaml
+  - ./volume-snapshot-class.yaml
