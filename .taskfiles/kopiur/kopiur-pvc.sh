@@ -9,6 +9,8 @@
 #   kopiur-pvc.sh refill   <ns> <pvc> [snapshot-first]
 #   kopiur-pvc.sh cutover  <ns> <pvc>
 #
+# refill and cutover wait FILL_WAIT_MIN minutes (default 30) for the new PVC.
+#
 # rollback: stop the app, take a safety snapshot, make the PVC an exact copy of
 #   an older snapshot (in place, extra files deleted), start the app. offset 1 =
 #   the snapshot before the latest (counted BEFORE the safety snapshot). To undo
@@ -213,6 +215,19 @@ wait_restore() {
   die "restore $name did not finish in 30 minutes"
 }
 
+# Wait until the re-created PVC is Bound (the populator filled it). FILL_WAIT_MIN
+# (default 30) sets how long; a big NFS volume (immich-library) needs hours. On a
+# timeout the restore keeps running: stop here and keep its key copy, which the
+# mover still needs.
+wait_filled() {
+  local mins=${FILL_WAIT_MIN:-30}
+  for _ in $(seq 1 $((mins * 12))); do
+    [ "$(kubectl get pvc -n "$ns" "$pvc" -o jsonpath='{.status.phase}' 2>/dev/null)" = Bound ] && return 0
+    sleep 5
+  done
+  die "PVC $ns/$pvc is not filled after $mins min. The restore still runs (kubectl get restore -n $ns $pvc). When it is Bound, delete the key copy: kubectl get secrets -n $ns | grep $pvc-restore-creds"
+}
+
 # --- commands ----------------------------------------------------------------
 
 case $cmd in
@@ -284,9 +299,7 @@ EOF
     for _ in $(seq 1 120); do
       kubectl get restore -n "$ns" "$pvc" >/dev/null 2>&1 && break; sleep 5
     done
-    for _ in $(seq 1 360); do
-      [ "$(kubectl get pvc -n "$ns" "$pvc" -o jsonpath='{.status.phase}' 2>/dev/null)" = Bound ] && break; sleep 5
-    done
+    wait_filled
     kubectl get restore -n "$ns" "$pvc" -o json | jq '{phase: .status.phase, resolved: .status.resolved}'
     cleanup_restore_creds
     kubectl get pvc -n "$ns" "$pvc"
@@ -307,9 +320,7 @@ EOF
     kubectl delete pvc -n "$ns" "$pvc" --wait=true
     start_app
     log "waiting for the new PVC to fill"
-    for _ in $(seq 1 360); do
-      [ "$(kubectl get pvc -n "$ns" "$pvc" -o jsonpath='{.status.phase}' 2>/dev/null)" = Bound ] && break; sleep 5
-    done
+    wait_filled
     kubectl get restore -n "$ns" "$pvc" -o json | jq '{phase: .status.phase, resolved: .status.resolved}'
     cleanup_restore_creds
     kubectl get pvc -n "$ns" "$pvc"

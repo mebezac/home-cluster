@@ -241,6 +241,13 @@ persistence:
     storageClass: freenas-api-nfs
     accessMode: ReadWriteMany
     size: 1Ti
+    # A new PVC fills from the latest Kopiur snapshot (Restore immich-library, kopiur-backup
+    # source in the Argo app), or comes up empty on a first install. The fill is slow:
+    # 516 GiB and ~458k files to NFS on the HDD pool (cut over 2026-11-02).
+    dataSourceRef:
+      apiGroup: kopiur.home-operations.com
+      kind: Restore
+      name: immich-library
     advancedMounts:
       server:
         main:
