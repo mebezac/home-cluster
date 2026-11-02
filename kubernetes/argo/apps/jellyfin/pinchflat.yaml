@@ -19,6 +19,18 @@ spec:
         releaseName: pinchflat
         valueFiles:
           - $pinchflat-repo/kubernetes/apps/jellyfin/pinchflat/values.yaml
+    # Kopiur backups of pinchflat-config (kubernetes/charts/kopiur-backup).
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/charts/kopiur-backup
+      targetRevision: main
+      helm:
+        releaseName: pinchflat-config-backup
+        valuesObject:
+          pvc: pinchflat-config
+          mover:
+            runAsUser: 3000
+          restore:
+            enabled: true
   destination:
     name: in-cluster
     namespace: jellyfin

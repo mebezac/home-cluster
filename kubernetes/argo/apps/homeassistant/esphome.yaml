@@ -20,6 +20,22 @@ spec:
         releaseName: esphome
         valueFiles:
           - $repo/kubernetes/apps/homeassistant/esphome/values.yaml
+    # Kopiur backups of esphome-config (kubernetes/charts/kopiur-backup).
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/charts/kopiur-backup
+      targetRevision: main
+      helm:
+        releaseName: esphome-config-backup
+        valuesObject:
+          pvc: esphome-config
+          mover:
+            privileged: true
+          ignore:
+            - /.esphome/platformio
+            - /.esphome/build
+            - /.esphome/idf_components
+          restore:
+            enabled: true
   destination:
     name: in-cluster
     namespace: homeassistant

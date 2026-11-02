@@ -20,6 +20,18 @@ spec:
         releaseName: pgadmin
         valueFiles:
           - $pgadmin-repo/kubernetes/apps/database/pgadmin/values.yaml
+    # Kopiur backups of pgadmin (kubernetes/charts/kopiur-backup).
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/charts/kopiur-backup
+      targetRevision: main
+      helm:
+        releaseName: pgadmin-backup
+        valuesObject:
+          pvc: pgadmin
+          mover:
+            runAsUser: 3000
+          restore:
+            enabled: true
   destination:
     name: in-cluster
     namespace: database

@@ -20,6 +20,20 @@ spec:
         releaseName: jellyfin
         valueFiles:
           - $repo/kubernetes/apps/jellyfin/jellyfin/values.yaml
+    # Kopiur backups of jellyfin-data (kubernetes/charts/kopiur-backup).
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/charts/kopiur-backup
+      targetRevision: main
+      helm:
+        releaseName: jellyfin-data-backup
+        valuesObject:
+          pvc: jellyfin-data
+          mover:
+            runAsUser: 3000
+          ignore:
+            - /cache
+          restore:
+            enabled: true
   destination:
     name: in-cluster
     namespace: jellyfin

@@ -20,6 +20,18 @@ spec:
         releaseName: zigbee2mqtt
         valueFiles:
           - $repo/kubernetes/apps/homeassistant/zigbee2mqtt/values.yaml
+    # Kopiur backups of zigbee2mqtt (kubernetes/charts/kopiur-backup).
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/charts/kopiur-backup
+      targetRevision: main
+      helm:
+        releaseName: zigbee2mqtt-backup
+        valuesObject:
+          pvc: zigbee2mqtt
+          mover:
+            runAsUser: 3000
+          restore:
+            enabled: true
   destination:
     name: in-cluster
     namespace: homeassistant

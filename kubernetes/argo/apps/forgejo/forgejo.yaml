@@ -19,6 +19,19 @@ spec:
         releaseName: forgejo
         valueFiles:
           - $forgejo-repo/kubernetes/apps/forgejo/forgejo/values.yaml
+    # Kopiur backups of forgejo (kubernetes/charts/kopiur-backup).
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/charts/kopiur-backup
+      targetRevision: main
+      helm:
+        releaseName: forgejo-backup
+        valuesObject:
+          pvc: forgejo
+          tier: critical
+          mover:
+            runAsUser: 3000
+          restore:
+            enabled: true
   destination:
     name: in-cluster
     namespace: forgejo

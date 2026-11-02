@@ -39,12 +39,10 @@ spec:
     blobRetention:
       compliance:
         period: 720h
-  # Namespaces that may use this repository. kopiur-system runs the managed
-  # Maintenance. Add each app namespace as it is onboarded.
+  # Any namespace may use this repository: only Argo and Kopiur can create
+  # Kopiur objects (checked 2026-11-02), and a list would name the private apps.
   allowedNamespaces:
-    list:
-      - kopiur-system
-      - freshrss
+    all: true
   credentialProjection:
     allowed: true
   identityDefaults:

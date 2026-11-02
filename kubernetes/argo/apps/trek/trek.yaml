@@ -19,6 +19,18 @@ spec:
         releaseName: trek
         valueFiles:
           - $trek-repo/kubernetes/apps/trek/trek/values.yaml
+    # Kopiur backups of trek-data (kubernetes/charts/kopiur-backup).
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/charts/kopiur-backup
+      targetRevision: main
+      helm:
+        releaseName: trek-data-backup
+        valuesObject:
+          pvc: trek-data
+          mover:
+            runAsUser: 1000
+          restore:
+            enabled: true
   destination:
     name: in-cluster
     namespace: trek

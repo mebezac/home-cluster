@@ -5,4 +5,4 @@ description: >-
   SILO A, replicated to SILO B): a SnapshotPolicy, a SnapshotSchedule and an optional
   populator Restore. Add it as one more source to the app's Argo Application.
 type: application
-version: 1.0.0
+version: 1.1.0

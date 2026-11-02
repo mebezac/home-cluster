@@ -19,6 +19,43 @@ spec:
         releaseName: birdnet-go
         valueFiles:
           - $birdnet-go-repo/kubernetes/apps/birdnet-go/birdnet-go/values.yaml
+    # Kopiur backups of birdnet-go-config (kubernetes/charts/kopiur-backup).
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/charts/kopiur-backup
+      targetRevision: main
+      helm:
+        releaseName: birdnet-go-config-backup
+        valuesObject:
+          pvc: birdnet-go-config
+          mover:
+            runAsUser: 1000
+          restore:
+            enabled: true
+    # Kopiur backups of birdnet-go-data-v2 (kubernetes/charts/kopiur-backup).
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/charts/kopiur-backup
+      targetRevision: main
+      helm:
+        releaseName: birdnet-go-data-v2-backup
+        valuesObject:
+          pvc: birdnet-go-data-v2
+          mover:
+            runAsUser: 1000
+          restore:
+            enabled: true
+    # Kopiur backups of birdnet-go-clips (kubernetes/charts/kopiur-backup).
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/charts/kopiur-backup
+      targetRevision: main
+      helm:
+        releaseName: birdnet-go-clips-backup
+        valuesObject:
+          pvc: birdnet-go-clips
+          copyMethod: Direct
+          mover:
+            runAsUser: 1000
+          restore:
+            enabled: true
   destination:
     name: in-cluster
     namespace: birdnet-go

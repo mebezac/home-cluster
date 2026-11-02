@@ -3,6 +3,9 @@
 {{- if not (has .Values.tier (list "critical" "standard")) -}}
 {{- fail (printf "kopiur-backup: tier must be critical or standard, not %q" .Values.tier) -}}
 {{- end -}}
+{{- if not (has .Values.copyMethod (list "Snapshot" "Direct")) -}}
+{{- fail (printf "kopiur-backup: copyMethod must be Snapshot or Direct, not %q" .Values.copyMethod) -}}
+{{- end -}}
 {{- if and .Values.mover.privileged .Values.mover.runAsUser -}}
 {{- fail "kopiur-backup: set mover.privileged or mover.runAsUser, not both" -}}
 {{- end -}}

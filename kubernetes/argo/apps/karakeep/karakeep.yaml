@@ -19,6 +19,31 @@ spec:
         releaseName: karakeep
         valueFiles:
           - $karakeep-repo/kubernetes/apps/karakeep/karakeep/values.yaml
+    # Kopiur backups of karakeep-data (kubernetes/charts/kopiur-backup).
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/charts/kopiur-backup
+      targetRevision: main
+      helm:
+        releaseName: karakeep-data-backup
+        valuesObject:
+          pvc: karakeep-data
+          mover:
+            runAsUser: 1000
+            runAsGroup: 3000
+          restore:
+            enabled: true
+    # Kopiur backups of karakeep-meilisearch (kubernetes/charts/kopiur-backup).
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/charts/kopiur-backup
+      targetRevision: main
+      helm:
+        releaseName: karakeep-meilisearch-backup
+        valuesObject:
+          pvc: karakeep-meilisearch
+          mover:
+            runAsUser: 3000
+          restore:
+            enabled: true
   destination:
     name: in-cluster
     namespace: karakeep

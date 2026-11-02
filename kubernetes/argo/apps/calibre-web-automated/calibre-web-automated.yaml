@@ -19,6 +19,18 @@ spec:
         releaseName: calibre-web-automated
         valueFiles:
           - $calibre-web-automated-repo/kubernetes/apps/calibre-web-automated/calibre-web-automated/values.yaml
+    # Kopiur backups of calibre-web-automated-data (kubernetes/charts/kopiur-backup).
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/charts/kopiur-backup
+      targetRevision: main
+      helm:
+        releaseName: calibre-web-automated-data-backup
+        valuesObject:
+          pvc: calibre-web-automated-data
+          mover:
+            runAsUser: 1000
+          restore:
+            enabled: true
   destination:
     name: in-cluster
     namespace: calibre-web-automated

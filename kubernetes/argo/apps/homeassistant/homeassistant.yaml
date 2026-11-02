@@ -20,6 +20,19 @@ spec:
         releaseName: homeassistant
         valueFiles:
           - $repo/kubernetes/apps/homeassistant/homeassistant/values.yaml
+    # Kopiur backups of homeassistant-config (kubernetes/charts/kopiur-backup).
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/charts/kopiur-backup
+      targetRevision: main
+      helm:
+        releaseName: homeassistant-config-backup
+        valuesObject:
+          pvc: homeassistant-config
+          tier: critical
+          mover:
+            privileged: true
+          restore:
+            enabled: true
   destination:
     name: in-cluster
     namespace: homeassistant

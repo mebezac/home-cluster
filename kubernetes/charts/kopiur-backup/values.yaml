@@ -56,6 +56,10 @@ restore:
   # (task kopiur:refill does both). Argo re-creates the Restore.
   enabled: false
 
+# -- Snapshot: back up a Longhorn snapshot of the PVC (point in time). Direct: read
+# the live PVC, for volumes with no CSI snapshots (the TrueNAS NFS PVCs).
+copyMethod: Snapshot
+
 # -- Extra kopia ignore globs. Kopiur's 5 defaults (/lost+found, @eaDir, ...) stay.
 ignore: []
 

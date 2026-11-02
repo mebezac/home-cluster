@@ -20,6 +20,31 @@ spec:
         releaseName: lychee
         valueFiles:
           - $lychee-repo/kubernetes/apps/lychee/lychee/values.yaml
+    # Kopiur backups of lychee-data (kubernetes/charts/kopiur-backup).
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/charts/kopiur-backup
+      targetRevision: main
+      helm:
+        releaseName: lychee-data-backup
+        valuesObject:
+          pvc: lychee-data
+          mover:
+            runAsUser: 1000
+          restore:
+            enabled: true
+    # Kopiur backups of lychee-uploads (kubernetes/charts/kopiur-backup).
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/charts/kopiur-backup
+      targetRevision: main
+      helm:
+        releaseName: lychee-uploads-backup
+        valuesObject:
+          pvc: lychee-uploads
+          copyMethod: Direct
+          mover:
+            runAsUser: 33
+          restore:
+            enabled: true
   destination:
     name: in-cluster
     namespace: lychee

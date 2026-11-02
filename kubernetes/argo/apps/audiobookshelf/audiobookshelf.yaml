@@ -20,6 +20,18 @@ spec:
         releaseName: audiobookshelf
         valueFiles:
           - $repo/kubernetes/apps/audiobookshelf/audiobookshelf/values.yaml
+    # Kopiur backups of audiobookshelf-config (kubernetes/charts/kopiur-backup).
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/charts/kopiur-backup
+      targetRevision: main
+      helm:
+        releaseName: audiobookshelf-config-backup
+        valuesObject:
+          pvc: audiobookshelf-config
+          mover:
+            runAsUser: 3000
+          restore:
+            enabled: true
   destination:
     name: in-cluster
     namespace: audiobookshelf

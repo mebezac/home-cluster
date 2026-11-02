@@ -19,6 +19,18 @@ spec:
         releaseName: jotty
         valueFiles:
           - $jotty-repo/kubernetes/apps/jotty/jotty/values.yaml
+    # Kopiur backups of jotty (kubernetes/charts/kopiur-backup).
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/charts/kopiur-backup
+      targetRevision: main
+      helm:
+        releaseName: jotty-backup
+        valuesObject:
+          pvc: jotty
+          mover:
+            runAsUser: 3000
+          restore:
+            enabled: true
   destination:
     name: in-cluster
     namespace: jotty

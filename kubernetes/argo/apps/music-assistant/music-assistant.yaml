@@ -20,6 +20,18 @@ spec:
         releaseName: music-assistant
         valueFiles:
           - $repo/kubernetes/apps/music-assistant/music-assistant/values.yaml
+    # Kopiur backups of music-assistant-data (kubernetes/charts/kopiur-backup).
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/charts/kopiur-backup
+      targetRevision: main
+      helm:
+        releaseName: music-assistant-data-backup
+        valuesObject:
+          pvc: music-assistant-data
+          mover:
+            runAsUser: 3000
+          restore:
+            enabled: true
   destination:
     name: in-cluster
     namespace: music-assistant

@@ -20,6 +20,30 @@ spec:
         releaseName: network-optimizer
         valueFiles:
           - $network-optimizer-repo/kubernetes/apps/network-optimizer/network-optimizer/values.yaml
+    # Kopiur backups of network-optimizer-data (kubernetes/charts/kopiur-backup).
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/charts/kopiur-backup
+      targetRevision: main
+      helm:
+        releaseName: network-optimizer-data-backup
+        valuesObject:
+          pvc: network-optimizer-data
+          mover:
+            runAsUser: 1654
+          restore:
+            enabled: true
+    # Kopiur backups of network-optimizer-ssh-keys (kubernetes/charts/kopiur-backup).
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/charts/kopiur-backup
+      targetRevision: main
+      helm:
+        releaseName: network-optimizer-ssh-keys-backup
+        valuesObject:
+          pvc: network-optimizer-ssh-keys
+          mover:
+            runAsUser: 1654
+          restore:
+            enabled: true
   destination:
     name: in-cluster
     namespace: network-optimizer

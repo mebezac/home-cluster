@@ -20,6 +20,18 @@ spec:
         releaseName: romm
         valueFiles:
           - $romm-repo/kubernetes/apps/romm/romm/values.yaml
+    # Kopiur backups of romm-data (kubernetes/charts/kopiur-backup).
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/charts/kopiur-backup
+      targetRevision: main
+      helm:
+        releaseName: romm-data-backup
+        valuesObject:
+          pvc: romm-data
+          mover:
+            runAsUser: 3000
+          restore:
+            enabled: true
   destination:
     name: in-cluster
     namespace: romm

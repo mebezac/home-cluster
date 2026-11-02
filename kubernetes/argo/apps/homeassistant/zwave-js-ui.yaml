@@ -20,6 +20,18 @@ spec:
         releaseName: zwave-js-ui
         valueFiles:
           - $zwave-js-ui-repo/kubernetes/apps/homeassistant/zwave-js-ui/values.yaml
+    # Kopiur backups of zwave-js-ui-config (kubernetes/charts/kopiur-backup).
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/charts/kopiur-backup
+      targetRevision: main
+      helm:
+        releaseName: zwave-js-ui-config-backup
+        valuesObject:
+          pvc: zwave-js-ui-config
+          mover:
+            privileged: true
+          restore:
+            enabled: true
   destination:
     name: in-cluster
     namespace: homeassistant
@@ -36,5 +48,10 @@ spec:
         pod-security.kubernetes.io/audit-version: latest
         pod-security.kubernetes.io/warn: privileged
         pod-security.kubernetes.io/warn-version: latest
+      annotations:
+        # Kopiur may run root movers here: homeassistant-config, esphome-config
+        # and zwave-js-ui-config are root-owned (kubernetes/charts/kopiur-backup
+        # mover.privileged).
+        kopiur.home-operations.com/privileged-movers: "true"
     syncOptions:
       - CreateNamespace=true

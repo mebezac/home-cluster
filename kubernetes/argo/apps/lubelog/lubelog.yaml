@@ -19,6 +19,18 @@ spec:
         releaseName: lubelog
         valueFiles:
           - $lubelog-repo/kubernetes/apps/lubelog/lubelog/values.yaml
+    # Kopiur backups of lubelog-data (kubernetes/charts/kopiur-backup).
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/charts/kopiur-backup
+      targetRevision: main
+      helm:
+        releaseName: lubelog-data-backup
+        valuesObject:
+          pvc: lubelog-data
+          mover:
+            runAsUser: 3000
+          restore:
+            enabled: true
   destination:
     name: in-cluster
     namespace: lubelog

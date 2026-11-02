@@ -20,6 +20,18 @@ spec:
         releaseName: n8n
         valueFiles:
           - $repo/kubernetes/apps/n8n/n8n/values.yaml
+    # Kopiur backups of n8n (kubernetes/charts/kopiur-backup).
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/charts/kopiur-backup
+      targetRevision: main
+      helm:
+        releaseName: n8n-backup
+        valuesObject:
+          pvc: n8n
+          mover:
+            runAsUser: 1000
+          restore:
+            enabled: true
   destination:
     name: in-cluster
     namespace: n8n

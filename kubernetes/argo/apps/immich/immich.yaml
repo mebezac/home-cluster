@@ -31,6 +31,32 @@ spec:
         releaseName: immich
         valueFiles:
           - $immich-repo/kubernetes/apps/immich/immich/values.yaml
+    # Kopiur backups of immich-db-data-18 (kubernetes/charts/kopiur-backup).
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/charts/kopiur-backup
+      targetRevision: main
+      helm:
+        releaseName: immich-db-data-18-backup
+        valuesObject:
+          pvc: immich-db-data-18
+          tier: critical
+          mover:
+            runAsUser: 999
+          restore:
+            enabled: true
+    # Kopiur backups of immich-library (kubernetes/charts/kopiur-backup).
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/charts/kopiur-backup
+      targetRevision: main
+      helm:
+        releaseName: immich-library-backup
+        valuesObject:
+          pvc: immich-library
+          copyMethod: Direct
+          mover:
+            runAsUser: 3000
+          restore:
+            enabled: true
   destination:
     name: in-cluster
     namespace: immich

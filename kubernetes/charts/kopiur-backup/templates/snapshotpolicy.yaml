@@ -19,10 +19,12 @@ spec:
   sources:
     - pvc:
         name: {{ .Values.pvc | quote }}
-  copyMethod: Snapshot
+  copyMethod: {{ .Values.copyMethod }}
+  {{- if eq .Values.copyMethod "Snapshot" }}
   volumeSnapshotClassName: {{ .Values.volumeSnapshotClass }}
   staging:
     storageClassName: {{ .Values.stagingStorageClass }}
+  {{- end }}
   retention:
     {{- toYaml (get $tiers .Values.tier) | nindent 4 }}
   compression:

@@ -21,6 +21,18 @@ spec:
         releaseName: pcab
         valueFiles:
           - $pcab-repo/kubernetes/apps/pcab/pcab/values.yaml
+    # Kopiur backups of pcab (kubernetes/charts/kopiur-backup).
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/charts/kopiur-backup
+      targetRevision: main
+      helm:
+        releaseName: pcab-backup
+        valuesObject:
+          pvc: pcab
+          mover:
+            runAsUser: 3000
+          restore:
+            enabled: true
   destination:
     name: in-cluster
     namespace: pcab

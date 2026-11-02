@@ -19,6 +19,18 @@ spec:
         releaseName: agent-box
         valueFiles:
           - $agent-box-repo/kubernetes/apps/real-life-agents/agent-box/values.yaml
+    # Kopiur backups of agent-box (kubernetes/charts/kopiur-backup).
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/charts/kopiur-backup
+      targetRevision: main
+      helm:
+        releaseName: agent-box-backup
+        valuesObject:
+          pvc: agent-box
+          mover:
+            runAsUser: 3000
+          restore:
+            enabled: true
   destination:
     name: in-cluster
     namespace: real-life-agents
