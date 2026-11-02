@@ -85,6 +85,12 @@ persistence:
     storageClass: freenas-api-nfs
     accessMode: ReadWriteMany
     size: 2Gi
+    # A new PVC fills from the latest Kopiur snapshot (Restore calibre-web-automated-media,
+    # kopiur-backup source in the Argo app), or comes up empty on a first install.
+    dataSourceRef:
+      apiGroup: kopiur.home-operations.com
+      kind: Restore
+      name: calibre-web-automated-media
     globalMounts:
       - path: /calibre-library
         subPath: library
