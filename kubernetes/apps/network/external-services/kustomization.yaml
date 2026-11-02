@@ -13,3 +13,4 @@ resources:
   - ./garage-tc.yaml
   - ./garage-tc-console.yaml
   - ./silo.yaml
+  - ./silo-console.yaml
