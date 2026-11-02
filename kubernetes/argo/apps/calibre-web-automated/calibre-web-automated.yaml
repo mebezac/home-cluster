@@ -31,6 +31,20 @@ spec:
             runAsUser: 1000
           restore:
             enabled: true
+    # Kopiur backups of calibre-web-automated-media: the Calibre library
+    # (books + metadata.db) and the ingest folder, on NFS.
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/charts/kopiur-backup
+      targetRevision: main
+      helm:
+        releaseName: calibre-web-automated-media-backup
+        valuesObject:
+          pvc: calibre-web-automated-media
+          copyMethod: Direct
+          mover:
+            runAsUser: 1000
+          restore:
+            enabled: true
   destination:
     name: in-cluster
     namespace: calibre-web-automated
