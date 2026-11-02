@@ -126,6 +126,18 @@ restore_mover() {
       del(.inheritSecurityContextFrom) + {inheritSecurityContextFrom: {snapshot: {}}} else . end'
 }
 
+# Kopiur 0.10.16 leaves the populator Restore's projected key copy
+# (<pvc>-restore-creds-N) in the app namespace after the fill. The other mover
+# paths delete theirs. Delete it once the PVC is Bound (the fill is done then).
+cleanup_restore_creds() {
+  local s
+  for s in $(kubectl get secrets -n "$ns" -l app.kubernetes.io/component=credentials -o json | jq -r --arg p "$pvc" \
+      '.items[] | select(.metadata.name | startswith($p + "-restore-creds-")) | .metadata.name'); do
+    log "deleting leftover key copy $ns/$s"
+    kubectl delete secret -n "$ns" "$s" >/dev/null
+  done
+}
+
 inherits_user() {
   [ "$(kubectl get snapshotpolicy -n "$ns" "$pvc" -o jsonpath='{.spec.mover.inheritSecurityContextFrom}')" != "" ]
 }
@@ -230,6 +242,7 @@ EOF
       [ "$(kubectl get pvc -n "$ns" "$pvc" -o jsonpath='{.status.phase}' 2>/dev/null)" = Bound ] && break; sleep 5
     done
     kubectl get restore -n "$ns" "$pvc" -o json | jq '{phase: .status.phase, resolved: .status.resolved}'
+    cleanup_restore_creds
     kubectl get pvc -n "$ns" "$pvc"
     ;;
 
@@ -251,6 +264,7 @@ EOF
       [ "$(kubectl get pvc -n "$ns" "$pvc" -o jsonpath='{.status.phase}' 2>/dev/null)" = Bound ] && break; sleep 5
     done
     kubectl get restore -n "$ns" "$pvc" -o json | jq '{phase: .status.phase, resolved: .status.resolved}'
+    cleanup_restore_creds
     kubectl get pvc -n "$ns" "$pvc"
     log "old volume kept as Released PV $pv. When the app looks right: kubectl delete pv $pv"
     ;;
