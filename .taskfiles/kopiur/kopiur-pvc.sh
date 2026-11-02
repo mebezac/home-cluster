@@ -98,6 +98,21 @@ stop_app() {
   kubectl patch application -n argo-system "$APP" --type=json \
     -p '[{"op":"remove","path":"/spec/syncPolicy/automated"}]' >/dev/null
   trap start_app EXIT
+  # A sync that already runs (and retries) keeps going without auto-sync and
+  # would scale the app back up. Stop it and wait until it ends.
+  local op
+  for _ in $(seq 1 30); do
+    op=$(kubectl get application -n argo-system "$APP" -o jsonpath='{.status.operationState.phase}/{.status.operationState.finishedAt}')
+    case $op in
+      */?*) break ;;  # finished
+      Running/) log "stopping the running sync of $APP"
+        kubectl patch application -n argo-system "$APP" --type=merge \
+          -p '{"status":{"operationState":{"phase":"Terminating"}}}' >/dev/null ;;
+      Terminating/) ;;
+      *) break ;;
+    esac
+    sleep 4
+  done
   WORKLOADS=$(workloads)
   for w in $WORKLOADS; do log "scaling $w to 0"; kubectl scale -n "$ns" "$w" --replicas=0 >/dev/null; done
   log "waiting until no pod mounts $pvc"
@@ -115,7 +130,10 @@ start_app() {
   log "turning auto-sync of Application $APP back on (Argo scales the app back up)"
   kubectl patch application -n argo-system "$APP" --type=merge \
     -p "{\"spec\":{\"syncPolicy\":{\"automated\":$AUTOMATED}}}" >/dev/null
-  kubectl annotate application -n argo-system "$APP" argocd.argoproj.io/refresh=normal --overwrite >/dev/null
+  # Auto-sync does not retry a revision whose last sync failed (the PVC change
+  # fails until the cutover), so start one sync now.
+  kubectl patch application -n argo-system "$APP" --type=merge \
+    -p '{"operation":{"initiatedBy":{"username":"kopiur-pvc.sh"},"sync":{"prune":true}}}' >/dev/null
 }
 
 # The restore mover runs as the backup's mover: explicit fields copied from the
@@ -135,6 +153,18 @@ cleanup_restore_creds() {
       '.items[] | select(.metadata.name | startswith($p + "-restore-creds-")) | .metadata.name'); do
     log "deleting leftover key copy $ns/$s"
     kubectl delete secret -n "$ns" "$s" >/dev/null
+  done
+}
+
+# A Direct-mode backup mounts the PVC itself, and its finished mover pod keeps
+# the PVC from being deleted. Delete such finished pods first.
+drop_finished_movers() {
+  local p
+  for p in $(kubectl get pods -n "$ns" -l app.kubernetes.io/managed-by=kopiur -o json | jq -r --arg c "$pvc" '
+      .items[] | select(.status.phase == "Succeeded" or .status.phase == "Failed")
+      | select(any(.spec.volumes[]?; .persistentVolumeClaim.claimName == $c)) | .metadata.name'); do
+    log "deleting finished mover pod $ns/$p (it mounts $pvc)"
+    kubectl delete pod -n "$ns" "$p" >/dev/null
   done
 }
 
@@ -231,6 +261,7 @@ EOF
       stop_app
     fi
     log "deleting PVC $ns/$pvc and Restore $ns/$pvc (Argo re-creates both)"
+    drop_finished_movers
     kubectl delete pvc -n "$ns" "$pvc" --wait=true
     kubectl delete restore -n "$ns" "$pvc" --wait=true
     start_app
@@ -257,6 +288,7 @@ EOF
     log "keeping the old volume: PV $pv reclaimPolicy Retain"
     kubectl patch pv "$pv" -p '{"spec":{"persistentVolumeReclaimPolicy":"Retain"}}' >/dev/null
     log "deleting PVC $ns/$pvc (Argo re-creates it with the dataSourceRef)"
+    drop_finished_movers
     kubectl delete pvc -n "$ns" "$pvc" --wait=true
     start_app
     log "waiting for the new PVC to fill"
