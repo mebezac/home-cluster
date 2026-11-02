@@ -157,15 +157,28 @@ cleanup_restore_creds() {
 }
 
 # A Direct-mode backup mounts the PVC itself, and its finished mover pod keeps
-# the PVC from being deleted. Delete such finished pods first.
+# the PVC from being deleted until the Job's 1-hour TTL removes it. Wait for
+# each such pod to finish (the Snapshot reports Succeeded a moment before its
+# pod does), then delete it.
 drop_finished_movers() {
-  local p
-  for p in $(kubectl get pods -n "$ns" -l app.kubernetes.io/managed-by=kopiur -o json | jq -r --arg c "$pvc" '
-      .items[] | select(.status.phase == "Succeeded" or .status.phase == "Failed")
-      | select(any(.spec.volumes[]?; .persistentVolumeClaim.claimName == $c)) | .metadata.name'); do
-    log "deleting finished mover pod $ns/$p (it mounts $pvc)"
-    kubectl delete pod -n "$ns" "$p" >/dev/null
+  local p phase busy
+  for _ in $(seq 1 60); do
+    busy=""
+    while read -r p phase; do
+      [ -n "$p" ] || continue
+      case $phase in
+        Succeeded|Failed) log "deleting finished mover pod $ns/$p (it mounts $pvc)"
+          kubectl delete pod -n "$ns" "$p" >/dev/null ;;
+        *) busy=$p ;;
+      esac
+    done < <(kubectl get pods -n "$ns" -l app.kubernetes.io/managed-by=kopiur -o json | jq -r --arg c "$pvc" '
+        .items[] | select(any(.spec.volumes[]?; .persistentVolumeClaim.claimName == $c))
+        | "\(.metadata.name) \(.status.phase)"')
+    [ -z "$busy" ] && return
+    log "waiting for mover pod $ns/$busy to finish (it mounts $pvc)"
+    sleep 5
   done
+  die "mover pod $ns/$busy still mounts $pvc after 5 minutes"
 }
 
 inherits_user() {
