@@ -64,6 +64,12 @@ persistence:
     accessMode: ReadWriteOnce
     suffix: config
     size: 10Gi
+    # A new PVC fills from the latest Kopiur snapshot (Restore esphome-config, kopiur-backup
+    # source in the Argo app), or comes up empty on a first install.
+    dataSourceRef:
+      apiGroup: kopiur.home-operations.com
+      kind: Restore
+      name: esphome-config
     globalMounts:
       - path: /config
   # Device YAMLs and their secrets.yaml come from git (audit 2026-10-22); before
