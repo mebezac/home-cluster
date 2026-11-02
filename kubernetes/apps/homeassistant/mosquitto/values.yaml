@@ -59,6 +59,12 @@ persistence:
     accessMode: ReadWriteOnce
     suffix: data
     size: 100Mi
+    # A new PVC fills from the latest Kopiur snapshot (Restore mosquitto-data, kopiur-backup
+    # source in the Argo app), or comes up empty on a first install.
+    dataSourceRef:
+      apiGroup: kopiur.home-operations.com
+      kind: Restore
+      name: mosquitto-data
     globalMounts:
       - path: /mosquitto/data
 

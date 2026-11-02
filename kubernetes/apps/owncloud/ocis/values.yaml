@@ -221,6 +221,12 @@ persistence:
     suffix: data
     # 2026-10-02: 96% full (15.1 of 15.7 GB). Longhorn expands online.
     size: 30Gi
+    # A new PVC fills from the latest Kopiur snapshot (Restore ocis-data, kopiur-backup
+    # source in the Argo app), or comes up empty on a first install.
+    dataSourceRef:
+      apiGroup: kopiur.home-operations.com
+      kind: Restore
+      name: ocis-data
     advancedMounts:
       ocis:
         ocis:

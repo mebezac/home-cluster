@@ -64,6 +64,12 @@ persistence:
     storageClass: longhorn
     accessMode: ReadWriteOnce
     size: 5Gi
+    # A new PVC fills from the latest Kopiur snapshot (Restore agent-box, kopiur-backup
+    # source in the Argo app), or comes up empty on a first install.
+    dataSourceRef:
+      apiGroup: kopiur.home-operations.com
+      kind: Restore
+      name: agent-box
     globalMounts:
       - path: /home/agent
   tmp:

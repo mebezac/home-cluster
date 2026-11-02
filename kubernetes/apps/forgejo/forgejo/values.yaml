@@ -199,6 +199,12 @@ persistence:
     storageClass: longhorn
     accessMode: ReadWriteOnce
     size: 10Gi
+    # A new PVC fills from the latest Kopiur snapshot (Restore forgejo, kopiur-backup
+    # source in the Argo app), or comes up empty on a first install.
+    dataSourceRef:
+      apiGroup: kopiur.home-operations.com
+      kind: Restore
+      name: forgejo
     globalMounts:
       - path: /var/lib/gitea
   tmp:

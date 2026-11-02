@@ -64,6 +64,12 @@ persistence:
     accessMode: ReadWriteOnce
     suffix: config
     size: 1Gi
+    # A new PVC fills from the latest Kopiur snapshot (Restore birdnet-go-config, kopiur-backup
+    # source in the Argo app), or comes up empty on a first install.
+    dataSourceRef:
+      apiGroup: kopiur.home-operations.com
+      kind: Restore
+      name: birdnet-go-config
     globalMounts:
       - path: /config
   # data and clips were made by hand with kubectl in 2026-07 (the v2 move) and
@@ -77,6 +83,12 @@ persistence:
     storageClass: longhorn
     accessMode: ReadWriteOnce
     size: 5Gi
+    # A new PVC fills from the latest Kopiur snapshot (Restore birdnet-go-data-v2, kopiur-backup
+    # source in the Argo app), or comes up empty on a first install.
+    dataSourceRef:
+      apiGroup: kopiur.home-operations.com
+      kind: Restore
+      name: birdnet-go-data-v2
     annotations:
       argocd.argoproj.io/sync-options: Prune=false,Delete=false
     globalMounts:
@@ -88,6 +100,12 @@ persistence:
     storageClass: freenas-api-nfs
     accessMode: ReadWriteOnce
     size: 50Gi
+    # A new PVC fills from the latest Kopiur snapshot (Restore birdnet-go-clips, kopiur-backup
+    # source in the Argo app), or comes up empty on a first install.
+    dataSourceRef:
+      apiGroup: kopiur.home-operations.com
+      kind: Restore
+      name: birdnet-go-clips
     annotations:
       argocd.argoproj.io/sync-options: Prune=false,Delete=false
     globalMounts:

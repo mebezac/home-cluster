@@ -28,8 +28,10 @@ spec:
         releaseName: lychee-data-backup
         valuesObject:
           pvc: lychee-data
+          # app/ and logs/ are www-data (33) with mode 750; sym/ is 1000 but
+          # world-readable.
           mover:
-            runAsUser: 1000
+            runAsUser: 33
           restore:
             enabled: true
     # Kopiur backups of lychee-uploads (kubernetes/charts/kopiur-backup).

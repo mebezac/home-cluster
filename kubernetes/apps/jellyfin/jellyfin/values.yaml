@@ -73,6 +73,12 @@ persistence:
     # every renamed file a new item (new metadata and image folders), and it
     # refuses to start with less than 2GiB free in /config/data.
     size: 20Gi
+    # A new PVC fills from the latest Kopiur snapshot (Restore jellyfin-data, kopiur-backup
+    # source in the Argo app), or comes up empty on a first install.
+    dataSourceRef:
+      apiGroup: kopiur.home-operations.com
+      kind: Restore
+      name: jellyfin-data
     globalMounts:
       - path: /config
         subPath: config

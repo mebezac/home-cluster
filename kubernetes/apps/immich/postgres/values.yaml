@@ -75,6 +75,12 @@ persistence:
     accessMode: ReadWriteOnce
     suffix: data-18
     size: 10Gi
+    # A new PVC fills from the latest Kopiur snapshot (Restore immich-db-data-18, kopiur-backup
+    # source in the Argo app), or comes up empty on a first install.
+    dataSourceRef:
+      apiGroup: kopiur.home-operations.com
+      kind: Restore
+      name: immich-db-data-18
     advancedMounts:
       main:
         db18:

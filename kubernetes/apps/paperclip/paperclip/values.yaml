@@ -186,6 +186,12 @@ persistence:
     storageClass: longhorn
     accessMode: ReadWriteOnce
     size: 20Gi
+    # A new PVC fills from the latest Kopiur snapshot (Restore paperclip-data, kopiur-backup
+    # source in the Argo app), or comes up empty on a first install.
+    dataSourceRef:
+      apiGroup: kopiur.home-operations.com
+      kind: Restore
+      name: paperclip-data
     globalMounts:
       - path: /paperclip
   # Instance config with the DB connection string. Every path in it is

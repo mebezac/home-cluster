@@ -160,5 +160,11 @@ persistence:
     storageClass: longhorn
     accessMode: ReadWriteOnce
     size: 1Gi
+    # A new PVC fills from the latest Kopiur snapshot (Restore n8n, kopiur-backup
+    # source in the Argo app), or comes up empty on a first install.
+    dataSourceRef:
+      apiGroup: kopiur.home-operations.com
+      kind: Restore
+      name: n8n
     globalMounts:
       - path: /home/node/.n8n

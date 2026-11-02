@@ -86,6 +86,12 @@ persistence:
     accessMode: ReadWriteOnce
     suffix: config
     size: 1Gi
+    # A new PVC fills from the latest Kopiur snapshot (Restore zwave-js-ui-config, kopiur-backup
+    # source in the Argo app), or comes up empty on a first install.
+    dataSourceRef:
+      apiGroup: kopiur.home-operations.com
+      kind: Restore
+      name: zwave-js-ui-config
     globalMounts:
       - path: /usr/src/app/store
   usb:

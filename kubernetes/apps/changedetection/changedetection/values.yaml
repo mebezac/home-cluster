@@ -93,6 +93,12 @@ persistence:
     storageClass: longhorn
     accessMode: ReadWriteOnce
     size: 512Mi
+    # A new PVC fills from the latest Kopiur snapshot (Restore changedetection, kopiur-backup
+    # source in the Argo app), or comes up empty on a first install.
+    dataSourceRef:
+      apiGroup: kopiur.home-operations.com
+      kind: Restore
+      name: changedetection
     globalMounts:
       - path: /datastore
   tmp:

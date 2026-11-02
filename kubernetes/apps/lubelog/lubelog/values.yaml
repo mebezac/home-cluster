@@ -64,6 +64,12 @@ persistence:
     accessMode: ReadWriteOnce
     suffix: data
     size: 1Gi
+    # A new PVC fills from the latest Kopiur snapshot (Restore lubelog-data, kopiur-backup
+    # source in the Argo app), or comes up empty on a first install.
+    dataSourceRef:
+      apiGroup: kopiur.home-operations.com
+      kind: Restore
+      name: lubelog-data
     globalMounts:
       - path: /App/config
         subPath: config

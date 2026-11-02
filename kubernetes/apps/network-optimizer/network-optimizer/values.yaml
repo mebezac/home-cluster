@@ -146,6 +146,12 @@ persistence:
     storageClass: longhorn
     accessMode: ReadWriteOnce
     size: 5Gi
+    # A new PVC fills from the latest Kopiur snapshot (Restore network-optimizer-data, kopiur-backup
+    # source in the Argo app), or comes up empty on a first install.
+    dataSourceRef:
+      apiGroup: kopiur.home-operations.com
+      kind: Restore
+      name: network-optimizer-data
     advancedMounts:
       network-optimizer:
         app:
@@ -157,6 +163,12 @@ persistence:
     storageClass: longhorn
     accessMode: ReadWriteOnce
     size: 100Mi
+    # A new PVC fills from the latest Kopiur snapshot (Restore network-optimizer-ssh-keys, kopiur-backup
+    # source in the Argo app), or comes up empty on a first install.
+    dataSourceRef:
+      apiGroup: kopiur.home-operations.com
+      kind: Restore
+      name: network-optimizer-ssh-keys
     advancedMounts:
       network-optimizer:
         app:

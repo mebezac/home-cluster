@@ -87,5 +87,11 @@ persistence:
     storageClass: longhorn
     accessMode: ReadWriteOnce
     size: 256Mi
+    # A new PVC fills from the latest Kopiur snapshot (Restore zigbee2mqtt, kopiur-backup
+    # source in the Argo app), or comes up empty on a first install.
+    dataSourceRef:
+      apiGroup: kopiur.home-operations.com
+      kind: Restore
+      name: zigbee2mqtt
     globalMounts:
       - path: /data

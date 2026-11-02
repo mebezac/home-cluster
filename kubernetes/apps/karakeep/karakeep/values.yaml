@@ -227,6 +227,12 @@ persistence:
     accessMode: ReadWriteOnce
     # SQLite + queue DB + OCR cache; assets go to Garage.
     size: 2Gi
+    # A new PVC fills from the latest Kopiur snapshot (Restore karakeep-data, kopiur-backup
+    # source in the Argo app), or comes up empty on a first install.
+    dataSourceRef:
+      apiGroup: kopiur.home-operations.com
+      kind: Restore
+      name: karakeep-data
     advancedMounts:
       karakeep:
         app:
@@ -237,6 +243,12 @@ persistence:
     storageClass: longhorn
     accessMode: ReadWriteOnce
     size: 1Gi
+    # A new PVC fills from the latest Kopiur snapshot (Restore karakeep-meilisearch, kopiur-backup
+    # source in the Argo app), or comes up empty on a first install.
+    dataSourceRef:
+      apiGroup: kopiur.home-operations.com
+      kind: Restore
+      name: karakeep-meilisearch
     advancedMounts:
       meilisearch:
         app:
