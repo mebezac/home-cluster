@@ -22,6 +22,9 @@ python = "3.15.2"
 "aqua:jqlang/jq" = "1.7.1"
 "aqua:kubernetes-sigs/kustomize" = "5.6.0"
 "aqua:kubernetes/kubectl" = "1.36.5"
+# kubectl-kopiur: the Kopiur kubectl plugin (snapshot now, list, restore, doctor). Keep = the kopiur chart
+# version in kubernetes/argo/apps/kopiur-system/kopiur.yaml. changelog: GH releases home-operations/kopiur
+"github:home-operations/kopiur" = { version = "0.10.16", rename_exe = "kubectl-kopiur" }
 "aqua:mikefarah/yq" = "4.54.1"
 # pgsty/mc ships `mcli`, the client for SILO (the S3 store, a MinIO fork); minio's mc is not maintained for it.
 # changelog: gh release view <tag> -R pgsty/mc. Keep near the pgsty/silo server tag (infra hh_chi_10tb_silo, truenas-terraform apps.tf)

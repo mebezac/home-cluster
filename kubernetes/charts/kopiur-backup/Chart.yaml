@@ -1,0 +1,8 @@
+apiVersion: v2
+name: kopiur-backup
+description: >-
+  Kopiur backups for one PVC on the shared ClusterRepository "silo" (bucket kopiur on
+  SILO A, replicated to SILO B): a SnapshotPolicy, a SnapshotSchedule and an optional
+  populator Restore. Add it as one more source to the app's Argo Application.
+type: application
+version: 1.0.0

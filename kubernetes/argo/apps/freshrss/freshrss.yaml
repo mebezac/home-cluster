@@ -19,6 +19,19 @@ spec:
         releaseName: freshrss
         valueFiles:
           - $freshrss-repo/kubernetes/apps/freshrss/freshrss/values.yaml
+    # Kopiur backups of the data PVC (kubernetes/charts/kopiur-backup).
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/charts/kopiur-backup
+      targetRevision: main
+      helm:
+        releaseName: freshrss-data-backup
+        valuesObject:
+          pvc: freshrss-data
+          # The image runs as root; the data is www-data (33) and group-readable.
+          mover:
+            runAsUser: 33
+          restore:
+            enabled: true
   destination:
     name: in-cluster
     namespace: freshrss

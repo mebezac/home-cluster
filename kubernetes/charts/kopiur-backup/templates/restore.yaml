@@ -1,0 +1,32 @@
+{{- include "kopiur-backup.validate" . -}}
+{{- if .Values.restore.enabled -}}
+apiVersion: kopiur.home-operations.com/v1alpha1
+kind: Restore
+metadata:
+  name: {{ .Values.pvc | quote }}
+  labels:
+    {{- include "kopiur-backup.labels" . | nindent 4 }}
+  annotations:
+    {{- include "kopiur-backup.annotations" . | nindent 4 }}
+spec:
+  # Passive populator: the PVC claims it with dataSourceRef. Latest snapshot
+  # of <pvc>@<namespace>, or an empty volume when there is none yet.
+  source:
+    fromPolicy:
+      name: {{ .Values.pvc | quote }}
+      offset: 0
+  target:
+    populator: {}
+  policy:
+    onMissingSnapshot: Continue
+  credentialProjection:
+    enabled: true
+  mover:
+    {{- if include "kopiur-backup.explicit" . }}
+    {{- include "kopiur-backup.explicitMover" . | nindent 4 }}
+    {{- else }}
+    # Run as the uid/gid/fsGroup recorded on the backup (needs no live pod).
+    inheritSecurityContextFrom:
+      snapshot: {}
+    {{- end }}
+{{- end }}

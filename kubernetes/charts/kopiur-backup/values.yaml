@@ -1,0 +1,68 @@
+# kopiur-backup: Kopiur backups for ONE PVC. Each app adds one source per PVC:
+#
+#   - repoURL: https://github.com/mebezac/home-cluster.git
+#     path: kubernetes/charts/kopiur-backup
+#     targetRevision: main
+#     helm:
+#       releaseName: <pvc>-backup
+#       valuesObject:
+#         pvc: <pvc>
+#
+# All three objects take the PVC's name. The kopia identity is <pvc>@<namespace>
+# (ClusterRepository silo identityDefaults): renaming the PVC or moving the
+# namespace starts a new history. The old one stays in the repository.
+
+# -- The PVC to back up, in the Application's namespace. Required.
+pvc: ""
+
+# -- critical: every 6 h. Keep 4 latest, 14 daily, 8 weekly, 12 monthly.
+# standard: daily. Keep 4 latest, 14 daily, 8 weekly, 6 monthly.
+tier: standard
+
+schedule:
+  # -- Override the tier's cron. Jenkins-style H picks a stable minute per PVC.
+  cron: ""
+  # -- Override the tier's jitter.
+  jitter: ""
+  timezone: America/New_York
+  # -- Pause new runs (old snapshots stay).
+  suspend: false
+
+# The user the mover runs as. Pick ONE:
+#   default        copy the user of the pod that mounts the PVC. The pod must pin
+#                  runAsUser (pod or container level). A backup waits while no pod
+#                  mounts the PVC (app scaled to 0).
+#   runAsUser: N   run as N. Use it when the pod runs as its image's user (no
+#                  runAsUser in the spec) and the files have one non-root owner.
+#   privileged     run as root with the capabilities to read and restore any owner.
+#                  The namespace needs the annotation
+#                  kopiur.home-operations.com/privileged-movers: "true"
+#                  (set it with managedNamespaceMetadata on one Application).
+mover:
+  runAsUser: null
+  # -- Defaults to runAsUser.
+  runAsGroup: null
+  # -- Defaults to runAsGroup.
+  fsGroup: null
+  privileged: false
+
+restore:
+  # -- Render the passive populator Restore named <pvc>. The app's PVC uses it with
+  # dataSourceRef { apiGroup: kopiur.home-operations.com, kind: Restore, name: <pvc> }.
+  # A new PVC is then filled from the latest snapshot, or comes up empty when the
+  # PVC has no snapshot yet (a first install).
+  # WARNING: a Restore records what it resolved the FIRST time a PVC claims it,
+  # and keeps it. To refill a PVC with newer data, delete the PVC AND the Restore
+  # (task kopiur:refill does both). Argo re-creates the Restore.
+  enabled: false
+
+# -- Extra kopia ignore globs. Kopiur's 5 defaults (/lost+found, @eaDir, ...) stay.
+ignore: []
+
+# -- kopia compressor.
+compression: zstd-fastest
+
+# Rarely changed.
+repository: silo
+volumeSnapshotClass: longhorn-snapshot
+stagingStorageClass: longhorn-kopiur-staging

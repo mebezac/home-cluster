@@ -1,0 +1,47 @@
+{{- include "kopiur-backup.validate" . -}}
+{{- $tiers := dict
+  "critical" (dict "keepLatest" 4 "keepDaily" 14 "keepWeekly" 8 "keepMonthly" 12)
+  "standard" (dict "keepLatest" 4 "keepDaily" 14 "keepWeekly" 8 "keepMonthly" 6) -}}
+apiVersion: kopiur.home-operations.com/v1alpha1
+kind: SnapshotPolicy
+metadata:
+  name: {{ .Values.pvc | quote }}
+  labels:
+    {{- include "kopiur-backup.labels" . | nindent 4 }}
+  annotations:
+    {{- include "kopiur-backup.annotations" . | nindent 4 }}
+spec:
+  repository:
+    kind: ClusterRepository
+    name: {{ .Values.repository }}
+  credentialProjection:
+    enabled: true
+  sources:
+    - pvc:
+        name: {{ .Values.pvc | quote }}
+  copyMethod: Snapshot
+  volumeSnapshotClassName: {{ .Values.volumeSnapshotClass }}
+  staging:
+    storageClassName: {{ .Values.stagingStorageClass }}
+  retention:
+    {{- toYaml (get $tiers .Values.tier) | nindent 4 }}
+  compression:
+    compressor: {{ .Values.compression }}
+  {{- with .Values.ignore }}
+  files:
+    # An explicit list replaces Kopiur's defaults, so they are repeated here.
+    ignoreRules:
+      - /lost+found
+      - System Volume Information
+      - $RECYCLE.BIN
+      - "@eaDir"
+      - .snapshot
+      {{- toYaml . | nindent 6 }}
+  {{- end }}
+  mover:
+    {{- if include "kopiur-backup.explicit" . }}
+    {{- include "kopiur-backup.explicitMover" . | nindent 4 }}
+    {{- else }}
+    inheritSecurityContextFrom:
+      pvcConsumer: {}
+    {{- end }}

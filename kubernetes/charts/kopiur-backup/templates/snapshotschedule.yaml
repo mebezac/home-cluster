@@ -1,0 +1,23 @@
+{{- include "kopiur-backup.validate" . -}}
+{{- $tiers := dict
+  "critical" (dict "cron" "H */6 * * *" "jitter" "30m")
+  "standard" (dict "cron" "H 2 * * *" "jitter" "3h") -}}
+{{- $t := get $tiers .Values.tier -}}
+apiVersion: kopiur.home-operations.com/v1alpha1
+kind: SnapshotSchedule
+metadata:
+  name: {{ .Values.pvc | quote }}
+  labels:
+    {{- include "kopiur-backup.labels" . | nindent 4 }}
+  annotations:
+    {{- include "kopiur-backup.annotations" . | nindent 4 }}
+spec:
+  policyRef:
+    name: {{ .Values.pvc | quote }}
+  schedule:
+    cron: {{ default (get $t "cron") .Values.schedule.cron | quote }}
+    jitter: {{ default (get $t "jitter") .Values.schedule.jitter | quote }}
+    timezone: {{ .Values.schedule.timezone }}
+    concurrencyPolicy: Forbid
+    runOnCreate: false
+    suspend: {{ .Values.schedule.suspend }}
