@@ -112,8 +112,13 @@ persistence:
     storageClass: freenas-api-nfs
     accessMode: ReadWriteOnce
     size: 50Gi
-    # No dataSourceRef: a Kopiur restore to NFS writes about 1 MB/s, so a refill
-    # of this volume (25 GiB) would take hours. Restore it by hand if needed.
+    # A new PVC fills from the latest Kopiur snapshot (Restore lychee-uploads, kopiur-backup
+    # source in the Argo app), or comes up empty on a first install. The fill takes
+    # about 17 minutes on an idle NAS (25.7 GB, 2026-11-02); hours while a big backup runs.
+    dataSourceRef:
+      apiGroup: kopiur.home-operations.com
+      kind: Restore
+      name: lychee-uploads
     globalMounts:
       - path: /app/public/uploads
   tmp:
