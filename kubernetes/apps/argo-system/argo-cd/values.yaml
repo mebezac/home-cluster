@@ -38,6 +38,40 @@ configs:
     resource.compareoptions: |
       ignoreAggregatedRoles: true
       ignoreResourceStatusField: crd
+    # Kopiur kinds (kubernetes/charts/kopiur-backup) report kstatus conditions:
+    # Stalled=True is Degraded, Ready=True is Healthy. A passive populator Restore
+    # waits for a PVC to claim it (AwaitingClaim=True, Ready=False): Healthy too.
+    # Wildcards work only in this block form, not in resource.customizations.health.* keys.
+    resource.customizations: |
+      kopiur.home-operations.com/*:
+        health.lua: |
+          local hs = { status = "Progressing", message = "Waiting for Ready" }
+          if obj.status == nil or obj.status.conditions == nil then
+            return hs
+          end
+          local c = {}
+          for _, cond in ipairs(obj.status.conditions) do
+            c[cond.type] = cond
+          end
+          if c.Stalled ~= nil and c.Stalled.status == "True" then
+            hs.status = "Degraded"
+            hs.message = c.Stalled.message or c.Stalled.reason or "Stalled"
+            return hs
+          end
+          if c.Ready ~= nil and c.Ready.status == "True" then
+            hs.status = "Healthy"
+            hs.message = c.Ready.message or c.Ready.reason or ""
+            return hs
+          end
+          if c.AwaitingClaim ~= nil and c.AwaitingClaim.status == "True" then
+            hs.status = "Healthy"
+            hs.message = "Passive populator: waiting for a PVC to claim it"
+            return hs
+          end
+          if c.Ready ~= nil then
+            hs.message = c.Ready.message or c.Ready.reason or hs.message
+          end
+          return hs
     # Local service account for the argocd-mcp server (token auth only, no UI login)
     accounts.mcp: apiKey
   rbac:
