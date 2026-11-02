@@ -444,7 +444,10 @@ do you move on.
   # wait for it to leave status.diskStatus, then re-add with the SAME spec
   # (path, storageReserved, tags — copy from a healthy peer node like talmac-03):
   kubectl -n longhorn-system patch nodes.longhorn.io $H --type=json \
-    -p '[{"op":"add","path":"/spec/disks/<disk-name>","value":{"allowScheduling":true,"diskDriver":"","diskType":"filesystem","evictionRequested":false,"path":"/var/lib/longhorn/","storageReserved":32212254720,"tags":[]}}]'
+    -p '[{"op":"add","path":"/spec/disks/<disk-name>","value":{"allowScheduling":true,"diskDriver":"","diskType":"filesystem","evictionRequested":false,"path":"/var/lib/longhorn/","storageReserved":32212254720,"tags":["internal"]}}]'
+  # The internal default-disk carries the tag "internal" (talmac and Wyse, since
+  # 2026-11-01): the Kopiur staging class longhorn-kopiur-staging selects it. Without
+  # the tag, Kopiur backups on this node put their clone on another node.
   # Longhorn adopts the on-disk UUID → Ready:True Schedulable:True
   ```
   Removing/re-adding a shared Longhorn disk CR is a shared-cluster mutation — the

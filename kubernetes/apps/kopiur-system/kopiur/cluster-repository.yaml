@@ -53,21 +53,6 @@ spec:
   maintenance:
     namespace: kopiur-system
   moverDefaults:
-    # Prefer the Wyse workers: their internal disks are the only non-USB Longhorn
-    # disks, and the staging clone follows the mover (longhorn-kopiur-staging,
-    # best-effort locality). Preferred, not required, so a restore into a PVC
-    # attached to a talmac node still schedules.
-    affinity:
-      nodeAffinity:
-        preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 100
-            preference:
-              matchExpressions:
-                - key: kubernetes.io/hostname
-                  operator: In
-                  values:
-                    - wyse-5070-01-talos-k3s-worker-01
-                    - wyse-5070-02-talos-k3s-worker-02
     securityContext:
       runAsUser: 3000
       runAsGroup: 3000

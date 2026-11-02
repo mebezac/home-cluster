@@ -1,12 +1,23 @@
 # Kopiur staging class: the short-lived clone of a PVC's VolumeSnapshot that a
 # Kopiur mover reads (SnapshotPolicy spec.staging.storageClassName). One replica
-# is enough for a copy that lives a few minutes. WaitForFirstConsumer puts the
-# replica on the mover's node (best-effort data locality). Same CSI driver as
-# the source PVCs, as Kopiur requires.
+# is enough for a copy that lives a few minutes. diskSelector "internal" keeps
+# the clone on an internal disk (talmac NVMe or Wyse), never on a talmac USB SSD.
+# WaitForFirstConsumer + best-effort locality put it on the mover's node when
+# that node has an internal disk. Same CSI driver as the source PVCs, as Kopiur
+# requires.
+#
+# The "internal" tag is set by hand on the Longhorn node disks (not in Git):
+# every default-disk on talmac-0[1-3] and the Wyse workers. Scheduling on the
+# talmac internal disks was turned on 2026-11-01.
+#
+# StorageClass parameters are immutable: Force+Replace lets Argo delete and
+# recreate it (safe: staging PVCs live only for one backup run).
 kind: StorageClass
 apiVersion: storage.k8s.io/v1
 metadata:
   name: longhorn-kopiur-staging
+  annotations:
+    argocd.argoproj.io/sync-options: Force=true,Replace=true
 provisioner: driver.longhorn.io
 allowVolumeExpansion: true
 reclaimPolicy: Delete
@@ -15,5 +26,6 @@ parameters:
   dataLocality: best-effort
   numberOfReplicas: "1"
   staleReplicaTimeout: "30"
+  diskSelector: "internal"
   fromBackup: ""
   fsType: "ext4"
