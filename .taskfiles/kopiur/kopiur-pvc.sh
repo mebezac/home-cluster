@@ -71,11 +71,13 @@ argo_app() {
   kubectl get pvc -n "$ns" "$pvc" -o jsonpath='{.metadata.annotations.argocd\.argoproj\.io/tracking-id}' 2>/dev/null | cut -d: -f1
 }
 
-# Deployments/StatefulSets whose pods mount the PVC: "kind/name"
+# Deployments/StatefulSets whose pods mount the PVC: "kind/name". Kopiur's own
+# mover pods (Jobs) are skipped; drop_finished_movers handles them.
 workloads() {
   local rs
   kubectl get pods -n "$ns" -o json | jq -r --arg c "$pvc" '
     .items[] | select(any(.spec.volumes[]?; .persistentVolumeClaim.claimName == $c))
+    | select(.metadata.labels["app.kubernetes.io/managed-by"] != "kopiur")
     | .metadata.ownerReferences[]? | "\(.kind)/\(.name)"' | sort -u | while read -r o; do
     case $o in
       ReplicaSet/*) rs=${o#ReplicaSet/}
