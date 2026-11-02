@@ -1,10 +1,20 @@
-# Kopiur: kopia-based PVC backups (https://kopiur.home-operations.com).
-# The chart pins every image by digest for its own appVersion.
 installScope: cluster
-
+features:
+  # Copy the kopiur-silo Secret into an app namespace for each mover run (needs
+  # secrets create/patch/delete cluster-wide). Kopiur deletes the copy when the
+  # run ends. Plan decision D2.
+  credentialProjection:
+    enabled: true
 monitoring:
   serviceMonitor:
     enabled: true
-  # Off until the alert set is tuned for VictoriaMetrics (namespace labels).
+  # The chart's alerts (stale after 48h, failures, repository not ready, ...).
+  # vm-operator turns the PrometheusRule into a VMRule.
   prometheusRule:
-    enabled: false
+    enabled: true
+  dashboards:
+    enabled: true
+    label: grafana_dashboard
+    labelValue: "1"
+    folderAnnotation: grafana_folder
+    folder: System

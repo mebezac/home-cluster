@@ -1,0 +1,19 @@
+# Kopiur staging class: the short-lived clone of a PVC's VolumeSnapshot that a
+# Kopiur mover reads (SnapshotPolicy spec.staging.storageClassName). One replica
+# is enough for a copy that lives a few minutes. WaitForFirstConsumer puts the
+# replica on the mover's node (best-effort data locality). Same CSI driver as
+# the source PVCs, as Kopiur requires.
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: longhorn-kopiur-staging
+provisioner: driver.longhorn.io
+allowVolumeExpansion: true
+reclaimPolicy: Delete
+volumeBindingMode: WaitForFirstConsumer
+parameters:
+  dataLocality: best-effort
+  numberOfReplicas: "1"
+  staleReplicaTimeout: "30"
+  fromBackup: ""
+  fsType: "ext4"

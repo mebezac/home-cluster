@@ -9,3 +9,4 @@ resources:
   - ./recurring-jobs.yaml
   - ./single-replica-storage-class.yaml
   - ./volume-snapshot-class.yaml
+  - ./kopiur-staging-storage-class.yaml

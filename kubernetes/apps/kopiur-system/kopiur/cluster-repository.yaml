@@ -1,0 +1,63 @@
+# The one kopia repository for all PVC backups: bucket "kopiur" on SILO A
+# (laboratory-casa/silo-tofu). SILO A replicates it to SILO B on hh-chi.
+# Bucket: COMPLIANCE 30 days default retention, current objects never expire,
+# old versions go after 30 days (the undo window), deletes reach B as markers.
+# The kopia password is in kopiur-silo and in the password manager. Without it
+# no backup can be restored.
+#
+# DO NOT change identityDefaults: every snapshot is stored under
+# <policy>@<namespace>, and a change starts a new history next to the old one.
+apiVersion: kopiur.home-operations.com/v1alpha1
+kind: ClusterRepository
+metadata:
+  name: silo
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  backend:
+    s3:
+      bucket: kopiur
+      endpoint: silo.network.svc.cluster.local:9000
+      region: us-east-1
+      tls:
+        disableTls: true
+      auth:
+        secretRef:
+          name: kopiur-silo
+          namespace: kopiur-system
+  encryption:
+    passwordSecretRef:
+      name: kopiur-silo
+      namespace: kopiur-system
+      key: KOPIA_PASSWORD
+  create:
+    enabled: true
+  parameters:
+    # Lock each blob when kopia writes it, the same 30 days as the bucket
+    # default. Kopiur cannot extend locks later (plan D12).
+    blobRetention:
+      compliance:
+        period: 720h
+  # Namespaces that may back up here. Add each app as it is onboarded.
+  allowedNamespaces:
+    list:
+      - freshrss
+  credentialProjection:
+    allowed: true
+  identityDefaults:
+    hostnameExpr: "namespace"
+    usernameExpr: "policyName"
+  maintenance:
+    namespace: kopiur-system
+  moverDefaults:
+    securityContext:
+      runAsUser: 3000
+      runAsGroup: 3000
+      runAsNonRoot: true
+      allowPrivilegeEscalation: false
+      capabilities: { drop: ["ALL"] }
+      seccompProfile: { type: RuntimeDefault }
+    podSecurityContext:
+      fsGroup: 3000
+      fsGroupChangePolicy: OnRootMismatch
