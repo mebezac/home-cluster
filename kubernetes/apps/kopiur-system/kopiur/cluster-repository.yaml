@@ -39,9 +39,11 @@ spec:
     blobRetention:
       compliance:
         period: 720h
-  # Namespaces that may back up here. Add each app as it is onboarded.
+  # Namespaces that may use this repository. kopiur-system runs the managed
+  # Maintenance. Add each app namespace as it is onboarded.
   allowedNamespaces:
     list:
+      - kopiur-system
       - freshrss
   credentialProjection:
     allowed: true
