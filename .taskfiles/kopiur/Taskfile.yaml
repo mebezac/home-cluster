@@ -1,0 +1,47 @@
+---
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+# Kopiur recovery for one PVC (kubernetes/charts/kopiur-backup). NS = namespace,
+# PVC = the PVC name (also its SnapshotPolicy, SnapshotSchedule and Restore).
+version: '3'
+
+vars:
+  SCRIPT: '{{.ROOT_DIR}}/.taskfiles/kopiur/kopiur-pvc.sh'
+
+tasks:
+
+  status:
+    desc: Kopiur overview (repositories, policies, schedules, running work)
+    cmd: kubectl kopiur status
+
+  list:
+    desc: List a PVC's snapshots (task kopiur:list NS=freshrss PVC=freshrss-data)
+    requires: { vars: [NS, PVC] }
+    cmd: '{{.SCRIPT}} list {{.NS}} {{.PVC}}'
+
+  snapshot:
+    desc: Back a PVC up now and wait (task kopiur:snapshot NS=.. PVC=..)
+    requires: { vars: [NS, PVC] }
+    cmd: '{{.SCRIPT}} snapshot {{.NS}} {{.PVC}}'
+
+  file:
+    desc: Download one file from a snapshot (task kopiur:file NS=.. PVC=.. FILE=path/in/pvc [DEST=./x] [OFFSET=0])
+    requires: { vars: [NS, PVC, FILE] }
+    cmd: '{{.SCRIPT}} file {{.NS}} {{.PVC}} {{.FILE}} {{.DEST | default "."}} {{.OFFSET | default "0"}}'
+
+  rollback:
+    desc: Roll a PVC back in place (task kopiur:rollback NS=.. PVC=.. [OFFSET=1 | AS_OF="2026-11-03 02:00"])
+    requires: { vars: [NS, PVC] }
+    prompt: 'Stop the app and replace {{.NS}}/{{.PVC}} with an older snapshot?'
+    cmd: '{{.SCRIPT}} rollback {{.NS}} {{.PVC}} "{{.AS_OF | default (.OFFSET | default "1")}}"'
+
+  refill:
+    desc: Delete a PVC and let Argo re-create it from the latest snapshot (task kopiur:refill NS=.. PVC=.. [SNAPSHOT_FIRST=true])
+    requires: { vars: [NS, PVC] }
+    prompt: 'Stop the app, DELETE {{.NS}}/{{.PVC}} and refill it from the latest snapshot?'
+    cmd: '{{.SCRIPT}} refill {{.NS}} {{.PVC}} {{if eq (.SNAPSHOT_FIRST | default "false") "true"}}snapshot-first{{end}}'
+
+  cutover:
+    desc: Move an existing PVC onto its populator Restore, once (task kopiur:cutover NS=.. PVC=..)
+    requires: { vars: [NS, PVC] }
+    prompt: 'Stop the app and re-create {{.NS}}/{{.PVC}} from a fresh snapshot (old volume kept)?'
+    cmd: '{{.SCRIPT}} cutover {{.NS}} {{.PVC}}'
