@@ -9,7 +9,7 @@ controllers:
         image:
           repository: lycheeorg/lychee
           # changelog: GH releases LycheeOrg/Lychee (full notes in PR body). Laravel migrations run on container start; watch SECURITY_HEADER_* CSP env when notes touch CSP/WASM. Skip releases titled BROKEN (v7.11.0)
-          tag: v7.12.0@sha256:4bcaa1757ac1919a1cba19428a7a97628aecebee8b178778478a88c08d6312cb
+          tag: v7.12.1@sha256:3da32e37df957acdffaf5ff978e28712809e86fec9946e58236a95bbc179c719
         resources:
           # non-file memory (working_set - active_file), 14d to 2026-10-21: p99 767Mi, max 773Mi.
           requests:
