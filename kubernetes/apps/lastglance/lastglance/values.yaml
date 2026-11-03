@@ -5,7 +5,7 @@ controllers:
         image:
           repository: ghcr.io/krelltunez/lastglance
           # changelog: GH releases krelltunez/lastGLANCE (Renovate skips intermediate versions in the PR body - check the full tag list). Static browser-side app, no server state; GLANCEvault sync notes do not apply
-          tag: 2.13.0@sha256:3923e5b990c0ff276fe7eda3da8531dfe7220ad36171c53f7fb875fde690edc3
+          tag: 2.14.0@sha256:034c937df0fea97887f50714e2425fbd86bcdb662674c7725e4a031e0500e14b
         env:
           TZ: America/New_York
         resources:
