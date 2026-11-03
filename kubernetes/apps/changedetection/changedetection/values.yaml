@@ -51,7 +51,7 @@ controllers:
         image:
           repository: ghcr.io/browserless/chrome
           # changelog: GH releases browserless/browserless (NOT browserless/chrome - image name != repo name); Renovate embeds full notes
-          tag: v2.58.1@sha256:8b3ed5293a813ba68a7fca30f4c9c25a6b1933f7c2c93d778c7afe035e59bc60
+          tag: v2.58.3@sha256:691f43df4099fa9a322d98ae921fa3bef3a578ed305ed9bce6719ed318cacda5
           pullPolicy: IfNotPresent
         env:
           ENABLE_DEBUGGER: "false"
