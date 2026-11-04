@@ -15,7 +15,7 @@ spec:
     - repoURL: ghcr.io/home-operations/charts
       chart: kopiur
       # changelog: GH releases home-operations/kopiur (v1alpha1: read every release for CRD changes)
-      targetRevision: 0.10.16
+      targetRevision: 0.10.17
       helm:
         releaseName: kopiur
         valueFiles:
