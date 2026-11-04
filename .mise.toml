@@ -7,7 +7,7 @@
 python = "3.15.2"
 # Operations tools
 # changelog: GH releases argoproj/argo-cd; keep = appVersion of the argo-cd chart in kubernetes/argo/apps/argo-system/argo-cd.yaml
-"aqua:argoproj/argo-cd" = "3.5.6"
+"aqua:argoproj/argo-cd" = "3.5.7"
 # changelog: repo RELEASE_NOTES per-release + CHANGES.md for breaking flags - the GH release body is checksums only.
 # Keep in step with the 3 cloudflared container pins under kubernetes/apps/network/cloudflared*/values.yaml
 "aqua:cloudflare/cloudflared" = "2026.10.7"
