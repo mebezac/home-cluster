@@ -1,0 +1,145 @@
+# Kopia's web UI over the Kopiur repository (ClusterRepository `silo`, bucket
+# kopiur on SILO A), to browse every PVC's snapshots and download single files.
+#
+# Read-only twice over: kopia connects with --readonly (its storage layer then
+# refuses every write, and the server runs no maintenance and no snapshots),
+# and the S3 key `kopiur-ui` is Get/List only on the bucket (silo-tofu
+# config/buckets.yaml `readers`). Kopiur owns the repository; this pod only reads.
+#
+# The pod still holds the repository password, so anyone who reaches the UI can
+# read every backup. Access: envoy-internal only, Authelia (apps_admin only, see
+# authelia-config.yaml), and the NetworkPolicy admits only envoy-internal pods.
+# Envoy injects kopia's own basic-auth login (httproutefilter.yaml), so there is
+# no second login prompt.
+#
+# Restores of PVCs stay with `task kopiur:*`. The UI's "Restore" writes into this
+# pod, not into an app volume. In the Snapshots page pick "All Snapshots": the
+# sources belong to the Kopiur identities `<policy>@<namespace>`.
+defaultPodOptions:
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 3000
+    runAsGroup: 3000
+    fsGroup: 3000
+    fsGroupChangePolicy: OnRootMismatch
+    seccompProfile: { type: RuntimeDefault }
+
+controllers:
+  kopia-ui:
+    annotations:
+      reloader.stakater.com/auto: "true"
+    containers:
+      app:
+        image:
+          repository: kopia/kopia
+          # Keep at the kopia version of the Kopiur mover (kopiur .mise/config.toml `kopia`).
+          tag: 0.23.1@sha256:89fd95ee2942880ca00eae964266958a394421ddbdf69bca62e38afc55f5900e
+        command: ["/bin/sh", "-c"]
+        # Connect fresh on every start: the config is in an emptyDir, and kopia
+        # does not keep the password on disk (KOPIA_PERSIST_CREDENTIALS_ON_CONNECT=false).
+        args:
+          - |
+            set -e
+            rm -f "$KOPIA_CONFIG_PATH"
+            kopia repository connect s3 \
+              --bucket=kopiur \
+              --endpoint=silo.network.svc.cluster.local:9000 \
+              --disable-tls \
+              --region=us-east-1 \
+              --readonly \
+              --override-hostname=kopia-ui \
+              --override-username=viewer \
+              --content-cache-size-mb=1024 \
+              --metadata-cache-size-mb=1024
+            exec kopia server start \
+              --address=0.0.0.0:51515 \
+              --insecure \
+              --no-grpc
+        env:
+          TZ: America/New_York
+          HOME: /tmp
+        # AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY (kopiur-ui, read-only),
+        # KOPIA_PASSWORD, KOPIA_SERVER_USERNAME / KOPIA_SERVER_PASSWORD.
+        envFrom:
+          - secretRef:
+              name: kopia-ui-secret
+        probes:
+          liveness: &probe
+            enabled: true
+            custom: true
+            spec:
+              tcpSocket:
+                port: 51515
+              periodSeconds: 30
+              failureThreshold: 3
+          readiness: *probe
+          startup:
+            enabled: true
+            custom: true
+            spec:
+              tcpSocket:
+                port: 51515
+              periodSeconds: 5
+              failureThreshold: 60
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities: { drop: ["ALL"] }
+        resources:
+          requests: { cpu: 10m, memory: 256Mi }
+          limits: { memory: 1536Mi }
+
+service:
+  app:
+    controller: kopia-ui
+    ports:
+      http:
+        port: 51515
+
+route:
+  app:
+    labels:
+      auth: authelia
+    hostnames:
+      - kopia.laboratory.casa
+    parentRefs:
+      - name: envoy-internal
+        namespace: network
+        sectionName: https
+    rules:
+      # kopia serves /metrics on the UI port without a login.
+      - matches:
+          - path:
+              type: PathPrefix
+              value: /metrics
+        filters:
+          - type: ExtensionRef
+            extensionRef:
+              group: gateway.envoyproxy.io
+              kind: HTTPRouteFilter
+              name: kopia-ui-block-metrics
+        backendRefs:
+          - identifier: app
+            port: http
+      - filters:
+          - type: ExtensionRef
+            extensionRef:
+              group: gateway.envoyproxy.io
+              kind: HTTPRouteFilter
+              name: kopia-ui-login
+        backendRefs:
+          - identifier: app
+            port: http
+
+persistence:
+  # /app/config (repository.config, ui-preferences.json), /app/cache, /app/logs.
+  # All rebuilt on start, so no PVC.
+  app:
+    type: emptyDir
+    sizeLimit: 4Gi
+    globalMounts:
+      - path: /app
+  tmp:
+    type: emptyDir
+    globalMounts:
+      - path: /tmp

@@ -330,6 +330,16 @@
     },
     {
       description: [
+        "kopia/kopia (kopia-ui) also publishes nightly tags like 20261103.0.2044 and `unstable`,",
+        "which sort above the releases and also look like X.Y.Z. Allow only a release tag",
+        "(a major of 1-3 digits). Keep it at the kopia version of the Kopiur mover (kopiur .mise/config.toml).",
+      ],
+      matchDatasources: ["docker"],
+      matchPackageNames: ["kopia/kopia"],
+      allowedVersions: "/^\\d{1,3}\\.\\d+\\.\\d+$/",
+    },
+    {
+      description: [
         "Override versioning for birdnet-go date-based release tags",
         "Upstream publishes dated release builds (20260716); the floating nightly/latest tags point at the same digest.",
         "Mapping Y/M/D to major/minor/patch keeps day-to-day bumps as fix(container) rather than a major every release.",

@@ -4,3 +4,5 @@ generators:
   - secret-generator.yaml
 resources:
   - cluster-repository.yaml
+  - ui-route.yaml
+  - authelia.yaml

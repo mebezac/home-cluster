@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kopia-ui
+  namespace: argo-system
+  annotations:
+    # After kopiur (wave 0): the authelia SecurityPolicy for kopiur-system lives there.
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: kubernetes
+  sources:
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/apps/kopiur-system/kopia-ui
+      targetRevision: main
+      ref: kopia-ui-repo
+    - repoURL: ghcr.io/bjw-s-labs/helm
+      chart: app-template
+      targetRevision: 5.3.0
+      helm:
+        releaseName: kopia-ui
+        valueFiles:
+          - $kopia-ui-repo/kubernetes/apps/kopiur-system/kopia-ui/values.yaml
+  destination:
+    name: in-cluster
+    namespace: kopiur-system
+  syncPolicy:
+    automated:
+      allowEmpty: true
+      prune: true
+      selfHeal: true

@@ -1,0 +1,40 @@
+---
+# Kopiur console (chart value ui). The chart renders no route on purpose.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: kopiur-ui
+  labels:
+    auth: authelia
+spec:
+  parentRefs:
+    - name: envoy-internal
+      namespace: network
+      sectionName: https
+  hostnames:
+    - kopiur.laboratory.casa
+  rules:
+    - filters:
+        - type: ExtensionRef
+          extensionRef:
+            group: gateway.envoyproxy.io
+            kind: HTTPRouteFilter
+            name: kopiur-ui-proxy-token
+      backendRefs:
+        - name: kopiur-ui
+          port: 8090
+---
+# Sends X-Kopiur-Proxy-Token on every request this route forwards. The console
+# rejects identity headers without it. A missing Secret makes Envoy answer 500.
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: HTTPRouteFilter
+metadata:
+  name: kopiur-ui-proxy-token
+spec:
+  credentialInjection:
+    header: X-Kopiur-Proxy-Token
+    # Replace a token the browser sent.
+    overwrite: true
+    credential:
+      valueRef:
+        name: kopiur-ui-proxy-token

@@ -1,0 +1,25 @@
+---
+# kopia's own basic-auth login, sent by Envoy on every request the route
+# forwards (after Authelia allowed it), so the browser never sees a second
+# prompt. Secret kopia-ui-auth, key `credential` = "Basic <base64 user:pass>".
+# A missing Secret makes Envoy answer 500: it fails closed.
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: HTTPRouteFilter
+metadata:
+  name: kopia-ui-login
+spec:
+  credentialInjection:
+    header: Authorization
+    # Replace any Authorization header the browser sent.
+    overwrite: true
+    credential:
+      valueRef:
+        name: kopia-ui-auth
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: HTTPRouteFilter
+metadata:
+  name: kopia-ui-block-metrics
+spec:
+  directResponse:
+    statusCode: 404

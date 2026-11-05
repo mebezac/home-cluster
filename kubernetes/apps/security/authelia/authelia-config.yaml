@@ -47,6 +47,15 @@ access_control:
       policy: one_factor
       subject:
         - group:apps_user
+    ## Backup UIs: Kopia (reads every PVC backup) and the Kopiur console.
+    ## Admins only, said here on purpose so that no later rule above the
+    ## apps_admin wildcard can open them. Everyone else falls through to deny.
+    - domain:
+        - "kopia.laboratory.casa"
+        - "kopiur.laboratory.casa"
+      policy: one_factor
+      subject:
+        - group:apps_admin
     ## Per-group apps: <app>-<group>.laboratory.casa is open to members of the
     ## LDAP group <group> (Authelia named regex group). Hostnames without a dash
     ## never match; admins fall through to the rule below.

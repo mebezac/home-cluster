@@ -34,6 +34,11 @@ spec:
     - group: gateway.envoyproxy.io
       kind: SecurityPolicy
       namespace: cobalt
+    # policy lives in kubernetes/apps/kopiur-system/kopiur/authelia.yaml
+    # (kopiur-ui and kopia-ui)
+    - group: gateway.envoyproxy.io
+      kind: SecurityPolicy
+      namespace: kopiur-system
     # policy lives in kubernetes/apps/homeassistant/zwave-js-ui/authelia.yaml
     - group: gateway.envoyproxy.io
       kind: SecurityPolicy

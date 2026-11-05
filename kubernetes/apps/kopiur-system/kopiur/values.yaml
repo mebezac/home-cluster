@@ -18,3 +18,36 @@ monitoring:
     labelValue: "1"
     folderAnnotation: grafana_folder
     folder: System
+# Kopiur's web console at kopiur.laboratory.casa (route: ui-route.yaml), view
+# only. Envoy is the proxy: Authelia (apps_admin only) sets Remote-User and
+# Remote-Groups, and the HTTPRouteFilter adds X-Kopiur-Proxy-Token, so a pod that
+# reaches the Service cannot claim to be someone. The console impersonates the
+# user; RBAC below lets apps_admin read the Kopiur objects and nothing else (no
+# action buttons, no file browser: browseRole stays off). Kopia's own UI for
+# the files is the kopia-ui app.
+ui:
+  enabled: true
+  auth:
+    userHeader: Remote-User
+    groupsHeader: Remote-Groups
+    groupsFormat: delimited
+    groupsSeparator: ","
+    emailHeader: Remote-Email
+    proxySecret:
+      existingSecret: kopiur-ui-proxy-token
+      # Envoy Gateway's credentialInjection reads only the key `credential`.
+      key: credential
+    allowedGroups: [apps_admin]
+  rbac:
+    bindings:
+      - role: viewer
+        groups: [apps_admin]
+  networkPolicy:
+    enabled: true
+    proxySelector:
+      namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: network
+      podSelector:
+        matchLabels:
+          gateway.envoyproxy.io/owning-gateway-name: envoy-internal
