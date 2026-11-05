@@ -221,7 +221,7 @@
       "id": 4,
       "type": "stat",
       "title": "Disk latency (5m avg)",
-      "description": "Average time per completed I/O, worst device. Alert HhChiDiskSlow at 500 ms for 10m.",
+      "description": "Average time per completed I/O, worst device. Red at 500 ms.",
       "datasource": {
         "type": "prometheus",
         "uid": "${datasource}"
@@ -290,7 +290,7 @@
       "id": 5,
       "type": "stat",
       "title": "IO pressure (full)",
-      "description": "Share of time every runnable task waited on I/O. Alert HhChiIOPressure at 30% for 10m.",
+      "description": "Share of time every runnable task waited on I/O. Red at 30%.",
       "datasource": {
         "type": "prometheus",
         "uid": "${datasource}"
@@ -510,7 +510,7 @@
       "id": 9,
       "type": "timeseries",
       "title": "I/O latency per operation",
-      "description": "Average await per completed read/write. Healthy is well under 20 ms; the dashed line is the 500 ms alert.",
+      "description": "Average await per completed read/write. Healthy is well under 20 ms; the dashed line marks 500 ms.",
       "datasource": {
         "type": "prometheus",
         "uid": "${datasource}"
@@ -594,7 +594,7 @@
       "id": 10,
       "type": "timeseries",
       "title": "I/O pressure (PSI)",
-      "description": "Dashed line is the 30% 'full' alert.",
+      "description": "Dashed line marks 30% 'full'.",
       "datasource": {
         "type": "prometheus",
         "uid": "${datasource}"
@@ -1394,7 +1394,7 @@
       "id": 23,
       "type": "timeseries",
       "title": "Filesystem used",
-      "description": "Dashed lines: 85% warning, 95% critical.",
+      "description": "Dashed lines mark 85% and 95%.",
       "datasource": {
         "type": "prometheus",
         "uid": "${datasource}"

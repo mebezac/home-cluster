@@ -1,6 +1,7 @@
 # Own job name (not node-exporter): the stack's default node rules and
-# dashboards assume a Kubernetes node, so hh-chi-10tb gets its own alerts
-# (prometheusrule.yaml) and dashboard instead.
+# dashboards assume a Kubernetes node, so hh-chi-10tb gets its own dashboard
+# instead. Stats only, no alerts (removed 2026-11-05 at the user's request;
+# the rules are in git history, commit 1c33378a).
 apiVersion: operator.victoriametrics.com/v1beta1
 kind: VMStaticScrape
 metadata:

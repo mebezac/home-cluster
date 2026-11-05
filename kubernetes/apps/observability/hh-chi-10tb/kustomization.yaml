@@ -4,7 +4,6 @@ namespace: observability
 resources:
   - egress-service.yaml
   - scrape.yaml
-  - prometheusrule.yaml
 # The sidecar loads any grafana_dashboard ConfigMap (see grafana/kustomization.yaml).
 generatorOptions:
   disableNameSuffixHash: true
