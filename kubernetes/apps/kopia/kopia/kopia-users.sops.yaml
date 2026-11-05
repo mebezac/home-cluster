@@ -7,7 +7,7 @@ metadata:
   name: kopia-users
   namespace: kopia
 stringData:
-  users: ENC[AES256_GCM,data:RVaEaJ5AYhWE/tjlkY09fwyJdpxB6rocfdEQn04/F5VklIXVZjrK1AzK76y86JTTF3dFFWk2Y7IMkNqwr6BhFUe5SbbaHxbpBoR8rpRg7cLn3m1XuRh2ITLvjbRt8O0HsVfgdJpETJYQxRwLPHWOS10AUneG1+oDZPnE/0ZB2vwu,iv:N+nnxAbF5Fb2JEejaFDMJN9NqTxKcxaN0GTYgmiumts=,tag:jjJq3iTPk+IPtFvLkjqnqA==,type:str]
+  users: ENC[AES256_GCM,data:nXRhAuLDk6wPOFxq9uClT00nVII8O7h5QKIt7out+3R4OwZSRL7AYplX0nb2f6wYGMhgLThrUlQuEBEMiao7PDfmICfTU78mP9SXLFHpLqA/yRqBmikeYJcFaGcwTFdnffKQ2eEAvEn4Zahb9d9LOG29oIxMZaHIO7H6mz1Zv8j6kA==,iv:4UkkdotpTGpsXBTOpK6zrxg/soVj6D+CGUW5ENvJo1w=,tag:ASQ9YIGrCbpBZLvcXcWc1w==,type:str]
 sops:
   age:
     - enc: |
@@ -20,7 +20,7 @@ sops:
         -----END AGE ENCRYPTED FILE-----
       recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
   encrypted_regex: ^(data|stringData)$
-  lastmodified: "2026-11-05T20:55:29Z"
-  mac: ENC[AES256_GCM,data:+0dGQ6w80eDyxq7MrSQTuRFoz+S70pjCWcTxu3sLbdZZSpDubMpwvKmZWgNV2d0yNa8iydVk56EWCkl4G87Dv3N61ZJCcVbYmSf8NHZ3+PPjoe36gh2DoTC1U+u0XXzJtfAb4F3jaOGlzRZ03Qj+acx1y8Xdz4Ss3wVTFv2a+W8=,iv:QoVUgB7z1xD9GLnTpG/6PGLO62xI2gRlgpQ5678h/e0=,tag:GkwDcDuBZsezjC9XFmgZtg==,type:str]
+  lastmodified: "2026-11-05T21:01:20Z"
+  mac: ENC[AES256_GCM,data:VObohnSKSQ/gkZNPRQ0rBqyt0uI4jiQhYZI//dHNgZHdyd8mdSM3mLLdseef9Nmdeki894dn28ZU2k2/t1Jje/km7KVIjxbpxID8jJUtfkywfXWly/4R8J54I0VJnn+1VfbbCRQVjS4mhg5g6n2BP8Z/606EPsHoPc8cGtsDuKk=,iv:XVjUDMp3O/THqWWLwuT00ySzATBN8IhlTITiWlefuVk=,tag:O7CtQ5xx17Xawh8U3zdStQ==,type:str]
   mac_only_encrypted: true
   version: 3.13.3

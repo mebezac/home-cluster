@@ -71,7 +71,8 @@ controllers:
             # <user>@<host>=<password> per line. Users not in it are deleted.
             have=$(kopia server user list)
             want=""
-            while IFS= read -r line; do
+            # `|| [ -n "$line" ]`: also read a last line with no newline.
+            while IFS= read -r line || [ -n "$line" ]; do
               [ -n "$line" ] || continue
               u=${line%%=*}
               want="$want $u"
