@@ -56,6 +56,31 @@ restore:
   # (task kopiur:refill does both). Argo re-creates the Restore.
   enabled: false
 
+# Backup checks. Kopiur waits for the first good backup before the first check.
+verification:
+  quick:
+    # -- Weekly `kopia snapshot verify`: every blob of the latest snapshot is in
+    # the repository, and filesPercent of the file contents are read back. It
+    # reads only the repository, never the PVC.
+    enabled: true
+    # -- H picks a stable weekday and minute per PVC, so the checks spread out
+    # over the week. Midday, away from the night backups.
+    cron: "H 12 * * H"
+    jitter: 2h
+    # -- Percent of files read in full (kopia --verify-files-percent).
+    filesPercent: 5
+  deep:
+    # -- Monthly test restore of the latest snapshot into a scratch PVC that is
+    # deleted after. Opt-in: it reads the whole snapshot from SILO A each time.
+    enabled: false
+    # -- On the 15th. H picks a stable minute per PVC (Kopiur refuses H as the day).
+    cron: "H 13 15 * *"
+    jitter: 2h
+    # -- Scratch PVC size. Make it bigger than the PVC's used space. Required
+    # when deep is enabled.
+    capacity: ""
+    storageClassName: longhorn-kopiur-staging
+
 # -- Snapshot: back up a Longhorn snapshot of the PVC (point in time). Direct: read
 # the live PVC, for volumes with no CSI snapshots (the TrueNAS NFS PVCs).
 copyMethod: Snapshot

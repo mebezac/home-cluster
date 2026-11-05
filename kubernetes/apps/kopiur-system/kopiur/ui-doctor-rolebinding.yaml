@@ -1,0 +1,20 @@
+# The console's doctor page reads the controller and webhook Deployments in
+# this namespace. The chart makes the Role (kopiur-ui-doctor, get/list
+# deployments here only) but leaves binding it to us. Without it the two
+# "running" checks show as "could not run with your permissions".
+#
+# The other two RBAC-limited checks stay off on purpose: webhook-admits needs
+# create on SnapshotPolicies and credentials-present needs to read Secrets.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: kopiur-ui-doctor
+  namespace: kopiur-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: kopiur-ui-doctor
+subjects:
+  - apiGroup: rbac.authorization.k8s.io
+    kind: Group
+    name: apps_admin

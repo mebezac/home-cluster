@@ -6,3 +6,4 @@ resources:
   - cluster-repository.yaml
   - ui-route.yaml
   - authelia.yaml
+  - ui-doctor-rolebinding.yaml

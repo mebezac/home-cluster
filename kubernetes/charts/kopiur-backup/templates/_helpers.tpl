@@ -9,6 +9,9 @@
 {{- if and .Values.mover.privileged .Values.mover.runAsUser -}}
 {{- fail "kopiur-backup: set mover.privileged or mover.runAsUser, not both" -}}
 {{- end -}}
+{{- if and .Values.verification.deep.enabled (not .Values.verification.deep.capacity) -}}
+{{- fail "kopiur-backup: verification.deep needs verification.deep.capacity" -}}
+{{- end -}}
 {{- end -}}
 
 {{- define "kopiur-backup.labels" -}}

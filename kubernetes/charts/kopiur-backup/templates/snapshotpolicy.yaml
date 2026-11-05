@@ -40,6 +40,28 @@ spec:
       - .snapshot
       {{- toYaml . | nindent 6 }}
   {{- end }}
+  {{- with .Values.verification }}
+  {{- if or .quick.enabled .deep.enabled }}
+  verification:
+    {{- if .quick.enabled }}
+    quick:
+      schedule:
+        cron: {{ .quick.cron | quote }}
+        jitter: {{ .quick.jitter | quote }}
+        timezone: {{ $.Values.schedule.timezone }}
+    verifyFilesPercent: {{ int .quick.filesPercent }}
+    {{- end }}
+    {{- if .deep.enabled }}
+    deep:
+      schedule:
+        cron: {{ .deep.cron | quote }}
+        jitter: {{ .deep.jitter | quote }}
+        timezone: {{ $.Values.schedule.timezone }}
+      capacity: {{ .deep.capacity | quote }}
+      storageClassName: {{ .deep.storageClassName }}
+    {{- end }}
+  {{- end }}
+  {{- end }}
   mover:
     {{- if include "kopiur-backup.explicit" . }}
     {{- include "kopiur-backup.explicitMover" . | nindent 4 }}
