@@ -19,9 +19,10 @@
 # namespace CA (certificates.yaml) and Envoy checks it (backendtlspolicy.yaml).
 #
 # Connect a computer (KopiaUI: "Kopia Repository Server"):
-#   kopia repository connect server --url=https://backup.laboratory.casa \
+#   kopia repository connect server --url=https://backup.laboratory.casa:443 \
 #     --override-username=<user> --override-hostname=<host>
-# with the password from kopia-users.sops.yaml.
+# with the password from kopia-users.sops.yaml. The :443 is required: without a
+# port the kopia client fails ("missing port after port-separator colon").
 defaultPodOptions:
   securityContext:
     runAsNonRoot: true
