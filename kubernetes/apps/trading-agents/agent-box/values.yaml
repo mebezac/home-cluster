@@ -25,6 +25,7 @@ controllers:
       app:
         image:
           repository: ghcr.io/mebezac/agent-box
+          # changelog: tag = codex version (notes: containers/agent-box/Dockerfile breadcrumb), but the tag is mutable - a new digest can also carry base-image changes (0.166.0 brought Node 24 -> 26). Match the digest to a sha-<commit> tag with crane, then git log containers/agent-box
           tag: 0.166.0@sha256:247f4da7a100101a9c9660336c74c7b2d697ab58021530f10f5021e5a008687e
         env:
           TZ: America/New_York

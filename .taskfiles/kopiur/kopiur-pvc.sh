@@ -148,7 +148,7 @@ restore_mover() {
       del(.inheritSecurityContextFrom) + {inheritSecurityContextFrom: {snapshot: {}}} else . end'
 }
 
-# Kopiur 0.10.16 leaves the populator Restore's projected key copy
+# Kopiur 0.10.16 and 0.10.17 leave the populator Restore's projected key copy
 # (<pvc>-restore-creds-N) in the app namespace after the fill. The other mover
 # paths delete theirs. Delete it once the PVC is Bound (the fill is done then).
 cleanup_restore_creds() {

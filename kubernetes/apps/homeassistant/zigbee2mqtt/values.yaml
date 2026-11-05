@@ -8,6 +8,7 @@ controllers:
         image:
           repository: ghcr.io/koenkk/zigbee2mqtt
           # changelog: CHANGELOG.md in repo root - check for a '! BREAKING CHANGES' block first, this project renames configuration.yaml keys often; our config is env-only (ZIGBEE2MQTT_CONFIG_*)
+          # Also read the zigbee-herdsman release when Z2M bumps it - a Z2M patch can carry a herdsman major (2.14.3 = herdsman 11, unified transport; we use zstack over tcp://)
           tag: 2.14.3@sha256:fb4a6b0f6868ad1cd6a9996479802b2420e599c3463b62bbff8c8cd9a908f43a
         env:
           TZ: America/Detroit
