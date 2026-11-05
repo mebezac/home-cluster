@@ -5,7 +5,7 @@
 # Since OpenTofu 1.10 the official image is a binary donor only: copy tofu out
 # of the -minimal image. Keep this tofu version equal to the mise pin in
 # laboratory-casa/silo-tofu.
-FROM ghcr.io/opentofu/opentofu:1.13.2-minimal@sha256:622dc6bb98b105c18f53cf419ab64a4f3b88bd9f8c16cc978cf89e4202f4613f AS tofu
+FROM ghcr.io/opentofu/opentofu:1.13.9-minimal@sha256:84af0049634b7a7c455ab79c485818a8ef7f775cad3b2d42ce1c98ade720b5d1 AS tofu
 
 FROM docker.io/library/alpine:3.24.3@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a
 RUN apk add --no-cache bash ca-certificates curl git jq
