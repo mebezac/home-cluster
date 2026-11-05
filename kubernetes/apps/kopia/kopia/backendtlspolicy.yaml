@@ -1,0 +1,16 @@
+# Envoy -> kopia over TLS, checked against the namespace CA (certificates.yaml).
+apiVersion: gateway.networking.k8s.io/v1
+kind: BackendTLSPolicy
+metadata:
+  name: kopia
+spec:
+  targetRefs:
+    - group: ""
+      kind: Service
+      name: kopia
+  validation:
+    caCertificateRefs:
+      - group: ""
+        kind: Secret
+        name: kopia-ca
+    hostname: kopia.kopia.svc.cluster.local

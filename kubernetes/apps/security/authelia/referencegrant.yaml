@@ -43,6 +43,10 @@ spec:
     - group: gateway.envoyproxy.io
       kind: SecurityPolicy
       namespace: homeassistant
+    # policy lives in kubernetes/apps/kopia/kopia/authelia.yaml (kopia web UI)
+    - group: gateway.envoyproxy.io
+      kind: SecurityPolicy
+      namespace: kopia
   to:
     - group: ""
       kind: Service

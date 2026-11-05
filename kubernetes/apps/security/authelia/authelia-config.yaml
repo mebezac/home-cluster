@@ -47,12 +47,14 @@ access_control:
       policy: one_factor
       subject:
         - group:apps_user
-    ## Backup UIs: Kopia (reads every PVC backup) and the Kopiur console.
+    ## Backup UIs: Kopia (reads every PVC backup), the Kopiur console, and the
+    ## computers' kopia server UI (backup; its gRPC route has no Authelia).
     ## Admins only, said here on purpose so that no later rule above the
     ## apps_admin wildcard can open them. Everyone else falls through to deny.
     - domain:
         - "kopia.laboratory.casa"
         - "kopiur.laboratory.casa"
+        - "backup.laboratory.casa"
       policy: one_factor
       subject:
         - group:apps_admin

@@ -1,0 +1,55 @@
+# TLS between Envoy and the kopia pod (kopia speaks gRPC only over TLS). A
+# namespace-only CA: Envoy trusts kopia-ca (backendtlspolicy.yaml), kopia serves
+# kopia-server-tls. Computers never see these; they get the gateway's wildcard
+# cert.
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: kopia-selfsigned
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: kopia-ca
+spec:
+  isCA: true
+  commonName: kopia-ca
+  secretName: kopia-ca
+  duration: 87600h # 10 years
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  issuerRef:
+    kind: Issuer
+    name: kopia-selfsigned
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: kopia-ca
+spec:
+  ca:
+    secretName: kopia-ca
+---
+# Renewed every 60 days; reloader restarts the pod so kopia reads the new one.
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: kopia-server-tls
+spec:
+  secretName: kopia-server-tls
+  dnsNames:
+    - kopia.kopia.svc.cluster.local
+    - kopia.kopia.svc
+  duration: 2160h
+  renewBefore: 720h
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+    rotationPolicy: Always
+  issuerRef:
+    kind: Issuer
+    name: kopia-ca

@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: kopia-ui-auth
+  namespace: kopia
+stringData:
+  credential: ENC[AES256_GCM,data:DZukb9sb4tztj44dKpXInS5blejB50iYydd3EYYp6LT12B/k08xmB4lhzC1IB85IGOc6p3YTNajqBEig1ZOcBGaAx42bMkrlRekBvQIn,iv:pqPMdlVh8jRTIEjI9qZy0BSFioOfqXJOMXABQIPoh1I=,tag:KjSiMwOUXECYChifpYaHGw==,type:str]
+sops:
+  age:
+    - enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBLNWZpcVcvTEFVelc2cWNp
+        b2dTSFJOOVFLelhOdHUxUlRmODZndUR1R1JvCmdBdm50R1d3TjE2OG5kb3NSbW9J
+        V0NmTkhsbVhBT1k0YW4wWS9hZHp1cmMKLS0tIHFERkJHSStEeWNYbjgxMy9DWERn
+        NHdFbTZwTTJBdXFyQ2NYSWpiZitieFEKdOJmQ9ZURYyMhsD0xMoDS6QhHW1l70gz
+        IF6rcUtDcCHHPm96fBmMKeN1mPMpJNVIj+dMc0CPP36Puf/Ha+NaQQ==
+        -----END AGE ENCRYPTED FILE-----
+      recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
+  encrypted_regex: ^(data|stringData)$
+  lastmodified: "2026-11-05T20:22:24Z"
+  mac: ENC[AES256_GCM,data:sFEZ4KJWEbVvmvz1eG8x9cxXv+j/kcSd/e4OkeS3t7wKOp/GzRXATSZPYcvZy2/scLw1hTP9lVemxobFD50X/5tfNH42i7P0tIIHHWwqn/QzBTebjgoQnp5QtloDzR7CTeqGh4YkJDFMpDVzaY1gm5l5GA1Hbs7Y99NJKaiKpfw=,iv:suJpQHoQMLYqZJQYmiNmoTNI1jqSiRtVJy1mFrdkkvk=,tag:D5PHDLgDmtuQ/rQ4sVRWfA==,type:str]
+  mac_only_encrypted: true
+  version: 3.13.3

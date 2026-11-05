@@ -1,0 +1,24 @@
+---
+# kopia's web UI login (KOPIA_SERVER_USERNAME/PASSWORD), sent by Envoy on every
+# UI request after Authelia allowed it, so there is no second prompt. Secret
+# kopia-ui-auth, key `credential` = "Basic <base64 user:pass>". Only on the ui
+# route: the computers' gRPC route keeps their own Authorization header.
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: HTTPRouteFilter
+metadata:
+  name: kopia-login
+spec:
+  credentialInjection:
+    header: Authorization
+    overwrite: true
+    credential:
+      valueRef:
+        name: kopia-ui-auth
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: HTTPRouteFilter
+metadata:
+  name: kopia-block-metrics
+spec:
+  directResponse:
+    statusCode: 404

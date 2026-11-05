@@ -1,0 +1,204 @@
+# Kopia repository server for the computers (laptops and desktops), at
+# https://backup.laboratory.casa (envoy-internal: LAN and tailnet).
+#
+# The repository is the SILO bucket `kopia` (silo-tofu config/buckets.yaml:
+# Object Lock COMPLIANCE 30 days, replicated to SILO B). Only this pod holds the
+# S3 key and the repository password. Each computer logs in as its own kopia
+# user (<user>@<host>, listed in kopia-users.sops.yaml) and the default ACLs let
+# it see and change only its own snapshots.
+#
+# This pod is the maintenance owner (server@kopia-server). Full maintenance
+# extends the object locks, so current blobs stay locked.
+#
+# Two routes on one hostname:
+#   grpc  /kopia_repository.KopiaRepository/  the computers. No Authelia: kopia
+#         clients send their own basic auth, which kopia checks.
+#   ui    everything else: kopia's web UI, Authelia apps_admin only. Envoy
+#         injects kopia's admin login (httproutefilter.yaml).
+# kopia speaks gRPC only over TLS, so the pod serves TLS with a cert from the
+# namespace CA (certificates.yaml) and Envoy checks it (backendtlspolicy.yaml).
+#
+# Connect a computer (KopiaUI: "Kopia Repository Server"):
+#   kopia repository connect server --url=https://backup.laboratory.casa \
+#     --override-username=<user> --override-hostname=<host>
+# with the password from kopia-users.sops.yaml.
+defaultPodOptions:
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 3000
+    runAsGroup: 3000
+    fsGroup: 3000
+    fsGroupChangePolicy: OnRootMismatch
+    seccompProfile: { type: RuntimeDefault }
+
+controllers:
+  kopia:
+    strategy: Recreate
+    annotations:
+      reloader.stakater.com/auto: "true"
+    containers:
+      app:
+        image:
+          repository: kopia/kopia
+          tag: 0.23.1@sha256:89fd95ee2942880ca00eae964266958a394421ddbdf69bca62e38afc55f5900e
+        command: ["/bin/sh", "-c"]
+        # Connect fresh on every start (config in an emptyDir, no password on
+        # disk). The first start creates the repository.
+        args:
+          - |
+            set -eu
+            rm -f "$KOPIA_CONFIG_PATH"
+            S3="--bucket=kopia --endpoint=silo.network.svc.cluster.local:9000 --disable-tls --region=us-east-1"
+            ID="--override-hostname=kopia-server --override-username=server"
+            CACHE="--content-cache-size-mb=4096 --metadata-cache-size-mb=2048"
+            if ! kopia repository connect s3 $S3 $ID $CACHE; then
+              # Refuses to run over an existing repository, so a failed connect
+              # to a live repository only crashloops.
+              kopia repository create s3 $S3 $ID $CACHE \
+                --retention-mode=COMPLIANCE --retention-period=720h
+            fi
+            kopia maintenance set --owner=me --extend-object-locks=true
+
+            # Default ACLs: each user reads and writes only its own snapshots.
+            if [ -z "$(kopia server acl list)" ]; then
+              kopia server acl enable
+            fi
+
+            # Users: kopia-users.sops.yaml is the full list, one
+            # <user>@<host>=<password> per line. Users not in it are deleted.
+            have=$(kopia server user list)
+            want=""
+            while IFS= read -r line; do
+              [ -n "$line" ] || continue
+              u=${line%%=*}
+              want="$want $u"
+              if printf '%s\n' "$have" | grep -qxF "$u"; then
+                kopia server user set "$u" --user-password="${line#*=}"
+              else
+                kopia server user add "$u" --user-password="${line#*=}"
+              fi
+            done < /users/users
+            for u in $have; do
+              case " $want " in *" $u "*) ;; *) kopia server user delete "$u" ;; esac
+            done
+
+            exec kopia server start \
+              --address=0.0.0.0:51515 \
+              --tls-cert-file=/tls/tls.crt \
+              --tls-key-file=/tls/tls.key
+        env:
+          TZ: America/New_York
+          HOME: /tmp
+        # AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY (SILO user kopia),
+        # KOPIA_PASSWORD, KOPIA_SERVER_USERNAME / KOPIA_SERVER_PASSWORD (web UI).
+        envFrom:
+          - secretRef:
+              name: kopia-secret
+        probes:
+          liveness: &probe
+            enabled: true
+            custom: true
+            spec:
+              tcpSocket:
+                port: 51515
+              periodSeconds: 30
+              failureThreshold: 3
+          readiness: *probe
+          startup:
+            enabled: true
+            custom: true
+            spec:
+              tcpSocket:
+                port: 51515
+              periodSeconds: 5
+              failureThreshold: 60
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities: { drop: ["ALL"] }
+        resources:
+          requests: { cpu: 50m, memory: 512Mi }
+          limits: { memory: 3Gi }
+
+service:
+  app:
+    controller: kopia
+    ports:
+      https:
+        port: 51515
+        # HTTP/2 to the pod (gRPC). TLS comes from backendtlspolicy.yaml.
+        appProtocol: kubernetes.io/h2c
+
+route:
+  grpc:
+    hostnames:
+      - backup.laboratory.casa
+    parentRefs:
+      - name: envoy-internal
+        namespace: network
+        sectionName: https
+    rules:
+      - matches:
+          - path:
+              type: PathPrefix
+              value: /kopia_repository.KopiaRepository/
+        backendRefs:
+          - identifier: app
+            port: https
+  ui:
+    labels:
+      auth: authelia
+    hostnames:
+      - backup.laboratory.casa
+    parentRefs:
+      - name: envoy-internal
+        namespace: network
+        sectionName: https
+    rules:
+      # kopia serves /metrics on the UI port without a login.
+      - matches:
+          - path:
+              type: PathPrefix
+              value: /metrics
+        filters:
+          - type: ExtensionRef
+            extensionRef:
+              group: gateway.envoyproxy.io
+              kind: HTTPRouteFilter
+              name: kopia-block-metrics
+        backendRefs:
+          - identifier: app
+            port: https
+      - filters:
+          - type: ExtensionRef
+            extensionRef:
+              group: gateway.envoyproxy.io
+              kind: HTTPRouteFilter
+              name: kopia-login
+        backendRefs:
+          - identifier: app
+            port: https
+
+persistence:
+  # /app/config, /app/cache, /app/logs. Rebuilt on start, so no PVC.
+  app:
+    type: emptyDir
+    sizeLimit: 10Gi
+    globalMounts:
+      - path: /app
+  tmp:
+    type: emptyDir
+    globalMounts:
+      - path: /tmp
+  tls:
+    type: secret
+    name: kopia-server-tls
+    globalMounts:
+      - path: /tls
+        readOnly: true
+  users:
+    type: secret
+    name: kopia-users
+    globalMounts:
+      - path: /users
+        readOnly: true

@@ -1,0 +1,26 @@
+# One line per computer: <user>@<host>=<password>. <host> is the computer's
+# hostname, lowercased, before the first dot (kopia's default). The server
+# adds, updates and deletes users to match this list on every start.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: kopia-users
+  namespace: kopia
+stringData:
+  users: ENC[AES256_GCM,data:HFmywU8/JJ2ihWbQZoYIA74T6denwTzXA4c/28AknVJpjZsS9lUcLHmzzDBlnRKUqvsu3C/GDdxDmj9fLH/cA/0=,iv:fDpg1Y/gdOHv4itTnk59J8DgXGOskLudszkbmzu3zhI=,tag:dJE5LZ3IpGTuncMd2USfcQ==,type:str]
+sops:
+  age:
+    - enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBMVHBFUnprejU1QTZXTUVB
+        SzlEY0dLZVRmSjRsdjh0TDRyaWpNbjZtT1drCnNNYTlCL3orYlc2c3Y5UkEvMFhX
+        eDJxOGxKeFFyaVg3cS9GeWF0b3NVL2MKLS0tIGpMclhoUTVDT1BYMGg0MXBsUmJm
+        cWFvYjBKZ2FvWmMvMEJwdnRmek1HYVEKcJYziWu+191t5NwIPk0XkXady8SN69P6
+        +/6O0n9PmDu3DqI1J43XuTdloGDOivkjX0ijmI0upR9lSMUScDiL5w==
+        -----END AGE ENCRYPTED FILE-----
+      recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
+  encrypted_regex: ^(data|stringData)$
+  lastmodified: "2026-11-05T20:22:24Z"
+  mac: ENC[AES256_GCM,data:iHoNv6fr8UUpkHBiJ3fVtwQ223wLPjYtfbNns7eZ49mV9Wql7zxNou2GRX+jOFa0urjVH2AuIZslg8KdE+fXXBj+VhE7h/dFFwrg0zYQLUnyXBo1EDl0K++QKkYwYNxLDahQJSIaMvUtYaE4DtI6MZcqiZ77Tbd432oqRtXrVdQ=,iv:WFOvTqwsSMLyTZ6IiMXLOuUt/uM4FWq1vWNrlKS0vKg=,tag:zWUulj/68LukKSgtBlDNpw==,type:str]
+  mac_only_encrypted: true
+  version: 3.13.3
