@@ -48,7 +48,9 @@ controllers:
           - |
             set -eu
             rm -f "$KOPIA_CONFIG_PATH"
-            S3="--bucket=kopia --endpoint=silo.network.svc.cluster.local:9000 --disable-tls --region=us-east-1"
+            # Under repo/: silo-tofu's key check left silo-check/ in the bucket
+            # (locked until 2026-12-05), and kopia only creates in an empty place.
+            S3="--bucket=kopia --prefix=repo/ --endpoint=silo.network.svc.cluster.local:9000 --disable-tls --region=us-east-1"
             ID="--override-hostname=kopia-server --override-username=server"
             CACHE="--content-cache-size-mb=4096 --metadata-cache-size-mb=2048"
             if ! kopia repository connect s3 $S3 $ID $CACHE; then
