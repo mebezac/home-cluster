@@ -1,0 +1,23 @@
+# In-cluster name for node_exporter on hh-chi-10tb (the HostHatch VPS that
+# holds SILO B). It listens only on the tailnet IP, and cluster pods cannot
+# route to the tailnet, so the Tailscale operator runs an egress proxy (in
+# network) and rewrites externalName to point at it. The Argo app ignores that
+# field.
+#
+# Tailnet identity: tag:k8s-monitoring. The tailnet policy
+# (mebezac/tailscale-acl) lets that tag reach hh-chi-10tb on tcp:9100 only.
+# Reuse the tag for any other off-cluster exporter on the tailnet.
+apiVersion: v1
+kind: Service
+metadata:
+  name: hh-chi-10tb-node-exporter
+  annotations:
+    tailscale.com/tailnet-ip: 100.124.255.12
+    tailscale.com/tags: tag:k8s-monitoring
+spec:
+  type: ExternalName
+  externalName: placeholder
+  ports:
+    - name: metrics
+      port: 9100
+      protocol: TCP

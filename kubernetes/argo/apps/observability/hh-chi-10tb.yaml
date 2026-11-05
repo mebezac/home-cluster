@@ -1,0 +1,32 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: hh-chi-10tb
+  namespace: argo-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: kubernetes
+  # Single source, so no `ref:` (an unconsumed ref panics the app-controller).
+  source:
+    repoURL: https://github.com/mebezac/home-cluster.git
+    path: kubernetes/apps/observability/hh-chi-10tb
+    targetRevision: main
+  destination:
+    name: in-cluster
+    namespace: observability
+  # The Tailscale operator rewrites the egress Service's externalName.
+  ignoreDifferences:
+    - group: ""
+      kind: Service
+      name: hh-chi-10tb-node-exporter
+      jsonPointers:
+        - /spec/externalName
+  syncPolicy:
+    automated:
+      allowEmpty: true
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - RespectIgnoreDifferences=true

@@ -1,0 +1,19 @@
+# Own job name (not node-exporter): the stack's default node rules and
+# dashboards assume a Kubernetes node, so hh-chi-10tb gets its own alerts
+# (prometheusrule.yaml) and dashboard instead.
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMStaticScrape
+metadata:
+  name: hh-chi-10tb
+spec:
+  jobName: hh-chi-10tb
+  targetEndpoints:
+    - targets:
+        - hh-chi-10tb-node-exporter.observability.svc.cluster.local:9100
+      labels:
+        instance: hh-chi-10tb
+      path: /metrics
+      # The path crosses the internet over Tailscale; allow for slow replies
+      # while the disk stalls.
+      scrapeTimeout: 20s
+      interval: 30s

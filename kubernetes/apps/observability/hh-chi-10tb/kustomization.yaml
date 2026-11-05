@@ -1,0 +1,18 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: observability
+resources:
+  - egress-service.yaml
+  - scrape.yaml
+  - prometheusrule.yaml
+# The sidecar loads any grafana_dashboard ConfigMap (see grafana/kustomization.yaml).
+generatorOptions:
+  disableNameSuffixHash: true
+  labels:
+    grafana_dashboard: "1"
+  annotations:
+    grafana_folder: Homelab
+configMapGenerator:
+  - name: dashboard-homelab-hh-chi-10tb
+    files:
+      - dashboards/homelab-hh-chi-10tb.json
