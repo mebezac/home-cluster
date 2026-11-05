@@ -1,0 +1,11 @@
+---
+# SMB/CIFS CSI driver: static PVs that mount a remote SMB share. The Talos
+# kernel builds CIFS in (CONFIG_CIFS=y) and the node plugin image carries
+# mount.cifs, so no system extension is needed.
+#
+# The node plugin is hostNetwork with dnsPolicy ClusterFirstWithHostNet (chart
+# default), so a PV `source` can name a cluster Service. Point it at a Service
+# with a stable ClusterIP: on a reconnect the kernel keeps the IP it mounted
+# (Talos has no request-key for the dns_resolver upcall).
+windows:
+  enabled: false
