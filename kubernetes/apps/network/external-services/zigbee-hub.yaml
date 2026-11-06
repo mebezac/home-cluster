@@ -30,6 +30,11 @@ apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
   name: zigbee-hub
+  labels:
+    # Authelia, via kubernetes/apps/network/envoy-gateway/authelia.yaml. The
+    # SLZB-06 web UI has no auth of its own, and it can reflash the coordinator.
+    # zigbee2mqtt talks to the hub on tcp://10.25.30.78:6638, not through here.
+    auth: authelia
 spec:
   parentRefs:
     - name: envoy-internal

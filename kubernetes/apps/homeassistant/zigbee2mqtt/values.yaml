@@ -69,6 +69,10 @@ service:
 
 route:
   app:
+    # The frontend has no auth_token, so without Authelia anyone on the LAN
+    # controls every Zigbee device. Home Assistant uses MQTT, not this route.
+    labels:
+      auth: authelia
     hostnames:
       - zigbee2mqtt.laboratory.casa
     parentRefs:
