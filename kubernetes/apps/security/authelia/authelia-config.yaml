@@ -434,3 +434,28 @@ identity_providers:
           - "authorization_code"
         userinfo_signed_response_alg: "none"
         token_endpoint_auth_method: "client_secret_basic"
+      # LubeLogger (lubelog namespace). Plaintext secret in lubelog-secret
+      # (OpenIDConfig__ClientSecret). LubeLogger posts client_id/client_secret in
+      # the token request body (client_secret_post) and sends PKCE S256. It maps
+      # the email claim to a user; claims_policy "all" puts email in the id_token.
+      # two_factor: the owner's email logs in as the LubeLogger root user.
+      - client_id: "LOYWT47d~JAauDOUMEyorQxtRQj9jnq7sql6mGo9v.L_aAu_QeKOI6DApix-yLWk4.~D~J2e"
+        client_name: "LubeLogger"
+        client_secret: "$pbkdf2-sha512$310000$keG1qjskO0KV1UlcToc4bw$fsrWXEcKkJaWKkVjAP8ImNH9MLGtZu.W5Ba9zFatdJwRe6UKI3gWLkbw6npCQeJJY8d6pHtzHXo.IxnoU60h1Q"
+        claims_policy: "all"
+        public: false
+        authorization_policy: "two_factor"
+        consent_mode: "implicit"
+        require_pkce: true
+        pkce_challenge_method: "S256"
+        redirect_uris:
+          - "https://lubelog.laboratory.casa/Login/RemoteAuth"
+        scopes:
+          - "openid"
+          - "email"
+        response_types:
+          - "code"
+        grant_types:
+          - "authorization_code"
+        userinfo_signed_response_alg: "none"
+        token_endpoint_auth_method: "client_secret_post"

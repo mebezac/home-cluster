@@ -28,8 +28,38 @@ controllers:
           # HOME is /, and uid 3000 cannot reach /root, so keys stayed in memory
           # and every restart logged everyone out. Point HOME at the keys mount.
           HOME: /home/lubelog
+          # --- Login: LubeLogger's own OIDC login through Authelia (client "LubeLogger"
+          # in security/authelia/authelia-config.yaml). EnableAuth is pinned in the
+          # pinned-config ConfigMap below, not here.
+          # The owner's Authelia email logs in as the LubeLogger root user (full admin,
+          # owns the existing vehicles). No local root password exists.
+          EnableRootUserOIDC: "true"
+          DefaultReminderEmail: zac@laboratory.casa
+          # Nobody else gets in: an unknown Authelia email gets "registration disabled".
+          # To add a household member, set both to "false", then issue them a token
+          # from Settings > Admin Panel.
+          DisableRegistration: "true"
+          OpenIDConfig__DisableRegistration: "true"
+          OpenIDConfig__Name: Authelia
+          OpenIDConfig__ClientId: "LOYWT47d~JAauDOUMEyorQxtRQj9jnq7sql6mGo9v.L_aAu_QeKOI6DApix-yLWk4.~D~J2e"
+          OpenIDConfig__AuthURL: https://login.laboratory.casa/api/oidc/authorization
+          OpenIDConfig__TokenURL: https://login.laboratory.casa/api/oidc/token
+          OpenIDConfig__UserInfoURL: https://login.laboratory.casa/api/oidc/userinfo
+          OpenIDConfig__JwksURL: https://login.laboratory.casa/jwks.json
+          OpenIDConfig__RedirectURL: https://lubelog.laboratory.casa/Login/RemoteAuth
+          OpenIDConfig__Scope: openid email
+          OpenIDConfig__ValidateState: "true"
+          OpenIDConfig__UsePKCE: "true"
+          # With a LogOutURL, /Login goes straight to Authelia (no local login form).
+          OpenIDConfig__DisableRegularLogin: "true"
+          OpenIDConfig__LogOutURL: https://login.laboratory.casa/logout
+          # Key-per-file config dir. LubeLogger loads it AFTER data/config/userConfig.json,
+          # so it wins over that file: the settings-page "disable login" button (which
+          # writes EnableAuth=false there) cannot turn auth off.
+          LUBELOGGER_SECRETS_PATH: /pinned-config
         envFrom:
-          # POSTGRES_CONNECTION only; the password must match database/postgres-17-cluster/roles/lubelog.sops.yaml
+          # POSTGRES_CONNECTION, and OpenIDConfig__ClientSecret (plaintext of the Authelia
+          # client digest). The PG password must match database/postgres-17-cluster/roles/lubelog.sops.yaml
           - secretRef:
               name: lubelog-secret
         resources:
@@ -39,6 +69,11 @@ controllers:
             memory: 64Mi
           limits:
             memory: 192Mi
+configMaps:
+  pinned-config:
+    data:
+      # One file per config key (see LUBELOGGER_SECRETS_PATH). Login is always on.
+      EnableAuth: "true"
 service:
   app:
     controller: lubelog
@@ -89,3 +124,9 @@ persistence:
     type: emptyDir
     globalMounts:
       - path: /App/wwwroot/temp
+  pinned-config:
+    type: configMap
+    identifier: pinned-config
+    globalMounts:
+      - path: /pinned-config
+        readOnly: true
