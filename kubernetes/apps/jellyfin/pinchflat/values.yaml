@@ -57,6 +57,10 @@ service:
 
 route:
   main:
+    # Pinchflat has no login of its own (no BASIC_AUTH_* set). Authelia via
+    # ./authelia.yaml. Nothing subscribes to its RSS feeds.
+    labels:
+      auth: authelia
     hostnames:
       - pinchflat.laboratory.casa
     parentRefs:

@@ -31,6 +31,11 @@ spec:
     - group: gateway.envoyproxy.io
       kind: SecurityPolicy
       namespace: changedetection
+    # policy lives in kubernetes/apps/jellyfin/pinchflat/authelia.yaml (pinchflat only;
+    # the jellyfin route has no label)
+    - group: gateway.envoyproxy.io
+      kind: SecurityPolicy
+      namespace: jellyfin
     - group: gateway.envoyproxy.io
       kind: SecurityPolicy
       namespace: cobalt
