@@ -24,7 +24,7 @@ RUN apt-get update \
  && codex --version
 
 # yq (mikefarah, Go) from its official image; Debian's yq is a different tool.
-COPY --from=docker.io/mikefarah/yq:4.54.1@sha256:4b3d9475d65571d28cbb19544d3820ec2945e4c8b2f18279394282b8dc3a592e /usr/bin/yq /usr/local/bin/yq
+COPY --from=docker.io/mikefarah/yq:4.54.2@sha256:5d56494617dce8311106e905aac5c080a2087c905a7f7de2984db2e2cc60ab2e /usr/bin/yq /usr/local/bin/yq
 
 COPY sshd_config /etc/agent-box/sshd_config
 COPY --chmod=0755 entrypoint.sh /usr/local/bin/agent-box-entrypoint
