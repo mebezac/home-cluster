@@ -32,6 +32,7 @@ controllers:
           # Default is 30; Oban runs ~26 concurrent jobs but most are waiting on
           # OpenRouter/ffmpeg, not holding a connection. Keep the central PG footprint small.
           POOL_SIZE: "15"
+          ANTHROPIC_SUBSCRIPTION: "true"
         envFrom:
           - secretRef:
               name: pcab-secret
