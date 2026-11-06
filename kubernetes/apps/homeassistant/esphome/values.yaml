@@ -75,21 +75,15 @@ persistence:
   # Device YAMLs and their secrets.yaml come from git (audit 2026-10-22); before
   # that they lived only on the PVC. Read-only, so the dashboard can't save an
   # edit that a restart would lose: change config/*.yaml and push. Build cache
-  # (.esphome/) and dashboard state stay on the PVC. New device: add its file
-  # here, to the kustomization, and to the list below.
-  devices:
-    type: configMap
-    name: esphome-devices
-    globalMounts:
-      - path: /config/plug-sb-01-esphome.yaml
-        subPath: plug-sb-01-esphome.yaml
-        readOnly: true
-      - path: /config/plug-sb-06-esphome.yaml
-        subPath: plug-sb-06-esphome.yaml
-        readOnly: true
-      - path: /config/plug-sb-07-esphome.yaml
-        subPath: plug-sb-07-esphome.yaml
-        readOnly: true
+  # (.esphome/) and dashboard state stay on the PVC. No devices right now; to add
+  # one, see kustomization.yaml and add a `devices` configMap mount here:
+  #   devices:
+  #     type: configMap
+  #     name: esphome-devices
+  #     globalMounts:
+  #       - path: /config/<name>.yaml
+  #         subPath: <name>.yaml
+  #         readOnly: true
   secrets:
     type: secret
     name: esphome-secret

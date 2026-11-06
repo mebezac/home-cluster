@@ -3,12 +3,13 @@ kind: Kustomization
 namespace: homeassistant
 generators:
   - secret-generator.yaml
-configMapGenerator:
-  # Device configs, edited here (not in the dashboard): mounted read-only.
-  - name: esphome-devices
-    files:
-      - config/plug-sb-01-esphome.yaml
-      - config/plug-sb-06-esphome.yaml
-      - config/plug-sb-07-esphome.yaml
-generatorOptions:
-  disableNameSuffixHash: true
+# Device configs are edited here (not in the dashboard) and mounted read-only.
+# No devices right now (the plug-sb plugs were retired 2026-11-06). To add one,
+# put it in config/<name>.yaml and restore this block and the `devices` mount in
+# values.yaml:
+#   configMapGenerator:
+#     - name: esphome-devices
+#       files:
+#         - config/<name>.yaml
+#   generatorOptions:
+#     disableNameSuffixHash: true
