@@ -71,7 +71,7 @@ merge a major without an explicit, informed go from the user.
 ### Leaf apps → tier by semver alone
 
 Everything else is a single self-contained app (jellyfin, immich,
-audiobookshelf, lubelog, shlink, romm, lastglance, esphome, zwave-js-ui, …). A
+audiobookshelf, lubelog, shlink, romm, esphome, zwave-js-ui, …). A
 break affects only that app, and rollback is a one-line revert. So:
 
 - digest / patch → ✅

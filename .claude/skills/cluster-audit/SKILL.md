@@ -108,7 +108,7 @@ namespaces explicitly so nothing is audited twice or missed:
 | Security/GitOps | `security`, `cert-manager`, `argo-system`, `forgejo` |
 | Media | `jellyfin`, `immich`, `audiobookshelf`, `calibre-web-automated`, `romm`, `music-assistant`, `lychee`, `downloads`, `gluetun-proxy`, `ps5` (private) |
 | Home automation | `homeassistant`, `birdnet-go` |
-| Web apps | `n8n`, `umami`, `jotty`, `lubelog`, `changedetection`, `trek`, `reckage`, `lastglance`, `heremag`, `owncloud`, `pcab`, `default` |
+| Web apps | `n8n`, `umami`, `jotty`, `lubelog`, `changedetection`, `trek`, `reckage`, `heremag`, `owncloud`, `pcab`, `default` |
 | Platform/capacity | rest of kube-system + **cluster-wide node capacity** (per-node MemAvailable 7d minimum, not just requests) |
 
 The namespace list drifts. Diff `kubectl get ns` against this table at inventory
