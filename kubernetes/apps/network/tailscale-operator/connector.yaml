@@ -1,0 +1,26 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/tailscale.com/connector_v1alpha1.json
+# The cluster's Tailscale Connector (replaces nuc02's exit node and whole-LAN
+# route). Two jobs:
+# - Home exit node for admins.
+# - Subnet router for ONLY the three Envoy Gateway LoadBalancer IPs. Tailnet
+#   clients then get the same k8s-gateway answers as the LAN (AdGuard forwards
+#   *.laboratory.casa to k8s-gateway), so a new route needs no DNS change.
+# tag:k8s-connector, the /32 routes and the exit node are auto-approved in
+# tailscale-acl/policy.hujson. If the cluster is down, this is down too; repair
+# access goes through the cachyos-dev bastion (or the AdGuard Pis).
+apiVersion: tailscale.com/v1alpha1
+kind: Connector
+metadata:
+  name: home
+spec:
+  hostname: home-connector
+  tags:
+    - tag:k8s-connector
+  exitNode: true
+  subnetRouter:
+    advertiseRoutes:
+      - 10.25.30.117/32 # envoy-internal
+      - 10.25.30.122/32 # envoy-external
+      - 10.25.30.119/32 # envoy-guest
+  proxyClass: metrics
