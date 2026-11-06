@@ -6,7 +6,7 @@ FROM node:26.13.0-trixie-slim@sha256:e4db4c914bf8ad241bd24804fc25d272d89bad97e68
 
 # changelog: GH releases openai/codex, tag rust-vX.Y.Z (not in PR body)
 # renovate: datasource=npm depName=@openai/codex
-ARG CODEX_VERSION=0.166.0
+ARG CODEX_VERSION=0.167.0
 
 # Common CLI tools for agents. No pip/npm registry egress at runtime, so
 # Python is stdlib-only.
