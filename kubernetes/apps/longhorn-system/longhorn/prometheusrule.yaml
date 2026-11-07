@@ -1,7 +1,9 @@
 ---
 # yaml-language-server: $schema=https://k8s-schemas.home-operations.com/monitoring.coreos.com/prometheusrule_v1.json
 # Volume health uses the one-hot longhorn_volume_robustness{state=...}. Backup
-# age assumes the daily-backup recurring job (06:52 UTC, group default).
+# age assumes the daily-backup recurring job (06:52 UTC, group default). That
+# job skips detached volumes, so backup age counts only attached ones (a
+# Released PV kept with Retain would otherwise fire forever).
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
@@ -27,7 +29,10 @@ spec:
             summary: 'Longhorn volume {{ $labels.pvc_namespace }}/{{ $labels.pvc }} is degraded'
             description: 'A replica has been missing for 30m and has not rebuilt. Check the node and disk in the Longhorn UI.'
         - alert: LonghornBackupStale
-          expr: (time() - longhorn_volume_last_backup_at > 129600) and longhorn_volume_last_backup_at > 0
+          expr: >-
+            (time() - longhorn_volume_last_backup_at > 129600)
+            and longhorn_volume_last_backup_at > 0
+            and on(volume) longhorn_volume_state{state="attached"} == 1
           for: 1h
           labels:
             severity: warning
