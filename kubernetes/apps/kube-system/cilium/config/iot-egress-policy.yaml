@@ -1,0 +1,94 @@
+# Keep pods off the IoT and Cameras VLANs (UniFi, unifi-tofu networks-vlans.tf).
+#
+# Pod traffic leaves the cluster with the node IP (BPF masquerade), so the UniFi
+# firewall sees every app as "Servers". A UniFi rule "Servers -> IoT" would open the
+# IoT VLANs to every app. These policies make the cluster decide which pods may go:
+#
+#   10.25.40.0/24 IoT, 10.25.41.0/24 IoT-Local: only Home Assistant, ESPHome,
+#     zigbee2mqtt, Z-Wave JS UI and Music Assistant.
+#   10.25.50.0/24 Cameras: no pod (Frigate runs on nuc02, outside the cluster).
+#
+# Deny rules win over every allow rule, in any policy. Replies to connections that
+# IoT devices open to the cluster (MQTT, the gateways) are not affected: a deny
+# rule only stops new connections from the pod.
+#
+# enableDefaultDeny is off in both directions. Without it, any policy that selects
+# a pod (deny-only too) puts that pod into default-deny, and these policies select
+# almost every pod in the cluster. Needs enable-non-default-deny-policies (true
+# in cilium-config).
+#
+# Host-network pods (Cilium, the control plane, CSI node plugins, node-exporter,
+# network-optimizer) and the nodes themselves are NOT covered: pod policies do not
+# apply to them.
+#
+# When the SLZB-06 moves to IoT-Local (Phase 3), the zigbee-hub route needs the
+# envoy-internal pods to reach it on port 80. Do that with a separate policy for
+# those pods whose deny has `except: [<slzb-ip>/32]`; an allow rule cannot
+# override a deny.
+---
+# yaml-language-server: $schema=https://datreeio.github.io/CRDs-catalog/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: deny-iot-vlans
+spec:
+  description: Only the home automation apps may open connections to the IoT VLANs.
+  endpointSelector:
+    matchExpressions:
+      - key: io.kubernetes.pod.namespace
+        operator: NotIn
+        values:
+          - homeassistant
+          - music-assistant
+  enableDefaultDeny:
+    egress: false
+    ingress: false
+  egressDeny:
+    - toCIDR:
+        - 10.25.40.0/24
+        - 10.25.41.0/24
+---
+# The same deny for the other pods in homeassistant (mosquitto, and any new app).
+# mosquitto only answers devices; it never opens a connection to them.
+# yaml-language-server: $schema=https://datreeio.github.io/CRDs-catalog/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: deny-iot-vlans-homeassistant
+spec:
+  description: In homeassistant, only HA, ESPHome, zigbee2mqtt and Z-Wave JS UI may reach the IoT VLANs.
+  endpointSelector:
+    matchExpressions:
+      - key: io.kubernetes.pod.namespace
+        operator: In
+        values:
+          - homeassistant
+      - key: app.kubernetes.io/name
+        operator: NotIn
+        values:
+          - homeassistant
+          - esphome
+          - zigbee2mqtt
+          - zwave-js-ui
+  enableDefaultDeny:
+    egress: false
+    ingress: false
+  egressDeny:
+    - toCIDR:
+        - 10.25.40.0/24
+        - 10.25.41.0/24
+---
+# yaml-language-server: $schema=https://datreeio.github.io/CRDs-catalog/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: deny-cameras-vlan
+spec:
+  description: No pod may open connections to the Cameras VLAN.
+  endpointSelector: {}
+  enableDefaultDeny:
+    egress: false
+    ingress: false
+  egressDeny:
+    - toCIDR:
+        - 10.25.50.0/24
