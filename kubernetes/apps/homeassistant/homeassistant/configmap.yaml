@@ -25,11 +25,19 @@ data:
     sonos:
       media_player:
         advertise_addr: 10.25.30.56
+        # The speakers move from Default (10.25.30.x) to Trusted (10.25.20.x, same
+        # last octet) in the VLAN Phase 2 cutover. Both lists stay until the move
+        # is done; then remove the 10.25.30.x ones. .221 is the Sonos Roam.
         hosts:
           - 10.25.30.220
           - 10.25.30.222
           - 10.25.30.223
           - 10.25.30.224
+          - 10.25.20.220
+          - 10.25.20.221
+          - 10.25.20.222
+          - 10.25.20.223
+          - 10.25.20.224
 
     # /api/prometheus, scraped with a long-lived token (homeassistant-metrics secret)
     prometheus:
