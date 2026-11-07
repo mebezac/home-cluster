@@ -6,8 +6,8 @@
 #
 #   10.25.40.0/24 IoT, 10.25.41.0/24 IoT-Local: only Home Assistant, ESPHome,
 #     zigbee2mqtt, Z-Wave JS UI and Music Assistant.
-#   10.25.50.0/24 Cameras: only Home Assistant (its reolink entries talk to the
-#     cameras). Frigate runs on nuc02, outside the cluster.
+#   10.25.50.0/24 Cameras: no pod. Frigate runs on nuc02, outside the cluster,
+#     and Home Assistant sees the cameras only through Frigate.
 #
 # Deny rules win over every allow rule, in any policy. Replies to connections that
 # IoT devices open to the cluster (MQTT, the gateways) are not affected: a deny
@@ -96,38 +96,8 @@ kind: CiliumClusterwideNetworkPolicy
 metadata:
   name: deny-cameras-vlan
 spec:
-  description: Pods outside homeassistant may not open connections to the Cameras VLAN.
-  endpointSelector:
-    matchExpressions:
-      - key: io.kubernetes.pod.namespace
-        operator: NotIn
-        values:
-          - homeassistant
-  enableDefaultDeny:
-    egress: false
-    ingress: false
-  egressDeny:
-    - toCIDR:
-        - 10.25.50.0/24
----
-# The same deny for the other pods in homeassistant: only HA itself may go.
-# yaml-language-server: $schema=https://datreeio.github.io/CRDs-catalog/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
-apiVersion: cilium.io/v2
-kind: CiliumClusterwideNetworkPolicy
-metadata:
-  name: deny-cameras-vlan-homeassistant
-spec:
-  description: In homeassistant, only HA may reach the Cameras VLAN.
-  endpointSelector:
-    matchExpressions:
-      - key: io.kubernetes.pod.namespace
-        operator: In
-        values:
-          - homeassistant
-      - key: app.kubernetes.io/name
-        operator: NotIn
-        values:
-          - homeassistant
+  description: No pod may open connections to the Cameras VLAN.
+  endpointSelector: {}
   enableDefaultDeny:
     egress: false
     ingress: false
