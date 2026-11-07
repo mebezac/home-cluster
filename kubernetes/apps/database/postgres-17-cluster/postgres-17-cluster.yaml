@@ -89,7 +89,7 @@ spec:
         passwordSecret:
           name: pg-role-pcab
       - name: paperclip
-        ensure: present
+        ensure: absent
         login: true
         inherit: true
         passwordSecret:

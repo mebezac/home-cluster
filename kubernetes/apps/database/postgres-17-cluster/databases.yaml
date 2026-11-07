@@ -41,7 +41,7 @@ spec:
     name: postgres-17-cluster
   name: paperclip
   owner: paperclip
-  ensure: present
+  ensure: absent
   databaseReclaimPolicy: retain
 ---
 apiVersion: postgresql.cnpg.io/v1
