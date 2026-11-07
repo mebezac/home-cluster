@@ -21,6 +21,11 @@
 # network-optimizer) and the nodes themselves are NOT covered: pod policies do not
 # apply to them.
 #
+# A pod labelled iot-egress.laboratory.casa/own-policy is skipped by
+# deny-iot-vlans. Its own repo must then ship a namespaced CiliumNetworkPolicy
+# with a narrower egressDeny (toCIDRSet with `except` for the one device it
+# needs). Never set the label without that policy.
+#
 # When the SLZB-06 moves to IoT-Local (Phase 3), the zigbee-hub route needs the
 # envoy-internal pods to reach it on port 80. Do that with a separate policy for
 # those pods whose deny has `except: [<slzb-ip>/32]`; an allow rule cannot
@@ -40,6 +45,8 @@ spec:
         values:
           - homeassistant
           - music-assistant
+      - key: iot-egress.laboratory.casa/own-policy
+        operator: DoesNotExist
   enableDefaultDeny:
     egress: false
     ingress: false
