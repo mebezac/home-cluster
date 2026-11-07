@@ -88,12 +88,6 @@ spec:
         inherit: true
         passwordSecret:
           name: pg-role-pcab
-      - name: paperclip
-        ensure: absent
-        login: true
-        inherit: true
-        passwordSecret:
-          name: pg-role-paperclip
       - name: umami
         ensure: present
         login: true
