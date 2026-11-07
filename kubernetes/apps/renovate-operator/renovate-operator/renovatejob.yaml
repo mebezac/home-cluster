@@ -18,7 +18,7 @@ spec:
   # when PRs may open; Dashboard/PR checkboxes run immediately via the webhook.
   schedule: "0 * * * *"
   # changelog: GH releases renovatebot/renovate (list releases between tags; same source as npm:renovate in .mise.toml)
-  image: ghcr.io/renovatebot/renovate:44.216.2@sha256:435c302302f1db679e9b482f8dfd7e1e0c3b6938df44f9444780064c9a4d2c4f
+  image: ghcr.io/renovatebot/renovate:44.222.0@sha256:a8cb8222b49d15da701436954b7463427d535eae2203b294655c9a29675c47d1
   parallelism: 1
   provider:
     name: forgejo
