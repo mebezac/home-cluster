@@ -26,10 +26,10 @@
 # with a narrower egressDeny (toCIDRSet with `except` for the one device it
 # needs). Never set the label without that policy.
 #
-# When the SLZB-06 moves to IoT-Local (Phase 3), the zigbee-hub route needs the
-# envoy-internal pods to reach it on port 80. Do that with a separate policy for
-# those pods whose deny has `except: [<slzb-ip>/32]`; an allow rule cannot
-# override a deny.
+# The envoy-internal pods serve the zigbee-hub route (the SLZB-06 web UI on
+# IoT-Local, 10.25.41.78), so deny-iot-vlans skips them and
+# deny-iot-vlans-envoy-internal below leaves only that one address open. An
+# allow rule cannot override a deny, hence the `except`.
 ---
 # yaml-language-server: $schema=https://datreeio.github.io/CRDs-catalog/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
 apiVersion: cilium.io/v2
@@ -47,6 +47,10 @@ spec:
           - music-assistant
       - key: iot-egress.laboratory.casa/own-policy
         operator: DoesNotExist
+      - key: gateway.envoyproxy.io/owning-gateway-name
+        operator: NotIn
+        values:
+          - envoy-internal
   enableDefaultDeny:
     egress: false
     ingress: false
@@ -99,3 +103,24 @@ spec:
   egressDeny:
     - toCIDR:
         - 10.25.50.0/24
+---
+# yaml-language-server: $schema=https://datreeio.github.io/CRDs-catalog/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: deny-iot-vlans-envoy-internal
+spec:
+  description: envoy-internal may reach only the SLZB-06 (zigbee-hub route) on the IoT VLANs.
+  endpointSelector:
+    matchLabels:
+      io.kubernetes.pod.namespace: network
+      gateway.envoyproxy.io/owning-gateway-name: envoy-internal
+  enableDefaultDeny:
+    egress: false
+    ingress: false
+  egressDeny:
+    - toCIDRSet:
+        - cidr: 10.25.40.0/24
+        - cidr: 10.25.41.0/24
+          except:
+            - 10.25.41.78/32 # SLZB-06 (unifi-tofu reservation)
