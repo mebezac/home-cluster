@@ -19,7 +19,7 @@ controllers:
         image:
           repository: ghcr.io/mebezac/pcab
           # changelog: private repo github.com/mebezac/pcab, no release notes - read commits in the local clone ~/projects/pcab (git fetch --tags && git log vOLD..vNEW)
-          tag: v2.3.0@sha256:d15babaa91cca63b6ae26f30430468fff69de3a1daa31d7b03041c490f2e232d
+          tag: v2.4.0@sha256:e19e9b8a3a99444133541de88d79d378561bf1283e2de8d34fea482ea95f9eb8
         env:
           TZ: America/New_York
           PORT: "4000"
