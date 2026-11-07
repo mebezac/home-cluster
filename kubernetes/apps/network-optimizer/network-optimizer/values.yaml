@@ -108,12 +108,15 @@ controllers:
           # The browser posts results to https://<this>/api/... (through Envoy).
           REVERSE_PROXIED_HOST_NAME: network-optimizer.laboratory.casa
         resources:
-          # 7d metrics (2026-09-08): speedtest peak 12Mi, CPU peak 1m.
+          # Idle ~10Mi (7d metrics 2026-09-08: peak 12Mi, CPU peak 1m). A test run
+          # is much more: /upload buffers each request body in memory
+          # (client_body_buffer_size 35m) and the browser sends several at once.
+          # 96Mi was OOM-killed mid-test on 2026-11-06 (workers at 10-45 MB each).
           requests:
             cpu: 10m
             memory: 32Mi
           limits:
-            memory: 96Mi
+            memory: 512Mi
 
 service:
   network-optimizer:
