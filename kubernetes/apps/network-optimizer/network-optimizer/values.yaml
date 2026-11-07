@@ -22,12 +22,16 @@ controllers:
           DEMO_MODE_MAPPINGS: ""
           HOST_NAME: network-optimizer.laboratory.casa
           REVERSE_PROXIED_HOST_NAME: network-optimizer.laboratory.casa
+          # The speed test is served directly over plain HTTP/1.1 on its own LB IP
+          # (service speedtest below), not through Envoy. Over Envoy the browser
+          # used HTTP/2, and coalesced onto the wildcard-cert connection of the
+          # other laboratory.casa names, which inflates the result. With HTTPS off
+          # the app links clients to http://<OPENSPEEDTEST_HOST>:<OPENSPEEDTEST_PORT>
+          # and allows that origin (CORS) for the result post. A new hostname:
+          # browsers keep the old speedtest.laboratory.casa HSTS for a year.
           OPENSPEEDTEST_PORT: "3005"
-          # The speed test has its own route (speedtest.laboratory.casa) behind
-          # Envoy, which terminates TLS.
-          OPENSPEEDTEST_HOST: speedtest.laboratory.casa
-          OPENSPEEDTEST_HTTPS: "true"
-          OPENSPEEDTEST_HTTPS_PORT: "443"
+          OPENSPEEDTEST_HOST: speedtest-http.laboratory.casa
+          OPENSPEEDTEST_HTTPS: "false"
           # The app ignores X-Forwarded-For unless the proxy is listed, and then
           # records Envoy as the client. Envoy pods connect from the pod CIDR; the
           # node IPs cover the case where Cilium SNATs pod -> hostNetwork traffic.
@@ -96,12 +100,12 @@ controllers:
         env:
           TZ: America/New_York
           HOST_NAME: network-optimizer.laboratory.casa
-          OPENSPEEDTEST_PORT: "3005"
           # Keep these three in step with the network-optimizer container above.
-          OPENSPEEDTEST_HOST: speedtest.laboratory.casa
-          OPENSPEEDTEST_HTTPS: "true"
+          OPENSPEEDTEST_PORT: "3005"
+          OPENSPEEDTEST_HOST: speedtest-http.laboratory.casa
+          OPENSPEEDTEST_HTTPS: "false"
           TRUSTED_PROXIES: 10.69.0.0/16,10.25.30.33,10.25.30.34,10.25.30.35,10.25.30.42,10.25.30.43,10.25.30.44,10.25.30.45,10.25.30.46
-          OPENSPEEDTEST_HTTPS_PORT: "443"
+          # The browser posts results to https://<this>/api/... (through Envoy).
           REVERSE_PROXIED_HOST_NAME: network-optimizer.laboratory.casa
         resources:
           # 7d metrics (2026-09-08): speedtest peak 12Mi, CPU peak 1m.
@@ -118,10 +122,17 @@ service:
       http:
         port: 8042
   speedtest:
+    annotations:
+      # k8s-gateway answers speedtest-http.laboratory.casa with this LB IP.
+      coredns.io/hostname: speedtest-http.laboratory.casa
+      lbipam.cilium.io/ips: 10.25.30.59
     controller: speedtest
+    type: LoadBalancer
     ports:
       http:
-        port: 3000
+        # nginx in the speedtest image listens on 3000 (hostNetwork).
+        port: 3005
+        targetPort: 3000
 
 route:
   network-optimizer:
@@ -134,17 +145,6 @@ route:
     rules:
       - backendRefs:
           - identifier: network-optimizer
-            port: http
-  speedtest:
-    hostnames:
-      - speedtest.laboratory.casa
-    parentRefs:
-      - name: envoy-internal
-        namespace: network
-        sectionName: https
-    rules:
-      - backendRefs:
-          - identifier: speedtest
             port: http
 
 persistence:
