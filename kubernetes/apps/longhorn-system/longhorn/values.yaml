@@ -40,6 +40,12 @@ defaultSettings:
   # deletes orphan data and leftover instance processes after the grace period
   # (default 300s). It never touches orphans on failed or unknown nodes.
   orphanResourceAutoDeletion: replica-data;instance
+  # Freeze only the volume's own filesystem before a snapshot. Off (the default), the
+  # engine runs a node-wide sync() instead, which waits on every dirty page on the
+  # node. On 2026-11-08 a 6 GB radarr-tz copy to the slow tz-media SMB share held
+  # that sync on talmac-02 for 15 min, and the kopiur homeassistant-config backup
+  # timed out. The default is off only for kernels <= 5.17; the nodes run 6.18.
+  freezeFilesystemForSnapshot: '{"v1":"true"}'
 metrics:
   serviceMonitor:
     # The VM operator converts this to a VMServiceScrape for vmagent.
