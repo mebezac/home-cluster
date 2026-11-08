@@ -7,7 +7,7 @@
 # laboratory-casa/silo-tofu.
 FROM ghcr.io/opentofu/opentofu:1.13.2-minimal@sha256:622dc6bb98b105c18f53cf419ab64a4f3b88bd9f8c16cc978cf89e4202f4613f AS tofu
 
-FROM docker.io/library/alpine:3.24.3@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a
+FROM docker.io/library/alpine:3.24.4@sha256:f59abe656b692d901e184be3445e084786602108599d2a51d229c0f5a48c71bf
 RUN apk add --no-cache bash ca-certificates curl git jq
 COPY --from=tofu /usr/local/bin/tofu /usr/local/bin/tofu
 # The job pod runs as 3000 with a read-only root filesystem. HOME is on the
