@@ -16,7 +16,7 @@ controllers:
         image:
           repository: ghcr.io/henrywhitaker3/adguard-exporter
           # changelog: GH releases henrywhitaker3/adguard-exporter
-          tag: v1.2.1@sha256:42a9581bae4a91e6d4985415d1fe89ab9b1f50fbe2945a1c122d212d6354b747
+          tag: v1.2.3@sha256:27244b698034a190d657417fe1231db02cf2d22931d238495fd1a32bd0957185
         env:
           INTERVAL: 30s
         envFrom:
