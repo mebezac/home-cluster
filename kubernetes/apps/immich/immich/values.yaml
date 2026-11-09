@@ -180,8 +180,19 @@ controllers:
               timeoutSeconds: 1
               failureThreshold: 5
           readiness: *probes
+          # The model preload blocks /ping for about a minute at start. Without a
+          # startup probe, the liveness probe killed the container mid-preload
+          # (2 restarts on the v3.3.6 roll). Allow up to 5 minutes here.
           startup:
-            enabled: false
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /ping
+                port: *mlport
+              periodSeconds: 10
+              timeoutSeconds: 5
+              failureThreshold: 30
 
 service:
   server:
