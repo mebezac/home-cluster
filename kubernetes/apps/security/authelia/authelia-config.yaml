@@ -459,3 +459,27 @@ identity_providers:
           - "authorization_code"
         userinfo_signed_response_alg: "none"
         token_endpoint_auth_method: "client_secret_post"
+      # Private app (home-cluster-private). Confidential client, client_secret_basic
+      # + PKCE S256. The app asks only for openid/profile/email; claims_policy "all"
+      # puts email and preferred_username in the id_token.
+      - client_id: "me_0R0jre7EdUOySwABYNX~VDPrKaugwrqq7rD5Sgfnd6ugu.jAJzhbveYRbizgYFRLcD_.P"
+        client_name: "q"
+        client_secret: "$pbkdf2-sha512$310000$btx1ToOEXZTTdB2HMiFquA$91dOQ1x5xv1bA4PXJCOteV3CNd46ifGi5GZiDVdiTiNDd4M1v6W5CtMsLHJvOE6ykPUo0X3AZ62BUYXhkd4p.A"
+        claims_policy: "all"
+        public: false
+        authorization_policy: "two_factor"
+        consent_mode: "implicit"
+        require_pkce: true
+        pkce_challenge_method: "S256"
+        redirect_uris:
+          - "https://q.laboratory.casa/api/auth/oidc/callback"
+        scopes:
+          - "openid"
+          - "profile"
+          - "email"
+        response_types:
+          - "code"
+        grant_types:
+          - "authorization_code"
+        userinfo_signed_response_alg: "none"
+        token_endpoint_auth_method: "client_secret_basic"
