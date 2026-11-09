@@ -72,7 +72,9 @@ runnerConfig: |
     shutdown_timeout: 3m
 
 # Job pods. The image is built by .github/workflows/tofu-runner-image.yaml from
-# containers/tofu-runner; Renovate's kubernetes manager bumps these image lines.
+# containers/tofu-runner. Renovate does NOT track these image lines (no manager
+# parses them). After each image build, bump both by hand to the tag@digest in
+# the workflow run's step summary.
 podSpecs:
   podspec-readonly.yaml: |
     automountServiceAccountToken: false
@@ -85,7 +87,7 @@ podSpecs:
         type: RuntimeDefault
     containers:
       - name: main
-        image: ghcr.io/mebezac/tofu-runner:1.13.2@sha256:923aa797d60488201944d4a26f443ad8ca5e2fa07d05b1392d8bf115c16b720f
+        image: ghcr.io/mebezac/tofu-runner:1.13.9@sha256:2aeae2d0c70471b1b8051a9f64fd4639751140c7e91a210b47abd0b1f2a8568b
         imagePullPolicy: IfNotPresent
         envFrom:
           - secretRef:
@@ -129,7 +131,7 @@ podSpecs:
         type: RuntimeDefault
     containers:
       - name: main
-        image: ghcr.io/mebezac/tofu-runner:1.13.2@sha256:923aa797d60488201944d4a26f443ad8ca5e2fa07d05b1392d8bf115c16b720f
+        image: ghcr.io/mebezac/tofu-runner:1.13.9@sha256:2aeae2d0c70471b1b8051a9f64fd4639751140c7e91a210b47abd0b1f2a8568b
         imagePullPolicy: IfNotPresent
         envFrom:
           - secretRef:
