@@ -78,12 +78,13 @@
     },
     {
       description: [
-        "Hold the local mise node on 24.x: npm:renovate (renovate-config-validator) declares engines node ^24.11, and the same node runs npx for the MCP servers.",
-        "Container base images (containers/*/Dockerfile) still get node majors. Raise this when renovate's engines include the next LTS.",
+        "Hold the local mise node on an LTS that npm:renovate (renovate-config-validator) supports: engines ^24.11.0 || ^26.13.0 since 44.219.0.",
+        "The same node runs npx for the MCP servers (.mcp.json): handshake-test them on the node major PR. Neither declares engines.",
+        "Container base images (containers/*/Dockerfile) still get node majors. Raise this when renovate's engines include the next LTS (28).",
       ],
       matchManagers: ["mise"],
       matchDepNames: ["node"],
-      allowedVersions: "<25",
+      allowedVersions: "<27",
     },
     {
       description: [
@@ -393,6 +394,20 @@
         "repository: (?<depName>\\S+)\\n(?:[ \\t]*#.*\\n)*[ \\t]*tag: \"?(?<currentValue>[^\"\\s]+)\"?\\n[ \\t]*digest: \"?(?<currentDigest>sha256:[a-f0-9]{64})\"?",
       ],
       datasourceTemplate: "docker",
+    },
+    {
+      customType: "regex",
+      description: [
+        "tofu-runner job image lines inside the podSpecs block strings (image: repo:tag@digest).",
+        "No other manager parses them: helm-values is off for this file and the generic manager would take repo:tag@digest as the version.",
+        "The tag is the OpenTofu version built by .github/workflows/tofu-runner-image.yaml; currentValue stops at '@'.",
+      ],
+      managerFilePatterns: ["/(^|/)kubernetes/apps/tofu/tofu-runner/values\\.yaml$/"],
+      matchStrings: [
+        "image: (?<depName>ghcr\\.io/mebezac/tofu-runner):(?<currentValue>[^\\s@]+)@(?<currentDigest>sha256:[a-f0-9]{64})",
+      ],
+      datasourceTemplate: "docker",
+      versioningTemplate: "docker",
     },
     {
       customType: "regex",

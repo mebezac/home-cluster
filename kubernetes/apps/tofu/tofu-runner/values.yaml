@@ -72,9 +72,8 @@ runnerConfig: |
     shutdown_timeout: 3m
 
 # Job pods. The image is built by .github/workflows/tofu-runner-image.yaml from
-# containers/tofu-runner. Renovate does NOT track these image lines (no manager
-# parses them). After each image build, bump both by hand to the tag@digest in
-# the workflow run's step summary.
+# containers/tofu-runner. A dedicated regex customManager in .github/renovate.json5
+# bumps both image lines (tag + digest) after each image build.
 podSpecs:
   podspec-readonly.yaml: |
     automountServiceAccountToken: false
