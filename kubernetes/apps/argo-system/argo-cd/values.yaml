@@ -11,6 +11,8 @@ configs:
     server.insecure: true
     # Server-side diff for every app: dry-run applies so CRD defaults (HTTPRoutes etc.) don't show as drift.
     controller.diff.server.side: "true"
+    # Argo CD 3.6+: turn off the /swagger-ui page. The CLI, UI and argocd-mcp use the API, not this page.
+    server.disable.swagger.ui: "true"
   cm:
     oidc.config: |
       name: 'Authelia'
