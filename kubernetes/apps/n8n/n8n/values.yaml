@@ -48,7 +48,9 @@ controllers:
           # Pinned to the current defaults — upstream is lowering/flipping these in a
           # future release (deprecation warnings as of 2.33.0). Set explicitly so the
           # change is a decision, not a silent inherit. N8N_UNVERIFIED_PACKAGES_ENABLED
-          # is left at the default (false in v3) now that no community package is installed.
+          # takes the v3 default (false) now: no community package is installed, and
+          # setting it stops the startup deprecation warning.
+          N8N_UNVERIFIED_PACKAGES_ENABLED: false
           N8N_RUNNERS_TASK_TIMEOUT: 300
           N8N_COMPRESSION_NODE_MAX_DECOMPRESSED_SIZE_BYTES: 2147483648
           N8N_COMPRESSION_NODE_MAX_ZIP_ENTRIES: 5000
