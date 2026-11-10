@@ -4,7 +4,7 @@ image:
   registry: ghcr.io
   repository: cloudnative-pg/plugin-barman-cloud
   # changelog: GH releases cloudnative-pg/plugin-barman-cloud (not in PR body)
-  tag: v0.15.1@sha256:c75acad19a36e8176cfe2885761ff1b836c6ef977d7257e298c99a28b5c302ef
+  tag: v0.16.0@sha256:6404a416718bd7aad943c67a25a7bb20d0558b43edfeab0bf167f013ca435882
 sidecarImage:
   registry: ghcr.io
   repository: cloudnative-pg/plugin-barman-cloud-sidecar
