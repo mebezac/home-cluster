@@ -21,7 +21,7 @@ controllers:
       control:
         image:
           repository: git.laboratory.casa/laboratory-casa/guildhall
-          tag: 2f78313eaa8564fc37bfe46351d3637b1d665f3d@sha256:90127cbcd00600e5b3bae1d2eed14037e25d70c83ca380ac3a364bbebc99a291
+          tag: a97d4625cf35cbe9098cee55152c288b130faa48@sha256:697da89960b7e5e1c5e9878cd862153c31249efd3b1104f033204d2641938d61
         env:
           TZ: America/New_York
           NODE_ENV: production
@@ -67,7 +67,7 @@ controllers:
       runner:
         image:
           repository: git.laboratory.casa/laboratory-casa/guildhall-runner
-          tag: 2f78313eaa8564fc37bfe46351d3637b1d665f3d@sha256:4534887400e7e0ecd47a091b10ac6e8ba7bdca93186d68fdbb285146847749b8
+          tag: a97d4625cf35cbe9098cee55152c288b130faa48@sha256:7c150f8dc9fbca3c8a85e8ddcd0d0a8e5c895a9fa3be1a65387bb10cd013a9ef
         env:
           TZ: America/New_York
           HOME: /state/auth
