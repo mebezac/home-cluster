@@ -19,7 +19,7 @@ controllers:
           # changelog: GH releases owncloud/ocis. We use the BUILT-IN IdP + s3ng/SILO, so the
           # PROXY_AUTOPROVISION_* / external-OIDC upgrade notes do not apply.
           # digest-only bumps: the REVISION build-arg is NOT an owncloud/ocis commit; compare `go version -m usr/bin/ocis` (vcs.revision + Go version) from the binary layer via crane blob
-          tag: 8.2.3@sha256:9a4f33607cb8337b15815d84e608afe55a7089859260fb4e896cda8d69591760
+          tag: 8.2.3@sha256:8b2249fedba81e8e8ea69ba4baeb880c85978a13a0d73c9bc98ddb3d48dbd4e6
         env:
           DEMO_USERS: false
           OCIS_LOG_COLOR: false
