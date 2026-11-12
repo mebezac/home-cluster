@@ -65,6 +65,9 @@ controllers:
           requests: { cpu: 100m, memory: 256Mi }
           limits: { memory: 1Gi }
       runner:
+        command: [sh, -c]
+        args:
+          - mkdir -p -m 700 "$CODEX_HOME" && exec node apps/runner/dist/http.js
         image:
           repository: git.laboratory.casa/laboratory-casa/guildhall-runner
           tag: a97d4625cf35cbe9098cee55152c288b130faa48@sha256:7c150f8dc9fbca3c8a85e8ddcd0d0a8e5c895a9fa3be1a65387bb10cd013a9ef
