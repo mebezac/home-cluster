@@ -190,3 +190,15 @@ spec:
   owner: terraform
   ensure: present
   databaseReclaimPolicy: retain
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: guildhall
+spec:
+  cluster:
+    name: postgres-17-cluster
+  name: guildhall
+  owner: guildhall
+  ensure: present
+  databaseReclaimPolicy: retain
