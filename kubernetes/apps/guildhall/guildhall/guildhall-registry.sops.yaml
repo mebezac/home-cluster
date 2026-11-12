@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: guildhall-registry
+  namespace: guildhall
+stringData:
+  .dockerconfigjson: ENC[AES256_GCM,data:YODtkF7JiLc3HvRM3XEMBE0eP8XL5hXvKupwIPFs5Y+p6E7n+KZu6u+UhWBlKArb7Zd6R9OfWVK/jJXJQWxe2/+nYMBQ4NffmQWpooyxY8w0rM6pCgWCUKosNXN9Vtymoi84arRCO5+Ba4wf0yCrFO99GnryjqrNv1OVJZigGznLUOUKbBtFiB7eS+5qzTk2185sB6VAzscKLYGlYoMKjLNfQhemW0Qk0gvEw9BWCl4=,iv:Cd4u6MHPHkN9CKML3nfKQbqiVeRoZdCDWlMNl/zL7ks=,tag:Qc9HjdCj4wiN4wbTandxCQ==,type:str]
+type: kubernetes.io/dockerconfigjson
+sops:
+  age:
+    - enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSA2bWt6TjhmT054ZWtFSXNW
+        UlVHaWEySHQrQjRqTm5DemlUNm0ySHlFSGp3CkpBRGtXTGpROTIyMWdFYWQ0RGhB
+        TW5JbUFmQkozZmcvK3UrQUhRVDFnUWMKLS0tIDNDNnQ4aUFRME5pdVJLTW1GenND
+        dWtDajIrVC9vMlpWRWNab1F1bGkzaDQKLe/rKTgjdk2WHfgOdeT+So8tOajGYKrW
+        JVmSK9DR2+VjC+D2e+3L9jHGY7DPymTN0OgJWB172V6e5vPxTyWuOA==
+        -----END AGE ENCRYPTED FILE-----
+      recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
+  encrypted_regex: ^(data|stringData)$
+  lastmodified: "2026-11-12T12:10:13Z"
+  mac: ENC[AES256_GCM,data:Cd7gtkn1j/imVajtHfILhc4g3IKpgjz8e/S2X+w6ETsaIozZtdwC3x25cEuX7dz873nEAVqYb4aa0zJBbXR6x3KQm1Qk2omhwgPEoDT13Ah35q6347CjootEdL2Dz7dsCIB6bgsX4HaMI7Vca+mHgnGBWquz/izbBqdxx78r7SE=,iv:lUc0A5m54Tp+mYRrh2JH8sUOg1drq1cLhP8zKNX5VkU=,tag:ia0HEyRlqazRnA47x7f1vQ==,type:str]
+  mac_only_encrypted: true
+  version: 3.13.3

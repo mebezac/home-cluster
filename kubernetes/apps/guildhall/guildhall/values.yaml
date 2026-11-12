@@ -1,0 +1,183 @@
+defaultPodOptions:
+  automountServiceAccountToken: false
+  terminationGracePeriodSeconds: 3600
+  imagePullSecrets:
+    - name: guildhall-registry
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 3000
+    runAsGroup: 3000
+    fsGroup: 3000
+    fsGroupChangePolicy: OnRootMismatch
+    seccompProfile: { type: RuntimeDefault }
+
+controllers:
+  guildhall:
+    replicas: 1
+    strategy: Recreate
+    annotations:
+      reloader.stakater.com/auto: "true"
+    containers:
+      control:
+        image:
+          repository: git.laboratory.casa/laboratory-casa/guildhall
+          tag: 2f78313eaa8564fc37bfe46351d3637b1d665f3d@sha256:90127cbcd00600e5b3bae1d2eed14037e25d70c83ca380ac3a364bbebc99a291
+        env:
+          TZ: America/New_York
+          NODE_ENV: production
+          HOST: 0.0.0.0
+          PORT: "3000"
+          VIEW_PORT: "3001"
+          APP_ORIGIN: https://guildhall.laboratory.casa
+          VIEW_ORIGIN: https://guildhall-views.laboratory.casa
+          GUILDHALL_DATA: /state/control
+          GUILDHALL_LOCAL_RUNNER_URL: http://127.0.0.1:4712
+          GUILDHALL_WORK_ROOT: /work
+          GUILDHALL_LOCAL_NATIVE_POLICY: '{"mode":"trusted","network":"allowed"}'
+        envFrom:
+          - secretRef:
+              name: guildhall-secret
+        probes:
+          startup:
+            enabled: true
+            custom: true
+            spec:
+              httpGet: &health { path: /health, port: 3000 }
+              periodSeconds: 5
+              failureThreshold: 60
+          readiness:
+            enabled: true
+            custom: true
+            spec:
+              httpGet: *health
+              periodSeconds: 10
+          liveness:
+            enabled: true
+            custom: true
+            spec:
+              httpGet: *health
+              periodSeconds: 30
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities: { drop: [ALL] }
+        resources:
+          requests: { cpu: 100m, memory: 256Mi }
+          limits: { memory: 1Gi }
+      runner:
+        image:
+          repository: git.laboratory.casa/laboratory-casa/guildhall-runner
+          tag: 2f78313eaa8564fc37bfe46351d3637b1d665f3d@sha256:4534887400e7e0ecd47a091b10ac6e8ba7bdca93186d68fdbb285146847749b8
+        env:
+          TZ: America/New_York
+          HOME: /state/auth
+          CODEX_HOME: /state/auth/.codex
+          GUILDHALL_RUNNER_DATA: /state/runner
+          GUILDHALL_RUNNER_HOST: 127.0.0.1
+          GUILDHALL_RUNNER_PORT: "4712"
+        envFrom:
+          - secretRef:
+              name: guildhall-runner-secret
+        probes:
+          startup:
+            enabled: true
+            custom: true
+            spec:
+              exec: &runnerHealth
+                command: [node, -e, "fetch('http://127.0.0.1:4712/v1/capabilities',{headers:{authorization:'Bearer '+process.env.GUILDHALL_RUNNER_TOKEN}}).then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+              periodSeconds: 5
+              failureThreshold: 60
+          readiness:
+            enabled: true
+            custom: true
+            spec:
+              exec: *runnerHealth
+              periodSeconds: 10
+          liveness:
+            enabled: true
+            custom: true
+            spec:
+              exec: *runnerHealth
+              periodSeconds: 30
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities: { drop: [ALL] }
+        resources:
+          requests: { cpu: 100m, memory: 512Mi }
+          limits: { memory: 4Gi }
+
+service:
+  app:
+    controller: guildhall
+    ports:
+      http: { port: 3000 }
+      views: { port: 3001 }
+
+route:
+  app:
+    hostnames: [guildhall.laboratory.casa]
+    parentRefs:
+      - name: envoy-internal
+        namespace: network
+        sectionName: https
+    rules:
+      - backendRefs:
+          - identifier: app
+            port: http
+  views:
+    hostnames: [guildhall-views.laboratory.casa]
+    parentRefs:
+      - name: envoy-internal
+        namespace: network
+        sectionName: https
+    rules:
+      - backendRefs:
+          - identifier: app
+            port: views
+
+persistence:
+  control:
+    type: persistentVolumeClaim
+    storageClass: longhorn
+    accessMode: ReadWriteOnce
+    size: 128Mi
+    suffix: control
+    advancedMounts:
+      guildhall:
+        control:
+          - path: /state/control
+  runner:
+    type: persistentVolumeClaim
+    storageClass: longhorn
+    accessMode: ReadWriteOnce
+    size: 256Mi
+    suffix: runner
+    advancedMounts:
+      guildhall:
+        runner:
+          - path: /state/runner
+  auth:
+    type: persistentVolumeClaim
+    storageClass: longhorn
+    accessMode: ReadWriteOnce
+    size: 128Mi
+    suffix: auth
+    advancedMounts:
+      guildhall:
+        runner:
+          - path: /state/auth
+  work:
+    type: persistentVolumeClaim
+    storageClass: longhorn
+    accessMode: ReadWriteOnce
+    size: 1Gi
+    suffix: work
+    advancedMounts:
+      guildhall:
+        runner:
+          - path: /work
+  tmp:
+    type: emptyDir
+    globalMounts:
+      - path: /tmp
