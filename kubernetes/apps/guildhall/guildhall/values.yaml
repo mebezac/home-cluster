@@ -1,4 +1,6 @@
 defaultPodOptions:
+  annotations:
+    guildhall.laboratory.casa/native-home-size: 2Gi
   automountServiceAccountToken: false
   terminationGracePeriodSeconds: 3600
   imagePullSecrets:
