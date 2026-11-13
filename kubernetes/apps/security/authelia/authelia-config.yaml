@@ -136,6 +136,12 @@ duo_api:
 # OIDC
 identity_providers:
   oidc:
+    authorization_policies:
+      guildhall_admin:
+        default_policy: deny
+        rules:
+          - policy: one_factor
+            subject: group:apps_admin
     claims_policies:
       all:
         id_token:
@@ -481,5 +487,22 @@ identity_providers:
           - "code"
         grant_types:
           - "authorization_code"
+        userinfo_signed_response_alg: "none"
+        token_endpoint_auth_method: "client_secret_basic"
+      # Guildhall: restrict authorization to workspace administrators.
+      - client_id: "guildhall"
+        client_name: "Guildhall"
+        client_secret: "$pbkdf2-sha512$310000$TXi3RvluIsn4B9CwsO1YqQ$vhPVk/2LUJvIbRkInlKWw/gBuWILwmhcpjSUNFt5mI3JFGEp6mJusaoIJeppWyqjfA2eWraRiZ2CYhELC.Bkmw"
+        claims_policy: "all"
+        public: false
+        authorization_policy: "guildhall_admin"
+        consent_mode: "implicit"
+        require_pkce: true
+        pkce_challenge_method: "S256"
+        redirect_uris:
+          - "https://guildhall.laboratory.casa/api/auth/oidc/callback"
+        scopes: ["openid", "profile", "email", "groups"]
+        response_types: ["code"]
+        grant_types: ["authorization_code"]
         userinfo_signed_response_alg: "none"
         token_endpoint_auth_method: "client_secret_basic"
