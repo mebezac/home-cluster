@@ -21,7 +21,7 @@ controllers:
       control:
         image:
           repository: git.laboratory.casa/laboratory-casa/guildhall
-          tag: a97d4625cf35cbe9098cee55152c288b130faa48@sha256:697da89960b7e5e1c5e9878cd862153c31249efd3b1104f033204d2641938d61
+          tag: 71d824e5717ede841a8efdb48c39e2d746b31b11@sha256:0730f07935947fd2fa24c0cfbc65ce30f49e96682eaee01c501c211e400f658a
         env:
           TZ: America/New_York
           NODE_ENV: production
@@ -29,6 +29,11 @@ controllers:
           PORT: "3000"
           VIEW_PORT: "3001"
           APP_ORIGIN: https://guildhall.laboratory.casa
+          AUTH_MODE: oidc
+          OIDC_ISSUER: https://login.laboratory.casa
+          OIDC_CLIENT_ID: guildhall
+          OIDC_REDIRECT_URI: https://guildhall.laboratory.casa/api/auth/oidc/callback
+          OIDC_REQUIRED_GROUPS: apps_admin
           VIEW_ORIGIN: https://guildhall-views.laboratory.casa
           GUILDHALL_DATA: /state/control
           GUILDHALL_LOCAL_RUNNER_URL: http://127.0.0.1:4712
@@ -70,7 +75,7 @@ controllers:
           - mkdir -p -m 700 "$CODEX_HOME" && exec node apps/runner/dist/http.js
         image:
           repository: git.laboratory.casa/laboratory-casa/guildhall-runner
-          tag: a97d4625cf35cbe9098cee55152c288b130faa48@sha256:7c150f8dc9fbca3c8a85e8ddcd0d0a8e5c895a9fa3be1a65387bb10cd013a9ef
+          tag: 71d824e5717ede841a8efdb48c39e2d746b31b11@sha256:c5cc5287970297e9883679bfd6872b10754e47ee5120f7c7cc1140c4cb24b909
         env:
           TZ: America/New_York
           HOME: /state/auth
