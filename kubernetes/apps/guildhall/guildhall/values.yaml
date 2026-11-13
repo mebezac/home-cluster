@@ -165,11 +165,12 @@ persistence:
       guildhall:
         runner:
           - path: /state/runner
+  # Native homes also retain sessions, plugin caches and daemon packages.
   auth:
     type: persistentVolumeClaim
     storageClass: longhorn
     accessMode: ReadWriteOnce
-    size: 128Mi
+    size: 2Gi
     suffix: auth
     advancedMounts:
       guildhall:
