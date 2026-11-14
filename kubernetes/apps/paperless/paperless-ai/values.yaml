@@ -59,7 +59,9 @@ controllers:
           RESTRICT_TO_EXISTING_DOCUMENT_TYPES: "no"
           SHARE_CREATED_OBJECTS: "yes"
           # Base prompt = the v4.0.0 DEFAULT_SYSTEM_PROMPT (src/server/config/defaults.ts),
-          # copied verbatim, plus "For custom fields" at the end. SYSTEM_PROMPT replaces the
+          # copied verbatim, plus "Language" and "For custom fields" at the end. The upstream
+          # examples are German ("de", "German branch") and Sonnet once answered an English
+          # order in German, so the English rule is explicit. SYSTEM_PROMPT replaces the
           # built-in base (paperless-ai appends its fixed output rules and the field list
           # after it). Per-field hints ("description") would be cleaner, but the env parser
           # drops them, so field hints from Git go here.
@@ -104,6 +106,10 @@ controllers:
             - Determine the document language
             - Use language codes like "de" for German or "en" for English
             - If the language is not clear, use "und" as a placeholder
+
+            Language: this is an American household archive. Write the title, tags,
+            correspondent and document type in English, even when the document is in another
+            language. Never translate them into German.
 
             For custom fields:
             - Reference Number: only the identifier itself, without words or symbols like "Order", "Invoice", "No." or "#" (e.g. "27382", not "Order #27382")
