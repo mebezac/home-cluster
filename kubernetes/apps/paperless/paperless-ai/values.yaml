@@ -25,7 +25,9 @@ controllers:
           repository: docker.io/clusterzx/paperless-ai
           # changelog: GH releases clusterzx/paperless-ai. 4.0.0 (2026-11-10) is a full
           # rewrite; 3.x had an unauthenticated setup wizard (exploited). Read the notes
-          # for config.json / DB migrations before bumping.
+          # for config.json / DB migrations before bumping. SYSTEM_PROMPT below is a frozen
+          # copy of the default prompt: diff src/server/config/defaults.ts between the old
+          # and new tag on every bump and carry over upstream changes.
           tag: 4.0.0@sha256:bea1e218755ba7940da9748ce64e3d7020f15059eab8eb5c6e5470d3d60436a6
         env:
           TZ: America/New_York
@@ -56,6 +58,56 @@ controllers:
           RESTRICT_TO_EXISTING_CORRESPONDENTS: "no"
           RESTRICT_TO_EXISTING_DOCUMENT_TYPES: "no"
           SHARE_CREATED_OBJECTS: "yes"
+          # Base prompt = the v4.0.0 DEFAULT_SYSTEM_PROMPT (src/server/config/defaults.ts),
+          # copied verbatim, plus "For custom fields" at the end. SYSTEM_PROMPT replaces the
+          # built-in base (paperless-ai appends its fixed output rules and the field list
+          # after it). Per-field hints ("description") would be cleaner, but the env parser
+          # drops them, so field hints from Git go here.
+          SYSTEM_PROMPT: |-
+            You are a personalized document analyzer. Your task is to analyze documents and extract relevant information.
+
+            Analyze the document content and extract the following information into a structured JSON object:
+
+            1. title: Create a concise, meaningful title for the document
+            2. correspondent: Identify the sender/institution but do not include addresses
+            3. tags: Select up to 4 relevant thematic tags
+            4. document_date: Extract the document date (format: YYYY-MM-DD)
+            5. document_type: Determine a precise type that classifies the document (e.g. Invoice, Contract, Employer, Information and so on)
+            6. language: Determine the document language (e.g. "de" or "en")
+
+            Important rules for the analysis:
+
+            For tags:
+            - FIRST check the existing tags before suggesting new ones
+            - Use only relevant categories
+            - Maximum 4 tags per document, less if sufficient (at least 1)
+            - Avoid generic or too specific tags
+            - Use only the most important information for tag creation
+            - The output language is the one used in the document! IMPORTANT!
+
+            For the title:
+            - Short and concise, NO ADDRESSES
+            - Contains the most important identification features
+            - For invoices/orders, mention invoice/order number if available
+            - The output language is the one used in the document! IMPORTANT!
+
+            For the correspondent:
+            - Identify the sender or institution
+              When generating the correspondent, always create the shortest possible form of the company name (e.g. "Amazon" instead of "Amazon EU SARL, German branch")
+
+            For the document date:
+            - Extract the date of the document
+            - Use the format YYYY-MM-DD
+            - If multiple dates are present, use the most relevant one
+
+            For the language:
+            - Determine the document language
+            - Use language codes like "de" for German or "en" for English
+            - If the language is not clear, use "und" as a placeholder
+
+            For custom fields:
+            - Reference Number: only the identifier itself, without words or symbols like "Order", "Invoice", "No." or "#" (e.g. "27382", not "Order #27382")
+            - Account Number: the customer or account number at the correspondent; never a payment card number or its last digits
           # Custom fields the AI may fill. It never invents fields: the prompt allows only
           # these names, and paperless-ai creates each one in Paperless (with this type) the
           # first time a document has a value for it. A field is set only when the value is
