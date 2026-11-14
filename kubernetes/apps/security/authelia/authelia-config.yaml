@@ -501,6 +501,7 @@ identity_providers:
         pkce_challenge_method: "S256"
         redirect_uris:
           - "https://guildhall.laboratory.casa/api/auth/oidc/callback"
+          - "https://guildhall-recovery.zac.pizza/api/auth/oidc/callback"
         scopes: ["openid", "profile", "email", "groups"]
         response_types: ["code"]
         grant_types: ["authorization_code"]
