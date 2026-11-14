@@ -124,7 +124,7 @@ controllers:
             - Electric Usage (kWh): the USAGE column of the electric meter row, in kWh (a count, not dollars)
             - Water Usage (cu ft): the USAGE column of the water meter row; the unit "CFW" means cubic feet of water
             - Charge fields: copy each amount exactly as printed under CURRENT CHARGES, never add lines together. "Electric Usage" (dollars) -> Electric Usage Charge, "Electric Customer Charge" -> Electric Customer Charge, "Inside Corporation kWh Tax" -> Electric kWh Tax, "Water Usage" -> Water Usage Charge, "Water Customer Charge" -> Water Customer Charge, "Sewer Usage" -> Sewer Usage Charge, "Sewer Customer Charge" -> Sewer Customer Charge, "Refuse / Recycling Charge" -> Refuse Charge
-            - Total: the total current charges / amount due of the bill
+            - Total: the amount of this bill's own charges. On a utility bill that is TOTAL CURRENT CHARGES (the sum of the charge lines); never a total that adds a past-due balance or penalties. On an invoice or order, the grand total
           # Custom fields the AI may fill. It never invents fields: the prompt allows only
           # these names, and paperless-ai creates each one in Paperless (with this type) the
           # first time a document has a value for it. A field is set only when the value is
