@@ -1,0 +1,41 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: paperless-scan
+  namespace: argo-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: kubernetes
+  sources:
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/apps/paperless/scan
+      targetRevision: main
+      ref: paperless-scan-repo
+    - repoURL: ghcr.io/bjw-s-labs/helm
+      chart: app-template
+      targetRevision: 5.3.0
+      helm:
+        releaseName: paperless-scan
+        valueFiles:
+          - $paperless-scan-repo/kubernetes/apps/paperless/scan/values.yaml
+  destination:
+    name: in-cluster
+    namespace: paperless-scan
+  syncPolicy:
+    automated:
+      allowEmpty: true
+      prune: true
+      selfHeal: true
+    # The brscan-skey pods need hostNetwork (the printer pushes the button event to the
+    # host). Only this namespace is privileged; paperless itself stays baseline.
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: privileged
+        pod-security.kubernetes.io/enforce-version: latest
+        pod-security.kubernetes.io/audit: privileged
+        pod-security.kubernetes.io/audit-version: latest
+        pod-security.kubernetes.io/warn: privileged
+        pod-security.kubernetes.io/warn-version: latest
+    syncOptions:
+      - CreateNamespace=true
