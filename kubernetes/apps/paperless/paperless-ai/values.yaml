@@ -35,9 +35,11 @@ controllers:
           # --- Paperless. PAPERLESS_API_TOKEN is in paperless-ai-secret.
           PAPERLESS_API_URL: http://paperless.paperless.svc.cluster.local:8000
           PAPERLESS_PUBLIC_URL: https://paperless.laboratory.casa
-          # --- Metadata AI: Claude (native client; key in the secret).
+          # --- Metadata AI: Claude (native client; key in the secret). Sonnet, not Haiku:
+          # ~$5 per 1,000 documents vs ~$0.24, well inside the monthly free credit, for
+          # better results on messy OCR and ambiguous documents.
           AI_PROVIDER: anthropic
-          ANTHROPIC_MODEL: claude-haiku-5-5
+          ANTHROPIC_MODEL: claude-sonnet-5-5
           # --- "Ask your archive" embeddings: Qwen3-Embedding-8B via OpenRouter
           # (MTEB multilingual retrieval 70.9, $0.01/M tokens). The "custom" provider is
           # only used for embeddings here; CUSTOM_API_KEY is in the secret.
