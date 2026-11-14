@@ -80,7 +80,7 @@ has the larger set of patterns. Older private apps use the
 | App dir | `$P/kubernetes/apps/<namespace>/<app>/` |
 | Argo Application | `$P/kubernetes/argo/apps/<namespace>/<app>.yaml` |
 | Git repoURL (Argo source) | `https://github.com/mebezac/home-cluster-private.git` |
-| app-template version | match the repo: `grep -rh 'chart: app-template' -A1 "$P/kubernetes/argo/apps/"` (both repos on 5.2.1 at last check — never trust a number in a doc) |
+| app-template version | match the repo: `grep -rh 'chart: app-template' -A1 "$P/kubernetes/argo/apps/"` (both repos on 5.3.0 at last check, 2026-11-14 — never trust a number in a doc) |
 | Argo namespace / project | `argo-system` / `kubernetes` (same as public) |
 | App-of-apps parent | `private-apps` (lives in THIS repo, see above) |
 | SOPS | `$P/.sops.yaml` — same age recipient + `encrypted_regex: ^(data\|stringData)$` as public; `$P/age.key` is the same key |

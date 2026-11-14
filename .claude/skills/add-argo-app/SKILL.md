@@ -14,7 +14,7 @@ description: >-
   directory (values.yaml + Argo Application,
   plus ksops secret files when needed), wires the house patterns (internal
   Envoy Gateway HTTPRoute on laboratory.casa, Longhorn persistence, runAs 3000 security context,
-  central Postgres init-container, central valkey), pins images to tag@sha256,
+  central Postgres (CNPG-managed role + Database), central valkey), pins images to tag@sha256,
   commits GitOps-first, and verifies the app synced Healthy via the argocd +
   kubernetes MCP. Reach for this any time a new workload needs to exist in the
   cluster. If the user wants the app kept private (in ../home-cluster-private),
@@ -120,7 +120,7 @@ Phase 0b.
 | App dir | `kubernetes/apps/<namespace>/<app>/` |
 | Argo Application | `kubernetes/argo/apps/<namespace>/<app>.yaml` |
 | Chart repo | `ghcr.io/bjw-s-labs/helm` (NOT the github.io URL) |
-| app-template version | **5.2.1** (dominant in-repo; confirm with `grep -rh 'chart: app-template' -A1 kubernetes/argo/apps/`) |
+| app-template version | **5.3.0** (all apps as of 2026-11-14; ALWAYS confirm with `grep -rh 'chart: app-template' -A1 kubernetes/argo/apps/`) |
 | Git repoURL | `https://github.com/mebezac/home-cluster.git` |
 | Argo app namespace / project | `argo-system` / `kubernetes` |
 | Domain | `laboratory.casa` (no TLS block — the Gateway terminates TLS). `heremag.free` / `zac.pizza` also work on `envoy-external` but need a hand-added CNAME (see Gotchas) |
@@ -259,7 +259,7 @@ spec:
       ref: <app>-repo
     - repoURL: ghcr.io/bjw-s-labs/helm
       chart: app-template
-      targetRevision: 5.2.1
+      targetRevision: 5.3.0
       helm:
         releaseName: <app>
         valueFiles:

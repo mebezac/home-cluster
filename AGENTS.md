@@ -86,7 +86,7 @@ spec:
       ref: <app-name>-repo
     - repoURL: ghcr.io/bjw-s-labs/helm
       chart: app-template
-      targetRevision: 5.2.1
+      targetRevision: 5.3.0
       helm:
         releaseName: <app-name>
         valueFiles:
@@ -106,7 +106,7 @@ spec:
 **Key points:**
 
 - Always use `ghcr.io/bjw-s-labs/helm` as the chart repository (NOT `https://bjw-s.github.io/helm-charts/`)
-- Standard app-template version is **5.2.1**
+- Standard app-template version is **5.3.0** (confirm with `grep -rh 'chart: app-template' -A1 kubernetes/argo/apps/`)
 - The `ref` name must match the pattern `<app-name>-repo`
 - Value files are referenced using `$<app-name>-repo/...` syntax
 
