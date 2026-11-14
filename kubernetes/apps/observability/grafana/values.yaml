@@ -8,8 +8,34 @@ persistence:
   enabled: false
 testFramework:
   enabled: false
+# Server-side rendering for "Export as image" / panel PNGs: the chart runs
+# grafana-image-renderer (headless Chromium) as its own Deployment + Service and points
+# Grafana at it (GF_RENDERING_SERVER_URL / CALLBACK_URL). The chart's NetworkPolicy only
+# lets the Grafana pods reach it.
 imageRenderer:
-  enabled: false
+  enabled: true
+  image:
+    registry: docker.io
+    repository: grafana/grafana-image-renderer
+    # changelog: GH releases grafana/grafana-image-renderer
+    tag: v5.12.11
+    sha: cfa6c8f63e6d626f90208f2880f15bd5facc279daec1b9bb642af07aa850d95e
+    pullPolicy: IfNotPresent
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 3000
+    runAsGroup: 3000
+    fsGroup: 3000
+    seccompProfile: { type: RuntimeDefault }
+  serviceMonitor:
+    enabled: true
+  resources:
+    # Chromium: idle is small, a render spikes. First guess; right-size from metrics.
+    requests:
+      cpu: 20m
+      memory: 256Mi
+    limits:
+      memory: 1Gi
 serviceMonitor:
   enabled: true
 serviceAccount:
@@ -208,8 +234,17 @@ dashboardProviders:
         allowUiUpdates: true
         options:
           path: /var/lib/grafana/dashboards/database
+      - name: "paperless"
+        orgId: 1
+        folder: "Paperless"
+        type: file
+        disableDeletion: false
+        editable: true
+        allowUiUpdates: true
+        options:
+          path: /var/lib/grafana/dashboards/paperless
 dashboards:
-  default:
+  paperless:
     # Utility bills from Paperless custom fields (datasource Paperless, read-only).
     paperless-utilities:
       json: |
@@ -730,6 +765,7 @@ dashboards:
             }
           ]
         }
+  default:
     victorialogs-namespace-starter:
       json: |
         {
