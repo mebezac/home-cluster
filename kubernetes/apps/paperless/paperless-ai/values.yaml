@@ -56,6 +56,18 @@ controllers:
           RESTRICT_TO_EXISTING_CORRESPONDENTS: "no"
           RESTRICT_TO_EXISTING_DOCUMENT_TYPES: "no"
           SHARE_CREATED_OBJECTS: "yes"
+          # Custom fields the AI may fill. It never invents fields: the prompt allows only
+          # these names, and paperless-ai creates each one in Paperless (with this type) the
+          # first time a document has a value for it. A field is set only when the value is
+          # in the document. Types: string longtext integer float monetary date boolean url
+          # (select fields are not auto-created).
+          CUSTOM_FIELDS: >-
+            {"custom_fields":[
+            {"value":"Total","data_type":"monetary","currency":"USD"},
+            {"value":"Due Date","data_type":"date"},
+            {"value":"Reference Number","data_type":"string"},
+            {"value":"Account Number","data_type":"string"},
+            {"value":"Expiration Date","data_type":"date"}]}
         envFrom:
           # PAPERLESS_API_TOKEN, ANTHROPIC_API_KEY, CUSTOM_API_KEY (OpenRouter), API_KEY,
           # JWT_SECRET.
