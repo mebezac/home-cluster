@@ -225,7 +225,7 @@ dashboards:
           ],
           "description": "Utility bill usage and charges from the Paperless custom fields (paperless-ai). Datasource: Paperless (read-only).",
           "time": {
-            "from": "now-2y",
+            "from": "now-3y",
             "to": "now"
           },
           "timezone": "browser",
