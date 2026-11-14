@@ -22,6 +22,14 @@ spec:
   destination:
     name: in-cluster
     namespace: guildhall
+  # The operator assigns the egress Service's actual destination.
+  ignoreDifferences:
+    - group: ""
+      kind: Service
+      name: guildhall-host-ssh
+      namespace: guildhall
+      jsonPointers:
+        - /spec/externalName
   syncPolicy:
     automated:
       allowEmpty: true
@@ -29,3 +37,4 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      - RespectIgnoreDifferences=true

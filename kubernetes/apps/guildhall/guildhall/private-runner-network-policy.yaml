@@ -1,0 +1,20 @@
+# Operator-managed ProxyGroup pods run in the network namespace. ProxyGroup
+# ports are dynamically allocated, so select this dedicated group and allow
+# only Guildhall control's pod; the Service and tailnet grant limit destination.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: guildhall-host-egress-ingress
+  namespace: network
+spec:
+  endpointSelector:
+    matchLabels:
+      tailscale.com/managed: "true"
+      tailscale.com/parent-resource: guildhall-host-egress
+      tailscale.com/parent-resource-type: proxygroup
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: guildhall
+            app.kubernetes.io/name: guildhall
+            app.kubernetes.io/controller: guildhall

@@ -1,0 +1,27 @@
+# Dedicated tailnet identity; the host gateway requires a separate SSH key.
+apiVersion: tailscale.com/v1alpha1
+kind: ProxyGroup
+metadata:
+  name: guildhall-host-egress
+spec:
+  type: egress
+  replicas: 1
+  hostnamePrefix: guildhall-host
+  tags:
+    - tag:k8s-guildhall-runner
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: guildhall-host-ssh
+  namespace: guildhall
+  annotations:
+    tailscale.com/tailnet-ip: "100.117.181.48"
+    tailscale.com/proxy-group: guildhall-host-egress
+spec:
+  type: ExternalName
+  externalName: placeholder
+  ports:
+    - name: ssh
+      port: 14722
+      protocol: TCP
