@@ -23,7 +23,7 @@ controllers:
       prepare-ssh:
         image:
           repository: git.laboratory.casa/laboratory-casa/guildhall
-          tag: 139b07e7e4398174d62a9956ddfbd0b8462a7c54@sha256:7c6870652668cb048bbeabd488561330039789c5161594feca1fa83c02cb82a4
+          tag: 0be2a1cd414e5d3136caab26b2e89ab737edc9a2@sha256:86638847ee7732d1b2aa9ca33aff2860e556505e0f6a9a64abab724092d8bfc2
         command: [sh, -c]
         args:
           - |
@@ -31,12 +31,39 @@ controllers:
             umask 077
             cp /ssh-source/id_ed25519 /ssh-source/known_hosts /ssh-source/config /run/guildhall-ssh/
             chmod 600 /run/guildhall-ssh/id_ed25519 /run/guildhall-ssh/known_hosts /run/guildhall-ssh/config
+            cp /builder-source/builder-key /builder-source/builder-known-hosts /builder-source/builder-config /run/guildhall-ssh/
+            mkdir -p /run/guildhall-ssh/docker
+            chmod 700 /run/guildhall-ssh/docker
+            cp /builder-source/builder-docker-config /run/guildhall-ssh/docker/config.json
+            chmod 600 /run/guildhall-ssh/builder-key /run/guildhall-ssh/builder-known-hosts /run/guildhall-ssh/builder-config /run/guildhall-ssh/docker/config.json
+            cat > /run/guildhall-ssh/kubeconfig <<'KUBE'
+            apiVersion: v1
+            kind: Config
+            clusters:
+              - name: in-cluster
+                cluster:
+                  server: https://kubernetes.default.svc
+                  certificate-authority: /run/guildhall-kube/ca.crt
+            users:
+              - name: guildhall-control
+                user:
+                  tokenFile: /run/guildhall-kube/token
+            contexts:
+              - name: guildhall-workers
+                context:
+                  cluster: in-cluster
+                  user: guildhall-control
+                  namespace: guildhall-workers
+            current-context: guildhall-workers
+            KUBE
+            chmod 600 /run/guildhall-ssh/kubeconfig
             cat > /run/guildhall-ssh/ssh <<'SCRIPT'
             #!/bin/sh
             host_next=no
             for arg do
               if [ "$host_next" = yes ]; then
                 [ "$arg" = guildhall-cachyos ] && exec /usr/bin/ssh -F /run/guildhall-ssh/config "$@"
+                [ "$arg" = guildhall-builder-gateway ] && exec /usr/bin/ssh -F /run/guildhall-ssh/builder-config "$@"
                 break
               fi
               [ "$arg" = -- ] && host_next=yes
@@ -55,7 +82,7 @@ controllers:
       control:
         image:
           repository: git.laboratory.casa/laboratory-casa/guildhall
-          tag: 139b07e7e4398174d62a9956ddfbd0b8462a7c54@sha256:7c6870652668cb048bbeabd488561330039789c5161594feca1fa83c02cb82a4
+          tag: 0be2a1cd414e5d3136caab26b2e89ab737edc9a2@sha256:86638847ee7732d1b2aa9ca33aff2860e556505e0f6a9a64abab724092d8bfc2
         env:
           TZ: America/New_York
           NODE_ENV: production
@@ -77,6 +104,11 @@ controllers:
           GUILDHALL_LOCAL_RUNNER_URL: http://127.0.0.1:4712
           GUILDHALL_WORK_ROOT: /work
           GUILDHALL_LOCAL_NATIVE_POLICY: '{"mode":"trusted","network":"allowed"}'
+          KUBECONFIG: /run/guildhall-ssh/kubeconfig
+          GUILDHALL_TOOLING_BUILDER_ENABLED: "true"
+          DOCKER_HOST: ssh://guildhall-builder-gateway
+          DOCKER_CONFIG: /run/guildhall-ssh/docker
+          BUILDX_CONFIG: /tmp/guildhall-buildx
         envFrom:
           - secretRef:
               name: guildhall-secret
@@ -113,7 +145,7 @@ controllers:
           - mkdir -p -m 700 "$CODEX_HOME" && exec node apps/runner/dist/http.js
         image:
           repository: git.laboratory.casa/laboratory-casa/guildhall-runner
-          tag: 139b07e7e4398174d62a9956ddfbd0b8462a7c54@sha256:761592e81a1351a43e5015556ef7d281bab1b2679bc3fbc7ab2cf23f269bd7bd
+          tag: 0be2a1cd414e5d3136caab26b2e89ab737edc9a2@sha256:790944b0ae5913a669a369b70a3339561ffe0355f4eab1f66c0e19da6b0f38ea
         env:
           TZ: America/New_York
           HOME: /state/auth
@@ -226,8 +258,18 @@ persistence:
           - path: /work
   tmp:
     type: emptyDir
-    globalMounts:
-      - path: /tmp
+    advancedMounts:
+      guildhall:
+        prepare-ssh:
+          - path: /tmp
+        control:
+          - path: /tmp
+  runner-tmp:
+    type: emptyDir
+    advancedMounts:
+      guildhall:
+        runner:
+          - path: /tmp
   ssh-source:
     type: secret
     name: guildhall-host-ssh
@@ -245,4 +287,30 @@ persistence:
           - path: /run/guildhall-ssh
         control:
           - path: /run/guildhall-ssh
+            readOnly: true
+  builder-source:
+    type: secret
+    name: guildhall-builder-transport
+    defaultMode: 288
+    advancedMounts:
+      guildhall:
+        prepare-ssh:
+          - path: /builder-source
+            readOnly: true
+  worker-kube-token:
+    type: projected
+    defaultMode: 288
+    sources:
+      - serviceAccountToken:
+          expirationSeconds: 3600
+          path: token
+      - configMap:
+          name: kube-root-ca.crt
+          items:
+            - key: ca.crt
+              path: ca.crt
+    advancedMounts:
+      guildhall:
+        control:
+          - path: /run/guildhall-kube
             readOnly: true

@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: guildhall-builder-transport
+  namespace: guildhall
+type: Opaque
+data:
+  builder-key: ENC[AES256_GCM,data:tkdJ7t6zGqNmUv/N6wMC8cuMFu/W3X267ESbKECMaRrep79+5nx825dRIDdMjdOh1FofuB2oe9FTOAcxg5kqwcwRLF3G+rS5qukTqdJykAuf1YeGOsmd2R4WFa1kaT1lBpeCJSej8JSkGFyraeHfQJGDnRHbTrmw1HukFleIp7bXN+io6XzfhupP6oZ3IQyfBvVlk3oo5vTE2PiS2qShgmMKfuR1r2sjl89z8SJ8vAG9SMRqL0JXv/iZP5UwmlsGSuy3ceDiTDuiQvvF/QhdCMK7hFS8Xuoz6mqYk/GTQfOOl78Hu/JSpznVWJOxEQxP7cOUplyw/Xeqkuo2qPDOHKOw6vrlEskXVleimPA8YdO5QNb6CwHL5nsNO/mXBaUsm2G9QWkyLj7J+l8pSCJC6DlN8EsCCDoj4g18ZjV7IupdSlSrRNgYwL2b+dp0Dd515qhbCAGffKuxqM+vQfTR+P5WEUe9YOYyTN2PFEcgDgcnhopSsyZW3ulyYeWQuXxjNLkPQkBHH/UY2MKRKSAkp/nnbjH2rVpdUfhv2sVr3UzE9q5kFnQe5X3nh3E8nJeVilgdwK2cUHH2RvuoqxagOkbneNL/dt8qz2a3mp8NCs6tRh7F5ScrRVWMVe2d70h00r1/ApPdAr0O3UqKd2Kl7PfOemyssK+adwJNNcgB5/Da6IY5GF22UHh/x9Si4lxH1LDrJ335/7DM7nBAZRRhLXLKuYI=,iv:8n5skO/FmgAcFTAMb7ptTvQ6G62K9rP68zR1Kv54trQ=,tag:qZEJwcnZ5qKCcQ6Qfnu0fQ==,type:str]
+  builder-known-hosts: ENC[AES256_GCM,data:3mo5ehAHcwJ5FE1/47uv3tt18m8bSjQ2E+7IW9C+3/m8YIry19S2N2zSpPSXezRZ5jJob83VSA/np2ud+bdFFNMRO4IgOW2i65yirdQgHaB574Ev4oIIHJNeSK59gy0bcH8WZST/B4y9OYGe2wNynqQVQmA6u9+CNe/hY2cktLHSe5jkCxK3coTo5qZ6LbpF,iv:FMAFu9g/vWa7vfx0fNfFIIs8ThHORt1NwD/DxFrUMr0=,tag:udqiv+Gne9Y4QVsqhTn75A==,type:str]
+  builder-config: ENC[AES256_GCM,data:DlvOc/Y0cA7MMMB8FqUrbgpw+HzH3WLflmDndtk9QLPDRttCco82XBisFdOPTAHTSoR3nOCxg5BPx3iplrJ7l7utkFMeCD2nroxU4zYb3R7o8wTt0EZEs0Q88Ckp4KqMAuoEF5vpTr5Zqj1jNzelWAUENG4gmowk6GcMU42axB0Wx9oKx4j2UYjoHN4/3px7x2xIRolO9j8S2nEiCkcrP6ZCm6iCq/99TsyiwsRlmcwI5iRW6aVnwS9S/hBcVJHyM4UepQr5L+G3/XfwDtHM2ig0yzdxFhgftgkS1y6U+Qa4hNN1ZO9bXqUFlzycoFcd58+VpsXVyfNg7beyMvsFbt/az6Y61vs23AHqc24G3CEmYQ8XfhQlsqF931ylxc6jCPM8L2EjU+/5PT0Hygq93kK+Fl+rBZh67Yi41RY28vBiXrFpJk7rSsBsblAFx7iRDYTT+j9wESOjBBh1MCHQwwwTNoSsxAhkDkKDgVEXrguO2aCQnTrkTptb3iTeEKHlb0cBgtztxlrUVIE9K8rJYPq/FpKY3xF/imngIfFiqVzEz2uWWMe/L/V+KeD4pmbs05/Cn/KFO8fXAjGINB5sAgMB9lo=,iv:xY4gkJ/8ZngDgtTLMdYVwsx4OV41q1JFG1jao2riBys=,tag:0JWLSxqTWUZeaVqZx7Smbw==,type:str]
+  builder-docker-config: ENC[AES256_GCM,data:Xnre1SPj/kYkjHDjT4mv2vDDS61QjBbW4Gc9Av1oo0leKi9bLXNKuZLoJX2WrlfMXIeWB4AthsTPwhVOX55p+HZ2/K2geF9iyIAeWKQoS+RA3A9MAThHpPD08Vz4wZOrtpp4AYcVKJJhJ9v51dvfzkIQj3JBBhi702OzjojxvcFQRy+uQCJk2FOczb5MbhXZpnxcWrTHbOJwEmgwhCaIJ+ZVenG7fF4xN7yjb1o4/24=,iv:+1LicQjZv35Xv3dYTgkRhZmlghJ18jE76meRG8mPyTg=,tag:IIn6XEVzbqfGRw3FTgV5dA==,type:str]
+sops:
+  age:
+    - enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSB1eUdpWDlmVjF1WXpiOElF
+        bGJDbzJvSEpEMEVwU2lxMHhaQ2psQ00rdjFRCldOcm5vYTd6MDQ5ZmhnVlkzWnIy
+        ZjFvUUI1QWxrcTlQcVBkeUU5c0pubFUKLS0tIGRLZjBrWkJzSWNXTEdiSzIrcENw
+        YnBRWVZaci9jSExWTVpQY0VZelZuZGcKcZJiHvH5wDpj9oCxgHZ1yBRSA/0lRnhS
+        qMDBghhL/WwoMgg3iS6o01orXrgOhiltqTpR74GLXVtDzkilKI72Nw==
+        -----END AGE ENCRYPTED FILE-----
+      recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
+  encrypted_regex: ^(data|stringData)$
+  lastmodified: "2026-11-14T07:27:51Z"
+  mac: ENC[AES256_GCM,data:Mon+rkzcj9CKlQ9SId3jlHux/Fce7riZeXcGG4PP9taSl9t5BPI/y5EVHgPcRlJOYuKAQHiySPfBgKm7VnkKuNf57J4IgYx1fFtwMirjxIyAgx6kDRHBpkzSq4vSsi03fmKjg321dnQWbiWpojhPMh83DSFqWXFIzl3D3eQ9oUI=,iv:LeMtMyqZdhrHaDOVJmZBcaFK1vn7QkGxl42gDj7lhLY=,tag:ufhopn/pSusIIk23EFR2nA==,type:str]
+  mac_only_encrypted: true
+  version: 3.13.3
