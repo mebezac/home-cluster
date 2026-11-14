@@ -142,6 +142,14 @@ identity_providers:
         rules:
           - policy: one_factor
             subject: group:apps_admin
+      # Grafana: admins only. Its "Paperless" Postgres datasource can read every
+      # document's metadata and OCR text, and Grafana OSS lets any Viewer send raw
+      # queries to a datasource, so the login itself is the guard.
+      grafana_admins:
+        default_policy: deny
+        rules:
+          - policy: one_factor
+            subject: group:apps_admin
       # Paperless: household members (apps_user) and admins only.
       paperless_users:
         default_policy: deny
@@ -215,7 +223,7 @@ identity_providers:
         client_name: "Grafana"
         client_secret: "$pbkdf2-sha512$310000$2vOKyoOWcrZLKvJ4v/t8qQ$LP5DSdgiorcOExz4EuCFsFAR2RCgvMaJ7mIJkTkoXAxbMQ0B2QvKRViQ48yRC/eboOPjGjuUzaqkUr/kNQkVWg"
         public: false
-        authorization_policy: "one_factor"
+        authorization_policy: "grafana_admins"
         require_pkce: true
         pkce_challenge_method: "S256"
         redirect_uris:

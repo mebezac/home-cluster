@@ -142,6 +142,26 @@ datasources:
         url: http://victoria-logs-victoria-logs-single-server.observability.svc.cluster.local:9428
         jsonData:
           maxLines: 250
+      # Paperless (central CNPG, read replica) as the read-only role grafana_reader:
+      # SELECT on the document-metadata tables only (database/postgres-17-cluster:
+      # managed.roles + grafana-reader-grants.yaml). Grafana login is apps_admin only
+      # (Authelia policy grafana_admins), because any Grafana user can query a datasource.
+      - name: Paperless
+        type: grafana-postgresql-datasource
+        uid: paperless-postgres
+        access: proxy
+        url: postgres-17-cluster-ro.database.svc.cluster.local:5432
+        user: grafana_reader
+        editable: false
+        jsonData:
+          database: paperless
+          sslmode: require
+          postgresVersion: 1500
+          maxOpenConns: 5
+          maxIdleConns: 2
+          connMaxLifetime: 14400
+        secureJsonData:
+          password: ${PG_READER_PASSWORD}
 dashboardProviders:
   dashboardproviders.yaml:
     apiVersion: 1
@@ -190,6 +210,526 @@ dashboardProviders:
           path: /var/lib/grafana/dashboards/database
 dashboards:
   default:
+    # Utility bills from Paperless custom fields (datasource Paperless, read-only).
+    paperless-utilities:
+      json: |
+        {
+          "title": "Utilities (Paperless)",
+          "uid": "paperless-utilities",
+          "schemaVersion": 41,
+          "version": 1,
+          "editable": true,
+          "tags": [
+            "paperless",
+            "utilities"
+          ],
+          "description": "Utility bill usage and charges from the Paperless custom fields (paperless-ai). Datasource: Paperless (read-only).",
+          "time": {
+            "from": "now-2y",
+            "to": "now"
+          },
+          "timezone": "browser",
+          "refresh": "",
+          "panels": [
+            {
+              "type": "stat",
+              "title": "Last bill",
+              "datasource": {
+                "type": "grafana-postgresql-datasource",
+                "uid": "paperless-postgres"
+              },
+              "gridPos": {
+                "x": 0,
+                "y": 0,
+                "w": 6,
+                "h": 4
+              },
+              "targets": [
+                {
+                  "refId": "A",
+                  "datasource": {
+                    "type": "grafana-postgresql-datasource",
+                    "uid": "paperless-postgres"
+                  },
+                  "format": "table",
+                  "rawQuery": true,
+                  "editorMode": "code",
+                  "rawSql": "SELECT d.created::timestamptz AS time, max(CASE WHEN cf.name = 'Total' THEN i.value_monetary_amount END) AS value\nFROM documents_document d\nJOIN documents_documenttype t ON t.id = d.document_type_id AND t.name = 'Utility Bill'\nJOIN documents_customfieldinstance i ON i.document_id = d.id AND i.deleted_at IS NULL\nJOIN documents_customfield cf ON cf.id = i.field_id\nWHERE d.deleted_at IS NULL\nGROUP BY 1 ORDER BY 1"
+                }
+              ],
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "currencyUSD",
+                  "decimals": 2
+                }
+              },
+              "options": {
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": ""
+                },
+                "colorMode": "none",
+                "graphMode": "none"
+              }
+            },
+            {
+              "type": "stat",
+              "title": "Last 12 months",
+              "datasource": {
+                "type": "grafana-postgresql-datasource",
+                "uid": "paperless-postgres"
+              },
+              "gridPos": {
+                "x": 6,
+                "y": 0,
+                "w": 6,
+                "h": 4
+              },
+              "targets": [
+                {
+                  "refId": "A",
+                  "datasource": {
+                    "type": "grafana-postgresql-datasource",
+                    "uid": "paperless-postgres"
+                  },
+                  "format": "table",
+                  "rawQuery": true,
+                  "editorMode": "code",
+                  "rawSql": "SELECT sum(i.value_monetary_amount) AS value\nFROM documents_document d\nJOIN documents_documenttype t ON t.id = d.document_type_id AND t.name = 'Utility Bill'\nJOIN documents_customfieldinstance i ON i.document_id = d.id AND i.deleted_at IS NULL\nJOIN documents_customfield cf ON cf.id = i.field_id AND cf.name = 'Total'\nWHERE d.deleted_at IS NULL AND d.created > now() - interval '12 months'"
+                }
+              ],
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "currencyUSD",
+                  "decimals": 2
+                }
+              },
+              "options": {
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": ""
+                },
+                "colorMode": "none",
+                "graphMode": "none"
+              }
+            },
+            {
+              "type": "stat",
+              "title": "kWh per day (last bill)",
+              "datasource": {
+                "type": "grafana-postgresql-datasource",
+                "uid": "paperless-postgres"
+              },
+              "gridPos": {
+                "x": 12,
+                "y": 0,
+                "w": 6,
+                "h": 4
+              },
+              "targets": [
+                {
+                  "refId": "A",
+                  "datasource": {
+                    "type": "grafana-postgresql-datasource",
+                    "uid": "paperless-postgres"
+                  },
+                  "format": "table",
+                  "rawQuery": true,
+                  "editorMode": "code",
+                  "rawSql": "SELECT d.created::timestamptz AS time, round(max(CASE WHEN cf.name = 'Electric Usage (kWh)' THEN i.value_int END)::numeric / nullif((max(CASE WHEN cf.name = 'Service Period End' THEN i.value_date END) - max(CASE WHEN cf.name = 'Service Period Start' THEN i.value_date END)),0), 1) AS value\nFROM documents_document d\nJOIN documents_documenttype t ON t.id = d.document_type_id AND t.name = 'Utility Bill'\nJOIN documents_customfieldinstance i ON i.document_id = d.id AND i.deleted_at IS NULL\nJOIN documents_customfield cf ON cf.id = i.field_id\nWHERE d.deleted_at IS NULL\nGROUP BY 1 ORDER BY 1"
+                }
+              ],
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "none",
+                  "decimals": null
+                }
+              },
+              "options": {
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": ""
+                },
+                "colorMode": "none",
+                "graphMode": "none"
+              }
+            },
+            {
+              "type": "stat",
+              "title": "Water cu ft per day (last bill)",
+              "datasource": {
+                "type": "grafana-postgresql-datasource",
+                "uid": "paperless-postgres"
+              },
+              "gridPos": {
+                "x": 18,
+                "y": 0,
+                "w": 6,
+                "h": 4
+              },
+              "targets": [
+                {
+                  "refId": "A",
+                  "datasource": {
+                    "type": "grafana-postgresql-datasource",
+                    "uid": "paperless-postgres"
+                  },
+                  "format": "table",
+                  "rawQuery": true,
+                  "editorMode": "code",
+                  "rawSql": "SELECT d.created::timestamptz AS time, round(max(CASE WHEN cf.name = 'Water Usage (cu ft)' THEN i.value_int END)::numeric / nullif((max(CASE WHEN cf.name = 'Service Period End' THEN i.value_date END) - max(CASE WHEN cf.name = 'Service Period Start' THEN i.value_date END)),0), 1) AS value\nFROM documents_document d\nJOIN documents_documenttype t ON t.id = d.document_type_id AND t.name = 'Utility Bill'\nJOIN documents_customfieldinstance i ON i.document_id = d.id AND i.deleted_at IS NULL\nJOIN documents_customfield cf ON cf.id = i.field_id\nWHERE d.deleted_at IS NULL\nGROUP BY 1 ORDER BY 1"
+                }
+              ],
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "none",
+                  "decimals": null
+                }
+              },
+              "options": {
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": ""
+                },
+                "colorMode": "none",
+                "graphMode": "none"
+              }
+            },
+            {
+              "type": "timeseries",
+              "title": "Cost per bill by charge",
+              "datasource": {
+                "type": "grafana-postgresql-datasource",
+                "uid": "paperless-postgres"
+              },
+              "gridPos": {
+                "x": 0,
+                "y": 4,
+                "w": 24,
+                "h": 9
+              },
+              "targets": [
+                {
+                  "refId": "A",
+                  "datasource": {
+                    "type": "grafana-postgresql-datasource",
+                    "uid": "paperless-postgres"
+                  },
+                  "format": "time_series",
+                  "rawQuery": true,
+                  "editorMode": "code",
+                  "rawSql": "SELECT d.created::timestamptz AS time,\nmax(CASE WHEN cf.name = 'Electric Usage Charge' THEN i.value_monetary_amount END) AS \"Electric usage\",\nmax(CASE WHEN cf.name = 'Electric Customer Charge' THEN i.value_monetary_amount END) AS \"Electric customer\",\nmax(CASE WHEN cf.name = 'Electric kWh Tax' THEN i.value_monetary_amount END) AS \"kWh tax\",\nmax(CASE WHEN cf.name = 'Water Usage Charge' THEN i.value_monetary_amount END) AS \"Water usage\",\nmax(CASE WHEN cf.name = 'Water Customer Charge' THEN i.value_monetary_amount END) AS \"Water customer\",\nmax(CASE WHEN cf.name = 'Sewer Usage Charge' THEN i.value_monetary_amount END) AS \"Sewer usage\",\nmax(CASE WHEN cf.name = 'Sewer Customer Charge' THEN i.value_monetary_amount END) AS \"Sewer customer\",\nmax(CASE WHEN cf.name = 'Refuse Charge' THEN i.value_monetary_amount END) AS \"Refuse\"\nFROM documents_document d\nJOIN documents_documenttype t ON t.id = d.document_type_id AND t.name = 'Utility Bill'\nJOIN documents_customfieldinstance i ON i.document_id = d.id AND i.deleted_at IS NULL\nJOIN documents_customfield cf ON cf.id = i.field_id\nWHERE d.deleted_at IS NULL AND $__timeFilter(d.created)\nGROUP BY 1\nORDER BY 1"
+                }
+              ],
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "currencyUSD",
+                  "custom": {
+                    "drawStyle": "bars",
+                    "fillOpacity": 80,
+                    "barAlignment": 0,
+                    "lineWidth": 1,
+                    "pointSize": 5,
+                    "showPoints": "always",
+                    "stacking": {
+                      "mode": "normal"
+                    },
+                    "spanNulls": true
+                  }
+                },
+                "overrides": []
+              },
+              "options": {
+                "legend": {
+                  "displayMode": "list",
+                  "placement": "bottom"
+                },
+                "tooltip": {
+                  "mode": "multi",
+                  "sort": "desc"
+                }
+              }
+            },
+            {
+              "type": "timeseries",
+              "title": "Electric usage",
+              "datasource": {
+                "type": "grafana-postgresql-datasource",
+                "uid": "paperless-postgres"
+              },
+              "gridPos": {
+                "x": 0,
+                "y": 13,
+                "w": 12,
+                "h": 9
+              },
+              "targets": [
+                {
+                  "refId": "A",
+                  "datasource": {
+                    "type": "grafana-postgresql-datasource",
+                    "uid": "paperless-postgres"
+                  },
+                  "format": "time_series",
+                  "rawQuery": true,
+                  "editorMode": "code",
+                  "rawSql": "SELECT d.created::timestamptz AS time,\nmax(CASE WHEN cf.name = 'Electric Usage (kWh)' THEN i.value_int END) AS \"kWh\",\nround(max(CASE WHEN cf.name = 'Electric Usage (kWh)' THEN i.value_int END)::numeric / nullif((max(CASE WHEN cf.name = 'Service Period End' THEN i.value_date END) - max(CASE WHEN cf.name = 'Service Period Start' THEN i.value_date END)),0), 1) AS \"kWh per day\"\nFROM documents_document d\nJOIN documents_documenttype t ON t.id = d.document_type_id AND t.name = 'Utility Bill'\nJOIN documents_customfieldinstance i ON i.document_id = d.id AND i.deleted_at IS NULL\nJOIN documents_customfield cf ON cf.id = i.field_id\nWHERE d.deleted_at IS NULL AND $__timeFilter(d.created)\nGROUP BY 1\nORDER BY 1"
+                }
+              ],
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "none",
+                  "custom": {
+                    "drawStyle": "bars",
+                    "fillOpacity": 80,
+                    "barAlignment": 0,
+                    "lineWidth": 1,
+                    "pointSize": 5,
+                    "showPoints": "always",
+                    "stacking": {
+                      "mode": "none"
+                    },
+                    "spanNulls": true
+                  }
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "kWh per day"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.drawStyle",
+                        "value": "line"
+                      },
+                      {
+                        "id": "custom.axisPlacement",
+                        "value": "right"
+                      },
+                      {
+                        "id": "custom.fillOpacity",
+                        "value": 0
+                      },
+                      {
+                        "id": "custom.lineWidth",
+                        "value": 2
+                      }
+                    ]
+                  }
+                ]
+              },
+              "options": {
+                "legend": {
+                  "displayMode": "list",
+                  "placement": "bottom"
+                },
+                "tooltip": {
+                  "mode": "multi",
+                  "sort": "desc"
+                }
+              }
+            },
+            {
+              "type": "timeseries",
+              "title": "Water usage",
+              "datasource": {
+                "type": "grafana-postgresql-datasource",
+                "uid": "paperless-postgres"
+              },
+              "gridPos": {
+                "x": 12,
+                "y": 13,
+                "w": 12,
+                "h": 9
+              },
+              "targets": [
+                {
+                  "refId": "A",
+                  "datasource": {
+                    "type": "grafana-postgresql-datasource",
+                    "uid": "paperless-postgres"
+                  },
+                  "format": "time_series",
+                  "rawQuery": true,
+                  "editorMode": "code",
+                  "rawSql": "SELECT d.created::timestamptz AS time,\nmax(CASE WHEN cf.name = 'Water Usage (cu ft)' THEN i.value_int END) AS \"cu ft\",\nround(max(CASE WHEN cf.name = 'Water Usage (cu ft)' THEN i.value_int END)::numeric / nullif((max(CASE WHEN cf.name = 'Service Period End' THEN i.value_date END) - max(CASE WHEN cf.name = 'Service Period Start' THEN i.value_date END)),0), 1) AS \"cu ft per day\"\nFROM documents_document d\nJOIN documents_documenttype t ON t.id = d.document_type_id AND t.name = 'Utility Bill'\nJOIN documents_customfieldinstance i ON i.document_id = d.id AND i.deleted_at IS NULL\nJOIN documents_customfield cf ON cf.id = i.field_id\nWHERE d.deleted_at IS NULL AND $__timeFilter(d.created)\nGROUP BY 1\nORDER BY 1"
+                }
+              ],
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "none",
+                  "custom": {
+                    "drawStyle": "bars",
+                    "fillOpacity": 80,
+                    "barAlignment": 0,
+                    "lineWidth": 1,
+                    "pointSize": 5,
+                    "showPoints": "always",
+                    "stacking": {
+                      "mode": "none"
+                    },
+                    "spanNulls": true
+                  }
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "cu ft per day"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.drawStyle",
+                        "value": "line"
+                      },
+                      {
+                        "id": "custom.axisPlacement",
+                        "value": "right"
+                      },
+                      {
+                        "id": "custom.fillOpacity",
+                        "value": 0
+                      },
+                      {
+                        "id": "custom.lineWidth",
+                        "value": 2
+                      }
+                    ]
+                  }
+                ]
+              },
+              "options": {
+                "legend": {
+                  "displayMode": "list",
+                  "placement": "bottom"
+                },
+                "tooltip": {
+                  "mode": "multi",
+                  "sort": "desc"
+                }
+              }
+            },
+            {
+              "type": "timeseries",
+              "title": "Electric cost per kWh",
+              "datasource": {
+                "type": "grafana-postgresql-datasource",
+                "uid": "paperless-postgres"
+              },
+              "gridPos": {
+                "x": 0,
+                "y": 22,
+                "w": 12,
+                "h": 9
+              },
+              "targets": [
+                {
+                  "refId": "A",
+                  "datasource": {
+                    "type": "grafana-postgresql-datasource",
+                    "uid": "paperless-postgres"
+                  },
+                  "format": "time_series",
+                  "rawQuery": true,
+                  "editorMode": "code",
+                  "rawSql": "SELECT d.created::timestamptz AS time,\nround((max(CASE WHEN cf.name = 'Electric Usage Charge' THEN i.value_monetary_amount END) + coalesce(max(CASE WHEN cf.name = 'Electric Customer Charge' THEN i.value_monetary_amount END),0) + coalesce(max(CASE WHEN cf.name = 'Electric kWh Tax' THEN i.value_monetary_amount END),0)) / nullif(max(CASE WHEN cf.name = 'Electric Usage (kWh)' THEN i.value_int END),0), 4) AS \"all-in $/kWh\",\nround(max(CASE WHEN cf.name = 'Electric Usage Charge' THEN i.value_monetary_amount END) / nullif(max(CASE WHEN cf.name = 'Electric Usage (kWh)' THEN i.value_int END),0), 4) AS \"energy only $/kWh\"\nFROM documents_document d\nJOIN documents_documenttype t ON t.id = d.document_type_id AND t.name = 'Utility Bill'\nJOIN documents_customfieldinstance i ON i.document_id = d.id AND i.deleted_at IS NULL\nJOIN documents_customfield cf ON cf.id = i.field_id\nWHERE d.deleted_at IS NULL AND $__timeFilter(d.created)\nGROUP BY 1\nORDER BY 1"
+                }
+              ],
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "currencyUSD",
+                  "custom": {
+                    "drawStyle": "line",
+                    "fillOpacity": 0,
+                    "barAlignment": 0,
+                    "lineWidth": 2,
+                    "pointSize": 5,
+                    "showPoints": "always",
+                    "stacking": {
+                      "mode": "none"
+                    },
+                    "spanNulls": true
+                  }
+                },
+                "overrides": []
+              },
+              "options": {
+                "legend": {
+                  "displayMode": "list",
+                  "placement": "bottom"
+                },
+                "tooltip": {
+                  "mode": "multi",
+                  "sort": "desc"
+                }
+              }
+            },
+            {
+              "type": "timeseries",
+              "title": "Total per bill",
+              "datasource": {
+                "type": "grafana-postgresql-datasource",
+                "uid": "paperless-postgres"
+              },
+              "gridPos": {
+                "x": 12,
+                "y": 22,
+                "w": 12,
+                "h": 9
+              },
+              "targets": [
+                {
+                  "refId": "A",
+                  "datasource": {
+                    "type": "grafana-postgresql-datasource",
+                    "uid": "paperless-postgres"
+                  },
+                  "format": "time_series",
+                  "rawQuery": true,
+                  "editorMode": "code",
+                  "rawSql": "SELECT d.created::timestamptz AS time,\nmax(CASE WHEN cf.name = 'Total' THEN i.value_monetary_amount END) AS \"Total\"\nFROM documents_document d\nJOIN documents_documenttype t ON t.id = d.document_type_id AND t.name = 'Utility Bill'\nJOIN documents_customfieldinstance i ON i.document_id = d.id AND i.deleted_at IS NULL\nJOIN documents_customfield cf ON cf.id = i.field_id\nWHERE d.deleted_at IS NULL AND $__timeFilter(d.created)\nGROUP BY 1\nORDER BY 1"
+                }
+              ],
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "currencyUSD",
+                  "custom": {
+                    "drawStyle": "bars",
+                    "fillOpacity": 80,
+                    "barAlignment": 0,
+                    "lineWidth": 1,
+                    "pointSize": 5,
+                    "showPoints": "always",
+                    "stacking": {
+                      "mode": "none"
+                    },
+                    "spanNulls": true
+                  }
+                },
+                "overrides": []
+              },
+              "options": {
+                "legend": {
+                  "displayMode": "list",
+                  "placement": "bottom"
+                },
+                "tooltip": {
+                  "mode": "multi",
+                  "sort": "desc"
+                }
+              }
+            }
+          ]
+        }
     victorialogs-namespace-starter:
       json: |
         {

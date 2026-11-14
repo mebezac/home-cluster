@@ -152,6 +152,16 @@ spec:
         inherit: true
         passwordSecret:
           name: pg-role-paperless
+      # Grafana's read-only user for the Paperless dashboards (datasource "Paperless").
+      # No database of its own: grafana-reader-grants.yaml grants SELECT on the
+      # Paperless document-metadata tables only (not auth_user / authtoken_token).
+      - name: grafana_reader
+        ensure: present
+        login: true
+        inherit: true
+        connectionLimit: 5
+        passwordSecret:
+          name: pg-role-grafana-reader
       - name: formbricks
         ensure: present
         login: true

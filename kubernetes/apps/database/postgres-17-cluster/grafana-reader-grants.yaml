@@ -1,0 +1,72 @@
+---
+# Table grants for the grafana_reader role (managed.roles in postgres-17-cluster.yaml).
+# CNPG manages roles but not GRANTs, so this Argo PostSync hook applies them after every
+# sync of this app. Idempotent. It runs here so the superuser secret never leaves the
+# database namespace.
+#
+# Scope: SELECT on the Paperless document-metadata tables only, which is what the Grafana
+# "Paperless" datasource needs. Deliberately NOT auth_user (password hashes),
+# authtoken_token (plaintext API tokens), sessions, mail accounts or the audit log.
+# grafana_reader has no table rights in any other database (PUBLIC only has CONNECT).
+# If a Paperless upgrade recreates one of these tables, its grant returns on the next
+# sync of this app.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: grafana-reader-grants
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  backoffLimit: 3
+  ttlSecondsAfterFinished: 86400
+  template:
+    spec:
+      restartPolicy: Never
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 26
+        runAsGroup: 26
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: grants
+          # Same image as the cluster (postgres-17-cluster.yaml imageName), for psql.
+          image: ghcr.io/cloudnative-pg/postgresql:18.6-standard-trixie@sha256:5bf4a23aa13fb560903fba932676773ba4ba2729c162e587b09bf539a2e3df56
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: ["ALL"] }
+          env:
+            - { name: PGHOST, value: postgres-17-cluster-rw.database.svc.cluster.local }
+            - { name: PGSSLMODE, value: require }
+            - { name: PGDATABASE, value: paperless }
+            - name: PGUSER
+              valueFrom: { secretKeyRef: { name: cloudnative-pg, key: username } }
+            - name: PGPASSWORD
+              valueFrom: { secretKeyRef: { name: cloudnative-pg, key: password } }
+          command:
+            - bash
+            - -ec
+            - |
+              # A new role appears only after CNPG reconciles managed.roles.
+              for i in $(seq 1 30); do
+                psql -XAtc "select 1 from pg_roles where rolname = 'grafana_reader'" | grep -q 1 && break
+                echo "waiting for role grafana_reader ($i)"; sleep 10
+              done
+              psql -X -v ON_ERROR_STOP=1 <<'SQL'
+              GRANT CONNECT ON DATABASE paperless TO grafana_reader;
+              GRANT USAGE ON SCHEMA public TO grafana_reader;
+              GRANT SELECT ON
+                documents_document,
+                documents_documenttype,
+                documents_correspondent,
+                documents_tag,
+                documents_document_tags,
+                documents_customfield,
+                documents_customfieldinstance
+              TO grafana_reader;
+              SQL
+              echo "grants applied"
+          resources:
+            requests: { cpu: 10m, memory: 32Mi }
+            limits: { memory: 128Mi }
