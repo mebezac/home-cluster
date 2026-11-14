@@ -25,3 +25,6 @@ spec:
     - name: ssh
       port: 14722
       protocol: TCP
+    - name: builder-ssh
+      port: 14723
+      protocol: TCP
