@@ -23,7 +23,7 @@ controllers:
       control:
         image:
           repository: git.laboratory.casa/laboratory-casa/guildhall
-          tag: b756a5a1b613ee4fd8b82bef907dd024a6c8cba9@sha256:487ebb5576d3efd60dcbc09e577eb62581d6e471e4230a48d72dbf92f9c2fa76
+          tag: d372c57d99cf9df16915538e0d0b5fef500eca4c@sha256:e7494e9411056764440bb0913928e3eb8051ab4073ed14c62dcc22fd134c581f
         env:
           TZ: America/New_York
           NODE_ENV: production
@@ -32,6 +32,8 @@ controllers:
           VIEW_PORT: "3001"
           APP_ORIGIN: https://guildhall.laboratory.casa
           AUTH_MODE: oidc
+          # Owner-authorized browser acceptance; tickets require local admin issuance.
+          BROWSER_TEST_LOGIN_ENABLED: "true"
           OIDC_ISSUER: https://login.laboratory.casa
           OIDC_CLIENT_ID: guildhall
           OIDC_REDIRECT_URI: https://guildhall.laboratory.casa/api/auth/oidc/callback
@@ -77,7 +79,7 @@ controllers:
           - mkdir -p -m 700 "$CODEX_HOME" && exec node apps/runner/dist/http.js
         image:
           repository: git.laboratory.casa/laboratory-casa/guildhall-runner
-          tag: b756a5a1b613ee4fd8b82bef907dd024a6c8cba9@sha256:33f42e7f8e7cd034fb13de831e02df4a9a8a0449ddb6e3dc63e2aaa92d0c61a7
+          tag: d372c57d99cf9df16915538e0d0b5fef500eca4c@sha256:e268c6eb5d1d7a7504a0e59d8df91fcbb78e0dc341c35b554a5ac3f8b4085b23
         env:
           TZ: America/New_York
           HOME: /state/auth
