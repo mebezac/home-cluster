@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: guildhall-triage-reader
+  namespace: argo-system
+spec:
+  project: kubernetes
+  source:
+    repoURL: https://github.com/mebezac/home-cluster.git
+    path: kubernetes/apps/guildhall/guildhall-triage-reader
+    targetRevision: main
+  destination:
+    name: in-cluster
+    namespace: guildhall-triage-reader
+  syncPolicy:
+    automated:
+      allowEmpty: true
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
