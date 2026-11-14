@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: guildhall-host-ssh
+type: Opaque
+stringData:
+  id_ed25519: ENC[AES256_GCM,data:jXD8GcsKzlpV71XDl8ASSKF757VSXJ7Eo/YZUL5c/oVrjwyqtvU8e20lbHP+H/E3vN5QxGvvM+Q7RZIdkSB/hEifPd5+z+Zd63k1vEP0RH5hTO+INUisB3OF48/BvwQa+tcJ/pNjnQgopni0w0ZRWPFrA2+3CkjyFN9GkT8P8lj1PNhSlPGK6zeiFyIkobrCGA73eP8gdmdCYjP6AOBvR0OmGxOzWIQAykBAsy1vf8pkFV5xQ6fj3ONon/S6ULiZkgLsLUTzHbSSp2L3bLHjmjV0nXuRUQVVWCfOhikXK5WgFy5c15ScY6h9TQzg7qn+fBbuGmKUs+LXUDpiUsTS2NNAJjTSWXatFI0JGT9D7SW6OzhjSu/2Tx4PTdnVf1V6eLE6tZthiuRVJMrHfne6ZhocUMEbBI59usM4IhXXe2pilkkXdnRdlsjir0YFK8MhMevseHo7tY6I0KzrBP8NyKifYGQ0uyNq4mw1KADAHGxQNWICIowB/nvhSeyLvOrDL6qHcVzio1UWYOFx8GF0jKjOjbXlldB2Mp5358096/JOtnM=,iv:ehDcE1yVfMvvb0Twi+NLKLz7oqaRvLCDouC6jH3I58E=,tag:aIVi+K0l6TsLaNIWdyss2Q==,type:str]
+  known_hosts: ENC[AES256_GCM,data:3JneK3e5twP1WPrhVOeWCQvqKDkzKWX2+I460QYq9drv6p7+U835F/Z0IuTV8EWmEiwJybwpwfGzZjtF463xRpST7LN4l8NDP97kn4lsLLY97FACAnLY4YW2VH/dIuFP+H/z,iv:KAcutfRAOiNpFv7MdJ40hOMZLBocY8KEVzyqfkYeeHY=,tag:kVTZBwl5QhYuV4npQCap0Q==,type:str]
+  config: ENC[AES256_GCM,data:cyLIRtrjrMiGmjsgCAcXk9JQ0DYE5LHIBHWBV8Ype+mCUkVbdiQcq8q5LCWpotbUKCDVsjcyoqgCVPEHGcEEejROGSEV0uHs+VFJkbwG87ZMjvGeelCtXrjC1HRerlpKaxX0BluIK3qehlljil08RNAD8DUyiOI3+bUk2DRuM7zx71Douu/QPNZtpRbqJ6iJD7li2KGwZU0j23DQn+b6cROWW2Hm9oHvM6Y1BY6e/GbnQ2cZ2CDo5uHJyaN+iyT99WW04Ho4OF87mvI0p4U5wJEsufHs/6Ci8Cf6WhKCqRvKibK7eVL6EZ5DHpFWXjGXrq7bhAGIZlr0GlUOdmbjqXTrNmzl6a5u+C7ezDCus7i0COjy8dPrAx0JnTJj44C7haUHlER4I9dmCL51QyggNvyJgnwW7yir1qYZKEgI6bWiuMs6ZIt+z2LRz0eDw0EDsPuQYi8HZC3AgCmTCW9rPQ==,iv:V0jLznTYONhDsqYjBlKTTEBPrpU5r8FYunFxMYlxv7A=,tag:82En0MnfatkyszreBE0FVA==,type:str]
+sops:
+  age:
+    - enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSB6R1BxdXhpd3puazNPeHA2
+        SVFLaS9tY3MyWFFSaHFvVktnVkY3QXE1YkNvCkZRK08xMGx3N3U4dTdXUDhIblhz
+        SmszekhKMmNXUGc1RjUxazkrbjdob1EKLS0tIHdiRVkyUXlFdGRXTmJvK0doUVN0
+        VUxHZzdSMUxPd0p6YTI1dndQTVVEQ00KqGqq6p/DLyPeZE+mA8MvEttxT38X9RQJ
+        t71WTzidUENc3Ng+6VOi3jPNY9eSgHTp/iyqn3aPuTmbs/RR6I+n0Q==
+        -----END AGE ENCRYPTED FILE-----
+      recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
+  encrypted_regex: ^(data|stringData)$
+  lastmodified: "2026-11-14T04:45:19Z"
+  mac: ENC[AES256_GCM,data:rQ8gkpb/sqqmNbTt8ZVp5/RFultyQZnRTNm6pSKxSHqMY68ZKqOB72GRC1IsIJnXTfcmnectS1I4G7nPsJw8ITvrxWdHrGfc3ZZZKgNquuVrdAWkTTxsOZ5gtDE+xBg4PBxU5Pc4XilQ/srQh1lWOE/rnS8XnRzojMFdGhd8k5M=,iv:mPWzX+Y+uZ511sGlZLwrHrKxycshmrR7zgsGqucHJDU=,tag:HtVAls09L6l4Ia9tjN6XfA==,type:str]
+  mac_only_encrypted: true
+  version: 3.13.3

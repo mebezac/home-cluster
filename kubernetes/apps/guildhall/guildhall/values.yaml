@@ -19,18 +19,52 @@ controllers:
     strategy: Recreate
     annotations:
       reloader.stakater.com/auto: "true"
+    initContainers:
+      prepare-ssh:
+        image:
+          repository: git.laboratory.casa/laboratory-casa/guildhall
+          tag: 3ce7265ec043c06754107118f1a5bb7012e23e35@sha256:9251c9049228dd366099f65411472a67aac2785afb4c7b33d8bbcc135ea62c26
+        command: [sh, -c]
+        args:
+          - |
+            set -eu
+            umask 077
+            cp /ssh-source/id_ed25519 /ssh-source/known_hosts /ssh-source/config /run/guildhall-ssh/
+            chmod 600 /run/guildhall-ssh/id_ed25519 /run/guildhall-ssh/known_hosts /run/guildhall-ssh/config
+            cat > /run/guildhall-ssh/ssh <<'SCRIPT'
+            #!/bin/sh
+            host_next=no
+            for arg do
+              if [ "$host_next" = yes ]; then
+                [ "$arg" = guildhall-cachyos ] && exec /usr/bin/ssh -F /run/guildhall-ssh/config "$@"
+                break
+              fi
+              [ "$arg" = -- ] && host_next=yes
+            done
+            exec /usr/bin/ssh "$@"
+            SCRIPT
+            chmod 700 /run/guildhall-ssh/ssh
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities: { drop: [ALL] }
+        resources:
+          requests: { cpu: 10m, memory: 32Mi }
+          limits: { memory: 128Mi }
     containers:
       control:
         image:
           repository: git.laboratory.casa/laboratory-casa/guildhall
-          tag: f6ca0cc8dc5707d61781fa0ed5e2f1f182ef0d73@sha256:5a39eca4b1ac8db109391f4196e6f408bea9326f1fc160848a54b9c4ca1ceeb8
+          tag: 3ce7265ec043c06754107118f1a5bb7012e23e35@sha256:9251c9049228dd366099f65411472a67aac2785afb4c7b33d8bbcc135ea62c26
         env:
           TZ: America/New_York
           NODE_ENV: production
+          PATH: /run/guildhall-ssh:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
           HOST: 0.0.0.0
           PORT: "3000"
           VIEW_PORT: "3001"
           APP_ORIGIN: https://guildhall.laboratory.casa
+          GUILDHALL_AGENT_URL: https://guildhall.laboratory.casa/mcp
           AUTH_MODE: oidc
           # Owner-authorized browser acceptance; tickets require local admin issuance.
           BROWSER_TEST_LOGIN_ENABLED: "true"
@@ -79,7 +113,7 @@ controllers:
           - mkdir -p -m 700 "$CODEX_HOME" && exec node apps/runner/dist/http.js
         image:
           repository: git.laboratory.casa/laboratory-casa/guildhall-runner
-          tag: f6ca0cc8dc5707d61781fa0ed5e2f1f182ef0d73@sha256:f9262bf90e3388b7913e3381c168bdcd83ef0bafeb56660cca38b7b397f4254f
+          tag: 3ce7265ec043c06754107118f1a5bb7012e23e35@sha256:a9c80f9056adee6e952c6aa43ddbfc7688567aa53670462920f4b1a6bcbf8522
         env:
           TZ: America/New_York
           HOME: /state/auth
@@ -153,7 +187,7 @@ persistence:
     type: persistentVolumeClaim
     storageClass: longhorn
     accessMode: ReadWriteOnce
-    size: 128Mi
+    size: 2Gi
     suffix: control
     advancedMounts:
       guildhall:
@@ -163,7 +197,7 @@ persistence:
     type: persistentVolumeClaim
     storageClass: longhorn
     accessMode: ReadWriteOnce
-    size: 256Mi
+    size: 2Gi
     suffix: runner
     advancedMounts:
       guildhall:
@@ -194,3 +228,21 @@ persistence:
     type: emptyDir
     globalMounts:
       - path: /tmp
+  ssh-source:
+    type: secret
+    name: guildhall-host-ssh
+    defaultMode: 288 # 0440; fsGroup lets the unprivileged init container read it.
+    advancedMounts:
+      guildhall:
+        prepare-ssh:
+          - path: /ssh-source
+            readOnly: true
+  ssh-runtime:
+    type: emptyDir
+    advancedMounts:
+      guildhall:
+        prepare-ssh:
+          - path: /run/guildhall-ssh
+        control:
+          - path: /run/guildhall-ssh
+            readOnly: true
