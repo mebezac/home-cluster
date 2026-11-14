@@ -30,7 +30,9 @@ controllers:
         command:
           - sh
           - -c
-          - mkdir -p /nas/paperless/consume && chown 3000:3000 /nas/paperless /nas/paperless/consume
+          - >-
+            mkdir -p /nas/paperless/consume/double-sided &&
+            chown 3000:3000 /nas/paperless /nas/paperless/consume /nas/paperless/consume/double-sided
         securityContext:
           runAsNonRoot: false
           runAsUser: 0
@@ -69,9 +71,16 @@ controllers:
           PAPERLESS_TASK_WORKERS: "1"
           PAPERLESS_THREADS_PER_WORKER: "2"
           # --- Consume folder is NFS (no inotify), so poll. Subfolders become tags.
-          PAPERLESS_CONSUMER_POLLING_INTERVAL: "60"
+          # 10s, not 60: collation wants the odd and even scans consumed in order.
+          PAPERLESS_CONSUMER_POLLING_INTERVAL: "10"
           PAPERLESS_CONSUMER_RECURSIVE: "true"
           PAPERLESS_CONSUMER_SUBDIRS_AS_TAGS: "true"
+          # The printer's ADF scans one side. Scan the fronts, then the flipped stack,
+          # both to consume/double-sided/ (the scan-2side target): Paperless interleaves
+          # them (odd scan kept 30 min). The folder name is not made a tag.
+          PAPERLESS_CONSUMER_ENABLE_COLLATE_DOUBLE_SIDED: "true"
+          # brscan-skey writes each PDF to <output>/.brscan-tmp/ and then renames it.
+          PAPERLESS_CONSUMER_IGNORE_DIRS: '[".brscan-tmp"]'
           # --- Celery Flower on :5555 (task-queue UI + Prometheus /metrics). Not routed;
           # only the ServiceMonitor scrapes it.
           PAPERLESS_ENABLE_FLOWER: "true"
@@ -136,6 +145,106 @@ controllers:
           limits:
             memory: 3Gi
 
+  # --- Brother MFC-J475DW scan button -> consume folder (brscan-skey). The printer has
+  # no scan-to-FTP/SMB, only Brother's "Scan to PC" push: brscan-skey registers this
+  # host with the printer over SNMP (write community "internal"), the printer sends the
+  # button event to UDP 54925 on that host, and the pod pulls the pages over TCP 54921.
+  # Panel: SCAN -> to File (any target works) -> pick the name -> OK.
+  # - hostNetwork: the printer (IoT-Local VLAN) must reach the pod, and the
+  #   registration carries the host IP. Firewall: unifi-tofu L3/L4 (nodes -> printer
+  #   tcp 54921, udp 161) and L5 (printer -> nodes udp 54925).
+  # - Two targets, two pods: both bind UDP 54925, so required anti-affinity keeps them
+  #   on different nodes, and Recreate stops a rollout from landing beside the old pod.
+  # - Root (the image writes its config under /opt and /etc and chowns each PDF to
+  #   PUID); only CHOWN/DAC_OVERRIDE/FOWNER. The NFS share maps root to root.
+  # Image: github.com/devzwf/brscan-skey-docker (scripts reviewed 2026-11-14; Brother
+  # debs pinned by sha256 in its Dockerfile). Rebuilt weekly under the same tag, so
+  # Renovate bumps the digest.
+  scan: &scan
+    strategy: Recreate
+    pod: &scanpod
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      labels:
+        brscan-skey: "true"
+      securityContext:
+        runAsNonRoot: false
+        runAsUser: 0
+        runAsGroup: 0
+        seccompProfile: { type: RuntimeDefault }
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - topologyKey: kubernetes.io/hostname
+              labelSelector:
+                matchLabels:
+                  brscan-skey: "true"
+    containers:
+      app: &scanapp
+        image: &scanimage
+          repository: docker.io/devzwf/brscan-skey
+          tag: 1.0.1@sha256:749653abc40602372e31c63cde2bd01c8edaf65865117595666c750f76ea34a7
+        env: &scanenv
+          SCANNER_IP: 10.25.41.183
+          SCANNER_MODEL: MFC-J475DW
+          SKEY_USER: Paperless
+          TZ: America/New_York
+          PUID: "3000"
+          PGID: "3000"
+          SCAN_RESOLUTION: "300"
+          SCAN_MODE: True Gray
+          SCAN_PAGE_SIZE: Letter
+        securityContext: &scansc
+          allowPrivilegeEscalation: false
+          capabilities: { add: ["CHOWN", "DAC_OVERRIDE", "FOWNER"], drop: ["ALL"] }
+        probes:
+          liveness:
+            enabled: true
+            custom: true
+            spec:
+              exec:
+                command: ["pgrep", "-x", "brscan-skey-exe"]
+              initialDelaySeconds: 20
+              periodSeconds: 60
+          readiness:
+            enabled: false
+          startup:
+            enabled: false
+        resources:
+          requests:
+            cpu: 5m
+            memory: 32Mi
+          limits:
+            # scanimage + img2pdf hold a 20-page 300 dpi batch in memory.
+            memory: 1Gi
+
+  # Second panel name: writes to consume/double-sided/ for collation (see
+  # PAPERLESS_CONSUMER_ENABLE_COLLATE_DOUBLE_SIDED). Its own init makes that folder
+  # 3000-owned before the subPath mount (a kubelet-made one would be root's).
+  scan-2side:
+    <<: *scan
+    initContainers:
+      init-consume:
+        image: *scanimage
+        command:
+          - sh
+          - -c
+          - mkdir -p /nas/paperless/consume/double-sided && chown 3000:3000 /nas/paperless/consume/double-sided
+        securityContext:
+          runAsNonRoot: false
+          runAsUser: 0
+          runAsGroup: 0
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities: { add: ["CHOWN", "FOWNER", "DAC_OVERRIDE"], drop: ["ALL"] }
+    containers:
+      app:
+        <<: *scanapp
+        env:
+          <<: *scanenv
+          # Brother shows at most 15 characters; no spaces in the brscan-skey config.
+          SKEY_USER: Paperless-2Side
+
 service:
   app:
     controller: paperless
@@ -179,8 +288,11 @@ persistence:
       apiGroup: kopiur.home-operations.com
       kind: Restore
       name: paperless-data
-    globalMounts:
-      - path: /usr/src/paperless/data
+    # advancedMounts, not globalMounts: the scan controllers must not mount it.
+    advancedMounts:
+      paperless:
+        app:
+          - path: /usr/src/paperless/data
   # Originals, archived PDF/A copies and thumbnails: the part that grows (~2-3x the
   # source files). Expand the PVC when it fills.
   media:
@@ -193,8 +305,10 @@ persistence:
       apiGroup: kopiur.home-operations.com
       kind: Restore
       name: paperless-media
-    globalMounts:
-      - path: /usr/src/paperless/media
+    advancedMounts:
+      paperless:
+        app:
+          - path: /usr/src/paperless/media
   # Scanner / PC drop folder on the NAS: /mnt/data/10tb/paperless/consume (3000:3000,
   # made by init-consume). Paperless deletes each file after it consumes it. The app
   # sees only the subPath, not the rest of the 10tb share.
@@ -209,11 +323,23 @@ persistence:
         app:
           - path: /usr/src/paperless/consume
             subPath: paperless/consume
+      scan:
+        app:
+          - path: /output
+            subPath: paperless/consume
+      scan-2side:
+        init-consume:
+          - path: /nas
+        app:
+          - path: /output
+            subPath: paperless/consume/double-sided
   # Scratch (/tmp/paperless) and document_exporter output.
   tmp:
     type: emptyDir
-    globalMounts:
-      - path: /tmp
-        subPath: tmp
-      - path: /usr/src/paperless/export
-        subPath: export
+    advancedMounts:
+      paperless:
+        app:
+          - path: /tmp
+            subPath: tmp
+          - path: /usr/src/paperless/export
+            subPath: export
