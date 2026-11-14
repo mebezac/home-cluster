@@ -146,6 +146,12 @@ spec:
         inherit: true
         passwordSecret:
           name: pg-role-romm
+      - name: paperless
+        ensure: present
+        login: true
+        inherit: true
+        passwordSecret:
+          name: pg-role-paperless
       - name: formbricks
         ensure: present
         login: true

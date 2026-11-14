@@ -202,3 +202,15 @@ spec:
   owner: guildhall
   ensure: present
   databaseReclaimPolicy: retain
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: paperless
+spec:
+  cluster:
+    name: postgres-17-cluster
+  name: paperless
+  owner: paperless
+  ensure: present
+  databaseReclaimPolicy: retain

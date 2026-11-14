@@ -1,0 +1,193 @@
+defaultPodOptions:
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 3000
+    runAsGroup: 3000
+    fsGroup: 3000
+    fsGroupChangePolicy: OnRootMismatch
+    seccompProfile: { type: RuntimeDefault }
+
+controllers:
+  paperless:
+    annotations:
+      reloader.stakater.com/auto: "true"
+    # One container runs everything under s6: the Granian webserver, the celery worker,
+    # the consumer, the scheduler and Flower. The image supports any non-root uid
+    # ("rootless", docs/setup.md): its init skips usermod/chown when uid != 0, so do NOT
+    # set USERMAP_UID/GID. Rootless means PAPERLESS_OCR_LANGUAGES (apt install at start)
+    # cannot work: only the bundled eng/deu/fra/ita/spa packs exist.
+    # The database and role are CNPG-managed (database/postgres-17-cluster: managed.roles +
+    # databases.yaml), so there is no postgres-init container and no superuser password here.
+    containers:
+      app:
+        image:
+          repository: ghcr.io/paperless-ngx/paperless-ngx
+          # changelog: GH releases paperless-ngx/paperless-ngx. Migrations run on every start
+          # (before the webserver), so the startup probe below must cover a long migration.
+          tag: 3.4.2@sha256:d704e84f88300eb6ab001ab15720a2330ff99169cf9f94d6b8fcc44b63a84c84
+        env:
+          TZ: America/New_York
+          PAPERLESS_TIME_ZONE: America/New_York
+          PAPERLESS_URL: https://paperless.laboratory.casa
+          # The Gateway terminates TLS; trust its X-Forwarded-Proto so Django sees https.
+          PAPERLESS_PROXY_SSL_HEADER: '["HTTP_X_FORWARDED_PROTO", "https"]'
+          PAPERLESS_DATE_ORDER: MDY
+          PAPERLESS_OCR_LANGUAGE: eng
+          # --- Central PG (CNPG). v3 defaults to sqlite, so the engine must be explicit.
+          # PAPERLESS_DBPASS is in paperless-secret.
+          PAPERLESS_DBENGINE: postgresql
+          PAPERLESS_DBHOST: postgres-17-cluster-rw.database.svc.cluster.local
+          PAPERLESS_DBPORT: "5432"
+          PAPERLESS_DBNAME: paperless
+          PAPERLESS_DBUSER: paperless
+          # --- Central valkey, DB 8. PAPERLESS_REDIS (URL with the valkey password) is in
+          # paperless-secret. The prefix namespaces the celery broker, results, channels
+          # and cache keys on the shared instance.
+          PAPERLESS_REDIS_PREFIX: paperless
+          # --- Workers. Pin them: the defaults count the NODE's CPUs, not the pod's.
+          PAPERLESS_WEBSERVER_WORKERS: "2"
+          PAPERLESS_TASK_WORKERS: "1"
+          PAPERLESS_THREADS_PER_WORKER: "2"
+          # --- Consume folder is NFS (no inotify), so poll. Subfolders become tags.
+          PAPERLESS_CONSUMER_POLLING_INTERVAL: "60"
+          PAPERLESS_CONSUMER_RECURSIVE: "true"
+          PAPERLESS_CONSUMER_SUBDIRS_AS_TAGS: "true"
+          # --- Celery Flower on :5555 (task-queue UI + Prometheus /metrics). Not routed;
+          # only the ServiceMonitor scrapes it.
+          PAPERLESS_ENABLE_FLOWER: "true"
+          # --- Login: Authelia OIDC only (client "Paperless" in security/authelia/
+          # authelia-config.yaml, policy paperless_users = apps_admin + apps_user).
+          # PAPERLESS_SOCIALACCOUNT_PROVIDERS (client id/secret JSON) is in paperless-secret.
+          # The login page goes straight to Authelia. /admin and API tokens (mobile apps)
+          # still accept local credentials: PAPERLESS_ADMIN_USER is the break-glass account.
+          PAPERLESS_APPS: allauth.socialaccount.providers.openid_connect
+          PAPERLESS_REDIRECT_LOGIN_TO_SSO: "true"
+          PAPERLESS_DISABLE_REGULAR_LOGIN: "true"
+          PAPERLESS_SOCIAL_AUTO_SIGNUP: "true"
+          PAPERLESS_LOGOUT_REDIRECT_URL: https://login.laboratory.casa/logout
+          # Superuser = lldap group apps_admin, re-applied on EVERY login (a user who leaves
+          # the group loses admin at next login). Other groups sync only into Paperless
+          # groups of the same name that already exist.
+          PAPERLESS_SOCIAL_ACCOUNT_SYNC_GROUPS: "true"
+          PAPERLESS_SOCIAL_ACCOUNT_SYNC_SUPERUSER_GROUP: apps_admin
+          # Break-glass local superuser, created on first start and never changed after.
+          # PAPERLESS_ADMIN_PASSWORD is in paperless-secret.
+          PAPERLESS_ADMIN_USER: admin
+        envFrom:
+          # PAPERLESS_SECRET_KEY, PAPERLESS_DBPASS (must match
+          # database/postgres-17-cluster/roles/paperless.sops.yaml), PAPERLESS_REDIS,
+          # PAPERLESS_ADMIN_PASSWORD, PAPERLESS_SOCIALACCOUNT_PROVIDERS (plaintext of the
+          # Authelia client digest).
+          - secretRef:
+              name: paperless-secret
+        securityContext:
+          # No readOnlyRootFilesystem: s6-overlay writes /run and /var/run/s6.
+          allowPrivilegeEscalation: false
+          capabilities: { drop: ["ALL"] }
+        probes:
+          startup:
+            enabled: true
+            custom: true
+            spec:
+              httpGet: { path: /, port: 8000 }
+              periodSeconds: 10
+              failureThreshold: 60
+          liveness:
+            enabled: true
+            custom: true
+            spec:
+              httpGet: { path: /, port: 8000 }
+              periodSeconds: 30
+              timeoutSeconds: 5
+              failureThreshold: 5
+          readiness:
+            enabled: true
+            custom: true
+            spec:
+              httpGet: { path: /, port: 8000 }
+              periodSeconds: 10
+              timeoutSeconds: 5
+              failureThreshold: 3
+        resources:
+          # First guess (OCR is bursty). Right-size from 7d metrics after a few weeks.
+          requests:
+            cpu: 100m
+            memory: 768Mi
+          limits:
+            memory: 3Gi
+
+service:
+  app:
+    controller: paperless
+    ports:
+      http:
+        port: 8000
+      metrics:
+        port: 5555
+
+serviceMonitor:
+  app:
+    serviceName: paperless
+    endpoints:
+      - port: metrics
+        path: /metrics
+
+route:
+  app:
+    hostnames:
+      - paperless.laboratory.casa
+    parentRefs:
+      - name: envoy-internal
+        namespace: network
+        sectionName: https
+    rules:
+      - backendRefs:
+          - identifier: app
+            port: http
+
+persistence:
+  # Search index, classifier model, migration lock, logs.
+  data:
+    type: persistentVolumeClaim
+    storageClass: longhorn
+    accessMode: ReadWriteOnce
+    suffix: data
+    size: 1Gi
+    # A new PVC fills from the latest Kopiur snapshot (Restore paperless-data, kopiur-backup
+    # source in the Argo app), or comes up empty on a first install.
+    dataSourceRef:
+      apiGroup: kopiur.home-operations.com
+      kind: Restore
+      name: paperless-data
+    globalMounts:
+      - path: /usr/src/paperless/data
+  # Originals, archived PDF/A copies and thumbnails: the part that grows (~2-3x the
+  # source files). Expand the PVC when it fills.
+  media:
+    type: persistentVolumeClaim
+    storageClass: longhorn
+    accessMode: ReadWriteOnce
+    suffix: media
+    size: 5Gi
+    dataSourceRef:
+      apiGroup: kopiur.home-operations.com
+      kind: Restore
+      name: paperless-media
+    globalMounts:
+      - path: /usr/src/paperless/media
+  # Scanner / PC drop folder on the NAS (owned 3000:3000). Paperless deletes each file
+  # after it consumes it.
+  consume:
+    type: nfs
+    server: nas.laboratory.casa
+    path: /mnt/data/10tb/paperless/consume
+    globalMounts:
+      - path: /usr/src/paperless/consume
+  # Scratch (/tmp/paperless) and document_exporter output.
+  tmp:
+    type: emptyDir
+    globalMounts:
+      - path: /tmp
+        subPath: tmp
+      - path: /usr/src/paperless/export
+        subPath: export

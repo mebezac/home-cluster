@@ -142,6 +142,14 @@ identity_providers:
         rules:
           - policy: one_factor
             subject: group:apps_admin
+      # Paperless: household members (apps_user) and admins only.
+      paperless_users:
+        default_policy: deny
+        rules:
+          - policy: one_factor
+            subject: group:apps_admin
+          - policy: one_factor
+            subject: group:apps_user
     claims_policies:
       all:
         id_token:
@@ -501,6 +509,25 @@ identity_providers:
         pkce_challenge_method: "S256"
         redirect_uris:
           - "https://guildhall.laboratory.casa/api/auth/oidc/callback"
+        scopes: ["openid", "profile", "email", "groups"]
+        response_types: ["code"]
+        grant_types: ["authorization_code"]
+        userinfo_signed_response_alg: "none"
+        token_endpoint_auth_method: "client_secret_basic"
+      # Paperless-ngx: django-allauth openid_connect (provider_id "authelia" -> the callback
+      # path). PKCE is on per app (oauth_pkce_enabled). claims_policy "all" puts groups in
+      # the id_token: apps_admin becomes the Paperless superuser on every login.
+      - client_id: "kdPru4jDSJzFT5UMB5.Z2ZOjmZFGpAyOTohpNu-qdK..OGV.ptzM~HQuAaRQ~wkS-KFA~C88"
+        client_name: "Paperless"
+        client_secret: "$pbkdf2-sha512$310000$xp6BrWX1N/SYlqYXJrLMIg$hmDdi.gS6kGHSJ1qOstO5HMHfDeu2g91FREzZG4tyIHm0Kzwu/JEi1a4rS1JeYswEDfRdHapqSFA1eHmsi2gCQ"
+        claims_policy: "all"
+        public: false
+        authorization_policy: "paperless_users"
+        consent_mode: "implicit"
+        require_pkce: true
+        pkce_challenge_method: "S256"
+        redirect_uris:
+          - "https://paperless.laboratory.casa/accounts/oidc/authelia/login/callback/"
         scopes: ["openid", "profile", "email", "groups"]
         response_types: ["code"]
         grant_types: ["authorization_code"]

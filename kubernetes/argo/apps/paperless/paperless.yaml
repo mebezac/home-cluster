@@ -1,0 +1,54 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: paperless
+  namespace: argo-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: kubernetes
+  sources:
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/apps/paperless/paperless
+      targetRevision: main
+      ref: paperless-repo
+    - repoURL: ghcr.io/bjw-s-labs/helm
+      chart: app-template
+      targetRevision: 5.3.0
+      helm:
+        releaseName: paperless
+        valueFiles:
+          - $paperless-repo/kubernetes/apps/paperless/paperless/values.yaml
+    # Kopiur backups of paperless-data and paperless-media (kubernetes/charts/kopiur-backup).
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/charts/kopiur-backup
+      targetRevision: main
+      helm:
+        releaseName: paperless-data-backup
+        valuesObject:
+          pvc: paperless-data
+          mover:
+            runAsUser: 3000
+          restore:
+            enabled: true
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/charts/kopiur-backup
+      targetRevision: main
+      helm:
+        releaseName: paperless-media-backup
+        valuesObject:
+          pvc: paperless-media
+          mover:
+            runAsUser: 3000
+          restore:
+            enabled: true
+  destination:
+    name: in-cluster
+    namespace: paperless
+  syncPolicy:
+    automated:
+      allowEmpty: true
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
