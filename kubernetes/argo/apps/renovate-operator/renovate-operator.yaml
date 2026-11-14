@@ -15,7 +15,7 @@ spec:
       ref: renovate-operator-repo
     - repoURL: ghcr.io/mogenius/helm-charts
       chart: renovate-operator
-      targetRevision: 6.8.0
+      targetRevision: 6.9.0
       helm:
         releaseName: renovate-operator
         valueFiles:
