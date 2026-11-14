@@ -18,6 +18,26 @@ controllers:
     # cannot work: only the bundled eng/deu/fra/ita/spa packs exist.
     # The database and role are CNPG-managed (database/postgres-17-cluster: managed.roles +
     # databases.yaml), so there is no postgres-init container and no superuser password here.
+    initContainers:
+      # The consume folder is a subPath of the whole 10tb NFS export. Make it and hand it
+      # to 3000 before the app mounts it (a kubelet-made subPath would be root-owned).
+      # Root works because the TrueNAS data_10tb share maps root to root
+      # (truenas-terraform sharing.tf). Not recursive: cheap on every restart.
+      init-consume:
+        image:
+          repository: ghcr.io/paperless-ngx/paperless-ngx
+          tag: 3.4.2@sha256:d704e84f88300eb6ab001ab15720a2330ff99169cf9f94d6b8fcc44b63a84c84
+        command:
+          - sh
+          - -c
+          - mkdir -p /nas/paperless/consume && chown 3000:3000 /nas/paperless /nas/paperless/consume
+        securityContext:
+          runAsNonRoot: false
+          runAsUser: 0
+          runAsGroup: 0
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities: { add: ["CHOWN", "FOWNER", "DAC_OVERRIDE"], drop: ["ALL"] }
     containers:
       app:
         image:
@@ -175,14 +195,20 @@ persistence:
       name: paperless-media
     globalMounts:
       - path: /usr/src/paperless/media
-  # Scanner / PC drop folder on the NAS (owned 3000:3000). Paperless deletes each file
-  # after it consumes it.
-  consume:
+  # Scanner / PC drop folder on the NAS: /mnt/data/10tb/paperless/consume (3000:3000,
+  # made by init-consume). Paperless deletes each file after it consumes it. The app
+  # sees only the subPath, not the rest of the 10tb share.
+  nas:
     type: nfs
     server: nas.laboratory.casa
-    path: /mnt/data/10tb/paperless/consume
-    globalMounts:
-      - path: /usr/src/paperless/consume
+    path: /mnt/data/10tb
+    advancedMounts:
+      paperless:
+        init-consume:
+          - path: /nas
+        app:
+          - path: /usr/src/paperless/consume
+            subPath: paperless/consume
   # Scratch (/tmp/paperless) and document_exporter output.
   tmp:
     type: emptyDir
