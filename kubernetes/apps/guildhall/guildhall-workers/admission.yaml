@@ -53,8 +53,14 @@ spec:
       message: Managed workers cannot use service account tokens or host namespaces.
     - expression: >-
         size(object.spec.volumes) == 2 &&
-        object.spec.volumes.exists(v, v.name == 'data' && has(v.persistentVolumeClaim) && v.persistentVolumeClaim.claimName == 'acceptance-runner-data' && (!has(v.persistentVolumeClaim.readOnly) || v.persistentVolumeClaim.readOnly == false)) &&
-        object.spec.volumes.exists(v, v.name == 'auth' && has(v.persistentVolumeClaim) && v.persistentVolumeClaim.claimName == 'acceptance-runner-auth' && (!has(v.persistentVolumeClaim.readOnly) || v.persistentVolumeClaim.readOnly == false)) &&
+        (
+          (object.spec.volumes.exists(v, v.name == 'data' && has(v.persistentVolumeClaim) && v.persistentVolumeClaim.claimName == 'acceptance-runner-data' && (!has(v.persistentVolumeClaim.readOnly) || v.persistentVolumeClaim.readOnly == false)) &&
+           object.spec.volumes.exists(v, v.name == 'auth' && has(v.persistentVolumeClaim) && v.persistentVolumeClaim.claimName == 'acceptance-runner-auth' && (!has(v.persistentVolumeClaim.readOnly) || v.persistentVolumeClaim.readOnly == false)) &&
+           object.spec.containers[0].env.exists(e, e.name == 'GUILDHALL_RUNNER_TOKEN' && has(e.valueFrom) && has(e.valueFrom.secretKeyRef) && e.valueFrom.secretKeyRef.name == 'acceptance-runner-token' && e.valueFrom.secretKeyRef.key == 'token')) ||
+          (object.spec.volumes.exists(v, v.name == 'data' && has(v.persistentVolumeClaim) && v.persistentVolumeClaim.claimName == 'tooling-acceptance-runner-data' && (!has(v.persistentVolumeClaim.readOnly) || v.persistentVolumeClaim.readOnly == false)) &&
+           object.spec.volumes.exists(v, v.name == 'auth' && has(v.persistentVolumeClaim) && v.persistentVolumeClaim.claimName == 'tooling-acceptance-runner-auth' && (!has(v.persistentVolumeClaim.readOnly) || v.persistentVolumeClaim.readOnly == false)) &&
+           object.spec.containers[0].env.exists(e, e.name == 'GUILDHALL_RUNNER_TOKEN' && has(e.valueFrom) && has(e.valueFrom.secretKeyRef) && e.valueFrom.secretKeyRef.name == 'tooling-acceptance-runner-token' && e.valueFrom.secretKeyRef.key == 'token'))
+        ) &&
         size(object.spec.containers[0].volumeMounts) == 2 &&
         object.spec.containers[0].volumeMounts.exists(v, v.name == 'data' && v.mountPath == '/guildhall' && !has(v.subPath) && !has(v.subPathExpr)) &&
         object.spec.containers[0].volumeMounts.exists(v, v.name == 'auth' && v.mountPath == '/guildhall-auth' && !has(v.subPath) && !has(v.subPathExpr))
@@ -64,7 +70,6 @@ spec:
         object.spec.containers[0].env.all(e, e.name in ['GUILDHALL_RUNNER_INSTANCE_ID','GUILDHALL_RUNNER_IMAGE_DIGEST','GUILDHALL_RUNNER_HOST','HOME','GUILDHALL_RUNNER_PORT','GUILDHALL_RUNNER_DATA','GUILDHALL_RUNNER_TOKEN']) &&
         ['GUILDHALL_RUNNER_INSTANCE_ID','GUILDHALL_RUNNER_IMAGE_DIGEST','GUILDHALL_RUNNER_HOST','HOME','GUILDHALL_RUNNER_PORT','GUILDHALL_RUNNER_DATA','GUILDHALL_RUNNER_TOKEN'].all(n, object.spec.containers[0].env.filter(e, e.name == n).size() == 1) &&
         object.spec.containers[0].env.filter(e, e.name == 'GUILDHALL_RUNNER_TOKEN').size() == 1 &&
-        object.spec.containers[0].env.exists(e, e.name == 'GUILDHALL_RUNNER_TOKEN' && has(e.valueFrom) && has(e.valueFrom.secretKeyRef) && e.valueFrom.secretKeyRef.name == 'acceptance-runner-token' && e.valueFrom.secretKeyRef.key == 'token') &&
         object.spec.containers[0].env.filter(e, e.name != 'GUILDHALL_RUNNER_TOKEN').all(e, !has(e.valueFrom)) &&
         object.spec.containers[0].env.exists(e, e.name == 'GUILDHALL_RUNNER_INSTANCE_ID' && e.value == object.metadata.name) &&
         object.spec.containers[0].env.exists(e, e.name == 'GUILDHALL_RUNNER_IMAGE_DIGEST' && e.value == object.spec.containers[0].image) &&
