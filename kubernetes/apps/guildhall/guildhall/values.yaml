@@ -23,7 +23,7 @@ controllers:
       control:
         image:
           repository: git.laboratory.casa/laboratory-casa/guildhall
-          tag: d372c57d99cf9df16915538e0d0b5fef500eca4c@sha256:e7494e9411056764440bb0913928e3eb8051ab4073ed14c62dcc22fd134c581f
+          tag: bc20514ee85478b89c03267c5021b365e8b4194f@sha256:0ea5d54dfa6ff81dc0082b28fab710ebdb6fef40bd745437bd1248bb321044c2
         env:
           TZ: America/New_York
           NODE_ENV: production
@@ -79,7 +79,7 @@ controllers:
           - mkdir -p -m 700 "$CODEX_HOME" && exec node apps/runner/dist/http.js
         image:
           repository: git.laboratory.casa/laboratory-casa/guildhall-runner
-          tag: d372c57d99cf9df16915538e0d0b5fef500eca4c@sha256:e268c6eb5d1d7a7504a0e59d8df91fcbb78e0dc341c35b554a5ac3f8b4085b23
+          tag: bc20514ee85478b89c03267c5021b365e8b4194f@sha256:a7fe987f5708ba8008b0a9dd1b9f02dfbb3dd9a5b8b10988c62a776abaf0cfa2
         env:
           TZ: America/New_York
           HOME: /state/auth
