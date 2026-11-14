@@ -1,0 +1,87 @@
+# Review-only: package owner and generated version path must be configured
+# together with actual registry identity before this kustomization is referenced.
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: guildhall-managed-workers
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: [v1]
+        operations: [CREATE, UPDATE]
+        resources: [pods]
+  validations:
+    - expression: >-
+        has(object.metadata.labels) &&
+        'app.kubernetes.io/name' in object.metadata.labels &&
+        object.metadata.labels['app.kubernetes.io/name'] == 'guildhall-runner' &&
+        has(object.spec.securityContext) &&
+        has(object.spec.securityContext.runAsNonRoot) && object.spec.securityContext.runAsNonRoot == true &&
+        has(object.spec.securityContext.runAsUser) && object.spec.securityContext.runAsUser == 3000 &&
+        has(object.spec.securityContext.runAsGroup) && object.spec.securityContext.runAsGroup == 3000 &&
+        has(object.spec.securityContext.fsGroup) && object.spec.securityContext.fsGroup == 3000 &&
+        has(object.spec.securityContext.fsGroupChangePolicy) && object.spec.securityContext.fsGroupChangePolicy == 'OnRootMismatch' &&
+        has(object.spec.securityContext.seccompProfile) && object.spec.securityContext.seccompProfile.type == 'RuntimeDefault' &&
+        (!has(object.spec.securityContext.supplementalGroups) || size(object.spec.securityContext.supplementalGroups) == 0) &&
+        object.spec.containers.all(c,
+          has(c.securityContext) && !has(c.securityContext.runAsUser) && !has(c.securityContext.runAsGroup) &&
+          !has(c.securityContext.runAsNonRoot) && !has(c.securityContext.seccompProfile))
+      message: Managed workers require the designated label and UID, GID, filesystem group and seccomp profile.
+    - expression: >-
+        size(object.spec.containers) == 1 && object.spec.containers[0].name == 'runner' &&
+        (!has(object.spec.initContainers) || size(object.spec.initContainers) == 0) &&
+        (!has(object.spec.ephemeralContainers) || size(object.spec.ephemeralContainers) == 0)
+      message: A managed worker has exactly one runner container.
+    - expression: >-
+        object.spec.containers[0].image.matches('^git[.]laboratory[.]casa/guildhall-tooling/runner@sha256:[a-f0-9]{64}$') &&
+        (!has(object.spec.containers[0].command) || size(object.spec.containers[0].command) == 0) &&
+        (!has(object.spec.containers[0].args) || size(object.spec.containers[0].args) == 0) &&
+        (!has(object.spec.containers[0].envFrom) || size(object.spec.containers[0].envFrom) == 0) &&
+        !has(object.spec.containers[0].lifecycle) && !has(object.spec.containers[0].livenessProbe) &&
+        !has(object.spec.containers[0].readinessProbe) && !has(object.spec.containers[0].startupProbe) &&
+        !has(object.spec.containers[0].workingDir)
+      message: A managed worker uses a digest-pinned configured tooling image and its entrypoint.
+    - expression: >-
+        object.spec.automountServiceAccountToken == false &&
+        object.spec.restartPolicy == 'Never' &&
+        (!has(object.spec.serviceAccountName) || object.spec.serviceAccountName == 'default') &&
+        (!has(object.spec.hostNetwork) || object.spec.hostNetwork == false) &&
+        (!has(object.spec.hostPID) || object.spec.hostPID == false) &&
+        (!has(object.spec.hostIPC) || object.spec.hostIPC == false)
+      message: Managed workers cannot use service account tokens or host namespaces.
+    - expression: >-
+        size(object.spec.volumes) == 2 &&
+        object.spec.volumes.exists(v, v.name == 'data' && has(v.persistentVolumeClaim) && v.persistentVolumeClaim.claimName == 'acceptance-runner-data' && (!has(v.persistentVolumeClaim.readOnly) || v.persistentVolumeClaim.readOnly == false)) &&
+        object.spec.volumes.exists(v, v.name == 'auth' && has(v.persistentVolumeClaim) && v.persistentVolumeClaim.claimName == 'acceptance-runner-auth' && (!has(v.persistentVolumeClaim.readOnly) || v.persistentVolumeClaim.readOnly == false)) &&
+        size(object.spec.containers[0].volumeMounts) == 2 &&
+        object.spec.containers[0].volumeMounts.exists(v, v.name == 'data' && v.mountPath == '/guildhall' && !has(v.subPath) && !has(v.subPathExpr)) &&
+        object.spec.containers[0].volumeMounts.exists(v, v.name == 'auth' && v.mountPath == '/guildhall-auth' && !has(v.subPath) && !has(v.subPathExpr))
+      message: Managed workers use only the designated private data and auth claims.
+    - expression: >-
+        size(object.spec.containers[0].env) == 7 &&
+        object.spec.containers[0].env.all(e, e.name in ['GUILDHALL_RUNNER_INSTANCE_ID','GUILDHALL_RUNNER_IMAGE_DIGEST','GUILDHALL_RUNNER_HOST','HOME','GUILDHALL_RUNNER_PORT','GUILDHALL_RUNNER_DATA','GUILDHALL_RUNNER_TOKEN']) &&
+        ['GUILDHALL_RUNNER_INSTANCE_ID','GUILDHALL_RUNNER_IMAGE_DIGEST','GUILDHALL_RUNNER_HOST','HOME','GUILDHALL_RUNNER_PORT','GUILDHALL_RUNNER_DATA','GUILDHALL_RUNNER_TOKEN'].all(n, object.spec.containers[0].env.filter(e, e.name == n).size() == 1) &&
+        object.spec.containers[0].env.filter(e, e.name == 'GUILDHALL_RUNNER_TOKEN').size() == 1 &&
+        object.spec.containers[0].env.exists(e, e.name == 'GUILDHALL_RUNNER_TOKEN' && has(e.valueFrom) && has(e.valueFrom.secretKeyRef) && e.valueFrom.secretKeyRef.name == 'acceptance-runner-token' && e.valueFrom.secretKeyRef.key == 'token') &&
+        object.spec.containers[0].env.filter(e, e.name != 'GUILDHALL_RUNNER_TOKEN').all(e, !has(e.valueFrom)) &&
+        object.spec.containers[0].env.exists(e, e.name == 'GUILDHALL_RUNNER_INSTANCE_ID' && e.value == object.metadata.name) &&
+        object.spec.containers[0].env.exists(e, e.name == 'GUILDHALL_RUNNER_IMAGE_DIGEST' && e.value == object.spec.containers[0].image) &&
+        object.spec.containers[0].env.exists(e, e.name == 'GUILDHALL_RUNNER_HOST' && e.value == '0.0.0.0') &&
+        object.spec.containers[0].env.exists(e, e.name == 'GUILDHALL_RUNNER_PORT' && e.value.matches('^[0-9]{1,5}$')) &&
+        object.spec.containers[0].env.exists(e, e.name == 'HOME' && e.value == '/guildhall-auth') &&
+        object.spec.containers[0].env.exists(e, e.name == 'GUILDHALL_RUNNER_DATA' && e.value == '/guildhall/data')
+      message: Managed worker environment references only the designated token and safe paths.
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: guildhall-managed-workers
+spec:
+  policyName: guildhall-managed-workers
+  validationActions: [Deny]
+  matchResources:
+    namespaceSelector:
+      matchLabels:
+        guildhall.laboratory.casa/managed-workers: "true"

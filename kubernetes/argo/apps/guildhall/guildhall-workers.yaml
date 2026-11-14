@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: guildhall-workers
+  namespace: argo-system
+spec:
+  project: kubernetes
+  source:
+    repoURL: https://github.com/mebezac/home-cluster.git
+    path: kubernetes/apps/guildhall/guildhall-workers
+    targetRevision: main
+  destination:
+    name: in-cluster
+    namespace: guildhall-workers
+  syncPolicy:
+    automated:
+      allowEmpty: true
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
