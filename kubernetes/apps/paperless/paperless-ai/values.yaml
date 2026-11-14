@@ -107,6 +107,12 @@ controllers:
             - Use language codes like "de" for German or "en" for English
             - If the language is not clear, use "und" as a placeholder
 
+            Titles of recurring bills and statements (utilities, phone, internet, bank,
+            insurance): the title must be exactly "<Correspondent> <Document type> YYYY-MM",
+            where YYYY-MM is the month of the bill date (e.g. "City of Bowling Green Utility
+            Bill 2026-09"). Never put an address or account number in any title; those belong
+            in the custom fields.
+
             Language: this is an American household archive. Write the title, tags,
             correspondent and document type in English, even when the document is in another
             language. Never translate them into German.
@@ -114,6 +120,11 @@ controllers:
             For custom fields:
             - Reference Number: only the identifier itself, without words or symbols like "Order", "Invoice", "No." or "#" (e.g. "27382", not "Order #27382")
             - Account Number: the customer or account number at the correspondent; never a payment card number or its last digits
+            - Service Period Start / Service Period End: the meter read or service period of a utility bill (e.g. "METER READ BEGIN & END DATES 08/15/2026 - 09/15/2026")
+            - Electric Usage (kWh): the USAGE column of the electric meter row, in kWh (a count, not dollars)
+            - Water Usage (cu ft): the USAGE column of the water meter row; the unit "CFW" means cubic feet of water
+            - Charge fields: copy each amount exactly as printed under CURRENT CHARGES, never add lines together. "Electric Usage" (dollars) -> Electric Usage Charge, "Electric Customer Charge" -> Electric Customer Charge, "Inside Corporation kWh Tax" -> Electric kWh Tax, "Water Usage" -> Water Usage Charge, "Water Customer Charge" -> Water Customer Charge, "Sewer Usage" -> Sewer Usage Charge, "Sewer Customer Charge" -> Sewer Customer Charge, "Refuse / Recycling Charge" -> Refuse Charge
+            - Total: the total current charges / amount due of the bill
           # Custom fields the AI may fill. It never invents fields: the prompt allows only
           # these names, and paperless-ai creates each one in Paperless (with this type) the
           # first time a document has a value for it. A field is set only when the value is
@@ -125,7 +136,19 @@ controllers:
             {"value":"Due Date","data_type":"date"},
             {"value":"Reference Number","data_type":"string"},
             {"value":"Account Number","data_type":"string"},
-            {"value":"Expiration Date","data_type":"date"}]}
+            {"value":"Expiration Date","data_type":"date"},
+            {"value":"Service Period Start","data_type":"date"},
+            {"value":"Service Period End","data_type":"date"},
+            {"value":"Electric Usage (kWh)","data_type":"integer"},
+            {"value":"Water Usage (cu ft)","data_type":"integer"},
+            {"value":"Electric Usage Charge","data_type":"monetary","currency":"USD"},
+            {"value":"Electric Customer Charge","data_type":"monetary","currency":"USD"},
+            {"value":"Electric kWh Tax","data_type":"monetary","currency":"USD"},
+            {"value":"Water Usage Charge","data_type":"monetary","currency":"USD"},
+            {"value":"Water Customer Charge","data_type":"monetary","currency":"USD"},
+            {"value":"Sewer Usage Charge","data_type":"monetary","currency":"USD"},
+            {"value":"Sewer Customer Charge","data_type":"monetary","currency":"USD"},
+            {"value":"Refuse Charge","data_type":"monetary","currency":"USD"}]}
         envFrom:
           # PAPERLESS_API_TOKEN, ANTHROPIC_API_KEY, CUSTOM_API_KEY (OpenRouter), API_KEY,
           # JWT_SECRET.
