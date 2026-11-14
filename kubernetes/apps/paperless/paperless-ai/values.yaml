@@ -59,7 +59,8 @@ controllers:
           RESTRICT_TO_EXISTING_DOCUMENT_TYPES: "no"
           SHARE_CREATED_OBJECTS: "yes"
           # Base prompt = the v4.0.0 DEFAULT_SYSTEM_PROMPT (src/server/config/defaults.ts),
-          # copied verbatim, plus "Language" and "For custom fields" at the end. The upstream
+          # copied verbatim except the tag limit (4 -> 8, both lines), plus our sections
+          # (recurring-bill titles, utility tags, language, custom fields) at the end. The upstream
           # examples are German ("de", "German branch") and Sonnet once answered an English
           # order in German, so the English rule is explicit. SYSTEM_PROMPT replaces the
           # built-in base (paperless-ai appends its fixed output rules and the field list
@@ -72,7 +73,7 @@ controllers:
 
             1. title: Create a concise, meaningful title for the document
             2. correspondent: Identify the sender/institution but do not include addresses
-            3. tags: Select up to 4 relevant thematic tags
+            3. tags: Select up to 8 relevant thematic tags
             4. document_date: Extract the document date (format: YYYY-MM-DD)
             5. document_type: Determine a precise type that classifies the document (e.g. Invoice, Contract, Employer, Information and so on)
             6. language: Determine the document language (e.g. "de" or "en")
@@ -82,7 +83,7 @@ controllers:
             For tags:
             - FIRST check the existing tags before suggesting new ones
             - Use only relevant categories
-            - Maximum 4 tags per document, less if sufficient (at least 1)
+            - Maximum 8 tags per document, less if sufficient (at least 1)
             - Avoid generic or too specific tags
             - Use only the most important information for tag creation
             - The output language is the one used in the document! IMPORTANT!
@@ -112,6 +113,9 @@ controllers:
             where YYYY-MM is the month of the bill date (e.g. "City of Bowling Green Utility
             Bill 2026-09"). Never put an address or account number in any title; those belong
             in the custom fields.
+
+            Tags on utility bills: tag each utility the bill charges for, using exactly these
+            names: Electric, Water, Sewer, Refuse. Also add the tags Utilities and Bill.
 
             Language: this is an American household archive. Write the title, tags,
             correspondent and document type in English, even when the document is in another
