@@ -4,7 +4,7 @@ metadata:
   name: guildhall-dependency-reader
 rules:
   - apiGroups: [""]
-    resources: [namespaces, pods, pods/log, events, services]
+    resources: [namespaces, pods, pods/log, events, services, nodes, persistentvolumes, persistentvolumeclaims]
     verbs: [get, list, watch]
   - apiGroups: [apps]
     resources: [deployments, replicasets, daemonsets, statefulsets]
@@ -17,6 +17,85 @@ rules:
     verbs: [get, list, watch]
   - apiGroups: [networking.k8s.io]
     resources: [ingresses, networkpolicies]
+    verbs: [get, list, watch]
+  # Installed API/schema compatibility checks before CRD-bearing upgrades.
+  - apiGroups: [apiextensions.k8s.io]
+    resources: [customresourcedefinitions]
+    verbs: [get, list, watch]
+  # Storage/routing health referenced by the current workload inventory.
+  - apiGroups: [discovery.k8s.io]
+    resources: [endpointslices]
+    verbs: [get, list, watch]
+  - apiGroups: [storage.k8s.io]
+    resources: [storageclasses, csidrivers, volumeattachments]
+    verbs: [get, list, watch]
+  - apiGroups: [snapshot.storage.k8s.io]
+    resources: [volumesnapshotclasses, volumesnapshots, volumesnapshotcontents]
+    verbs: [get, list, watch]
+  # Database/operator version, migration and backup readiness (no Secret reads).
+  - apiGroups: [postgresql.cnpg.io]
+    resources: [clusters, databases, scheduledbackups, backups]
+    verbs: [get, list, watch]
+  - apiGroups: [barmancloud.cnpg.io]
+    resources: [objectstores]
+    verbs: [get, list, watch]
+  # Certificate, Gateway API and Envoy status/configuration compatibility.
+  - apiGroups: [cert-manager.io]
+    resources: [certificates, issuers, clusterissuers]
+    verbs: [get, list, watch]
+  - apiGroups: [gateway.networking.k8s.io]
+    resources: [gateways, gatewayclasses, httproutes, referencegrants, backendtlspolicies]
+    verbs: [get, list, watch]
+  - apiGroups: [gateway.envoyproxy.io]
+    resources: [backendtrafficpolicies, clienttrafficpolicies, envoyproxies, httproutefilters, securitypolicies]
+    verbs: [get, list, watch]
+  # Cilium policy/addressing and per-node health for the existing network stack.
+  - apiGroups: [cilium.io]
+    resources:
+      - ciliumnetworkpolicies
+      - ciliumclusterwidenetworkpolicies
+      - ciliuml2announcementpolicies
+      - ciliumloadbalancerippools
+      - ciliumnodes
+    verbs: [get, list, watch]
+  # Existing scrape/rule objects and VictoriaMetrics operator-managed workloads.
+  - apiGroups: [monitoring.coreos.com]
+    resources: [podmonitors, servicemonitors, prometheusrules]
+    verbs: [get, list, watch]
+  - apiGroups: [operator.victoriametrics.com]
+    resources:
+      - vmagents
+      - vmalerts
+      - vmalertmanagers
+      - vmnodescrapes
+      - vmpodscrapes
+      - vmservicescrapes
+      - vmsingles
+      - vmstaticscrapes
+    verbs: [get, list, watch]
+  # Longhorn upgrade/volume health; excludes support bundles and arbitrary settings.
+  - apiGroups: [longhorn.io]
+    resources: [nodes, volumes, engines, replicas, engineimages, instancemanagers, recurringjobs]
+    verbs: [get, list, watch]
+  # Existing backup policies/results and restore status, not backup credential Secrets.
+  - apiGroups: [kopiur.home-operations.com]
+    resources: [clusterrepositories, repositories, snapshotpolicies, snapshotschedules, snapshots, restores]
+    verbs: [get, list, watch]
+  # Actual remaining operator kinds in the tracked repository/current Argo inventory.
+  - apiGroups: [externaldns.k8s.io]
+    resources: [dnsendpoints]
+    verbs: [get, list, watch]
+  - apiGroups: [nfd.k8s-sigs.io]
+    resources: [nodefeaturerules]
+    verbs: [get, list, watch]
+  - apiGroups: [deviceplugin.intel.com]
+    resources: [gpudeviceplugins]
+    verbs: [get, list, watch]
+  - apiGroups: [tailscale.com]
+    resources: [connectors, proxyclasses, proxygroups]
+    verbs: [get, list, watch]
+  - apiGroups: [renovate-operator.mogenius.com]
+    resources: [renovatejobs]
     verbs: [get, list, watch]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
