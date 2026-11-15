@@ -29,6 +29,17 @@ imageRenderer:
     seccompProfile: { type: RuntimeDefault }
   serviceMonitor:
     enabled: true
+  networkPolicy:
+    limitIngress: true
+    # The chart's policy admits only the Grafana pods; vmagent must reach /metrics
+    # too, or the ServiceMonitor target is down (TargetDown).
+    extraIngressSelectors:
+      - podSelector:
+          matchLabels:
+            app.kubernetes.io/name: vmagent
+        namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: observability
   resources:
     # Chromium: idle is small, a render spikes. First guess; right-size from metrics.
     requests:
