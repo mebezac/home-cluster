@@ -60,7 +60,8 @@ controllers:
           SHARE_CREATED_OBJECTS: "yes"
           # Base prompt = the v4.0.0 DEFAULT_SYSTEM_PROMPT (src/server/config/defaults.ts),
           # copied verbatim except the tag limit (4 -> 8, both lines), plus our sections
-          # (recurring-bill titles, utility tags, language, custom fields) at the end. The upstream
+          # (recurring-bill titles, utility tags and type, CHOICE gas correspondent, language,
+          # custom fields) at the end. The upstream
           # examples are German ("de", "German branch") and Sonnet once answered an English
           # order in German, so the English rule is explicit. SYSTEM_PROMPT replaces the
           # built-in base (paperless-ai appends its fixed output rules and the field list
@@ -115,7 +116,13 @@ controllers:
             in the custom fields.
 
             Tags on utility bills: tag each utility the bill charges for, using exactly these
-            names: Electric, Water, Sewer, Refuse. Also add the tags Utilities and Bill.
+            names: Electric, Water, Sewer, Refuse, Gas. Also add the tags Utilities and Bill.
+            The document type of every utility bill (electric, water, sewer, refuse or gas) is
+            exactly "Utility Bill".
+
+            Gas bills under the Customer CHOICE program: the correspondent is the utility that
+            sends the bill and delivers the gas (e.g. "Columbia Gas of Ohio"), never the gas
+            supplier named on the bill (e.g. IGS Energy).
 
             Language: this is an American household archive. Write the title, tags,
             correspondent and document type in English, even when the document is in another
@@ -124,11 +131,14 @@ controllers:
             For custom fields:
             - Reference Number: only the identifier itself, without words or symbols like "Order", "Invoice", "No." or "#" (e.g. "27382", not "Order #27382")
             - Account Number: the customer or account number at the correspondent; never a payment card number or its last digits
-            - Service Period Start / Service Period End: the meter read or service period of a utility bill (e.g. "METER READ BEGIN & END DATES 08/15/2026 - 09/15/2026")
+            - Service Period Start / Service Period End: the meter read or service period of a utility bill (e.g. "METER READ BEGIN & END DATES 08/15/2026 - 09/15/2026"). On a gas bill, the two "Reading on" dates under Meter Readings (the earlier one is the start); they have no year, so take it from the statement date (a December start on a January bill is in the previous year)
             - Electric Usage (kWh): the USAGE column of the electric meter row, in kWh (a count, not dollars)
             - Water Usage (cu ft): the USAGE column of the water meter row; the unit "CFW" means cubic feet of water
-            - Charge fields: copy each amount exactly as printed under CURRENT CHARGES, never add lines together. "Electric Usage" (dollars) -> Electric Usage Charge, "Electric Customer Charge" -> Electric Customer Charge, "Inside Corporation kWh Tax" -> Electric kWh Tax, "Water Usage" -> Water Usage Charge, "Water Customer Charge" -> Water Customer Charge, "Sewer Usage" -> Sewer Usage Charge, "Sewer Customer Charge" -> Sewer Customer Charge, "Refuse / Recycling Charge" -> Refuse Charge
-            - Total: the amount of this bill's own charges. On a utility bill that is TOTAL CURRENT CHARGES (the sum of the charge lines); never a total that adds a past-due balance or penalties. On an invoice or order, the grand total
+            - Gas Usage (Ccf): the "Gas Used (Ccf)" line under Meter Readings; never a number from the usage history chart or table
+            - Charge fields: copy each amount exactly as printed, never add lines together.
+              On a City of Bowling Green bill (CURRENT CHARGES): "Electric Usage" (dollars) -> Electric Usage Charge, "Electric Customer Charge" -> Electric Customer Charge, "Inside Corporation kWh Tax" -> Electric kWh Tax, "Water Usage" -> Water Usage Charge, "Water Customer Charge" -> Water Customer Charge, "Sewer Usage" -> Sewer Usage Charge, "Sewer Customer Charge" -> Sewer Customer Charge, "Refuse / Recycling Charge" -> Refuse Charge.
+              On a gas bill (Detail Charges): "Fixed Monthly Delivery Charge" -> Gas Fixed Delivery Charge, "Usage Based Charges" -> Gas Usage Based Charge, the delivery subtotal "Delivery - <utility>" -> Gas Delivery Charge, the "Taxes & Fees" subtotal -> Gas Taxes, the supply subtotal "Supply - <supplier>" -> Gas Supply Charge, the supplier's name -> Gas Supplier, and the supplier's price per Ccf ("at the rate of $0.57500 per Ccf") -> Gas Supply Rate (per Ccf), as a number with all its decimals
+            - Total: the amount of this bill's own charges. On a utility bill that is TOTAL CURRENT CHARGES or "Total Current Utility Charges" (the sum of the charge lines); never a total that adds a past-due balance or penalties. On an invoice or order, the grand total
           # Custom fields the AI may fill. It never invents fields: the prompt allows only
           # these names, and paperless-ai creates each one in Paperless (with this type) the
           # first time a document has a value for it. A field is set only when the value is
@@ -152,7 +162,15 @@ controllers:
             {"value":"Water Customer Charge","data_type":"monetary","currency":"USD"},
             {"value":"Sewer Usage Charge","data_type":"monetary","currency":"USD"},
             {"value":"Sewer Customer Charge","data_type":"monetary","currency":"USD"},
-            {"value":"Refuse Charge","data_type":"monetary","currency":"USD"}]}
+            {"value":"Refuse Charge","data_type":"monetary","currency":"USD"},
+            {"value":"Gas Usage (Ccf)","data_type":"integer"},
+            {"value":"Gas Fixed Delivery Charge","data_type":"monetary","currency":"USD"},
+            {"value":"Gas Usage Based Charge","data_type":"monetary","currency":"USD"},
+            {"value":"Gas Delivery Charge","data_type":"monetary","currency":"USD"},
+            {"value":"Gas Taxes","data_type":"monetary","currency":"USD"},
+            {"value":"Gas Supply Charge","data_type":"monetary","currency":"USD"},
+            {"value":"Gas Supplier","data_type":"string"},
+            {"value":"Gas Supply Rate (per Ccf)","data_type":"float"}]}
         envFrom:
           # PAPERLESS_API_TOKEN, ANTHROPIC_API_KEY, CUSTOM_API_KEY (OpenRouter), API_KEY,
           # JWT_SECRET.
