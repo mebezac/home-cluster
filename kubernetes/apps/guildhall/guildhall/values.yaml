@@ -23,7 +23,7 @@ controllers:
       prepare-ssh:
         image:
           repository: git.laboratory.casa/laboratory-casa/guildhall
-          tag: b5be70d25591b4083882e021f4cebd0c454353f1@sha256:e7fc06649ab5ce79b420839c4362ef01935f99367706684ace9bd0e391fa13c3
+          tag: 3433063a0f0b971645e42d51316ae8536e5ee677@sha256:b3ae296601a7758cf6670e1cff8c58c4cf0ce2bee28bcc8c0191161a3b629d55
         command: [sh, -c]
         args:
           - |
@@ -82,7 +82,7 @@ controllers:
       control:
         image:
           repository: git.laboratory.casa/laboratory-casa/guildhall
-          tag: b5be70d25591b4083882e021f4cebd0c454353f1@sha256:e7fc06649ab5ce79b420839c4362ef01935f99367706684ace9bd0e391fa13c3
+          tag: 3433063a0f0b971645e42d51316ae8536e5ee677@sha256:b3ae296601a7758cf6670e1cff8c58c4cf0ce2bee28bcc8c0191161a3b629d55
         env:
           TZ: America/New_York
           NODE_ENV: production
@@ -145,7 +145,7 @@ controllers:
           - mkdir -p -m 700 "$CODEX_HOME" && exec node apps/runner/dist/http.js
         image:
           repository: git.laboratory.casa/laboratory-casa/guildhall-runner
-          tag: b5be70d25591b4083882e021f4cebd0c454353f1@sha256:4429f9c07a3e1b5d1b813fc85bc78896f4ba240645d4c701c1ea217e94c98386
+          tag: 3433063a0f0b971645e42d51316ae8536e5ee677@sha256:137f678a65d6e299df6bc70e3098df7d94669f146eb00e096c9155d5063503d7
         env:
           TZ: America/New_York
           HOME: /state/auth
