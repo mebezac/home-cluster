@@ -1,6 +1,7 @@
 # Operator-managed ProxyGroup pods run in the network namespace. ProxyGroup
 # ports are dynamically allocated, so select this dedicated group and allow
-# only Guildhall control's pod; the Service and tailnet grant limit destination.
+# Guildhall control's pod; the Service and tailnet grant limit destination.
+# The monitoring scraper may reach only the proxy's metrics port.
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
@@ -18,3 +19,12 @@ spec:
             k8s:io.kubernetes.pod.namespace: guildhall
             app.kubernetes.io/name: guildhall
             app.kubernetes.io/controller: guildhall
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: observability
+            app.kubernetes.io/name: vmagent
+            app.kubernetes.io/instance: victoria-metrics-stack
+      toPorts:
+        - ports:
+            - port: "9002"
+              protocol: TCP
