@@ -483,7 +483,7 @@
       "id": 7,
       "type": "stat",
       "title": "Oldest backup",
-      "description": "Age of the oldest latest-backup across Longhorn volumes and the central Postgres cluster. Daily jobs: over 30h is late, over 36h alerts.",
+      "description": "Age of the oldest latest-backup across the Kopiur PVC policies and the central Postgres cluster. Daily jobs: over 30h is late. Kopiur alerts at 48h.",
       "datasource": {
         "type": "prometheus",
         "uid": "${datasource}"
@@ -500,7 +500,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "max(time() - longhorn_volume_last_backup_at > 0 and longhorn_volume_last_backup_at > 0) > max(time() - barman_cloud_cloudnative_pg_io_last_available_backup_timestamp{namespace=\"database\"}) or max(time() - barman_cloud_cloudnative_pg_io_last_available_backup_timestamp{namespace=\"database\"})",
+          "expr": "max(time() - kopiur_policy_last_backup_success_timestamp_seconds) > max(time() - barman_cloud_cloudnative_pg_io_last_available_backup_timestamp{namespace=\"database\"}) or max(time() - barman_cloud_cloudnative_pg_io_last_available_backup_timestamp{namespace=\"database\"})",
           "legendFormat": "__auto",
           "refId": "A",
           "range": false,
@@ -1381,7 +1381,7 @@
       "id": 15,
       "type": "bargauge",
       "title": "Backup age",
-      "description": "Oldest 10 Longhorn volume backups (daily-backup job at 06:52 UTC).",
+      "description": "Oldest 10 Kopiur PVC backups (latest good snapshot per policy). Standard runs daily from 02:00 EST, Critical every 6 h.",
       "datasource": {
         "type": "prometheus",
         "uid": "${datasource}"
@@ -1398,8 +1398,8 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sort_desc(topk(10, (time() - longhorn_volume_last_backup_at > 0 and longhorn_volume_last_backup_at > 0)))",
-          "legendFormat": "{{pvc_namespace}}/{{pvc}}",
+          "expr": "sort_desc(topk(10, time() - kopiur_policy_last_backup_success_timestamp_seconds))",
+          "legendFormat": "{{namespace}}/{{policy}}",
           "refId": "A",
           "range": false,
           "instant": true

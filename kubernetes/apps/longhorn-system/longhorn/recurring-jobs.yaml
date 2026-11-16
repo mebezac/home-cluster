@@ -1,26 +1,10 @@
 ---
 # Applies to every volume in the `default` group (all volumes, via
 # recurring-job-group.longhorn.io/default=enabled).
+# Backups are Kopiur's job since 2026-11-16 (kubernetes/charts/kopiur-backup);
+# the Longhorn daily-backup job is gone (plan P7). Keep snapshot-cleanup: it
+# removes the Longhorn snapshots Kopiur marks for removal.
 # yaml-language-server: $schema=https://datreeio.github.io/CRDs-catalog/longhorn.io/recurringjob_v1beta2.json
-apiVersion: longhorn.io/v1beta2
-kind: RecurringJob
-metadata:
-  name: daily-backup
-spec:
-  name: daily-backup
-  task: backup
-  cron: "52 6 * * *"
-  groups:
-    - default
-  # 7 daily backups on the NAS target. Blocks are deduplicated, so each extra
-  # day costs only that day's changed blocks (~3.2 GiB/day measured
-  # 2026-10-02). Only the latest snapshot stays on the volume
-  # (auto-cleanup-recurring-job-backup-snapshot=true).
-  retain: 7
-  concurrency: 1
-  parameters:
-    full-backup-interval: "7"
----
 apiVersion: longhorn.io/v1beta2
 kind: RecurringJob
 metadata:
