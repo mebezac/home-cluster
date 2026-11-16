@@ -1,0 +1,80 @@
+# Guildhall may write one CiliumNetworkPolicy per managed worker (network allowlist mode, owner
+# decision 6). access.yaml grants the verbs; this policy limits what Guildhall can write:
+#
+# - the name is guildhall-egress-<runner ID> and the policy selects exactly that worker
+#   (app.kubernetes.io/name=guildhall-runner, app.kubernetes.io/instance=<runner ID>);
+# - egress allow rules only: no ingress, no deny rules, no node selector, no default-deny override;
+# - each rule reaches cluster DNS, the envoy-internal gateway (Guildhall's agent tools at
+#   guildhall.laboratory.casa), or host names on TCP 80/443 - never CIDRs, entities, services or nodes;
+# - only DNS L7 rules (the DNS proxy that names blocked flows in Hubble), never HTTP or TLS listeners.
+#
+# Policies written by anyone else (Argo CD, the owner) are not affected.
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: guildhall-worker-egress
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [cilium.io]
+        apiVersions: [v2]
+        operations: [CREATE, UPDATE]
+        resources: [ciliumnetworkpolicies]
+  matchConditions:
+    - name: written-by-guildhall
+      expression: request.userInfo.username == 'system:serviceaccount:guildhall:guildhall'
+  validations:
+    - expression: >-
+        !has(object.specs) && has(object.spec) &&
+        has(object.spec.endpointSelector) && has(object.spec.endpointSelector.matchLabels) &&
+        !has(object.spec.endpointSelector.matchExpressions) &&
+        size(object.spec.endpointSelector.matchLabels) == 2 &&
+        'app.kubernetes.io/name' in object.spec.endpointSelector.matchLabels &&
+        object.spec.endpointSelector.matchLabels['app.kubernetes.io/name'] == 'guildhall-runner' &&
+        'app.kubernetes.io/instance' in object.spec.endpointSelector.matchLabels &&
+        object.metadata.name == 'guildhall-egress-' + object.spec.endpointSelector.matchLabels['app.kubernetes.io/instance']
+      message: A Guildhall egress policy is named guildhall-egress-<runner ID> and selects only that worker.
+    - expression: >-
+        !has(object.spec.ingress) && !has(object.spec.ingressDeny) && !has(object.spec.egressDeny) &&
+        !has(object.spec.nodeSelector) && !has(object.spec.enableDefaultDeny) &&
+        has(object.spec.egress) && size(object.spec.egress) > 0
+      message: A Guildhall egress policy contains egress allow rules only.
+    - expression: >-
+        object.spec.egress.all(r,
+          !has(r.authentication) && !has(r.icmps) && !has(r.toCIDR) && !has(r.toCIDRSet) &&
+          !has(r.toEntities) && !has(r.toGroups) && !has(r.toNodes) && !has(r.toRequires) && !has(r.toServices) &&
+          (has(r.toEndpoints) != has(r.toFQDNs)))
+      message: Each rule reaches either cluster endpoints or host names, never CIDRs, entities, services or nodes.
+    - expression: >-
+        object.spec.egress.all(r, !has(r.toEndpoints) || r.toEndpoints.all(e,
+          !has(e.matchExpressions) && has(e.matchLabels) && size(e.matchLabels) == 2 &&
+          'k8s:io.kubernetes.pod.namespace' in e.matchLabels &&
+          ((e.matchLabels['k8s:io.kubernetes.pod.namespace'] == 'kube-system' &&
+            'k8s:k8s-app' in e.matchLabels && e.matchLabels['k8s:k8s-app'] == 'kube-dns') ||
+           (e.matchLabels['k8s:io.kubernetes.pod.namespace'] == 'network' &&
+            'k8s:gateway.envoyproxy.io/owning-gateway-name' in e.matchLabels &&
+            e.matchLabels['k8s:gateway.envoyproxy.io/owning-gateway-name'] == 'envoy-internal'))))
+      message: Cluster endpoints are limited to kube-dns and the envoy-internal gateway.
+    - expression: >-
+        object.spec.egress.all(r, has(r.toPorts) && r.toPorts.all(p,
+          !has(p.listener) && !has(p.originatingTLS) && !has(p.terminatingTLS) && !has(p.serverNames) &&
+          (!has(p.rules) || (has(p.rules.dns) && !has(p.rules.http))) &&
+          has(p.ports) && p.ports.all(x, !has(x.endPort))))
+      message: Rules list explicit ports and may carry only DNS rules.
+    - expression: >-
+        object.spec.egress.all(r, !has(r.toFQDNs) || r.toPorts.all(p,
+          !has(p.rules) && p.ports.all(x, x.port in ['80', '443'] && has(x.protocol) && x.protocol == 'TCP')))
+      message: Host names are reachable on TCP 80 and 443 only.
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: guildhall-worker-egress
+spec:
+  policyName: guildhall-worker-egress
+  validationActions: [Deny]
+  matchResources:
+    namespaceSelector:
+      matchLabels:
+        guildhall.laboratory.casa/managed-workers: "true"

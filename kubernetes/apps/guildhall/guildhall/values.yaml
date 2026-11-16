@@ -106,6 +106,12 @@ controllers:
           GUILDHALL_LOCAL_NATIVE_POLICY: '{"mode":"trusted","network":"allowed"}'
           KUBECONFIG: /run/guildhall-ssh/kubeconfig
           GUILDHALL_TOOLING_BUILDER_ENABLED: "true"
+          # Worker network allowlist (owner decision 6). Workers reach Guildhall's agent tools
+          # through envoy-internal: guildhall.laboratory.casa resolves to its LoadBalancer IP,
+          # and Cilium enforces policy after service translation, on the Envoy Pods' port 10443.
+          GUILDHALL_WORKER_EGRESS_ENDPOINTS: '[{"name":"guildhall-gateway","namespace":"network","labels":{"gateway.envoyproxy.io/owning-gateway-name":"envoy-internal"},"ports":[{"port":10443,"protocol":"TCP"}]}]'
+          # Blocked-site log: dropped flows from Hubble Relay (cleartext gRPC, read-only).
+          GUILDHALL_HUBBLE_RELAY_URL: http://hubble-relay.kube-system.svc.cluster.local:80
           DOCKER_HOST: ssh://guildhall-builder-gateway
           DOCKER_CONFIG: /run/guildhall-ssh/docker
           BUILDX_CONFIG: /tmp/guildhall-buildx

@@ -5,6 +5,7 @@ resources:
   - access.yaml
   - storage.yaml
   - admission.yaml
+  - egress-admission.yaml
   - service-account.yaml
 generators:
   - secret-generator.yaml

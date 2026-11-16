@@ -10,6 +10,11 @@ rules:
   - apiGroups: [""]
     resources: [pods/portforward]
     verbs: [create, get]
+  # Network allowlist mode: one CiliumNetworkPolicy per worker, applied with
+  # server-side apply. egress-admission.yaml limits what these policies may say.
+  - apiGroups: [cilium.io]
+    resources: [ciliumnetworkpolicies]
+    verbs: [create, get, patch, delete]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
