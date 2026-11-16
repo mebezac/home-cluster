@@ -1,0 +1,38 @@
+# The TrueNAS box (10.25.30.36, LAN). Exporters run as the TrueNAS app
+# `metrics` (truenas-terraform metrics.tf):
+#   :9100 node_exporter, plus truenas_zpool_* / truenas_dataset_* from a
+#         5-minute cron textfile (pool size, free, health, dataset usage)
+#   :9633 smartctl_exporter (SMART, disk temperatures). The smartctl-exporter
+#         app's alerts (sector errors, temperature) cover these disks too.
+# Own job names (not node-exporter): the stack's node rules and dashboards
+# assume a Kubernetes node. Stats only, no alerts of its own.
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMStaticScrape
+metadata:
+  name: truenas
+spec:
+  jobName: truenas
+  targetEndpoints:
+    - targets:
+        - 10.25.30.36:9100
+      labels:
+        instance: truenas
+      path: /metrics
+      interval: 30s
+      scrapeTimeout: 20s
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMStaticScrape
+metadata:
+  name: truenas-smartctl
+spec:
+  jobName: truenas-smartctl
+  targetEndpoints:
+    - targets:
+        - 10.25.30.36:9633
+      labels:
+        instance: truenas
+      path: /metrics
+      # smartctl reads every disk on each scrape; once a minute is plenty.
+      interval: 60s
+      scrapeTimeout: 50s
