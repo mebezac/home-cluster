@@ -13,7 +13,7 @@ talosVersion: v1.14.5
 # compat: check Cilium Documentation/network/kubernetes/requirements.rst at our cilium tag lists this k8s minor.
 # This sets the WHOLE control plane, not just kubelet: merging + any later topf apply = a k8s upgrade, so run task talos:upgrade-k8s right after merging. Bump kubectl in .mise.toml too.
 # renovate: datasource=docker depName=ghcr.io/siderolabs/kubelet
-kubernetesVersion: v1.36.6
+kubernetesVersion: v1.37.2
 
 secretsPath: secrets.sops.yaml
 
