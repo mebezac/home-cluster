@@ -109,7 +109,9 @@ controllers:
           # Worker network allowlist (owner decision 6). Workers reach Guildhall's agent tools
           # through envoy-internal: guildhall.laboratory.casa resolves to its LoadBalancer IP,
           # and Cilium enforces policy after service translation, on the Envoy Pods' port 10443.
-          GUILDHALL_WORKER_EGRESS_ENDPOINTS: '[{"name":"guildhall-gateway","namespace":"network","labels":{"gateway.envoyproxy.io/owning-gateway-name":"envoy-internal"},"ports":[{"port":10443,"protocol":"TCP"}]}]'
+          # serverNames limits that rule by TLS SNI (Cilium L7 proxy, no TLS termination) to
+          # Guildhall and Forgejo, so other internal routes stay unreachable.
+          GUILDHALL_WORKER_EGRESS_ENDPOINTS: '[{"name":"guildhall-gateway","namespace":"network","labels":{"gateway.envoyproxy.io/owning-gateway-name":"envoy-internal"},"ports":[{"port":10443,"protocol":"TCP"}],"serverNames":["guildhall.laboratory.casa","git.laboratory.casa"]}]'
           # Blocked-site log: dropped flows from Hubble Relay (cleartext gRPC, read-only).
           GUILDHALL_HUBBLE_RELAY_URL: http://hubble-relay.kube-system.svc.cluster.local:80
           DOCKER_HOST: ssh://guildhall-builder-gateway
