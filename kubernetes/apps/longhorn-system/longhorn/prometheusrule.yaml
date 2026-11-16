@@ -2,8 +2,8 @@
 # yaml-language-server: $schema=https://k8s-schemas.home-operations.com/monitoring.coreos.com/prometheusrule_v1.json
 # Volume health uses the one-hot longhorn_volume_robustness{state=...}.
 # Backup age is not here: Kopiur backs the PVCs up (its chart alerts, e.g.
-# KopiurBackupStale), and the Longhorn daily-backup job is gone (2026-11-16).
-# LonghornBackupTargetUnavailable goes with the backup target (plan step B2).
+# KopiurBackupStale). The Longhorn daily-backup job and backup target are gone
+# (2026-11-16, Kopiur plan steps B1 and B2).
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
@@ -28,14 +28,6 @@ spec:
           annotations:
             summary: 'Longhorn volume {{ $labels.pvc_namespace }}/{{ $labels.pvc }} is degraded'
             description: 'A replica has been missing for 30m and has not rebuilt. Check the node and disk in the Longhorn UI.'
-        - alert: LonghornBackupTargetUnavailable
-          expr: longhorn_backup_target_status{condition="unavailable"} == 1
-          for: 30m
-          labels:
-            severity: warning
-          annotations:
-            summary: 'Longhorn backup target {{ $labels.backup_target }} is unavailable'
-            description: 'Backups cannot be written. Check the backup target credentials and the object store.'
         - alert: LonghornNodeNotReady
           expr: longhorn_node_status{condition="ready"} == 0
           for: 15m
