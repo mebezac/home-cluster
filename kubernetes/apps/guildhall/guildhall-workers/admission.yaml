@@ -62,7 +62,10 @@ spec:
            object.spec.containers[0].env.exists(e, e.name == 'GUILDHALL_RUNNER_TOKEN' && has(e.valueFrom) && has(e.valueFrom.secretKeyRef) && e.valueFrom.secretKeyRef.name == 'tooling-acceptance-runner-token' && e.valueFrom.secretKeyRef.key == 'token')) ||
           (object.spec.volumes.exists(v, v.name == 'data' && has(v.persistentVolumeClaim) && v.persistentVolumeClaim.claimName == 'tooling-runner-03-data' && (!has(v.persistentVolumeClaim.readOnly) || v.persistentVolumeClaim.readOnly == false)) &&
            object.spec.volumes.exists(v, v.name == 'auth' && has(v.persistentVolumeClaim) && v.persistentVolumeClaim.claimName == 'tooling-runner-03-auth' && (!has(v.persistentVolumeClaim.readOnly) || v.persistentVolumeClaim.readOnly == false)) &&
-           object.spec.containers[0].env.exists(e, e.name == 'GUILDHALL_RUNNER_TOKEN' && has(e.valueFrom) && has(e.valueFrom.secretKeyRef) && e.valueFrom.secretKeyRef.name == 'tooling-runner-03-token' && e.valueFrom.secretKeyRef.key == 'token'))
+           object.spec.containers[0].env.exists(e, e.name == 'GUILDHALL_RUNNER_TOKEN' && has(e.valueFrom) && has(e.valueFrom.secretKeyRef) && e.valueFrom.secretKeyRef.name == 'tooling-runner-03-token' && e.valueFrom.secretKeyRef.key == 'token')) ||
+          (object.spec.volumes.exists(v, v.name == 'data' && has(v.persistentVolumeClaim) && v.persistentVolumeClaim.claimName == 'tooling-runner-04-data' && (!has(v.persistentVolumeClaim.readOnly) || v.persistentVolumeClaim.readOnly == false)) &&
+           object.spec.volumes.exists(v, v.name == 'auth' && has(v.persistentVolumeClaim) && v.persistentVolumeClaim.claimName == 'tooling-runner-04-auth' && (!has(v.persistentVolumeClaim.readOnly) || v.persistentVolumeClaim.readOnly == false)) &&
+           object.spec.containers[0].env.exists(e, e.name == 'GUILDHALL_RUNNER_TOKEN' && has(e.valueFrom) && has(e.valueFrom.secretKeyRef) && e.valueFrom.secretKeyRef.name == 'tooling-runner-04-token' && e.valueFrom.secretKeyRef.key == 'token'))
         ) &&
         size(object.spec.containers[0].volumeMounts) == 2 &&
         object.spec.containers[0].volumeMounts.exists(v, v.name == 'data' && v.mountPath == '/guildhall' && !has(v.subPath) && !has(v.subPathExpr)) &&

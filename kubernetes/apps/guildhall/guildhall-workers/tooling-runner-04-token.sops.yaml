@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: tooling-runner-04-token
+  namespace: guildhall-workers
+stringData:
+  token: ENC[AES256_GCM,data:sJsD6IEBy2S5qQHlYeFkaQQGNa76SHm42SLZVj1GVETWD8UE4c4OwH3o/U/lL4GFBUFNBgpILI3tnSzJABStdw==,iv:uZUzVYt84JSXx99YqVdpB6/LfpiIYIfueAmvI7B/Bko=,tag:yfq62gGRLmCMRhCpvju8jw==,type:str]
+sops:
+  age:
+    - enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBaNXlyT0lWZ0pLdWoyaE5h
+        RUQ4aGMwMmpFQTBKb1FNWWEyMEg5aHFmSUc4Ck1WK1BnWDhLUk1NWld3RnZrU3l4
+        VUtQTHlUZDNHTkwvT0IyYjJ3YkxQcVUKLS0tIG16WTBHYWMyK2krTzJmUTNFV1ho
+        MW9PcGwybkNkdEVIQ3BZMlJLSkZMYkUKa1e5rmu0kAMCJziflGX+LH5RQzAPersu
+        6lOxThE4m7Ocza4Ays8aejCI4vi4GZ6rmpe6qgI9B7lBj0em9ap0tg==
+        -----END AGE ENCRYPTED FILE-----
+      recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
+  encrypted_regex: ^(data|stringData)$
+  lastmodified: "2026-11-16T12:24:38Z"
+  mac: ENC[AES256_GCM,data:GA2fA9LQ3+tnOI+9WYFor0H1mzO4CH/KbuCnBuE5gGIIYqdnQ/+ptmQVAc3MnlryFjGSrcT/QBy1ySck4g8pBIp0Z//pUvZqjFTeMnW7NoPt5sxn/QVmFLqjVm15hiXg7P8N6WgNTwvCN2lHHlwEF044FjVuQGoBPYdpgy5CjvI=,iv:mob8kihrirGQdik/PP4nHSpdgegDUOGpxxFVyGz1ZGo=,tag:WxVX8Ib2iveyTdpMjKFB0g==,type:str]
+  mac_only_encrypted: true
+  version: 3.13.3

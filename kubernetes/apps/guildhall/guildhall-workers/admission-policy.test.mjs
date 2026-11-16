@@ -30,6 +30,7 @@ test('worker policy binds each data claim, auth claim and token to one identity'
   ['acceptance-runner-data','acceptance-runner-auth','acceptance-runner-token'],
   ['tooling-acceptance-runner-data','tooling-acceptance-runner-auth','tooling-acceptance-runner-token'],
   ['tooling-runner-03-data','tooling-runner-03-auth','tooling-runner-03-token'],
+  ['tooling-runner-04-data','tooling-runner-04-auth','tooling-runner-04-token'],
  ];
  const branch=([data,auth,token])=>`(object.spec.volumes.exists(v, v.name == 'data' && has(v.persistentVolumeClaim) && v.persistentVolumeClaim.claimName == '${data}' && (!has(v.persistentVolumeClaim.readOnly) || v.persistentVolumeClaim.readOnly == false)) && object.spec.volumes.exists(v, v.name == 'auth' && has(v.persistentVolumeClaim) && v.persistentVolumeClaim.claimName == '${auth}' && (!has(v.persistentVolumeClaim.readOnly) || v.persistentVolumeClaim.readOnly == false)) && object.spec.containers[0].env.exists(e, e.name == 'GUILDHALL_RUNNER_TOKEN' && has(e.valueFrom) && has(e.valueFrom.secretKeyRef) && e.valueFrom.secretKeyRef.name == '${token}' && e.valueFrom.secretKeyRef.key == 'token'))`;
  assert.equal(normalized.trim(),`( ${identities.map(branch).join(' || ')} ) &&`);
