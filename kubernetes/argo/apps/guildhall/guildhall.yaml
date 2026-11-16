@@ -19,6 +19,40 @@ spec:
         releaseName: guildhall
         valueFiles:
           - $guildhall-repo/kubernetes/apps/guildhall/guildhall/values.yaml
+    # Kopiur backups (kubernetes/charts/kopiur-backup). The database is in the
+    # central CNPG cluster (barman); these hold the files around it: control =
+    # documents and artifacts the DB rows point at, work = teammate work dirs,
+    # runner = supervisor state. guildhall-auth (sign-ins only) and the
+    # guildhall-workers test slots are left out on purpose (2026-11-16).
+    # No populator Restore: the PVCs predate it (see task kopiur:cutover).
+    # Restore control, work and runner together, near a DB restore point.
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/charts/kopiur-backup
+      targetRevision: main
+      helm:
+        releaseName: guildhall-control-backup
+        valuesObject:
+          pvc: guildhall-control
+          mover:
+            runAsUser: 3000
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/charts/kopiur-backup
+      targetRevision: main
+      helm:
+        releaseName: guildhall-work-backup
+        valuesObject:
+          pvc: guildhall-work
+          mover:
+            runAsUser: 3000
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/charts/kopiur-backup
+      targetRevision: main
+      helm:
+        releaseName: guildhall-runner-backup
+        valuesObject:
+          pvc: guildhall-runner
+          mover:
+            runAsUser: 3000
   destination:
     name: in-cluster
     namespace: guildhall
