@@ -10,6 +10,19 @@ controllers:
           repository: lycheeorg/lychee
           # changelog: GH releases LycheeOrg/Lychee (full notes in PR body). Laravel migrations run on container start; watch SECURITY_HEADER_* CSP env when notes touch CSP/WASM. Skip releases titled BROKEN (v7.11.0)
           tag: v7.12.2@sha256:364aa8620b18c740d8fad070e2199a3262f7ac11e9d8158d635b205877a76476
+        # Image CMD with an explicit worker count. Octane's --workers=auto lets
+        # FrankenPHP start 2x node CPUs (24 on a 12-core node), and each worker
+        # holds its own Postgres connection: lychee alone reached 25 of the shared
+        # cluster's 100 max_connections (CNPGConnectionsHigh, 2026-11-17).
+        # The entrypoint still execs these args as www-data.
+        args:
+          - php
+          - artisan
+          - octane:start
+          - --server=frankenphp
+          - --host=0.0.0.0
+          - --port=8000
+          - --workers=4
         resources:
           # non-file memory (working_set - active_file), 14d to 2026-10-21: p99 767Mi, max 773Mi.
           requests:
