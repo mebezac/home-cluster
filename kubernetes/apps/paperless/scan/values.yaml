@@ -41,7 +41,7 @@ controllers:
       app: &scanapp
         image: &scanimage
           repository: docker.io/devzwf/brscan-skey
-          tag: 1.0.1@sha256:749653abc40602372e31c63cde2bd01c8edaf65865117595666c750f76ea34a7
+          tag: 1.0.1@sha256:3e78e171d93a503d67d2c2cf6b5bd96265404630b5640d2d2a565d301bbe973c
         env: &scanenv
           SCANNER_IP: 10.25.41.183
           SCANNER_MODEL: MFC-J475DW
