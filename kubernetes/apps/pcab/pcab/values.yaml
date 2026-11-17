@@ -31,7 +31,12 @@ controllers:
           HOME: /tmp
           # Default is 30; Oban runs ~26 concurrent jobs but most are waiting on
           # OpenRouter/ffmpeg, not holding a connection. Keep the central PG footprint small.
-          POOL_SIZE: "15"
+          # Ecto opens the whole pool at boot, so every slot is a permanent idle
+          # backend on the shared cluster. At 15, the 7d peak of busy pcab backends
+          # was 1 (2026-11-17), and every Repo.transaction is DB-only (no HTTP/ffmpeg
+          # inside). 6 = one per Oban queue fetch; acks and web queries are ms-long.
+          # Raise it if logs show DBConnection.ConnectionError queue timeouts.
+          POOL_SIZE: "6"
           ANTHROPIC_SUBSCRIPTION: "true"
         envFrom:
           - secretRef:
