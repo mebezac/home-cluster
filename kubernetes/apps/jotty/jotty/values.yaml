@@ -16,7 +16,7 @@ controllers:
         image:
           repository: ghcr.io/fccview/jotty
           # changelog: GH releases fccview/jotty/releases (PR body has been complete so far, but verify on GH - security fixes are described vaguely with a 2wk disclosure delay). Data is flat JSON under /app/data; DATA_SCHEMA_VERSION in app/_consts/files.ts gates migrations - only a bump there needs a snapshot first. 1.29.0: schema 2->3 (now ATTACHMENTS_SCHEMA_VERSION); if notes/*/{images,videos,files} hold files an admin must start the migration in the UI (dry run first). SERVE_PUBLIC_* retired
-          tag: 1.29.2@sha256:5295d8a85aada46519ed6a1822d5989a373583f42017a346e8a62b44d75af71a
+          tag: 1.30.0@sha256:4face8fd1049d1ec3813f3da949d69fb68703f0f8421902a7a2de8ba3f1d61a6
         env:
           NODE_ENV: production
           PUID: 3000
