@@ -8,7 +8,7 @@ controllers:
       app:
         image:
           repository: lycheeorg/lychee
-          # changelog: GH releases LycheeOrg/Lychee (full notes in PR body). Laravel migrations run on container start; watch SECURITY_HEADER_* CSP env when notes touch CSP/WASM. Skip releases titled BROKEN (v7.11.0)
+          # changelog: GH releases LycheeOrg/Lychee (full notes in PR body). Laravel migrations run on container start; watch SECURITY_HEADER_* CSP env when notes touch CSP/WASM. Skip releases titled BROKEN (v7.11.0). args below copy the image CMD to add --workers: if a release changes the Dockerfile CMD (octane flags, server), update args to match
           tag: v7.12.2@sha256:364aa8620b18c740d8fad070e2199a3262f7ac11e9d8158d635b205877a76476
         # Image CMD with an explicit worker count. Octane's --workers=auto lets
         # FrankenPHP start 2x node CPUs (24 on a 12-core node), and each worker
