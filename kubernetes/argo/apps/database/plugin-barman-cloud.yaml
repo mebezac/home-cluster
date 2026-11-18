@@ -21,7 +21,7 @@ spec:
       # both image PRs must be merged as one set. Bumping the sidecar tag does NOT roll the Postgres
       # pods (CNPG doesn't treat plugin-injected sidecars as drift) - they pick up the new sidecar on
       # their next recreation (node drain / Talos upgrade / manual `kubectl cnpg restart`).
-      targetRevision: 0.8.1
+      targetRevision: 0.9.0
       helm:
         releaseName: cloudnative-pg
         valueFiles:
