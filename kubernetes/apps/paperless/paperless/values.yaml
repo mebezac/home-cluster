@@ -51,6 +51,9 @@ controllers:
           TZ: America/New_York
           PAPERLESS_TIME_ZONE: America/New_York
           PAPERLESS_URL: https://paperless.laboratory.casa
+          # 3.5.0+: setting PAPERLESS_URL without PAPERLESS_ALLOWED_HOSTS allows only localhost + the
+          # URL host. List the in-cluster Service name (paperless-ai calls it); the probes send Host: localhost.
+          PAPERLESS_ALLOWED_HOSTS: paperless.paperless.svc.cluster.local
           # The Gateway terminates TLS; trust its X-Forwarded-Proto so Django sees https.
           PAPERLESS_PROXY_SSL_HEADER: '["HTTP_X_FORWARDED_PROTO", "https"]'
           PAPERLESS_DATE_ORDER: MDY
@@ -119,14 +122,14 @@ controllers:
             enabled: true
             custom: true
             spec:
-              httpGet: { path: /, port: 8000 }
+              httpGet: { path: /, port: 8000, httpHeaders: [{ name: Host, value: localhost }] }
               periodSeconds: 10
               failureThreshold: 60
           liveness:
             enabled: true
             custom: true
             spec:
-              httpGet: { path: /, port: 8000 }
+              httpGet: { path: /, port: 8000, httpHeaders: [{ name: Host, value: localhost }] }
               periodSeconds: 30
               timeoutSeconds: 5
               failureThreshold: 5
@@ -134,7 +137,7 @@ controllers:
             enabled: true
             custom: true
             spec:
-              httpGet: { path: /, port: 8000 }
+              httpGet: { path: /, port: 8000, httpHeaders: [{ name: Host, value: localhost }] }
               periodSeconds: 10
               timeoutSeconds: 5
               failureThreshold: 3
