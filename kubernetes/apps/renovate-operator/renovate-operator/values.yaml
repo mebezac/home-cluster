@@ -11,7 +11,7 @@ fullnameOverride: renovate-operator
 image:
   registry: ghcr.io
   repository: mogenius/renovate-operator
-  tag: 6.8.0@sha256:837ca0d011609f7824c57364498d679b267130669e3cd4f693f94cef7c4addc2
+  tag: 6.9.0@sha256:538c59525e362acc7f9d6e47d73007f325d2801d9d5b0ae0953b9aee27c732d6
 
 # Plain templates instead of the default pre-install hook Job (kubectl + its own
 # ClusterRole): Argo applies the CRDs like any other resource.
