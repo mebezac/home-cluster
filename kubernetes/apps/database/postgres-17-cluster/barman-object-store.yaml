@@ -28,7 +28,7 @@ spec:
         key: ACCESS_SECRET_KEY
     destinationPath: s3://cloudnative-pg/v17
     data:
-      compression: bzip2
+      compression: zstd
     wal:
-      compression: bzip2
+      compression: zstd
       maxParallel: 4
