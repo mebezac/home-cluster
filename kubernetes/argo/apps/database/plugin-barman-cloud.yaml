@@ -17,8 +17,8 @@ spec:
       chart: plugin-barman-cloud
       # changelog: gh api repos/cloudnative-pg/charts/releases, filtered to plugin-barman-cloud-*.
       # The PR body is worse than empty - Renovate renders the WRONG chart's notes (cluster-v*).
-      # The chart appVersion is overridden by the image tags in our values.yaml, so the chart PR and
-      # both image PRs must be merged as one set. Bumping the sidecar tag does NOT roll the Postgres
+      # The chart appVersion is overridden by the image tags in our values.yaml, so the chart and both
+      # images must move as one set (the "Barman Cloud Plugin" group in renovate.json5 opens one PR). Bumping the sidecar tag does NOT roll the Postgres
       # pods (CNPG doesn't treat plugin-injected sidecars as drift) - they pick up the new sidecar on
       # their next recreation (node drain / Talos upgrade / manual `kubectl cnpg restart`).
       targetRevision: 0.9.0

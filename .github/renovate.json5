@@ -9,8 +9,10 @@
     ":semanticCommits",
     ":separatePatchReleases",
   ],
-  dependencyDashboard: true,
-  dependencyDashboardTitle: "Renovate Dashboard 🤖",
+  dependencyDashboard: {
+    enabled: true,
+    title: "Renovate Dashboard 🤖",
+  },
   suppressNotifications: ["prEditedNotification", "prIgnoreNotification"],
   schedule: ["every weekend"],
   ignorePaths: ["**/*.sops.*"],
@@ -56,13 +58,29 @@
       matchPackageNames: ["/argo-cd/"],
     },
     {
-      description: ["Talos Group"],
+      description: [
+        "Talos Group",
+        "github-tags pulls in talosctl (aqua:siderolabs/talos in .mise.toml): Renovate resolves aqua tools via github-tags.",
+      ],
       groupName: "Talos",
-      matchDatasources: ["docker", "github-releases"],
+      matchDatasources: ["docker", "github-releases", "github-tags"],
       group: {
         commitMessageTopic: "{{{groupName}}} group",
       },
       matchPackageNames: ["/siderolabs/talosctl/", "/siderolabs/installer/", "/siderolabs/talos/"],
+    },
+    {
+      description: [
+        "Barman Cloud Plugin Group",
+        "Our image tags override the chart appVersion, and the plugin and its injected sidecar talk gRPC,",
+        "so the chart and both images (plugin + sidecar) land in one PR.",
+      ],
+      groupName: "Barman Cloud Plugin",
+      matchDatasources: ["docker", "helm"],
+      group: {
+        commitMessageTopic: "{{{groupName}}} group",
+      },
+      matchPackageNames: ["/plugin-barman-cloud/"],
     },
     {
       description: [
