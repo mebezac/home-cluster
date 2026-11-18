@@ -22,7 +22,7 @@ controllers:
           # one-way. 5.x writes /app/data/pre-migrate-*.db itself before migrating, but 4.3.x starts
           # on a migrated DB with no check, so a tag revert alone is unsafe. Snapshot trek-data
           # (1Gi, longhorn) on any minor/major
-          tag: 5.1.1@sha256:7068cc86c0d4d5aa9b55aeffd03966f7458352bcb3e010721e3d7d6899ac60bd
+          tag: 5.1.4@sha256:991ff5aa53244b25d5a8ea40361dc286cfc8211638044eabe12b9926729db5cc
         env:
           TZ: America/New_York
           NODE_ENV: production
