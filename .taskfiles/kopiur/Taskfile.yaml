@@ -34,6 +34,16 @@ tasks:
     prompt: 'Stop the app and replace {{.NS}}/{{.PVC}} with an older snapshot?'
     cmd: '{{.SCRIPT}} rollback {{.NS}} {{.PVC}} "{{.AS_OF | default (.OFFSET | default "1")}}"'
 
+  restore-path:
+    desc: Restore only some files/dirs into a PVC in place (task kopiur:restore-path NS=.. PVC=.. PATHS=a/b.yaml,dir [OFFSET=0 | AS_OF=..] [STOP=true] [MIRROR=true])
+    requires: { vars: [NS, PVC, PATHS] }
+    prompt: 'Overwrite {{.PATHS}} in {{.NS}}/{{.PVC}} with the copy from a snapshot{{if eq (.STOP | default "false") "true"}} (app stopped){{end}}?'
+    cmd: >-
+      {{.SCRIPT}} paths {{.NS}} {{.PVC}} "{{.PATHS}}"
+      "{{.AS_OF | default (.OFFSET | default "0")}}"
+      {{if eq (.STOP | default "false") "true"}}stop{{else}}live{{end}}
+      {{if eq (.MIRROR | default "false") "true"}}mirror{{else}}additive{{end}}
+
   refill:
     desc: Delete a PVC and let Argo re-create it from the latest snapshot (task kopiur:refill NS=.. PVC=.. [SNAPSHOT_FIRST=true])
     requires: { vars: [NS, PVC] }

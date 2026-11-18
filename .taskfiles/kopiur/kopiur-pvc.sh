@@ -6,6 +6,7 @@
 #   kopiur-pvc.sh snapshot <ns> <pvc>
 #   kopiur-pvc.sh file     <ns> <pvc> <path-in-pvc> [dest] [offset]
 #   kopiur-pvc.sh rollback <ns> <pvc> [offset|RFC3339-time]
+#   kopiur-pvc.sh paths    <ns> <pvc> <path[,path...]> [offset|RFC3339-time] [live|stop] [additive|mirror]
 #   kopiur-pvc.sh refill   <ns> <pvc> [snapshot-first]
 #   kopiur-pvc.sh cutover  <ns> <pvc>
 #
@@ -15,6 +16,15 @@
 #   an older snapshot (in place, extra files deleted), start the app. offset 1 =
 #   the snapshot before the latest (counted BEFORE the safety snapshot). To undo
 #   a rollback, roll back again with offset 1.
+# paths: partial restore. Write only the listed files/directories (relative to
+#   the PVC root, comma-separated) from a snapshot (default: the latest) back into
+#   the PVC, in place. Everything else in the PVC stays as it is. A safety
+#   snapshot runs first. live (default) keeps the app running: Kopiur pins the
+#   mover to the node that holds an RWO volume. Use stop for files the app keeps
+#   open (a database), so it does not write over the restore. additive (default)
+#   leaves extra files in a selected directory; mirror deletes them (scoped to
+#   each selected directory). A path missing from the snapshot fails the restore
+#   before anything is written (kubectl kopiur browse shows the exact names).
 # refill: stop the app, delete the PVC and its populator Restore, and let Argo
 #   create both again. The new PVC fills from the latest snapshot. Needs
 #   restore.enabled and the PVC's dataSourceRef. snapshot-first takes a snapshot
@@ -280,6 +290,53 @@ EOF
     log "done: $ns/$pvc now holds $snap"
     ;;
 
+  paths)
+    list=${1:?comma-separated paths inside the PVC, e.g. config/app.yaml,media/covers}
+    sel=${2:-0}; mode=${3:-live}; del=${4:-additive}
+    case $mode in live|stop) ;; *) die "mode must be live or stop, not '$mode'" ;; esac
+    case $del in additive|mirror) ;; *) die "deletion must be additive or mirror, not '$del'" ;; esac
+    # The webhook wants relative, normalized paths: drop a leading or trailing /.
+    sel_json=$(jq -cn --arg l "$list" '$l | split(",") | map(gsub("^\\s+|\\s+$"; "") | sub("^/+"; "") | sub("/+$"; "")) | map(select(. != ""))')
+    [ "$sel_json" != "[]" ] || die "no paths given"
+    snap=$(pick_snapshot "$sel"); [ -n "$snap" ] || die "no snapshot for '$sel'"
+    log "restoring $sel_json from $snap into $ns/$pvc ($mode, $del)"
+    if [ "$mode" = stop ]; then
+      stop_with_snapshot
+    else
+      log "safety snapshot of the current data"
+      kubectl kopiur snapshot now --policy "$pvc" -n "$ns" --wait >&2
+    fi
+    name="$pvc-paths-$(date -u +%Y%m%d%H%M%S)"
+    kubectl apply -f - >/dev/null <<EOF
+apiVersion: kopiur.home-operations.com/v1alpha1
+kind: Restore
+metadata:
+  name: $name
+  namespace: $ns
+spec:
+  source:
+    snapshotRef:
+      name: $snap
+  target:
+    pvcRef:
+      name: $pvc
+  selection:
+    paths: $sel_json
+  options:
+    enableFileDeletion: $([ "$del" = mirror ] && echo true || echo false)
+    writeFilesAtomically: true
+  policy:
+    onMissingSnapshot: Fail
+  credentialProjection:
+    enabled: true
+  mover: $(restore_mover)
+EOF
+    wait_restore "$name"
+    kubectl delete restore -n "$ns" "$name" >/dev/null
+    [ "$mode" = stop ] && start_app
+    log "done: $sel_json in $ns/$pvc now match $snap (undo: the same paths from offset 0, the safety snapshot)"
+    ;;
+
   refill)
     kubectl get restore -n "$ns" "$pvc" >/dev/null 2>&1 || die "no populator Restore $ns/$pvc (set restore.enabled)"
     [ "$(kubectl get pvc -n "$ns" "$pvc" -o jsonpath='{.spec.dataSourceRef.name}')" = "$pvc" ] \
@@ -327,5 +384,5 @@ EOF
     log "old volume kept as Released PV $pv. When the app looks right: kubectl delete pv $pv"
     ;;
 
-  *) die "unknown command $cmd (list, snapshot, file, rollback, refill, cutover)" ;;
+  *) die "unknown command $cmd (list, snapshot, file, rollback, paths, refill, cutover)" ;;
 esac

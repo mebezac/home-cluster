@@ -54,6 +54,8 @@ restore:
   # WARNING: a Restore records what it resolved the FIRST time a PVC claims it,
   # and keeps it. To refill a PVC with newer data, delete the PVC AND the Restore
   # (task kopiur:refill does both). Argo re-creates the Restore.
+  # A partial restore (some files back into the live PVC) is a one-off, not chart
+  # state: task kopiur:restore-path.
   enabled: false
 
 # Backup checks. Kopiur waits for the first good backup before the first check.
@@ -90,6 +92,14 @@ ignore: []
 
 # -- kopia compressor.
 compression: zstd-fastest
+
+# -- Re-read this percentage (0-100) of files on every backup even when their size
+# and mtime match the previous snapshot (kopia --force-hash). Only for apps that
+# rewrite files in place WITHOUT moving the mtime (MariaDB/InnoDB ib_logfile0, Aria
+# logs). SQLite and Postgres move the mtime, so they do not need it. Only 100
+# guarantees every file is read; any value costs a full read of the volume per
+# backup. null: kopia's default (0).
+forceHashPercent: null
 
 # Rarely changed.
 repository: silo

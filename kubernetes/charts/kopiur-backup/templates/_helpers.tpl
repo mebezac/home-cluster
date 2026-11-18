@@ -9,6 +9,11 @@
 {{- if and .Values.mover.privileged .Values.mover.runAsUser -}}
 {{- fail "kopiur-backup: set mover.privileged or mover.runAsUser, not both" -}}
 {{- end -}}
+{{- if not (kindIs "invalid" .Values.forceHashPercent) -}}
+{{- if or (lt (int .Values.forceHashPercent) 0) (gt (int .Values.forceHashPercent) 100) -}}
+{{- fail (printf "kopiur-backup: forceHashPercent must be 0-100, not %v" .Values.forceHashPercent) -}}
+{{- end -}}
+{{- end -}}
 {{- if and .Values.verification.deep.enabled (not .Values.verification.deep.capacity) -}}
 {{- fail "kopiur-backup: verification.deep needs verification.deep.capacity" -}}
 {{- end -}}

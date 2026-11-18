@@ -29,6 +29,10 @@ spec:
     {{- toYaml (get $tiers .Values.tier) | nindent 4 }}
   compression:
     compressor: {{ .Values.compression }}
+  {{- if not (kindIs "invalid" .Values.forceHashPercent) }}
+  upload:
+    forceHashPercent: {{ int .Values.forceHashPercent }}
+  {{- end }}
   {{- with .Values.ignore }}
   files:
     # An explicit list replaces Kopiur's defaults, so they are repeated here.
