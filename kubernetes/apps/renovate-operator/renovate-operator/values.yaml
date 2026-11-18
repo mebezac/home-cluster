@@ -54,6 +54,8 @@ webhook:
 # UI login via Authelia (client "Renovate Operator" in security/authelia/authelia-config.yaml).
 # The operator does the OIDC flow itself, so the route has no auth: authelia label.
 auth:
+  # Default 24h forced a daily Authelia login (chart >= 6.9.0).
+  sessionDuration: 168h
   oidc:
     enabled: true
     issuerUrl: https://login.laboratory.casa
