@@ -22,7 +22,7 @@ controllers:
           repository: docker.io/cloudflare/cloudflared
           # changelog: repo RELEASE_NOTES per-release (GH release body is checksums only) + CHANGES.md for breaking flags
           # (PR body is checksums only).
-          tag: 2026.10.7@sha256:4955524aeaa379e154023d5a027c250f7b35041a2e7e950cf13f144bc9b9c5ba
+          tag: 2026.11.1@sha256:e613aadbc2d9511785d2e67a86b0c8ac18dd63a3f9af0d06faf04cbfdcb35f2d
         env:
           NO_AUTOUPDATE: true
           TUNNEL_CRED_FILE: /etc/cloudflared/creds/credentials.json
