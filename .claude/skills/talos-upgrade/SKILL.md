@@ -41,10 +41,11 @@ repo (mise shims fail outside it) or prefix with `mise exec --`. `task --list` s
 ## Setup (run first, every session)
 
 ```bash
-cd /Users/zac/projects/lab_casa/home-cluster/kubernetes/bootstrap/talos
-export SOPS_AGE_KEY_FILE=/Users/zac/projects/lab_casa/home-cluster/age.key
-export TALOSCONFIG=/Users/zac/projects/lab_casa/home-cluster/kubernetes/bootstrap/talos/talosconfig
-export TOPFCONFIG=/Users/zac/projects/lab_casa/home-cluster/kubernetes/bootstrap/talos/topf.yaml
+REPO=$(git rev-parse --show-toplevel)   # works on the Linux box and the Mac
+cd $REPO/kubernetes/bootstrap/talos
+export SOPS_AGE_KEY_FILE=$REPO/age.key
+export TALOSCONFIG=$REPO/kubernetes/bootstrap/talos/talosconfig
+export TOPFCONFIG=$REPO/kubernetes/bootstrap/talos/topf.yaml
 [ -s "$TALOSCONFIG" ] || topf talosconfig   # regenerate from the secrets bundle if missing
 # render (gitignored ./rendered - PLAINTEXT SECRETS, never print whole files) + validate:
 topf render --output ./rendered --confirm=false
@@ -64,6 +65,13 @@ upgrade the whole cluster to a new patch, bump `talosVersion` first (and
 `kubernetesVersion` if desired — that's `task talos:upgrade-k8s`, separate from this
 skill), re-render, then loop. For a same-version rollout (nodes lagging the pinned
 version) no edit is needed — just loop.
+
+**When both pins moved, run `task talos:upgrade-k8s` FIRST, before any node.** The topf
+render carries the kubelet image from `kubernetesVersion`, and every config apply in the
+node loop pushes it. A node done first would run the new kubelet against old API servers.
+Dry-run it first (`talosctl -e <cp> -n <cp> upgrade-k8s --to <ver> --dry-run`). It restarts
+the static pods and kubelets node by node with no reboot (~10 min for 8 nodes on
+2026-11-17). Afterwards `topf apply --dry-run` on any node must show only the installer line.
 
 **Confirm the factory has built every installer before touching a node**
 (`crane digest factory.talos.dev/metal-installer/<schematic>:<version>` for each distinct
@@ -89,6 +97,27 @@ evacuation (the instance-manager PDB outlasts topf's drain timeout) and the talm
 BootFFFF/powercycle steps below. Don't use `task talos:upgrade-node` on a talmac.
 Either way, **the machine config is a separate step**: an upgrade keeps the node's
 current config.
+
+### Scripts (use these; the manual steps below explain what they do)
+
+All in `scripts/`, sharing `lib.sh` (render, version poll, live apply, the gate, drain).
+Run each one **backgrounded, through `mise exec --`**, with its log in the scratchpad, and
+watch the log with a Monitor. **Never edit a script while a run of it is in progress**:
+bash reads the file as it goes, so the edit lands mid-run.
+
+| Nodes | Script | Proven |
+|-|-|-|
+| wyse-5070-01/02 | `worker-upgrade.sh <host> <ip>` | 2026-11-17, ~4-8 min each |
+| talmac-01/02/03 | `talmac-upgrade.sh <host> <ip>` | 2026-10-01 and 2026-11-17, ~15-20 min each |
+| control planes | `cp-upgrade.sh <host> <ip> <other-cp-ip>` | 2026-11-17, ~3.5 min each |
+
+The whole 1.14.4 → 1.14.6 + k8s 1.36.5 → 1.36.6 rollout on 2026-11-17 took ~1 h 50 min
+(20:55-22:43), with no Longhorn volume degraded at a gate and no Postgres outage. Upgrading
+the etcd leader (elitebook-02) moved leadership to wyse-03 in one election (term 214 → 215);
+etcd went 3.7.2 → 3.7.3 with the node upgrades (STORAGE stays 3.7.0).
+
+`DRAIN_FORCE=1` in front adds `kubectl drain --force` (see the Guildhall gotcha). Ask the
+user before using it.
 
 ### First upgrade to 1.14 (one-time topf migration)
 
@@ -350,6 +379,11 @@ do you move on.
 
 ## Mac (talmac) notes
 
+- **1.14.4 → 1.14.6 (2026-11-17): no BootFFFF at all.** On talmac-03 and talmac-02,
+  `talosctl upgrade --reboot-mode powercycle` returned 0 and Talos powercycled the node
+  itself; it was back on the new version ~4 min after the start. The BootFFFF text below
+  is the older path. `talmac-upgrade.sh` handles both: it powercycles only on a BootFFFF
+  exit.
 - **The BootFFFF "failure" is cosmetic — but the node does NOT reboot itself, you
   must powercycle it.** In-place upgrade of a talmac reports `failed to create boot
   entry: BootFFFF: declared length of FilePath … overruns available data` and exits
@@ -491,7 +525,7 @@ attribution trailer).
   `TALOSCONFIG="$PWD/talosconfig"` breaks the moment anything `cd`s
   elsewhere (editing this skill file will do it), and the failure reads as
   `talos config file is empty`. Use the full
-  `/Users/zac/projects/lab_casa/home-cluster/kubernetes/bootstrap/talos/talosconfig`
+  `$REPO/kubernetes/bootstrap/talos/talosconfig`
   path in every command. That failure is a safe no-op — the upgrade never reached
   the node — so just re-run it.
 - **etcd: leader last, verify 3 healthy converged members between CP nodes**, use
@@ -559,11 +593,36 @@ attribution trailer).
   pod off the node, then drain. After the plugin returns, CNPG may also roll pending
   instance changes (it rolled the barman sidecar v0.15.1), which means one more primary
   switchover.
-- **Talmac upgrades: run `.claude/skills/talos-upgrade/scripts/talmac-upgrade.sh <host> <ip>`** (backgrounded, logged; aborts on anything unexpected; first handle the CNPG-primary note above). It covers cordon → drain →
-  upgrade (BootFFFF expected) → powercycle → staged topf apply → powercycle → verify
-  (volume/mount/`/var`/drift/Longhorn diskUUID) → uncordon → gate. Each talmac took
-  ~12-15 min end to end. The talmac-01 USB stick is the **Z-Wave** adapter
-  (zwave-js-ui-0); zigbee2mqtt isn't tied to talmac-01.
+- **Talmac upgrades: run `mise exec -- bash .claude/skills/talos-upgrade/scripts/talmac-upgrade.sh <host> <ip>`** (backgrounded, logged; aborts on anything unexpected; first handle the CNPG-primary note above). It covers cordon → drain →
+  upgrade (powercycle if BootFFFF) → topf apply (live when only the installer line
+  differs, else staged + powercycle) → verify (volume/mount/`/var`/drift/Longhorn
+  diskUUID) → uncordon → gate. Drains took 4.5-6 min on 2026-11-17. The talmac-01 USB
+  stick is the **Z-Wave** adapter (zwave-js-ui-0): Z-Wave is down for the whole
+  talmac-01 run. zigbee2mqtt isn't tied to talmac-01.
+- **`kubectl cnpg` is pinned in `.mise.toml`** (`aqua:cloudnative-pg/cloudnative-pg/kubectl-cnpg`).
+  Before talmac-01 (or any node with the primary), promote an instance on an
+  already-upgraded node: `kubectl cnpg promote postgres-17-cluster postgres-17-cluster-<n> -n database`.
+  On 2026-11-17 the switchover took ~25 s to `Cluster in healthy state`. CNPG instances
+  are not node-pinned: a drain moves them to another node with their Longhorn volume.
+- **Guildhall runner pods block `kubectl drain`** (2026-11-17, talmac-02). Guildhall makes
+  its runners in `guildhall-workers` as bare pods (no controller, `restartPolicy: Never`),
+  so drain stops with "cannot delete Pods that declare no controller". Their data and auth
+  are Longhorn PVCs, so a delete keeps the files, but a running job stops and only Guildhall
+  can start the runner again (it did not come back by itself within an hour). Ask the user,
+  then re-run the script with `DRAIN_FORCE=1`. The reboot kills these pods in any case.
+- **The gate ignores a Failed pod of a Job that later completed.** On 2026-11-17 the hourly
+  `gluetun-proxy-ip-rotator` failed once (its VPN tunnel was not back after a node upgrade),
+  the Job's retry passed, and the leftover Failed pod held the old gate for 20 min.
+  `lib.sh nonready_pods` now skips those pods and prints the names of the rest.
+- **The last-replica check always lists detached volumes**: they have no running replica
+  anywhere. Only ATTACHED ones can go offline. On 2026-11-17 most detached ones were
+  `Released`/`Retain` PVs that no PVC uses (old volumes left after Kopiur cutovers).
+- **An installer-only diff applies live, with no reboot and no kubelet restart** (checked on
+  wyse-01: kubelet's start time stayed at boot). So after `upgrade-k8s`, every node's
+  config apply is live, control planes included. The staged + powercycle rule below is
+  for diffs that restart kubelet.
+- **A bare `talosctl` on PATH can be older than the `.mise.toml` pin** (2026-11-17: 1.14.5
+  on PATH, 1.14.6 pinned). Run every script through `mise exec --`.
 - **Don't use `ls -t …/tasks/*.output | head -1` to find a monitor's file.** Another task
   finishing can make its file newer. Tail the exact task output path.
 - **topf, not talhelper.** Render/validate with topf, take the upgrade image from the

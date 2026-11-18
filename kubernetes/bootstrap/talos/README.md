@@ -27,3 +27,11 @@ Files ending in `.yaml.tpl` are Go-templated per node (`.Node.Host`, `.Node.IP`,
 Everything uses the Talos 1.14 multi-document kinds except `all/30-kubelet.yaml.tpl`, which
 has to stay on legacy `.machine.kubelet` because 1.14 has no multi-doc equivalent for kubelet
 `extraMounts` (see the note in that file).
+
+## Upgrades
+
+One node at a time, with a health gate between nodes. The procedure, the gotchas and the
+per-node-type scripts (`worker-upgrade.sh`, `talmac-upgrade.sh`, `cp-upgrade.sh`) are in
+`.claude/skills/talos-upgrade/`. When `kubernetesVersion` moved too, run
+`task talos:upgrade-k8s` (dry-run first) BEFORE any node: every config apply pushes the
+rendered kubelet version.
