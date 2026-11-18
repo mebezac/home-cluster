@@ -9,4 +9,4 @@ sidecarImage:
   registry: ghcr.io
   repository: cloudnative-pg/plugin-barman-cloud-sidecar
   # changelog: GH releases cloudnative-pg/plugin-barman-cloud (not in PR body)
-  tag: v0.15.1@sha256:2287a793a804db751edd0d07d44cd549e357677e98a800eb12e2cf7c0d53f9b0
+  tag: v0.16.0@sha256:c669259e20ed1e11fad821f735c396c19d929985aa05b9544b13ecc8b5a386d0
