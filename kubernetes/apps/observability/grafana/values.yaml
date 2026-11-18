@@ -1264,11 +1264,6 @@ dashboards:
       revision: 2
       datasource:
         - { name: DS_PROMETHEUS, value: Prometheus }
-    garage:
-      # Keep the tag equal to the running Garage (garage/garage). Its input is DS_DS_PROMETHEUS.
-      url: https://raw.githubusercontent.com/deuxfleurs-org/garage/v2.5.0/script/telemetry/grafana-garage-dashboard-prometheus.json
-      datasource:
-        - { name: DS_DS_PROMETHEUS, value: Prometheus }
     victorialogs:
       # renovate: depName="VictoriaLogs - single-node"
       gnetId: 22084

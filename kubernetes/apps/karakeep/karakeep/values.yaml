@@ -226,7 +226,7 @@ persistence:
     suffix: data
     storageClass: longhorn
     accessMode: ReadWriteOnce
-    # SQLite + queue DB + OCR cache; assets go to Garage.
+    # SQLite + queue DB + OCR cache; assets go to SILO A.
     size: 2Gi
     # A new PVC fills from the latest Kopiur snapshot (Restore karakeep-data, kopiur-backup
     # source in the Argo app), or comes up empty on a first install.

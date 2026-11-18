@@ -15,7 +15,7 @@ spec:
           labels:
             severity: warning
           annotations:
-            summary: No etcd snapshot has reached Garage in over 26 hours
+            summary: No etcd snapshot has reached SILO A in over 26 hours
             description: 'Check the last kube-system/talos-backup Job: kubectl -n kube-system logs job/<name>.'
         # The series only exists after the first scheduled run succeeds (a Job made by hand
         # with --from=cronjob does not set it), so give a fresh CronJob one full interval.

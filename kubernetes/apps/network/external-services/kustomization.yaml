@@ -10,7 +10,5 @@ resources:
   - ./adguard-pi-03.yaml
   - ./zigbee-hub.yaml
   - ./frigate.yaml
-  - ./garage-tc.yaml
-  - ./garage-tc-console.yaml
   - ./silo.yaml
   - ./silo-console.yaml

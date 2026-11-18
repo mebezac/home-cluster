@@ -102,7 +102,7 @@ namespaces explicitly so nothing is audited twice or missed:
 | Slice | Covers |
 |---|---|
 | Networking | `network`, `network-optimizer`, `cilium-secrets`, + cilium/coredns/k8s-gateway/spegel in kube-system |
-| Storage | `longhorn-system`, `storage`, `garage` |
+| Storage | `longhorn-system`, `storage` |
 | Database | `database`, `valkey` |
 | Observability | `observability` + metrics-server — **and list every firing/pending alert** (vmalert `/api/v1/alerts`) |
 | Security/GitOps | `security`, `cert-manager`, `argo-system`, `forgejo` |

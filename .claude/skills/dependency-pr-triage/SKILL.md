@@ -263,7 +263,7 @@ capture all of them:
 3. **Follow-ups** (drives phase 8): the subset of lens 2 we'd have to *act on*
    to benefit — a new chart value or env var worth setting, a feature to turn
    on, a new metric/dashboard/alert to wire up, an integration with something
-   we already run (Authelia OIDC, VictoriaMetrics, Garage S3, central PG/Valkey),
+   we already run (Authelia OIDC, VictoriaMetrics, SILO S3, central PG/Valkey),
    or an upstream fix that lets us **drop a workaround** we carry. Lens 2 is
    *what shipped*; a follow-up is *what we could change because it shipped*.
 

@@ -29,7 +29,7 @@ spec:
   timeout:
     http:
       # Envoy's default is a 15s cap on the whole request, which kills large
-      # uploads (copyparty, oCIS, garage, immich) and long downloads. 0s means
+      # uploads (copyparty, oCIS, immich) and long downloads. 0s means
       # no cap; a stalled stream is still cut by streamIdleTimeout.
       requestTimeout: 0s
       # Long enough for websockets/noVNC (jdownloader2) and slow uploads.

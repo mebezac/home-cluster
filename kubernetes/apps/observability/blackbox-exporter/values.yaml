@@ -49,7 +49,7 @@ serviceMonitor:
     scrapeTimeout: 15s
   targets:
     # TrueNAS (10.25.30.36) can hang with ping still up: track the host and
-    # its UI separately. Garage on TrueNAS is covered by GarageNodeDisconnected.
+    # its UI separately.
     - name: truenas-icmp
       url: 10.25.30.36
       module: icmp
@@ -66,7 +66,7 @@ prometheusRule:
         severity: critical
       annotations:
         summary: TrueNAS (10.25.30.36) does not answer ping
-        description: Garage S3 (CNPG WAL archive and backups, oCIS) and the Longhorn backup share are offline.
+        description: SILO A (S3 for CNPG, Kopiur, oCIS and the other apps) and the NFS volumes are offline.
     # The 2026-10-04 failure mode: ping answers, but everything that touches
     # the disks hangs. Suppressed while NASDown fires.
     - alert: NASServiceUnresponsive
@@ -78,7 +78,7 @@ prometheusRule:
         severity: critical
       annotations:
         summary: TrueNAS answers ping, but its UI does not respond
-        description: The NAS is likely stalled. Expect the Longhorn backup share (CIFS) and Garage on TrueNAS to hang too.
+        description: The NAS is likely stalled. Expect SILO A and the NFS volumes to hang too.
     - alert: NASProbeMissing
       expr: absent(probe_success{target="truenas-icmp"})
       for: 10m
