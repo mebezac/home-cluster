@@ -2,6 +2,11 @@
 crds:
   create: true
 replicaCount: 2
+config:
+  data:
+    # Operator upgrades swap the instance manager binary in place instead of a rolling
+    # restart + switchover of every Cluster (default false). PG image changes still roll.
+    ENABLE_INSTANCE_MANAGER_INPLACE_UPDATES: "true"
 monitoring:
   podMonitorEnabled: true
   grafanaDashboard:
