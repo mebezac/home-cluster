@@ -105,6 +105,18 @@ Run each one **backgrounded, through `mise exec --`**, with its log in the scrat
 watch the log with a Monitor. **Never edit a script while a run of it is in progress**:
 bash reads the file as it goes, so the edit lands mid-run.
 
+```bash
+# 1. Bash tool, run_in_background: the script, then an EXIT= line the watcher stops on
+mise exec -- bash .claude/skills/talos-upgrade/scripts/<script>.sh <args> > $LOG 2>&1; echo "EXIT=$?" >> $LOG
+# 2. Monitor tool command (ends by itself at EXIT=, hard bound 90 min):
+bash .claude/skills/talos-upgrade/scripts/watch-log.sh $LOG
+```
+
+Use `watch-log.sh`, not `tail -F $LOG | grep …`, for the Monitor. tail never ends, and
+`| awk '/EXIT=/{exit}'` does not help (EXIT= is the last line, so tail never gets
+SIGPIPE): on 2026-11-17 three monitors stayed open after their runs. If a run is stopped
+with TaskStop it writes no EXIT=, so stop its Monitor too.
+
 | Nodes | Script | Proven |
 |-|-|-|
 | wyse-5070-01/02 | `worker-upgrade.sh <host> <ip>` | 2026-11-17, ~4-8 min each |
