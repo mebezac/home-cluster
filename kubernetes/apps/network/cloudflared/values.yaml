@@ -22,7 +22,6 @@ controllers:
           # (PR body is checksums only).
           tag: 2026.11.1@sha256:e613aadbc2d9511785d2e67a86b0c8ac18dd63a3f9af0d06faf04cbfdcb35f2d
         env:
-          NO_AUTOUPDATE: true
           TUNNEL_CRED_FILE: /etc/cloudflared/creds/credentials.json
           TUNNEL_METRICS: 0.0.0.0:8080
           TUNNEL_ORIGIN_ENABLE_HTTP2: true
