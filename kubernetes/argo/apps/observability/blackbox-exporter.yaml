@@ -14,7 +14,7 @@ spec:
       ref: blackbox-exporter-repo
     - repoURL: ghcr.io/prometheus-community/charts
       chart: prometheus-blackbox-exporter
-      # changelog: prometheus-community/helm-charts GH releases (prometheus-blackbox-exporter-*; not in PR body)
+      # changelog: prometheus-community/helm-charts GH release bodies list the whole monorepo - helm pull both versions and diff the chart instead
       targetRevision: 11.21.3
       helm:
         releaseName: blackbox-exporter

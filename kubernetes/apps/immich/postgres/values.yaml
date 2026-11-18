@@ -11,7 +11,9 @@ controllers:
           # (0.5->1.x) is auto-migrated by Immich on the next immich-server bootstrap: it drops
           # clip_index/face_index, runs ALTER EXTENSION, rebuilds and vacuums. NOT REVERSIBLE - once
           # it has run, the older image fatals with invalidDowngrade. Supported range is
-          # VECTORCHORD_VERSION_RANGE in the immich server's constants.ts.
+          # VECTORCHORD_VERSION_RANGE in the immich server's constants.ts. Digest bumps: diff the
+          # org.opencontainers.image.revision labels via gh api repos/immich-app/base-images/compare/<old>...<new>
+          # (the entrypoint was rewritten in 4ed03f6; our explicit PGDATA keeps the data in place).
           tag: 18-vectorchord1.1.1-pgvector0.8.5@sha256:4c3a3696605d5e436ca35b703c4918c46fedf8ddd3597c5610ba91c1ee3b0dd1
         env:
           POSTGRES_INITDB_ARGS: --data-checksums

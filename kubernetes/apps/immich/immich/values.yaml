@@ -141,7 +141,7 @@ controllers:
       main:
         image:
           repository: ghcr.io/immich-app/immich-machine-learning
-          # changelog: GH releases immich-app/immich (PR body only has compare links). v3 note: migration guide at immich.app/blog/v3-migration; watch ffmpeg config enum changes (libopus→opus). PATCH releases can carry DB migrations - check server/src/schema/migrations in the compare
+          # changelog: GH releases immich-app/immich (PR body only has compare links). v3 note: migration guide at immich.app/blog/v3-migration; watch ffmpeg config enum changes (libopus→opus). ANY release can carry DB migrations - diff `gh api repos/immich-app/immich/contents/server/src/schema/migrations?ref=<tag>` old vs new (the compare API truncates at 300 files); vchord range = VECTORCHORD_VERSION_RANGE in server/src/constants.ts
           tag: v3.4.1@sha256:8adebf414256f6e4f837bfbb66fa94f14f4da7260e3a1d65cbba49e4e35d8764
         env:
           TZ: Etc/UTC

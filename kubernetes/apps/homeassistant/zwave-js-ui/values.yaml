@@ -8,7 +8,7 @@ controllers:
       main:
         image:
           repository: docker.io/zwavejs/zwave-js-ui
-          # changelog: CHANGELOG.md in repo root; patch releases are usually just zwave-js / @zwave-js/server bumps - the server version is the protocol HA's zwave_js integration speaks on :3000
+          # changelog: CHANGELOG.md in repo root; patch releases are usually just zwave-js / @zwave-js/server bumps. Check zwave-js/zwave-js-server src/lib/const.ts (tags have no "v"): min/maxSchemaVersion must still cover HA's zwave-js-server-python MIN/MAX_SERVER_SCHEMA_VERSION (the protocol on :3000)
           tag: 11.27.0@sha256:0f3ad23ccf5ff2256ad8cc060ab0fc987b8f52a8427eac337f93b058fa628f35
         probes:
           liveness: &probes
