@@ -124,3 +124,48 @@ spec:
       backendRefs:
         - name: silo
           port: 9000
+---
+# https://pod.laboratory.casa/media/<key>: Castopod media in the SILO bucket
+# castopod (anonymous GetObject, no listing; laboratory-casa/silo-tofu). Castopod
+# (namespace castopod) links media as CP_MEDIA_BASEURL + <key>, with
+# CP_MEDIA_BASEURL=https://pod.laboratory.casa/media/, so rewrite to
+# /castopod/<key>. The castopod app routes take every other path of the host;
+# this PathPrefix is longer, so it wins. Regex rewrite for the same reason as
+# files-heremag-free above. GET and HEAD only (podcast players use Range).
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: HTTPRouteFilter
+metadata:
+  name: castopod-media-rewrite
+spec:
+  urlRewrite:
+    path:
+      type: ReplaceRegexMatch
+      replaceRegexMatch:
+        pattern: ^/media/(.*)$
+        substitution: /castopod/\1
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: castopod-media
+spec:
+  parentRefs:
+    - name: envoy-external
+      sectionName: https
+  hostnames:
+    - pod.laboratory.casa
+  rules:
+    - matches:
+        - path: { type: PathPrefix, value: /media/ }
+          method: GET
+        - path: { type: PathPrefix, value: /media/ }
+          method: HEAD
+      filters:
+        - type: ExtensionRef
+          extensionRef:
+            group: gateway.envoyproxy.io
+            kind: HTTPRouteFilter
+            name: castopod-media-rewrite
+      backendRefs:
+        - name: silo
+          port: 9000

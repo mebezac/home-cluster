@@ -1,0 +1,224 @@
+# Castopod (podcast hosting): https://pod.laboratory.casa, public on envoy-external.
+# Moved from Docker on nuc02 (infra roles/castopod) on 2026-11-19.
+#
+# Media lives in the SILO A bucket `castopod` (S3 file manager), NOT on a PVC.
+# Castopod links media as CP_MEDIA_BASEURL + <key> (it does not use the S3
+# endpoint for URLs), so CP_MEDIA_BASEURL is https://pod.laboratory.casa/media/
+# and the HTTPRoute `castopod-media` in network (external-services/silo.yaml)
+# rewrites /media/<key> to /castopod/<key> on SILO A. That keeps the URLs the
+# nuc02 file manager used. The bucket allows anonymous GetObject (silo-tofu
+# public_read); Castopod also uploads with ACL public-read, which SILO accepts.
+# Known S3-mode limit: Castopod writes ID3 tags only to local files, so audio
+# uploaded here keeps the tags it had.
+#
+# Database: Castopod supports only MySQL/MariaDB (MySQLi driver, MySQL stored
+# procedures in the analytics module), so it has its own MariaDB below instead
+# of the central Postgres. Cache: central valkey, DB index 2.
+#
+# The image's bootstrap writes /app/.env from the CP_* variables and prints it
+# to the pod log, secrets included (upstream behaviour).
+defaultPodOptions:
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 3000
+    runAsGroup: 3000
+    fsGroup: 3000
+    fsGroupChangePolicy: OnRootMismatch
+    seccompProfile: { type: RuntimeDefault }
+
+controllers:
+  castopod:
+    replicas: 0
+    strategy: Recreate
+    annotations:
+      reloader.stakater.com/auto: "true"
+    pod:
+      # The image runs as www-data (33): /app is mode 550 owned by www-data and
+      # the bootstrap writes /app/.env, so uid 3000 cannot start it.
+      securityContext:
+        runAsUser: 33
+        runAsGroup: 33
+        fsGroup: 33
+    containers:
+      app:
+        image:
+          repository: docker.io/castopod/castopod
+          # changelog: https://code.castopod.org/adaures/castopod/-/releases. DB
+          # migrations run at start (spark castopod:database-update).
+          tag: 1.15.7@sha256:9479cd65c4c933bb151838c8da784d284742d56b2fa74ce2cf0be4168f1dc6f0
+        env:
+          TZ: America/New_York
+          CP_BASEURL: https://pod.laboratory.casa
+          CP_MEDIA_BASEURL: https://pod.laboratory.casa/media/
+          CP_DATABASE_HOSTNAME: castopod-mariadb
+          CP_DATABASE_NAME: castopod
+          CP_DATABASE_USERNAME: castopod
+          CP_REDIS_HOST: valkey.valkey.svc.cluster.local
+          CP_REDIS_PORT: "6379"
+          CP_REDIS_DATABASE: "2"
+          CP_MEDIA_FILE_MANAGER: s3
+          CP_MEDIA_S3_ENDPOINT: http://silo.network.svc.cluster.local:9000
+          CP_MEDIA_S3_REGION: us-east-1
+          CP_MEDIA_S3_BUCKET: castopod
+          CP_MEDIA_S3_PATH_STYLE_ENDPOINT: "true"
+          CP_EMAIL_SMTP_HOST: smtp.fastmail.com
+          CP_EMAIL_SMTP_PORT: "587"
+          CP_EMAIL_SMTP_CRYPTO: tls
+          CP_EMAIL_FROM: admin@laboratory.casa
+          PHP_MEMORY_LIMIT: 1024M
+          PHP_MAX_EXECUTION_TIME: "900"
+          # Real client IPs for analytics: trust X-Forwarded-For from Envoy (pod CIDR).
+          app_proxyIPs: '{"10.69.0.0/16":"X-Forwarded-For"}'
+        envFrom:
+          - secretRef:
+              name: castopod-secret
+        probes:
+          startup:
+            enabled: true
+            custom: true
+            spec:
+              httpGet: &health
+                path: /health
+                port: 8080
+                # forceGlobalSecureRequests would redirect a plain-http probe.
+                httpHeaders:
+                  - name: X-Forwarded-Proto
+                    value: https
+              periodSeconds: 5
+              failureThreshold: 60
+          liveness:
+            enabled: true
+            custom: true
+            spec:
+              httpGet: *health
+              periodSeconds: 30
+              timeoutSeconds: 10
+              failureThreshold: 3
+          readiness:
+            enabled: true
+            custom: true
+            spec:
+              httpGet: *health
+              periodSeconds: 10
+              timeoutSeconds: 10
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities: { drop: ["ALL"] }
+        resources:
+          requests: { cpu: 20m, memory: 256Mi }
+          limits: { memory: 1536Mi }
+
+  mariadb:
+    strategy: Recreate
+    annotations:
+      reloader.stakater.com/auto: "true"
+    containers:
+      app:
+        image:
+          repository: docker.io/library/mariadb
+          tag: 11.8.9@sha256:d36f18d65a0459510b8b0f643b226a6d299e3206486e2b64ff20754a6d291707
+        args:
+          - --innodb-buffer-pool-size=128M
+          - --character-set-server=utf8mb4
+          - --collation-server=utf8mb4_unicode_ci
+        env:
+          TZ: America/New_York
+          MARIADB_DATABASE: castopod
+          MARIADB_USER: castopod
+          # Runs mariadb-upgrade after a version bump.
+          MARIADB_AUTO_UPGRADE: "1"
+        envFrom:
+          - secretRef:
+              name: castopod-secret
+        probes:
+          startup:
+            enabled: true
+            custom: true
+            spec:
+              exec: &dbcheck
+                command: ["healthcheck.sh", "--connect", "--innodb_initialized"]
+              periodSeconds: 5
+              failureThreshold: 60
+          liveness:
+            enabled: true
+            custom: true
+            spec:
+              exec: *dbcheck
+              periodSeconds: 30
+              timeoutSeconds: 10
+          readiness:
+            enabled: true
+            custom: true
+            spec:
+              exec: *dbcheck
+              periodSeconds: 10
+              timeoutSeconds: 10
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities: { drop: ["ALL"] }
+        resources:
+          requests: { cpu: 10m, memory: 192Mi }
+          limits: { memory: 768Mi }
+
+service:
+  app:
+    controller: castopod
+    ports:
+      http:
+        port: 8080
+  mariadb:
+    controller: mariadb
+    ports:
+      mysql:
+        port: 3306
+
+route:
+  # Public site, feeds, audio redirects (/audio/...), fediverse. /media/* is the
+  # castopod-media route in network (SILO), which wins by longer prefix.
+  app:
+    hostnames:
+      - pod.laboratory.casa
+    parentRefs:
+      - name: envoy-external
+        namespace: network
+        sectionName: https
+    rules:
+      - backendRefs:
+          - identifier: app
+            port: http
+  # Admin and login pages behind Authelia (SecurityPolicy authelia.yaml in this
+  # namespace; `*.laboratory.casa` rule = group apps_admin), then Castopod's own login.
+  admin:
+    labels:
+      auth: authelia
+    hostnames:
+      - pod.laboratory.casa
+    parentRefs:
+      - name: envoy-external
+        namespace: network
+        sectionName: https
+    rules:
+      - matches:
+          - path: { type: PathPrefix, value: /cp-admin }
+          - path: { type: PathPrefix, value: /cp-auth }
+        backendRefs:
+          - identifier: app
+            port: http
+
+persistence:
+  mariadb:
+    type: persistentVolumeClaim
+    suffix: mariadb # pins the name to castopod-mariadb
+    storageClass: longhorn
+    accessMode: ReadWriteOnce
+    size: 1Gi
+    # A new PVC fills from the latest Kopiur snapshot (Restore castopod-mariadb,
+    # kopiur-backup source in the Argo app), or comes up empty on a first install.
+    dataSourceRef:
+      apiGroup: kopiur.home-operations.com
+      kind: Restore
+      name: castopod-mariadb
+    advancedMounts:
+      mariadb:
+        app:
+          - path: /var/lib/mysql

@@ -52,6 +52,10 @@ spec:
     - group: gateway.envoyproxy.io
       kind: SecurityPolicy
       namespace: kopia
+    # policy lives in kubernetes/apps/castopod/castopod/authelia.yaml (admin paths)
+    - group: gateway.envoyproxy.io
+      kind: SecurityPolicy
+      namespace: castopod
   to:
     - group: ""
       kind: Service
