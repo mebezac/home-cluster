@@ -1,0 +1,59 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/monitoring.coreos.com/prometheusrule_v1.json
+# NAS load and capacity (plan risk R11): pool data is one mirror of two HDDs
+# and holds SILO A, the NFS PVCs and the media. On 2026-11-19 the HDDs were
+# 1.6% busy (median) and 3.8% (average); the busiest 30 minutes in 7 days
+# stayed under 57% (one-off deletes, and Immich's nightly checksum hour at
+# 22:00 EST). So a sustained 70% means a new load. The HDDs are matched by
+# rotational=1, not by name: sdX names can change on a reboot.
+# NAS down / stalled are blackbox-exporter's NASDown / NASServiceUnresponsive.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: truenas
+spec:
+  groups:
+    - name: truenas
+      rules:
+        - alert: NASDisksBusy
+          expr: >-
+            100 * rate(node_disk_io_time_seconds_total{job="truenas"}[5m])
+            * on (instance, device) group_left ()
+            (max by (instance, device) (node_disk_info{job="truenas", rotational="1"}))
+            > 70
+          for: 30m
+          labels:
+            severity: warning
+          annotations:
+            summary: 'NAS HDD {{ $labels.device }} is {{ $value | humanize }}% busy for 30 min'
+            description: >-
+              The data pool's HDDs are saturated, so SILO A (Kopiur backups), the NFS PVCs and
+              the media all slow down. Find the source: NAS network out by interface
+              (node_network_transmit_bytes_total{job="truenas"}) and which cluster node receives
+              it, then that node's pods. Usual suspects: Immich jobs, torrents, a bulk copy or delete.
+        - alert: NASPoolFilling
+          expr: >-
+            100 * truenas_zpool_allocated_bytes{job="truenas"}
+            / truenas_zpool_size_bytes{job="truenas"}
+            > 80
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: 'NAS pool {{ $labels.pool }} is {{ $value | humanize }}% full'
+            description: >-
+              ZFS gets slower as a pool fills past about 80%. Free space or plan more disks.
+              truenas_dataset_used_bytes shows which datasets grew.
+        - alert: NASMetricsMissing
+          expr: >-
+            absent(truenas_zpool_size_bytes{job="truenas", pool="data"})
+            or absent(node_disk_io_time_seconds_total{job="truenas"})
+          for: 30m
+          labels:
+            severity: warning
+          annotations:
+            summary: No NAS disk or pool metrics
+            description: >-
+              VictoriaMetrics has no node_exporter or pool data from the NAS (TrueNAS app
+              `metrics`, truenas-terraform metrics.tf), so NASDisksBusy and NASPoolFilling
+              cannot fire. If the NAS itself is down, NASDown fires as well.

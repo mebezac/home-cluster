@@ -5,7 +5,7 @@
 #   :9633 smartctl_exporter (SMART, disk temperatures). The smartctl-exporter
 #         app's alerts (sector errors, temperature) cover these disks too.
 # Own job names (not node-exporter): the stack's node rules and dashboards
-# assume a Kubernetes node. Stats only, no alerts of its own.
+# assume a Kubernetes node. Alerts: prometheusrule.yaml (disk busy, pool fill).
 apiVersion: operator.victoriametrics.com/v1beta1
 kind: VMStaticScrape
 metadata:
