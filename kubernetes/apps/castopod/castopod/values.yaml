@@ -13,7 +13,8 @@
 #
 # Database: Castopod supports only MySQL/MariaDB (MySQLi driver, MySQL stored
 # procedures in the analytics module), so it has its own MariaDB below instead
-# of the central Postgres. Cache: central valkey, DB index 2.
+# of the central Postgres (restored from the nuc02 dump on 2026-11-19).
+# Cache: central valkey, DB index 2.
 #
 # The image's bootstrap writes /app/.env from the CP_* variables and prints it
 # to the pod log, secrets included (upstream behaviour).
@@ -28,7 +29,7 @@ defaultPodOptions:
 
 controllers:
   castopod:
-    replicas: 0
+    replicas: 1
     strategy: Recreate
     annotations:
       reloader.stakater.com/auto: "true"
