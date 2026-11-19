@@ -194,6 +194,16 @@ route:
       - backendRefs:
           - identifier: app
             port: http
+        filters:
+          # Castopod analytics (client_ip()) read the WHOLE X-Forwarded-For as
+          # one IP, so "visitor, cloudflared-pod" fails the GeoIP lookup and every
+          # hit counts as country N/A. Send only the client IP Envoy detected
+          # (it trusts X-Forwarded-For from the cloudflared pods).
+          - type: RequestHeaderModifier
+            requestHeaderModifier:
+              set:
+                - name: X-Forwarded-For
+                  value: "%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%"
   # Admin and login pages behind Authelia (SecurityPolicy authelia.yaml in this
   # namespace; `*.laboratory.casa` rule = group apps_admin), then Castopod's own login.
   admin:
