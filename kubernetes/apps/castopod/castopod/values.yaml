@@ -49,6 +49,10 @@ controllers:
           tag: 1.15.7@sha256:9479cd65c4c933bb151838c8da784d284742d56b2fa74ce2cf0be4168f1dc6f0
         env:
           TZ: America/New_York
+          # s6-overlay fixes a root-owned /run with a setuid helper, which
+          # allowPrivilegeEscalation: false blocks. Its Kubernetes path: the
+          # tmpfs `run` volume below (root:33, group-writable) plus this flag.
+          S6_YES_I_WANT_A_WORLD_WRITABLE_RUN_BECAUSE_KUBERNETES: "1"
           CP_BASEURL: https://pod.laboratory.casa
           CP_MEDIA_BASEURL: https://pod.laboratory.casa/media/
           CP_DATABASE_HOSTNAME: castopod-mariadb
@@ -223,3 +227,11 @@ persistence:
       mariadb:
         app:
           - path: /var/lib/mysql
+  run:
+    type: emptyDir
+    medium: Memory
+    sizeLimit: 64Mi
+    advancedMounts:
+      castopod:
+        app:
+          - path: /run
