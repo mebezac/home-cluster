@@ -4,6 +4,8 @@ generators:
   - secret-generator.yaml
 resources:
   - cluster-repository.yaml
+  - silo-b-repository.yaml
+  - silo-b-egress.yaml
   - ui-route.yaml
   - authelia.yaml
   - ui-doctor-rolebinding.yaml

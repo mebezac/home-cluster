@@ -23,6 +23,13 @@ spec:
   destination:
     name: in-cluster
     namespace: kopiur-system
+  # The Tailscale operator rewrites the silo-b egress Service's externalName.
+  ignoreDifferences:
+    - group: ""
+      kind: Service
+      name: silo-b
+      jsonPointers:
+        - /spec/externalName
   syncPolicy:
     automated:
       allowEmpty: true
@@ -30,6 +37,7 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      - RespectIgnoreDifferences=true
       # The Repository/ClusterRepository CRDs are bigger than the 256 KB
       # last-applied annotation, so client-side apply fails on them.
       - ServerSideApply=true

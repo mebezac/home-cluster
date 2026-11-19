@@ -1,0 +1,54 @@
+# In-cluster name for SILO B (the vault on hh-chi-10tb), for the read-only
+# ClusterRepository silo-b. SILO B listens only on the tailnet IP and cluster
+# pods cannot route to the tailnet, so the Tailscale operator runs an egress
+# proxy (in network) and rewrites externalName to point at it. The Argo app
+# ignores that field.
+#
+# Tailnet identity: tag:k8s-silob. The tailnet policy (mebezac/tailscale-acl)
+# lets that tag reach hh-chi-10tb on tcp:9000 only. The CiliumNetworkPolicy
+# below lets only Kopiur's own pods use the proxy.
+apiVersion: v1
+kind: Service
+metadata:
+  name: silo-b
+  annotations:
+    tailscale.com/tailnet-ip: 100.124.255.12
+    tailscale.com/tags: tag:k8s-silob
+spec:
+  type: ExternalName
+  externalName: placeholder
+  ports:
+    - name: s3
+      port: 9000
+      protocol: TCP
+---
+# The proxy pod runs in network. Only Kopiur may use it: the operator (it
+# connects in-process for health checks) and the mover Jobs, which run as
+# kopiur-mover in each app namespace (restores) and in kopiur-system
+# (bootstrap). The key behind silo-b is read-only anyway.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: silo-b-egress-ingress
+  namespace: network
+spec:
+  endpointSelector:
+    matchLabels:
+      tailscale.com/managed: "true"
+      tailscale.com/parent-resource: silo-b
+      tailscale.com/parent-resource-ns: kopiur-system
+      tailscale.com/parent-resource-type: svc
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kopiur-system
+            k8s:io.cilium.k8s.policy.serviceaccount: kopiur
+        - matchLabels:
+            k8s:io.cilium.k8s.policy.serviceaccount: kopiur-mover
+          matchExpressions:
+            - key: k8s:io.kubernetes.pod.namespace
+              operator: Exists
+      toPorts:
+        - ports:
+            - port: "9000"
+              protocol: TCP

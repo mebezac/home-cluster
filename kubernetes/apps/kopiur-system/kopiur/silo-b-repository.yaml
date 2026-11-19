@@ -1,0 +1,68 @@
+# The same kopia repository as silo, read from SILO B (the vault on
+# hh-chi-10tb): SILO A replicates bucket kopiur there. For restores when SILO A
+# (the NAS) is down. Backups always go to silo; this one can never write.
+#
+#   - mode ReadOnly: kopia connects --readonly, no maintenance, no parameters.
+#   - Key: the SILO B user kopiur-restore (silo-tofu iam/vault.tf): read and
+#     list only, so even a bug cannot change the vault.
+#   - Reached through the egress proxy in silo-b-egress.yaml (tag:k8s-silob).
+#   - catalog.retain.perIdentity 0: no Snapshot CRs. They would duplicate the
+#     silo rows, and adoption would hand them to the live policies' GFS
+#     retention. Restore by identity instead:
+#
+#       spec:
+#         repository: { kind: ClusterRepository, name: silo-b }
+#         source:
+#           identity: { username: <policy>, hostname: <namespace>, path: /data }
+#
+#     (identityDefaults below match silo, so <policy>@<namespace> is the same.)
+apiVersion: kopiur.home-operations.com/v1alpha1
+kind: ClusterRepository
+metadata:
+  name: silo-b
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  mode: ReadOnly
+  backend:
+    s3:
+      bucket: kopiur
+      endpoint: silo-b.kopiur-system.svc.cluster.local:9000
+      region: us-east-1
+      tls:
+        # Plain HTTP to the proxy; the proxy carries it inside WireGuard.
+        disableTls: true
+      auth:
+        secretRef:
+          name: kopiur-silo-b
+          namespace: kopiur-system
+  encryption:
+    passwordSecretRef:
+      name: kopiur-silo
+      namespace: kopiur-system
+      key: KOPIA_PASSWORD
+  catalog:
+    adoption: Ignore
+    retain:
+      perIdentity: 0
+  allowedNamespaces:
+    all: true
+  credentialProjection:
+    allowed: true
+  identityDefaults:
+    hostnameExpr: "namespace"
+    usernameExpr: "policyName"
+  maintenance:
+    enabled: false
+  moverDefaults:
+    securityContext:
+      runAsUser: 3000
+      runAsGroup: 3000
+      runAsNonRoot: true
+      allowPrivilegeEscalation: false
+      capabilities: { drop: ["ALL"] }
+      seccompProfile: { type: RuntimeDefault }
+    podSecurityContext:
+      fsGroup: 3000
+      fsGroupChangePolicy: OnRootMismatch
