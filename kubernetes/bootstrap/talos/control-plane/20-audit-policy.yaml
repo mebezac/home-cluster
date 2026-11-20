@@ -1,0 +1,50 @@
+# kube-apiserver audit policy (replaces the Talos default, `level: Metadata` for every
+# request). The default wrote ~11 GB/day of audit log to each control-plane disk
+# (a 105 MB file every ~14 min), 75% of it lease get/update from leader election
+# and Cilium L2 announcements. wyse-5070-03's 180 GB Intel SSD lost ~4% rated life
+# per month (2026-11-19 investigation). This keeps who-changed-what for every
+# write and who-touched Secrets/ConfigMaps/tokens, and drops the noise.
+apiVersion: v1alpha1
+kind: KubeAuditPolicyConfig
+configuration:
+  apiVersion: audit.k8s.io/v1
+  kind: Policy
+  # One event per request (ResponseComplete), not two.
+  omitStages:
+    - RequestReceived
+  rules:
+    # Lease heartbeats and leader election (nodes, controllers, Cilium L2).
+    - level: None
+      resources:
+        - group: coordination.k8s.io
+          resources: ["leases"]
+    # Health, version and discovery probes.
+    - level: None
+      nonResourceURLs:
+        - /healthz*
+        - /livez*
+        - /readyz*
+        - /version
+        - /metrics
+        - /openapi/*
+    # Events (a log of their own) and per-request auth plumbing.
+    - level: None
+      resources:
+        - group: ""
+          resources: ["events"]
+        - group: events.k8s.io
+          resources: ["events"]
+        - group: authentication.k8s.io
+          resources: ["tokenreviews"]
+        - group: authorization.k8s.io
+          resources: ["subjectaccessreviews", "selfsubjectaccessreviews"]
+    # Who reads or changes Secrets, ConfigMaps and service account tokens.
+    - level: Metadata
+      resources:
+        - group: ""
+          resources: ["secrets", "configmaps", "serviceaccounts/token"]
+    # All other reads.
+    - level: None
+      verbs: ["get", "list", "watch"]
+    # Everything else (writes): who changed what, without bodies.
+    - level: Metadata
