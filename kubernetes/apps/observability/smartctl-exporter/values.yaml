@@ -5,10 +5,12 @@ image:
   repository: quay.io/prometheuscommunity/smartctl-exporter
   # changelog: GH releases prometheus-community/smartctl_exporter
   tag: v0.15.0@sha256:a76e08dbf5db4781fefd1ed81c65ad46ae8d2849dae6b6d3acebcde2fc4e59d6
-# Skip the T2 Mac nodes (talmac-*). Their disks cannot be SMART-monitored at all:
-# the USB-bridged SSDs (/dev/sd*) don't pass SMART, and the T2-mediated internal
-# NVMe rejects standard SMART log pages (Invalid Log Page 0x109) — yielding zero
-# usable metrics and constant errors. So we don't run the exporter there.
+# Instance 0 (this block) runs on the five non-Mac nodes and scans for disks.
+# Only sda, the internal SATA disk, is kept: the pod's /dev is a copy made at
+# pod start and also holds every Longhorn iSCSI volume attached at that moment
+# (IET VIRTUAL-DISK), which smartctl reads as healthy SCSI disks.
+config:
+  device_include: "^sda$"
 affinity:
   nodeAffinity:
     requiredDuringSchedulingIgnoredDuringExecution:
@@ -17,16 +19,81 @@ affinity:
             - key: kubernetes.io/hostname
               operator: NotIn
               values: ["talmac-01", "talmac-02", "talmac-03"]
+# Instances 1-3: one per T2 Mac, for its Longhorn USB disk (Longhorn disk
+# "sabrent-usb-ssd"): an Intel 670p NVMe in a Sabrent enclosure with a Realtek
+# RTL9210 USB-to-NVMe bridge. smartctl reads NVMe SMART through the bridge with
+# -d sntrealtek (tested on all three, 2026-11-20). The path is the enclosure's
+# by-id name under /hostdev (the host's live /dev), so it survives USB
+# re-enumeration; update it if an enclosure is replaced. The internal Apple NVMe
+# is left out: behind the T2 it rejects the SMART log (Invalid Log Page 0x109).
+extraInstances:
+  - &talmac
+    config:
+      devices:
+        - /hostdev/disk/by-id/usb-Sabrent_SSD_830720240913000A-0:0;sntrealtek
+    affinity:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+            - matchExpressions:
+                - key: kubernetes.io/hostname
+                  operator: In
+                  values: ["talmac-01"]
+    hostNetwork: false
+    resources: {}
+    extraArgs: {}
+  - <<: *talmac
+    config:
+      devices:
+        - /hostdev/disk/by-id/usb-Sabrent_SSD_830700000022-0:0;sntrealtek
+    affinity:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+            - matchExpressions:
+                - key: kubernetes.io/hostname
+                  operator: In
+                  values: ["talmac-02"]
+  - <<: *talmac
+    config:
+      devices:
+        - /hostdev/disk/by-id/usb-Sabrent_Sabrent_012345678930-0:0;sntrealtek
+    affinity:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+            - matchExpressions:
+                - key: kubernetes.io/hostname
+                  operator: In
+                  values: ["talmac-03"]
 serviceMonitor:
   enabled: true
+  # instance = node name instead of pod IP:port (alerts and dashboard 22604's
+  # node picker use instance).
+  relabelings:
+    - sourceLabels: [__meta_kubernetes_pod_node_name]
+      targetLabel: instance
+  metricRelabelings:
+    # The talmac USB disks: "_hostdev_disk_by-id_usb-Sabrent_..." -> the
+    # Longhorn disk name.
+    - sourceLabels: [device]
+      regex: _hostdev_disk_by-id_usb-Sabrent_.*
+      targetLabel: device
+      replacement: sabrent-usb-ssd
+    # The bridge passes NVMe through; dashboard 22604 shows NVMe wear only for
+    # interface="nvme". protocol stays "NVMe".
+    - sourceLabels: [interface]
+      regex: sntrealtek
+      targetLabel: interface
+      replacement: nvme
 prometheusRules:
   enabled: true
   rules:
     # These rules have no job filter, so they also cover the off-cluster
     # exporters: truenas-smartctl (3 NVMe + HDDs) and nuc02-smartctl (1 NVMe +
-    # 1 SATA SSD). The cluster nodes' own disks are all SATA. The chart's three
-    # NVMe rules (media errors, critical warning, available spare) use their
-    # chart defaults; they were off while only SATA disks were watched.
+    # 1 SATA SSD). In the cluster: a SATA disk on each non-Mac node and an NVMe
+    # (USB) disk on each talmac. The chart's three NVMe rules (media errors,
+    # critical warning, available spare) use their chart defaults.
     smartCTLDeviceSectorErrors:
       enabled: true
       alert: SmartCTLDeviceSectorErrors
@@ -50,7 +117,7 @@ prometheusRules:
       labels:
         severity: warning
     # Flash near the end of its rated life: NVMe percentage_used (truenas,
-    # nuc02 /opt with the Frigate recordings) or the Silicon Motion SATA SSD's
+    # nuc02 /opt with the Frigate recordings, the talmac USB disks) or the Silicon Motion SATA SSD's
     # Remaining_Lifetime_Perc (nuc02 /). Media_Wearout_Indicator and
     # Wear_Leveling_Count are left out: their scale differs per vendor.
     smartCTLDeviceWearHigh:
@@ -61,5 +128,32 @@ prometheusRules:
       annotations:
         summary: '{{ $labels.device }} on {{ $labels.instance }} has used {{ $value }}% of its rated life'
         description: 'Plan a replacement for {{ $labels.device }} on {{ $labels.instance }}; the drive is at or past 90% of its rated write endurance.'
+      labels:
+        severity: warning
+    # The exporter keeps a disk's last good reading when later reads fail (for
+    # example after the disk vanished), so its values freeze instead of
+    # disappearing. Power-on hours grow every hour on a running disk. Cluster
+    # exporters only: truenas HDDs may spin down. The count_over_time guard skips
+    # series younger than about 2.5 h (a restarted exporter pod).
+    smartCTLDeviceStale:
+      enabled: true
+      alert: SmartCTLDeviceStale
+      expr: changes(smartctl_device_power_on_seconds{job="smartctl-exporter"}[3h]) == 0 and count_over_time(smartctl_device_power_on_seconds{job="smartctl-exporter"}[3h]) > 150
+      for: 0m
+      annotations:
+        summary: 'SMART data for {{ $labels.device }} on {{ $labels.instance }} stopped updating'
+        description: 'Power-on hours of {{ $labels.device }} on {{ $labels.instance }} did not change in 3 h, so smartctl can no longer read the disk. Check the disk (on a talmac: the USB enclosure) and the exporter pod logs.'
+      labels:
+        severity: warning
+    # A configured or scanned disk that never gave a reading (for example a
+    # talmac USB enclosure that was unplugged when the exporter started).
+    smartCTLDeviceUnreadable:
+      enabled: true
+      alert: SmartCTLDeviceUnreadable
+      expr: smartctl_devices{job="smartctl-exporter"} > on(pod) (count by (pod) (smartctl_device{job="smartctl-exporter"}) or on(pod) (0 * smartctl_devices{job="smartctl-exporter"}))
+      for: 15m
+      annotations:
+        summary: 'The SMART exporter on {{ $labels.instance }} cannot read all its disks'
+        description: 'The exporter on {{ $labels.instance }} has {{ $value }} disks configured or found but reports fewer. Check its pod logs for "S.M.A.R.T. output reading".'
       labels:
         severity: warning
