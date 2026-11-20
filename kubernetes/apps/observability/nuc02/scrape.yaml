@@ -1,0 +1,19 @@
+# nuc02 (Frigate + Traefik host, 10.25.30.10): node_exporter from the infra
+# repo's node_exporter role, listening on the LAN IP. nuc02 shares the servers
+# /24 with the cluster, so no Tailscale egress proxy (unlike hh-chi-10tb).
+# Own job name (not node-exporter): the stack's default node rules and
+# dashboards assume a Kubernetes node, so nuc02 gets its own dashboard. Stats
+# only, no alerts (same as hh-chi-10tb).
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMStaticScrape
+metadata:
+  name: nuc02
+spec:
+  jobName: nuc02
+  targetEndpoints:
+    - targets:
+        - 10.25.30.10:9100
+      labels:
+        instance: nuc02
+      path: /metrics
+      interval: 30s
