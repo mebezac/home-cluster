@@ -25,7 +25,7 @@ affinity:
 # -d sntrealtek (tested on all three, 2026-11-20). The path is the enclosure's
 # by-id name under /hostdev (the host's live /dev), so it survives USB
 # re-enumeration; update it if an enclosure is replaced. The internal Apple NVMe
-# is left out: behind the T2 it rejects the SMART log (Invalid Log Page 0x109).
+# has its own DaemonSet in apple-nvme.yaml (it needs a smartctl wrapper).
 extraInstances:
   - &talmac
     config:
@@ -92,7 +92,7 @@ prometheusRules:
     # These rules have no job filter, so they also cover the off-cluster
     # exporters: truenas-smartctl (3 NVMe + HDDs) and nuc02-smartctl (1 NVMe +
     # 1 SATA SSD). In the cluster: a SATA disk on each non-Mac node and an NVMe
-    # (USB) disk on each talmac. The chart's three NVMe rules (media errors,
+    # (USB) and an Apple NVMe disk on each talmac. The chart's three NVMe rules (media errors,
     # critical warning, available spare) use their chart defaults.
     smartCTLDeviceSectorErrors:
       enabled: true
@@ -132,17 +132,19 @@ prometheusRules:
         severity: warning
     # The exporter keeps a disk's last good reading when later reads fail (for
     # example after the disk vanished), so its values freeze instead of
-    # disappearing. Power-on hours grow every hour on a running disk. Cluster
-    # exporters only: truenas HDDs may spin down. The count_over_time guard skips
-    # series younger than about 2.5 h (a restarted exporter pod).
+    # disappearing. Fires when power-on hours and temperature both stay flat
+    # for 3 h and no data was written: a live disk changes at least one of
+    # them (the Apple NVMe's power-on counter barely moves, so it needs the
+    # other two). Cluster exporters only: truenas HDDs may spin down. The
+    # count_over_time guard skips series younger than about 2.5 h.
     smartCTLDeviceStale:
       enabled: true
       alert: SmartCTLDeviceStale
-      expr: changes(smartctl_device_power_on_seconds{job="smartctl-exporter"}[3h]) == 0 and count_over_time(smartctl_device_power_on_seconds{job="smartctl-exporter"}[3h]) > 150
+      expr: (changes(smartctl_device_power_on_seconds{job="smartctl-exporter"}[3h]) == 0 and count_over_time(smartctl_device_power_on_seconds{job="smartctl-exporter"}[3h]) > 150) unless on(instance, device) (changes(smartctl_device_temperature{job="smartctl-exporter",temperature_type="current"}[3h]) > 0 or changes(smartctl_device_bytes_written{job="smartctl-exporter"}[3h]) > 0)
       for: 0m
       annotations:
         summary: 'SMART data for {{ $labels.device }} on {{ $labels.instance }} stopped updating'
-        description: 'Power-on hours of {{ $labels.device }} on {{ $labels.instance }} did not change in 3 h, so smartctl can no longer read the disk. Check the disk (on a talmac: the USB enclosure) and the exporter pod logs.'
+        description: 'Power-on hours, temperature and bytes written of {{ $labels.device }} on {{ $labels.instance }} did not change in 3 h, so smartctl can no longer read the disk. Check the disk (on a talmac: the USB enclosure) and the exporter pod logs.'
       labels:
         severity: warning
     # A configured or scanned disk that never gave a reading (for example a

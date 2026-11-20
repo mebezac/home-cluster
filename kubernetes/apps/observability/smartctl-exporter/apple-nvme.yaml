@@ -1,0 +1,80 @@
+# SMART for the internal Apple NVMe (APPLE SSD AP0256M) of the talmacs: the
+# Talos system disk and Longhorn disk default-disk-* on each Mac.
+#
+# Behind the T2 the drive returns the NVMe health log (0x02) but rejects the
+# Error Information Log (0x01) with "Invalid Log Page (0x109)". smartctl then
+# reports an error message, and smartctl_exporter drops the whole reading. The
+# exporter always passes --log=error, so this DaemonSet runs smartctl through a
+# wrapper that removes that one argument (tested on talmac-01, 2026-11-20).
+#
+# The chart cannot mount extra files, so this DaemonSet lives here. Its pods
+# carry the chart's selector labels: the chart's Service and ServiceMonitor
+# scrape them, with the same relabeling, job, dashboard and alerts. idx differs,
+# so the chart's own DaemonSets do not adopt them. Keep the image in step with
+# values.yaml.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: smartctl-exporter-apple-nvme
+data:
+  smartctl: |
+    #!/bin/sh
+    for a; do
+      shift
+      [ "$a" = "--log=error" ] || set -- "$@" "$a"
+    done
+    exec /usr/sbin/smartctl "$@"
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: smartctl-exporter-apple-nvme
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: prometheus-smartctl-exporter
+      app.kubernetes.io/instance: smartctl-exporter
+      idx: apple-nvme
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: prometheus-smartctl-exporter
+        app.kubernetes.io/instance: smartctl-exporter
+        idx: apple-nvme
+    spec:
+      automountServiceAccountToken: false
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: In
+                    values: ["talmac-01", "talmac-02", "talmac-03"]
+      containers:
+        - name: main
+          image: quay.io/prometheuscommunity/smartctl-exporter:v0.15.0@sha256:a76e08dbf5db4781fefd1ed81c65ad46ae8d2849dae6b6d3acebcde2fc4e59d6
+          args:
+            - --smartctl.path=/opt/smartctl-wrapper/smartctl
+            - --smartctl.powermode-check=standby
+            - --smartctl.interval=120s
+            # nvme0 exists from boot, so the pod's /dev copy always has it.
+            - --smartctl.device=/dev/nvme0;nvme
+            - --web.listen-address=0.0.0.0:9633
+            - --web.telemetry-path=/metrics
+          securityContext:
+            privileged: true
+            runAsUser: 0
+          ports:
+            - name: http
+              containerPort: 9633
+              protocol: TCP
+          volumeMounts:
+            - name: wrapper
+              mountPath: /opt/smartctl-wrapper
+              readOnly: true
+      volumes:
+        - name: wrapper
+          configMap:
+            name: smartctl-exporter-apple-nvme
+            defaultMode: 0555
