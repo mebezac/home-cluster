@@ -38,13 +38,26 @@ configuration:
           resources: ["tokenreviews"]
         - group: authorization.k8s.io
           resources: ["subjectaccessreviews", "selfsubjectaccessreviews"]
+    # The human admin (talosctl/topf kubeconfig, CN=admin): every request,
+    # reads included. By user name, not the system:masters group, which
+    # kube-apiserver's own loopback client also has.
+    - level: Metadata
+      users: ["admin"]
     # Who reads or changes Secrets, ConfigMaps and service account tokens.
     - level: Metadata
       resources:
         - group: ""
           resources: ["secrets", "configmaps", "serviceaccounts/token"]
-    # All other reads.
+    # RBAC reads: what a stolen token checks first.
+    - level: Metadata
+      resources:
+        - group: rbac.authorization.k8s.io
+          resources: ["roles", "rolebindings", "clusterroles", "clusterrolebindings"]
+    # All other reads by signed-in users. Requests that fail authentication
+    # (401: anonymous auth is off except on the health endpoints above) have no
+    # user and no groups, so they skip this rule and the catch-all logs them.
     - level: None
+      userGroups: ["system:authenticated"]
       verbs: ["get", "list", "watch"]
     # Everything else (writes): who changed what, without bodies.
     - level: Metadata
