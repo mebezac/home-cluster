@@ -3,7 +3,8 @@
 # /24 with the cluster, so no Tailscale egress proxy (unlike hh-chi-10tb).
 # Own job name (not node-exporter): the stack's default node rules and
 # dashboards assume a Kubernetes node, so nuc02 gets its own dashboard. Stats
-# only, no alerts (same as hh-chi-10tb).
+# only for node_exporter (same as hh-chi-10tb); SMART alerts come from the
+# smartctl-exporter app (below).
 apiVersion: operator.victoriametrics.com/v1beta1
 kind: VMStaticScrape
 metadata:
@@ -17,3 +18,24 @@ spec:
         instance: nuc02
       path: /metrics
       interval: 30s
+---
+# SMART (health, wear, temperatures, error counters) for nuc02's two disks:
+# nvme0 = /opt (Frigate recordings), sda = / (OS). smartctl_exporter runs as a
+# privileged container on nuc02 (infra role smartctl_exporter, LAN :9633).
+# The smartctl-exporter app's alert rules have no job filter, so they cover
+# these disks too (see kubernetes/apps/observability/smartctl-exporter).
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMStaticScrape
+metadata:
+  name: nuc02-smartctl
+spec:
+  jobName: nuc02-smartctl
+  targetEndpoints:
+    - targets:
+        - 10.25.30.10:9633
+      labels:
+        instance: nuc02
+      path: /metrics
+      # smartctl reads every disk on each scrape; once a minute is plenty.
+      interval: 60s
+      scrapeTimeout: 50s

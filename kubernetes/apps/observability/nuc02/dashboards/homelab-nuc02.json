@@ -1,7 +1,7 @@
 {
   "uid": "homelab-nuc02",
   "title": "nuc02",
-  "description": "nuc02 (Frigate + Traefik host on the LAN): CPU, memory, disk, network, filesystem, temperatures (node_exporter, LAN :9100).",
+  "description": "nuc02 (Frigate + Traefik host on the LAN): CPU, memory, disk, network, filesystem, temperatures (node_exporter, LAN :9100) and SMART disk health (smartctl_exporter, LAN :9633).",
   "tags": [
     "homelab",
     "nuc02"
@@ -1703,6 +1703,432 @@
               }
             ]
           }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 28,
+      "type": "row",
+      "title": "Disk health (SMART)",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 73,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 29,
+      "type": "stat",
+      "title": "SMART health",
+      "description": "The drive's own overall self-assessment. nvme0 = /opt (Frigate), sda = / (OS).",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 74,
+        "w": 6,
+        "h": 5
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "refId": "A",
+          "expr": "smartctl_device_smart_status{job=\"nuc02-smartctl\"}",
+          "legendFormat": "{{device}}",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "value_and_name",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#d64545",
+                "value": null
+              },
+              {
+                "color": "#1a9e5c",
+                "value": 1
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "FAIL"
+                },
+                "1": {
+                  "text": "PASS"
+                }
+              }
+            }
+          ]
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 30,
+      "type": "stat",
+      "title": "Life used",
+      "description": "Rated write endurance used: NVMe percentage_used; SATA 100 - Remaining_Lifetime_Perc. Alert SmartCTLDeviceWearHigh at 90%.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 6,
+        "y": 74,
+        "w": 6,
+        "h": 5
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "refId": "A",
+          "expr": "smartctl_device_percentage_used{job=\"nuc02-smartctl\"}",
+          "legendFormat": "{{device}}",
+          "instant": true,
+          "range": false
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "refId": "B",
+          "expr": "100 - smartctl_device_attribute{job=\"nuc02-smartctl\", attribute_name=\"Remaining_Lifetime_Perc\", attribute_value_type=\"raw\"}",
+          "legendFormat": "{{device}}",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "value_and_name",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#1a9e5c",
+                "value": null
+              },
+              {
+                "color": "#e0a800",
+                "value": 75
+              },
+              {
+                "color": "#d64545",
+                "value": 90
+              }
+            ]
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 31,
+      "type": "stat",
+      "title": "Data written",
+      "description": "Lifetime host writes. NVMe: bytes_written. SATA: Host_Writes_32MiB x 32 MiB.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 74,
+        "w": 6,
+        "h": 5
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "refId": "A",
+          "expr": "smartctl_device_bytes_written{job=\"nuc02-smartctl\"}",
+          "legendFormat": "{{device}}",
+          "instant": true,
+          "range": false
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "refId": "B",
+          "expr": "smartctl_device_attribute{job=\"nuc02-smartctl\", attribute_name=\"Host_Writes_32MiB\", attribute_value_type=\"raw\"} * 33554432",
+          "legendFormat": "{{device}}",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "value_and_name",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#5794f2"
+          },
+          "decimals": 1
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 32,
+      "type": "stat",
+      "title": "Power-on time",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 18,
+        "y": 74,
+        "w": 6,
+        "h": 5
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "refId": "A",
+          "expr": "smartctl_device_power_on_seconds{job=\"nuc02-smartctl\"}",
+          "legendFormat": "{{device}}",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "value_and_name",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "dtdurations",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#5794f2"
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 33,
+      "type": "timeseries",
+      "title": "SMART temperature",
+      "description": "Drive-reported temperature. Alert SmartCTLDDeviceTemperature above 70 C.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 79,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "refId": "A",
+          "expr": "smartctl_device_temperature{job=\"nuc02-smartctl\", temperature_type=\"current\"}",
+          "legendFormat": "{{device}}"
+        }
+      ],
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "celsius",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 8,
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            }
+          },
+          "min": 0
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 34,
+      "type": "timeseries",
+      "title": "Error counters",
+      "description": "Should stay flat. sda UDMA_CRC_Error_Count is link (cable) errors; it had 10 when monitoring began (2026-11-19).",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 79,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "refId": "A",
+          "expr": "smartctl_device_media_errors{job=\"nuc02-smartctl\"}",
+          "legendFormat": "{{device}} media errors"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "refId": "B",
+          "expr": "smartctl_device_error_log_count{job=\"nuc02-smartctl\"}",
+          "legendFormat": "{{device}} error log"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "refId": "C",
+          "expr": "smartctl_device_attribute{job=\"nuc02-smartctl\", attribute_value_type=\"raw\", attribute_name=~\"Reallocated_Sector_Ct|Current_Pending_Sector|Offline_Uncorrectable|Uncorrectable_Error_Cnt|UDMA_CRC_Error_Count|Program_Fail_Cnt_Total|Erase_Fail_Count_Total\"}",
+          "legendFormat": "{{device}} {{attribute_name}}"
+        }
+      ],
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 8,
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            }
+          },
+          "min": 0
         },
         "overrides": []
       }

@@ -22,18 +22,17 @@ serviceMonitor:
 prometheusRules:
   enabled: true
   rules:
-    # All 5 monitored disks are SATA (interface="sat"). These three read
-    # NVMe-only fields and can never fire; the SATA rule below replaces them.
-    smartCTLDeviceMediaErrors:
-      enabled: false
-    smartCTLDeviceCriticalWarning:
-      enabled: false
-    smartCTLDeviceAvailableSpareUnderThreshold:
-      enabled: false
+    # These rules have no job filter, so they also cover the off-cluster
+    # exporters: truenas-smartctl (3 NVMe + HDDs) and nuc02-smartctl (1 NVMe +
+    # 1 SATA SSD). The cluster nodes' own disks are all SATA. The chart's three
+    # NVMe rules (media errors, critical warning, available spare) use their
+    # chart defaults; they were off while only SATA disks were watched.
     smartCTLDeviceSectorErrors:
       enabled: true
       alert: SmartCTLDeviceSectorErrors
-      expr: increase(smartctl_device_attribute{attribute_name=~"Reallocated_Sector_Ct|Current_Pending_Sector|Offline_Uncorrectable|Reported_Uncorrect",attribute_value_type="raw"}[1d]) > 0
+      # Uncorrectable_Error_Cnt: the Silicon Motion SSD on nuc02 (ADATA SU800)
+      # reports uncorrectable reads under this name, not Reported_Uncorrect.
+      expr: increase(smartctl_device_attribute{attribute_name=~"Reallocated_Sector_Ct|Current_Pending_Sector|Offline_Uncorrectable|Reported_Uncorrect|Uncorrectable_Error_Cnt",attribute_value_type="raw"}[1d]) > 0
       for: 0m
       annotations:
         summary: '{{ $labels.attribute_name }} grew on {{ $labels.device }}'
@@ -48,5 +47,19 @@ prometheusRules:
       annotations:
         summary: Device has temperature higher than 70°C
         description: Device {{ $labels.device }} on instance {{ $labels.instance }} has temperature higher than 70°C
+      labels:
+        severity: warning
+    # Flash near the end of its rated life: NVMe percentage_used (truenas,
+    # nuc02 /opt with the Frigate recordings) or the Silicon Motion SATA SSD's
+    # Remaining_Lifetime_Perc (nuc02 /). Media_Wearout_Indicator and
+    # Wear_Leveling_Count are left out: their scale differs per vendor.
+    smartCTLDeviceWearHigh:
+      enabled: true
+      alert: SmartCTLDeviceWearHigh
+      expr: smartctl_device_percentage_used >= 90 or (100 - smartctl_device_attribute{attribute_name="Remaining_Lifetime_Perc",attribute_value_type="raw"}) >= 90
+      for: 1h
+      annotations:
+        summary: '{{ $labels.device }} on {{ $labels.instance }} has used {{ $value }}% of its rated life'
+        description: 'Plan a replacement for {{ $labels.device }} on {{ $labels.instance }}; the drive is at or past 90% of its rated write endurance.'
       labels:
         severity: warning
