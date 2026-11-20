@@ -10,12 +10,7 @@ server:
 
   # Data retention period (14 days same as Loki)
   retentionPeriod: 14d
-
-  # TEMPORARY (2026-11-20): delete API on, to purge Castopod startup lines that
-  # held secrets. Revert right after the delete task finishes.
-  extraArgs:
-    delete.enable: "true"
-
+  
   persistentVolume:
     enabled: true
     storageClassName: longhorn-single-replica
