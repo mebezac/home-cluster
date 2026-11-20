@@ -2,6 +2,13 @@ cluster:
   etcd:
     extraArgs:
       listen-metrics-urls: http://0.0.0.0:2381
+      # bbolt commits on a timer (default 100 ms) whenever anything changed; with
+      # ~13 puts/s (mostly lease renewals) that was ~8 commits/s x ~40 KB = most
+      # of each control-plane disk's writes (~26 GB/day; wyse-5070-03's Intel SSD
+      # lost ~4% rated life/month, 2026-11-20). 1 s batches repeated updates to the
+      # same pages. Durability is unchanged: every write is fsynced to the WAL
+      # first and replayed after a crash; the cost is up to 1 s more replay.
+      backend-batch-interval: 1s
     advertisedSubnets:
       - 10.25.30.0/24
 ---
