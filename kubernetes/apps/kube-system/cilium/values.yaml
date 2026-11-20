@@ -37,6 +37,15 @@ kubeProxyReplacement: true
 kubeProxyReplacementHealthzBindAddr: 0.0.0.0:10256
 l2announcements:
   enabled: true
+  # Each LoadBalancer IP holds a lease that its node renews every retryPeriod and
+  # every other agent polls. With the defaults (15s/5s/2s) the 11 leases were 1/3
+  # of all etcd writes and half of the apiserver audit log (2026-11-19, wear
+  # investigation on wyse-5070-03's SSD). 5x slower renewals; the cost is IP
+  # failover after a node death: 30-90 s (leaseDuration -/+ renewDeadline)
+  # instead of 10-20 s (user's choice). Cilium rule: renewDeadline > 1.2 x retryPeriod.
+  leaseDuration: 60s
+  leaseRenewDeadline: 30s
+  leaseRetryPeriod: 10s
 loadBalancer:
   algorithm: maglev
   mode: dsr
