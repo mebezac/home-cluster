@@ -28,7 +28,7 @@ controllers:
           # for config.json / DB migrations before bumping. SYSTEM_PROMPT below is a frozen
           # copy of the default prompt: diff src/server/config/defaults.ts between the old
           # and new tag on every bump and carry over upstream changes.
-          tag: 4.1.0@sha256:ccc6cb3ef433ccf3bcf8ed5d27cb0d0e0802d3f567a80c2fae90ae7e7b6d32cd
+          tag: 4.4.0@sha256:66b219a196c4e244c4f5f09a0fa5f31ac2786e62ff43a61c6eedca3c8ac93937
         env:
           TZ: America/New_York
           # Envoy terminates TLS: trust one hop so the login rate limit sees the client IP
