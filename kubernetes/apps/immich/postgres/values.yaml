@@ -38,6 +38,7 @@ controllers:
           tag: v0.21.1@sha256:a88794758ad461c75f3825b51cde4bde730bdff04b3b24d00efe14217e41f615
         args:
           - --datasource.uri=localhost:5433/postgres?sslmode=disable
+          - --config.file=
         envFrom:
           - secretRef:
               name: immich-db-secret

@@ -18,6 +18,8 @@ extraArgs:
   - --crd-source-apiversion=externaldns.k8s.io/v1alpha1
   - --crd-source-kind=DNSEndpoint
 triggerLoopOnEvent: true
+eventsEmit:
+  - RecordError
 policy: sync
 sources:
   - crd

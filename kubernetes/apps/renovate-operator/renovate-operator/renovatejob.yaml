@@ -30,11 +30,17 @@ spec:
   # renovate-secret: RENOVATE_TOKEN (renovate-bot PAT) and, for github.com
   # changelog/tag lookups without the 60 req/h anonymous limit, RENOVATE_GITHUB_COM_TOKEN.
   secretRef: renovate-secret
+  # Debug logs let renovate-operator (>=6.10.0) parse Renovate's "Abandoned package
+  # statistics" line into UI badges and renovate_operator_abandoned_dependencies.
+  extraEnv:
+    - name: RENOVATE_LOG_LEVEL
+      value: debug
   renovateConfig:
     fileName: config.json
     inline: |
       {
         "gitAuthor": "Renovate Bot <renovate-bot@laboratory.casa>",
+        "abandonmentThreshold": "1 year",
         "onboarding": true,
         "requireConfig": "required",
         "onboardingConfig": {

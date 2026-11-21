@@ -158,6 +158,12 @@ identity_providers:
             subject: group:apps_admin
           - policy: one_factor
             subject: group:apps_user
+      # Paperless-AI: admins only (all accounts share full settings access).
+      paperless_ai_admins:
+        default_policy: deny
+        rules:
+          - policy: one_factor
+            subject: group:apps_admin
     claims_policies:
       all:
         id_token:
@@ -536,6 +542,25 @@ identity_providers:
         pkce_challenge_method: "S256"
         redirect_uris:
           - "https://paperless.laboratory.casa/accounts/oidc/authelia/login/callback/"
+        scopes: ["openid", "profile", "email", "groups"]
+        response_types: ["code"]
+        grant_types: ["authorization_code"]
+        userinfo_signed_response_alg: "none"
+        token_endpoint_auth_method: "client_secret_basic"
+      # Paperless-AI (paperless-ai namespace). Plaintext secret in paperless-ai-secret
+      # (OIDC_CLIENT_SECRET). claims_policy "all" puts groups in the id_token;
+      # apps_admin only (all Paperless-AI accounts share full settings access).
+      - client_id: "0qE_3E41qgsoqwBUqnhPkqnfbT~11BBSL.fhI3ZpMX_j~X4H_UX5VZ63gKVd52CsxC6QX_FL"
+        client_name: "Paperless-AI"
+        client_secret: "$pbkdf2-sha512$310000$4YmuLnwKnOOGhT5V0vp/iA$CWyXdZtmbIJksUxnBaxHoDrQZf4EAuawnXK65vbSo3J97uvl9fa5M4NkGejf8kziISSUWNKuXzlzh2G69paZmw"
+        claims_policy: "all"
+        public: false
+        authorization_policy: "paperless_ai_admins"
+        consent_mode: "implicit"
+        require_pkce: true
+        pkce_challenge_method: "S256"
+        redirect_uris:
+          - "https://paperless-ai.laboratory.casa/api/auth/oidc/callback"
         scopes: ["openid", "profile", "email", "groups"]
         response_types: ["code"]
         grant_types: ["authorization_code"]

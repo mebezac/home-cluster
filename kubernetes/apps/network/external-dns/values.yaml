@@ -19,6 +19,8 @@ extraArgs:
   - --crd-source-kind=DNSEndpoint
   - --gateway-name=envoy-external
 triggerLoopOnEvent: true
+eventsEmit:
+  - RecordError
 policy: sync
 sources:
   - crd

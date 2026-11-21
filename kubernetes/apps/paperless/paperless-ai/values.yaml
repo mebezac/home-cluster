@@ -16,8 +16,9 @@ controllers:
     # It writes title, tags, correspondent, type, date and custom fields as the Paperless
     # user "paperless-ai" (not a superuser), which only sees documents it may change: the
     # same workflow grants it change permission on each new document.
-    # Login: currently local account (native OIDC SSO arrived in v4.3.0; credentials in
-    # Secret paperless-ai-login). The account was made through the setup API on first deploy.
+    # Login: Authelia OIDC SSO (client "Paperless-AI" in security/authelia/authelia-config.yaml,
+    # restricted to apps_admin). Password login stays on until the initial local account
+    # (Secret paperless-ai-login) is linked in Settings -> Account, then set PASSWORD_LOGIN: "false".
     # Env vars below override config.json on the PVC and show as locked in the UI.
     containers:
       app:
@@ -34,6 +35,16 @@ controllers:
           # Envoy terminates TLS: trust one hop so the login rate limit sees the client IP
           # and the session cookie gets Secure.
           TRUST_PROXY: "1"
+          # --- Auth: Authelia OIDC (OIDC_CLIENT_SECRET is in paperless-ai-secret).
+          PAPERLESS_AI_URL: https://paperless-ai.laboratory.casa
+          OIDC_ENABLED: "true"
+          OIDC_ISSUER: https://login.laboratory.casa
+          OIDC_CLIENT_ID: "0qE_3E41qgsoqwBUqnhPkqnfbT~11BBSL.fhI3ZpMX_j~X4H_UX5VZ63gKVd52CsxC6QX_FL"
+          OIDC_SCOPES: "openid profile email groups"
+          OIDC_ALLOWED_GROUPS: "apps_admin"
+          OIDC_BUTTON_LABEL: "Authelia"
+          # Extract appointments, due dates and deadlines for the Calendar page + iCal feed.
+          ACTIVATE_CALENDAR: "true"
           # --- Paperless. PAPERLESS_API_TOKEN is in paperless-ai-secret.
           PAPERLESS_API_URL: http://paperless.paperless.svc.cluster.local:8000
           PAPERLESS_PUBLIC_URL: https://paperless.laboratory.casa
@@ -173,7 +184,7 @@ controllers:
             {"value":"Gas Supply Rate (per Ccf)","data_type":"float"}]}
         envFrom:
           # PAPERLESS_API_TOKEN, ANTHROPIC_API_KEY, CUSTOM_API_KEY (OpenRouter), API_KEY,
-          # JWT_SECRET.
+          # JWT_SECRET, OIDC_CLIENT_SECRET.
           - secretRef:
               name: paperless-ai-secret
         securityContext:
