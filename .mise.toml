@@ -27,7 +27,7 @@ python = "3.15.2"
 "github:home-operations/kopiur" = { version = "0.11.2", rename_exe = "kubectl-kopiur" }
 # kubectl-cnpg: the CloudNativePG kubectl plugin (status, promote, psql). Keep near the operator
 # version in kubernetes/argo/apps/database/cloudnative-pg.yaml.
-"aqua:cloudnative-pg/cloudnative-pg/kubectl-cnpg" = "1.30.1"
+"aqua:cloudnative-pg/cloudnative-pg/kubectl-cnpg" = "1.30.2"
 "aqua:mikefarah/yq" = "4.54.3"
 # pgsty/mc ships `mcli`, the client for SILO (the S3 store, a MinIO fork); minio's mc is not maintained for it.
 # changelog: gh release view <tag> -R pgsty/mc. Keep near the pgsty/silo server tag (infra hh_chi_10tb_silo, truenas-terraform apps.tf)
