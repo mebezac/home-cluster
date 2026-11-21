@@ -14,7 +14,7 @@ controllers:
           # VECTORCHORD_VERSION_RANGE in the immich server's constants.ts. Digest bumps: diff the
           # org.opencontainers.image.revision labels via gh api repos/immich-app/base-images/compare/<old>...<new>
           # (the entrypoint was rewritten in 4ed03f6; our explicit PGDATA keeps the data in place).
-          tag: 18-vectorchord1.1.1-pgvector0.8.5@sha256:4c3a3696605d5e436ca35b703c4918c46fedf8ddd3597c5610ba91c1ee3b0dd1
+          tag: 18-vectorchord1.1.1-pgvector0.8.7@sha256:f7388adc1e3414800a71506528917f4f5615249f5fe7a872b1e1431e01b72ad7
         env:
           POSTGRES_INITDB_ARGS: --data-checksums
           PGDATA: /var/lib/postgresql18/data
