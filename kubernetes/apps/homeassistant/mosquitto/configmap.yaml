@@ -10,7 +10,6 @@ data:
     allow_anonymous false
     persistence true
     persistence_location /mosquitto/data/
-    autosave_interval 1800
     connection_messages false
     autosave_interval 60
     password_file /mosquitto/external_config/mosquitto_pwd

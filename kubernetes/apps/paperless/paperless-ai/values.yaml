@@ -16,8 +16,8 @@ controllers:
     # It writes title, tags, correspondent, type, date and custom fields as the Paperless
     # user "paperless-ai" (not a superuser), which only sees documents it may change: the
     # same workflow grants it change permission on each new document.
-    # Login: local only (no SSO in v4). The one account was made through the setup API
-    # right after the first deploy; credentials in Secret paperless-ai-login (sops).
+    # Login: currently local account (native OIDC SSO arrived in v4.3.0; credentials in
+    # Secret paperless-ai-login). The account was made through the setup API on first deploy.
     # Env vars below override config.json on the PVC and show as locked in the UI.
     containers:
       app:

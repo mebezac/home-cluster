@@ -34,10 +34,10 @@ controllers:
       metrics:
         image:
           repository: quay.io/prometheuscommunity/postgres-exporter
-          # changelog: GH releases prometheus-community/postgres_exporter (not in PR body)
+          # changelog: GH releases prometheus-community/postgres_exporter (not in PR body; v0.22.0 drops DATA_SOURCE_URI/PG_EXPORTER_* env vars, DATA_SOURCE_USER/PASS stay in env)
           tag: v0.21.1@sha256:a88794758ad461c75f3825b51cde4bde730bdff04b3b24d00efe14217e41f615
-        env:
-          DATA_SOURCE_URI: localhost:5433/postgres?sslmode=disable
+        args:
+          - --datasource.uri=localhost:5433/postgres?sslmode=disable
         envFrom:
           - secretRef:
               name: immich-db-secret

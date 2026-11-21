@@ -192,6 +192,61 @@
       matchPackageNames: ["external-dns", "/external-dns/external-dns/"],
     },
     {
+      description: [
+        "Kubelet CSR Approver Group",
+        "The image is pinned in values.yaml, so chart bumps no longer move it.",
+      ],
+      groupName: "Kubelet CSR Approver",
+      group: {
+        commitMessageTopic: "{{{groupName}}} group",
+      },
+      matchPackageNames: ["kubelet-csr-approver", "/postfinance/kubelet-csr-approver/"],
+    },
+    {
+      description: [
+        "Forgejo Runner Group",
+        "Keep the forgejo-runner chart, runner image and runner-k8s-plugin sidecar moving in lockstep.",
+      ],
+      groupName: "Forgejo Runner",
+      group: {
+        commitMessageTopic: "{{{groupName}}} group",
+      },
+      matchPackageNames: [
+        "data.forgejo.org/forgejo/runner",
+        "/eleboucher/runner-k8s-plugin/",
+        "/eleboucher/charts/forgejo-runner/",
+      ],
+    },
+    {
+      description: [
+        "Renovate Operator Group",
+        "Keep the renovate-operator chart (CRDs + RBAC) and pinned image moving together.",
+      ],
+      groupName: "Renovate Operator",
+      group: {
+        commitMessageTopic: "{{{groupName}}} group",
+      },
+      matchPackageNames: [
+        "/mogenius/helm-charts/renovate-operator/",
+        "/mogenius/renovate-operator/",
+      ],
+    },
+    {
+      description: [
+        "Kopiur Group",
+        "Keep the kopiur chart and kubectl-kopiur CLI (.mise.toml) moving in lockstep.",
+      ],
+      groupName: "Kopiur",
+      group: {
+        commitMessageTopic: "{{{groupName}}} group",
+      },
+      matchPackageNames: [
+        "/home-operations/charts/kopiur/",
+        "github:home-operations/kopiur",
+        "home-operations/kopiur",
+      ],
+    },
+    {
       matchDatasources: ["docker"],
       matchUpdateTypes: ["major"],
       commitMessagePrefix: "feat(container)!: ",

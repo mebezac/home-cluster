@@ -7,6 +7,7 @@ controllers:
       init-config:
         image:
           repository: public.ecr.aws/docker/library/eclipse-mosquitto
+          # changelog: raw.githubusercontent.com/eclipse-mosquitto/mosquitto/v<ver>/ChangeLog.txt + mosquitto.org/blog/ (Renovate PR body misses Security section; keep init-config and app tags equal)
           tag: 2.0.23@sha256:6a332cc7a8dbe011cbc076180cbb76b37c6f0f55809682ea08e7980ef0112ad9
           pullPolicy: IfNotPresent
         command: ["/bin/sh", "-c"]
@@ -18,6 +19,7 @@ controllers:
       app:
         image:
           repository: public.ecr.aws/docker/library/eclipse-mosquitto
+          # changelog: raw.githubusercontent.com/eclipse-mosquitto/mosquitto/v<ver>/ChangeLog.txt + mosquitto.org/blog/ (Renovate PR body misses Security section; keep init-config and app tags equal)
           tag: 2.0.23@sha256:6a332cc7a8dbe011cbc076180cbb76b37c6f0f55809682ea08e7980ef0112ad9
         resources:
           requests:
