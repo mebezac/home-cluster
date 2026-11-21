@@ -17,7 +17,7 @@ spec:
     # source 2: the same chart as forgejo/forgejo-runner; keep both on one version.
     - repoURL: git.erwanleboucher.dev/eleboucher/charts
       chart: forgejo-runner
-      targetRevision: 13.2.1
+      targetRevision: 13.2.2
       helm:
         releaseName: tofu-runner
         valueFiles:
