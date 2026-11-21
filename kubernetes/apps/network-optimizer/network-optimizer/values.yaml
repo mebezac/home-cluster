@@ -14,7 +14,7 @@ controllers:
         image:
           repository: ghcr.io/ozark-connect/network-optimizer
           # changelog: GH releases Ozark-Connect/NetworkOptimizer (Renovate truncates the body - read each minor directly). Both images ship in lockstep from one compose file; bump network-optimizer and speedtest together. Schema: EF Core SQLite migrations in src/NetworkOptimizer.Storage/Migrations run at start, forward-only - diff that dir between tags (compare API truncates at 300 files); rollback = Kopiur restore
-          tag: 2.11.4@sha256:e8665c2384bfaac7801f6b8d7f6d4881640023df56c6540d3fdde78c550d05d5
+          tag: 2.11.5@sha256:5319a400717a77f457eed1a7de82caedebf58bc0cf03f7b5902b3ef4039ceb67
         env:
           TZ: America/New_York
           BIND_LOCALHOST_ONLY: "false"
@@ -96,7 +96,7 @@ controllers:
           repository: ghcr.io/ozark-connect/speedtest
           # changelog: see the network-optimizer image above - both images ship in lockstep from one
           # upstream compose file and MUST be bumped together; never merge a speedtest PR alone.
-          tag: 2.11.4@sha256:76fb081a87e40080815995f45a56818801413216657ca7f2cea8d988a27bd20d
+          tag: 2.11.5@sha256:5ad7dc0c22e3e013bd0da23a17bacb19063cbb2c5ae32945ae69a0073cf59a8c
         env:
           TZ: America/New_York
           HOST_NAME: network-optimizer.laboratory.casa
