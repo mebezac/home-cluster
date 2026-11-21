@@ -8,7 +8,7 @@ controllers:
         image:
           repository: ghcr.io/esphome/esphome
           # changelog: esphome.io/changelog/<major.minor>.0.html ONLY - a patch page 404s, patch notes live in the GH release. Since 2026.10 that page only lists PRs; breaking changes + upgrade checklist are in the linked blog post esphome.io/blog/YYYY/MM/DD/esphome-YYYY-MM/. A bump changes the DASHBOARD only - devices keep old firmware until reflashed
-          tag: 2026.10.2@sha256:4a918585150e95e7675be84a347384ff308fde1bd32d0e4472666e1252cc0e8f
+          tag: 2026.11.0@sha256:6351ae811202064bb3eb49dde982609b47acd523103a66d7b9c5c1431beea055
         env:
           - name: TZ
             value: "America/New_York"
