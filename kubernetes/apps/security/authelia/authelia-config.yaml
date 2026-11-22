@@ -137,6 +137,11 @@ duo_api:
 identity_providers:
   oidc:
     authorization_policies:
+      network_optimizer_admins:
+        default_policy: deny
+        rules:
+          - policy: two_factor
+            subject: group:apps_admin
       guildhall_admin:
         default_policy: deny
         rules:
@@ -177,6 +182,8 @@ identity_providers:
           ]
       jotty:
         id_token: [preferred_username, email]
+      network_optimizer:
+        id_token: [preferred_username, name, email]
     jwks:
       # https://www.authelia.com/reference/guides/generating-secure-values/#generating-an-rsa-keypair
       # openssl genrsa -out authelia_oidc_private_key.pem 2048
@@ -190,6 +197,22 @@ identity_providers:
     # client_id: docker run --rm authelia/authelia:latest authelia crypto rand --length 72 --charset rfc3986
     # client_secret: docker run --rm authelia/authelia:latest authelia crypto hash generate pbkdf2 --variant sha512 --random --random.length 72 --random.charset rfc3986
     clients:
+      # Network Optimizer: token redemption uses ASP.NET Core's client_secret_post.
+      - client_id: "network-optimizer"
+        client_name: "Network Optimizer"
+        client_secret: "$pbkdf2-sha512$310000$5DlL3F6ux4APwYVeK/7Pow$unJgiaFr1XZpXNq7GtF2FgChm9Zx1PVVtdE3L.jt.UvCjtQcA7QsadTdsxnW4ZY8YwRtuTEr8b0pcw13x4D96A"
+        public: false
+        authorization_policy: "network_optimizer_admins"
+        claims_policy: "network_optimizer"
+        require_pkce: true
+        pkce_challenge_method: "S256"
+        redirect_uris:
+          - "https://network-optimizer.laboratory.casa/signin-oidc/authelia"
+        scopes: ["openid", "profile", "email"]
+        response_types: ["code"]
+        response_modes: ["form_post", "query"]
+        grant_types: ["authorization_code"]
+        token_endpoint_auth_method: "client_secret_post"
       # Argo CD
       - client_id: "By4sXGwiayM7NNeMvTuYMPFOJatVapIBtK8rdnFF1FTexB6oh0Xv_jUCkeEw9L8s~EP3bT7s"
         client_name: "Argo CD"

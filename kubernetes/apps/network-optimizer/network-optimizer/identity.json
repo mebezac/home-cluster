@@ -1,0 +1,15 @@
+{
+  "providers": [
+    {
+      "scheme": "authelia",
+      "type": "Oidc",
+      "displayName": "Authelia",
+      "enabled": true,
+      "authority": "https://login.laboratory.casa",
+      "clientId": "network-optimizer",
+      "scopes": "openid profile email",
+      "jitProvisioning": "CreateOnFirstLogin",
+      "roleMappingMode": "Manual"
+    }
+  ]
+}

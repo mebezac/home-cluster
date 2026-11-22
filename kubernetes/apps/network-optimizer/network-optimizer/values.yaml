@@ -22,6 +22,11 @@ controllers:
           DEMO_MODE_MAPPINGS: ""
           HOST_NAME: network-optimizer.laboratory.casa
           REVERSE_PROXIED_HOST_NAME: network-optimizer.laboratory.casa
+          NETOPT_FED_AUTHELIA_SECRET:
+            valueFrom:
+              secretKeyRef:
+                name: network-optimizer-identity-secret
+                key: NETOPT_FED_AUTHELIA_SECRET
           # The speed test is served directly over plain HTTP/1.1 on its own LB IP
           # (service speedtest below), not through Envoy. Over Envoy the browser
           # used HTTP/2, and coalesced onto the wildcard-cert connection of the
@@ -198,6 +203,15 @@ configMaps:
         }
 
 persistence:
+  identity:
+    type: configMap
+    name: network-optimizer-identity
+    advancedMounts:
+      network-optimizer:
+        app:
+          - path: /app/config/identity.json
+            subPath: identity.json
+            readOnly: true
   speedtest-health:
     type: configMap
     identifier: speedtest-health
