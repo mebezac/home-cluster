@@ -1,0 +1,311 @@
+---
+defaultPodOptions:
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 3000
+    runAsGroup: 3000
+    fsGroup: 3000
+    fsGroupChangePolicy: OnRootMismatch
+    seccompProfile: { type: RuntimeDefault }
+
+controllers:
+  # Official RustDesk Server OSS (hbbs ID/Rendezvous + hbbr Relay) sharing one
+  # RWO Longhorn PVC and one SOPS-managed Ed25519 keypair.
+  rustdesk:
+    strategy: Recreate
+    annotations:
+      reloader.stakater.com/auto: "true"
+    containers:
+      hbbs:
+        image:
+          repository: rustdesk/rustdesk-server
+          # changelog: GH releases rustdesk/rustdesk-server (keep hbbs and hbbr tags equal)
+          tag: 1.1.16@sha256:8ecdab65deb7c84652a626380e31d11a8f1fbafd97916d57f95c20628f943c00
+        command: ["/usr/bin/hbbs"]
+        # -k _ enforces Ed25519 key authentication using /data/id_ed25519(.pub)
+        args: ["-k", "_"]
+        workingDir: /data
+        env:
+          TZ: America/New_York
+          HOME: /data
+          RUST_LOG: info
+        probes:
+          startup:
+            enabled: true
+            custom: true
+            spec:
+              tcpSocket:
+                port: 21116
+              initialDelaySeconds: 5
+              periodSeconds: 5
+              failureThreshold: 12
+          liveness:
+            enabled: true
+            custom: true
+            spec:
+              tcpSocket:
+                port: 21116
+              periodSeconds: 30
+              failureThreshold: 3
+          readiness:
+            enabled: true
+            custom: true
+            spec:
+              tcpSocket:
+                port: 21116
+              periodSeconds: 30
+              failureThreshold: 3
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities: { drop: ["ALL"] }
+        resources:
+          requests:
+            cpu: 10m
+            memory: 32Mi
+          limits:
+            memory: 128Mi
+
+      hbbr:
+        image:
+          repository: rustdesk/rustdesk-server
+          # changelog: GH releases rustdesk/rustdesk-server (keep hbbs and hbbr tags equal)
+          tag: 1.1.16@sha256:8ecdab65deb7c84652a626380e31d11a8f1fbafd97916d57f95c20628f943c00
+        command: ["/usr/bin/hbbr"]
+        # hbbr defaults to NO key check — -k _ is required so the relay cannot be abused
+        args: ["-k", "_"]
+        workingDir: /data
+        env:
+          TZ: America/New_York
+          HOME: /data
+          RUST_LOG: info
+        probes:
+          startup:
+            enabled: true
+            custom: true
+            spec:
+              tcpSocket:
+                port: 21117
+              initialDelaySeconds: 5
+              periodSeconds: 5
+              failureThreshold: 12
+          liveness:
+            enabled: true
+            custom: true
+            spec:
+              tcpSocket:
+                port: 21117
+              periodSeconds: 30
+              failureThreshold: 3
+          readiness:
+            enabled: true
+            custom: true
+            spec:
+              tcpSocket:
+                port: 21117
+              periodSeconds: 30
+              failureThreshold: 3
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities: { drop: ["ALL"] }
+        resources:
+          requests:
+            cpu: 10m
+            memory: 32Mi
+          limits:
+            memory: 256Mi
+
+  # Optional companion Web UI / Address Book / Audit Log / OIDC API server
+  # (lejianwen/rustdesk-api). Backed by central CNPG Postgres; receives only
+  # the public key (never id_ed25519).
+  api:
+    annotations:
+      reloader.stakater.com/auto: "true"
+    containers:
+      app:
+        image:
+          repository: lejianwen/rustdesk-api
+          # changelog: GH releases lejianwen/rustdesk-api
+          tag: v2.7@sha256:ed35016339d3bcadf15c7bb3ae8490af1e3950c33f58fd2261ae009b94f5de45
+        env:
+          TZ: America/New_York
+          RUSTDESK_API_LANG: en
+          RUSTDESK_API_APP_REGISTER: "false"
+          RUSTDESK_API_APP_WEB_CLIENT: "0"
+          RUSTDESK_API_APP_SHOW_SWAGGER: "0"
+          RUSTDESK_API_APP_WEB_SSO: "true"
+          RUSTDESK_API_GIN_MODE: release
+          RUSTDESK_API_GIN_TRUST_PROXY: "10.69.0.0/16"
+          RUSTDESK_API_GORM_TYPE: postgresql
+          RUSTDESK_API_POSTGRESQL_HOST: postgres-17-cluster-rw.database.svc.cluster.local
+          RUSTDESK_API_POSTGRESQL_PORT: "5432"
+          RUSTDESK_API_POSTGRESQL_USER: rustdesk
+          RUSTDESK_API_POSTGRESQL_PASSWORD:
+            valueFrom:
+              secretKeyRef:
+                name: rustdesk-api-secret
+                key: RUSTDESK_API_POSTGRESQL_PASSWORD
+          RUSTDESK_API_POSTGRESQL_DBNAME: rustdesk
+          RUSTDESK_API_POSTGRESQL_SSLMODE: disable
+          RUSTDESK_API_POSTGRESQL_TIME_ZONE: America/New_York
+          RUSTDESK_API_JWT_KEY:
+            valueFrom:
+              secretKeyRef:
+                name: rustdesk-api-secret
+                key: RUSTDESK_API_JWT_KEY
+          RUSTDESK_API_RUSTDESK_ID_SERVER: rustdesk.laboratory.casa:21116
+          RUSTDESK_API_RUSTDESK_RELAY_SERVER: rustdesk.laboratory.casa:21117
+          RUSTDESK_API_RUSTDESK_API_SERVER: https://rustdesk-api.laboratory.casa
+          RUSTDESK_API_RUSTDESK_KEY_FILE: /data/id_ed25519.pub
+          RUSTDESK_API_RUSTDESK_PERSONAL: "1"
+        probes:
+          startup:
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /api/version
+                port: 21114
+              initialDelaySeconds: 5
+              periodSeconds: 5
+              failureThreshold: 12
+          liveness:
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /api/version
+                port: 21114
+              periodSeconds: 30
+              failureThreshold: 3
+          readiness:
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /api/version
+                port: 21114
+              periodSeconds: 15
+              failureThreshold: 3
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities: { drop: ["ALL"] }
+        resources:
+          requests:
+            cpu: 10m
+            memory: 64Mi
+          limits:
+            memory: 256Mi
+
+service:
+  rustdesk:
+    controller: rustdesk
+    type: LoadBalancer
+    # Cilium L2 announcements break with eTP Local (see envoy-gateway/envoy.yaml).
+    externalTrafficPolicy: Cluster
+    annotations:
+      coredns.io/hostname: rustdesk.laboratory.casa
+      lbipam.cilium.io/ips: 10.25.30.60
+      tailscale.com/expose: "true"
+      tailscale.com/hostname: rustdesk
+    ports:
+      nat-test:
+        port: 21115
+        protocol: TCP
+      id-tcp:
+        port: 21116
+        protocol: TCP
+        primary: true
+      id-udp:
+        port: 21116
+        protocol: UDP
+      relay:
+        port: 21117
+        protocol: TCP
+
+  api:
+    controller: api
+    ports:
+      http:
+        port: 21114
+
+route:
+  api:
+    hostnames:
+      - rustdesk-api.laboratory.casa
+    parentRefs:
+      - name: envoy-internal
+        namespace: network
+        sectionName: https
+    rules:
+      - backendRefs:
+          - identifier: api
+            port: http
+
+persistence:
+  data:
+    type: persistentVolumeClaim
+    storageClass: longhorn
+    accessMode: ReadWriteOnce
+    suffix: data
+    size: 128Mi
+    # A new PVC fills from the latest Kopiur snapshot (Restore rustdesk-data, kopiur-backup
+    # source in the Argo app), or comes up empty on a first install.
+    dataSourceRef:
+      apiGroup: kopiur.home-operations.com
+      kind: Restore
+      name: rustdesk-data
+    advancedMounts:
+      rustdesk:
+        hbbs:
+          - path: /data
+        hbbr:
+          - path: /data
+
+  keypair:
+    type: secret
+    name: rustdesk-keypair-secret
+    advancedMounts:
+      rustdesk:
+        hbbs:
+          - path: /data/id_ed25519
+            subPath: id_ed25519
+            readOnly: true
+          - path: /data/id_ed25519.pub
+            subPath: id_ed25519.pub
+            readOnly: true
+        hbbr:
+          - path: /data/id_ed25519
+            subPath: id_ed25519
+            readOnly: true
+          - path: /data/id_ed25519.pub
+            subPath: id_ed25519.pub
+            readOnly: true
+      api:
+        app:
+          - path: /data/id_ed25519.pub
+            subPath: id_ed25519.pub
+            readOnly: true
+
+  tmp:
+    type: emptyDir
+    advancedMounts:
+      rustdesk:
+        hbbs:
+          - path: /tmp
+        hbbr:
+          - path: /tmp
+
+  api-runtime:
+    type: emptyDir
+    advancedMounts:
+      api:
+        app:
+          - path: /app/runtime
+            subPath: runtime
+          - path: /app/data
+            subPath: data
+          - path: /tmp
+            subPath: tmp

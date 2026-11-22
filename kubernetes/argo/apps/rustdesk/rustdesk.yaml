@@ -1,0 +1,43 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: rustdesk
+  namespace: argo-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: kubernetes
+  sources:
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/apps/rustdesk/rustdesk
+      targetRevision: main
+      ref: rustdesk-repo
+    - repoURL: ghcr.io/bjw-s-labs/helm
+      chart: app-template
+      targetRevision: 5.3.0
+      helm:
+        releaseName: rustdesk
+        valueFiles:
+          - $rustdesk-repo/kubernetes/apps/rustdesk/rustdesk/values.yaml
+    # Kopiur backups of rustdesk-data (kubernetes/charts/kopiur-backup).
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/charts/kopiur-backup
+      targetRevision: main
+      helm:
+        releaseName: rustdesk-data-backup
+        valuesObject:
+          pvc: rustdesk-data
+          mover:
+            runAsUser: 3000
+          restore:
+            enabled: true
+  destination:
+    name: in-cluster
+    namespace: rustdesk
+  syncPolicy:
+    automated:
+      allowEmpty: true
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
