@@ -1,21 +1,76 @@
 ---
 defaultPodOptions:
   securityContext:
-    runAsNonRoot: true
-    runAsUser: 3000
-    runAsGroup: 3000
     fsGroup: 3000
     fsGroupChangePolicy: OnRootMismatch
     seccompProfile: { type: RuntimeDefault }
 
+serviceAccount:
+  rustdesk: {}
+
 controllers:
   # Official RustDesk Server OSS (hbbs ID/Rendezvous + hbbr Relay) sharing one
-  # RWO Longhorn PVC and one SOPS-managed Ed25519 keypair.
+  # RWO Longhorn PVC, one SOPS-managed Ed25519 keypair, and an in-pod kernel
+  # Tailscale sidecar so hbbs sees every tailnet client's real IP (no SNAT;
+  # tailscale-operator's Service proxy SNATs all peers to one pod IP, which
+  # triggers hbbs's same_intranet/FetchLocalAddr path even with ALWAYS_USE_RELAY=Y).
   rustdesk:
     strategy: Recreate
+    serviceAccount:
+      identifier: rustdesk
     annotations:
       reloader.stakater.com/auto: "true"
     containers:
+      tailscale:
+        image:
+          repository: ghcr.io/tailscale/tailscale
+          tag: v1.104.7@sha256:72c1e19e0aedca96b8533bbb0b4368564410ff20b17e53b804eb6c1f04a31be4
+        env:
+          TS_USERSPACE: "false"
+          TS_KUBE_SECRET: rustdesk-tailscale-state
+          TS_HOSTNAME: rustdesk
+          TS_EXTRA_ARGS: "--advertise-tags=tag:k8s"
+          TS_ACCEPT_DNS: "false"
+          TS_AUTH_ONCE: "true"
+          TS_ENABLE_HEALTH_CHECK: "true"
+          TS_ENABLE_METRICS: "true"
+          TS_AUTHKEY:
+            valueFrom:
+              secretKeyRef:
+                name: rustdesk-tailscale-secret
+                key: TS_AUTHKEY
+          POD_NAME:
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          POD_UID:
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.uid
+        probes:
+          readiness:
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /healthz
+                port: 9002
+              periodSeconds: 15
+              failureThreshold: 3
+        securityContext:
+          runAsNonRoot: false
+          runAsUser: 0
+          runAsGroup: 0
+          capabilities:
+            drop: ["ALL"]
+            add: ["NET_ADMIN", "NET_RAW"]
+        resources:
+          requests:
+            cpu: 10m
+            memory: 48Mi
+          limits:
+            memory: 256Mi
+
       hbbs:
         image:
           repository: rustdesk/rustdesk-server
@@ -29,8 +84,8 @@ controllers:
         env:
           TZ: America/New_York
           HOME: /data
-          # Required because ts-rustdesk and Cilium Cluster eTP SNAT client source IPs,
-          # so hbbs sees every peer with the proxy's pod IP and P2P hole-punching times out.
+          # Force relay through our own hbbr so Tailscale-to-LAN-only sessions
+          # bridge immediately without waiting on unreachable LAN P2P punch timeouts.
           ALWAYS_USE_RELAY: "Y"
           RUST_LOG: info
         probes:
@@ -60,6 +115,9 @@ controllers:
               periodSeconds: 30
               failureThreshold: 3
         securityContext:
+          runAsNonRoot: true
+          runAsUser: 3000
+          runAsGroup: 3000
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
           capabilities: { drop: ["ALL"] }
@@ -110,6 +168,9 @@ controllers:
               periodSeconds: 30
               failureThreshold: 3
         securityContext:
+          runAsNonRoot: true
+          runAsUser: 3000
+          runAsGroup: 3000
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
           capabilities: { drop: ["ALL"] }
@@ -193,6 +254,9 @@ controllers:
               periodSeconds: 15
               failureThreshold: 3
         securityContext:
+          runAsNonRoot: true
+          runAsUser: 3000
+          runAsGroup: 3000
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
           capabilities: { drop: ["ALL"] }
@@ -212,8 +276,6 @@ service:
     annotations:
       coredns.io/hostname: rustdesk.laboratory.casa
       lbipam.cilium.io/ips: 10.25.30.60
-      tailscale.com/expose: "true"
-      tailscale.com/hostname: rustdesk
     ports:
       nat-test:
         port: 21115
@@ -293,6 +355,15 @@ persistence:
             subPath: id_ed25519.pub
             readOnly: true
 
+  tun:
+    type: hostPath
+    hostPath: /dev/net/tun
+    hostPathType: CharDevice
+    advancedMounts:
+      rustdesk:
+        tailscale:
+          - path: /dev/net/tun
+
   tmp:
     type: emptyDir
     advancedMounts:
@@ -300,6 +371,8 @@ persistence:
         hbbs:
           - path: /tmp
         hbbr:
+          - path: /tmp
+        tailscale:
           - path: /tmp
 
   api-runtime:
