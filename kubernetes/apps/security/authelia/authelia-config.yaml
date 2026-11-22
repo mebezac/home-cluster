@@ -164,12 +164,6 @@ identity_providers:
         rules:
           - policy: one_factor
             subject: group:apps_admin
-      # RustDesk API: admins only (controls remote desktop address book & admin console).
-      rustdesk_admins:
-        default_policy: deny
-        rules:
-          - policy: one_factor
-            subject: group:apps_admin
     claims_policies:
       all:
         id_token:
@@ -570,24 +564,5 @@ identity_providers:
         scopes: ["openid", "profile", "email", "groups"]
         response_types: ["code"]
         grant_types: ["authorization_code"]
-        userinfo_signed_response_alg: "none"
-        token_endpoint_auth_method: "client_secret_basic"
-      # RustDesk API (lejianwen/rustdesk-api, rustdesk namespace). Plaintext secret in
-      # rustdesk-api-secret (OIDC_CLIENT_SECRET). Configured in the Web Admin OAuth UI;
-      # apps_admin only, PKCE S256 + client_secret_basic.
-      - client_id: "6Mpdo0bfAanuUv~kQ49cSpAf8wJbObeq.UqdvLqib7yrkrZD2EPF4iC2BmFZwD5~15HlviXt"
-        client_name: "RustDesk API"
-        client_secret: "$pbkdf2-sha512$310000$pDBQhGFAg/ESLy7YjfxiHw$5G7NLqiW5Gy0LJxsqHbsSZByyIvs6T.1NCE7k/BdWn4.g/s881uQKSJMFCeoulYKmVKEnrE/7dU0Q0OuMMgg9w"
-        claims_policy: "all"
-        public: false
-        authorization_policy: "rustdesk_admins"
-        consent_mode: "implicit"
-        require_pkce: true
-        pkce_challenge_method: "S256"
-        redirect_uris:
-          - "https://rustdesk-api.laboratory.casa/api/oidc/callback"
-        scopes: ["openid", "profile", "email", "offline_access"]
-        response_types: ["code"]
-        grant_types: ["authorization_code", "refresh_token"]
         userinfo_signed_response_alg: "none"
         token_endpoint_auth_method: "client_secret_basic"

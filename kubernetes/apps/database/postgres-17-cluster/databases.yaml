@@ -214,15 +214,3 @@ spec:
   owner: paperless
   ensure: present
   databaseReclaimPolicy: retain
----
-apiVersion: postgresql.cnpg.io/v1
-kind: Database
-metadata:
-  name: rustdesk
-spec:
-  cluster:
-    name: postgres-17-cluster
-  name: rustdesk
-  owner: rustdesk
-  ensure: present
-  databaseReclaimPolicy: retain

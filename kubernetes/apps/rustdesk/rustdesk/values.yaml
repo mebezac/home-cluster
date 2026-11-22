@@ -184,92 +184,6 @@ controllers:
           limits:
             memory: 256Mi
 
-  # Optional companion Web UI / Address Book / Audit Log / OIDC API server
-  # (lejianwen/rustdesk-api). Backed by central CNPG Postgres; receives only
-  # the public key (never id_ed25519).
-  api:
-    annotations:
-      reloader.stakater.com/auto: "true"
-    containers:
-      app:
-        image:
-          repository: lejianwen/rustdesk-api
-          # changelog: GH releases lejianwen/rustdesk-api
-          tag: v2.7@sha256:ed35016339d3bcadf15c7bb3ae8490af1e3950c33f58fd2261ae009b94f5de45
-        env:
-          TZ: America/New_York
-          RUSTDESK_API_LANG: en
-          RUSTDESK_API_APP_REGISTER: "false"
-          RUSTDESK_API_APP_WEB_CLIENT: "0"
-          RUSTDESK_API_APP_SHOW_SWAGGER: "0"
-          RUSTDESK_API_APP_WEB_SSO: "true"
-          RUSTDESK_API_GIN_MODE: release
-          RUSTDESK_API_GIN_TRUST_PROXY: "10.69.0.0/16"
-          RUSTDESK_API_GORM_TYPE: postgresql
-          RUSTDESK_API_POSTGRESQL_HOST: postgres-17-cluster-rw.database.svc.cluster.local
-          RUSTDESK_API_POSTGRESQL_PORT: "5432"
-          RUSTDESK_API_POSTGRESQL_USER: rustdesk
-          RUSTDESK_API_POSTGRESQL_PASSWORD:
-            valueFrom:
-              secretKeyRef:
-                name: rustdesk-api-secret
-                key: RUSTDESK_API_POSTGRESQL_PASSWORD
-          RUSTDESK_API_POSTGRESQL_DBNAME: rustdesk
-          RUSTDESK_API_POSTGRESQL_SSLMODE: disable
-          RUSTDESK_API_POSTGRESQL_TIME_ZONE: America/New_York
-          RUSTDESK_API_JWT_KEY:
-            valueFrom:
-              secretKeyRef:
-                name: rustdesk-api-secret
-                key: RUSTDESK_API_JWT_KEY
-          RUSTDESK_API_RUSTDESK_ID_SERVER: rustdesk.laboratory.casa:21116
-          RUSTDESK_API_RUSTDESK_RELAY_SERVER: rustdesk.laboratory.casa:21117
-          RUSTDESK_API_RUSTDESK_API_SERVER: https://rustdesk-api.laboratory.casa
-          RUSTDESK_API_RUSTDESK_KEY_FILE: /data/id_ed25519.pub
-          RUSTDESK_API_RUSTDESK_PERSONAL: "1"
-        probes:
-          startup:
-            enabled: true
-            custom: true
-            spec:
-              httpGet:
-                path: /api/version
-                port: 21114
-              initialDelaySeconds: 5
-              periodSeconds: 5
-              failureThreshold: 12
-          liveness:
-            enabled: true
-            custom: true
-            spec:
-              httpGet:
-                path: /api/version
-                port: 21114
-              periodSeconds: 30
-              failureThreshold: 3
-          readiness:
-            enabled: true
-            custom: true
-            spec:
-              httpGet:
-                path: /api/version
-                port: 21114
-              periodSeconds: 15
-              failureThreshold: 3
-        securityContext:
-          runAsNonRoot: true
-          runAsUser: 3000
-          runAsGroup: 3000
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
-          capabilities: { drop: ["ALL"] }
-        resources:
-          requests:
-            cpu: 10m
-            memory: 64Mi
-          limits:
-            memory: 256Mi
-
 service:
   rustdesk:
     controller: rustdesk
@@ -293,25 +207,6 @@ service:
       relay:
         port: 21117
         protocol: TCP
-
-  api:
-    controller: api
-    ports:
-      http:
-        port: 21114
-
-route:
-  api:
-    hostnames:
-      - rustdesk-api.laboratory.casa
-    parentRefs:
-      - name: envoy-internal
-        namespace: network
-        sectionName: https
-    rules:
-      - backendRefs:
-          - identifier: api
-            port: http
 
 persistence:
   data:
@@ -352,11 +247,6 @@ persistence:
           - path: /data/id_ed25519.pub
             subPath: id_ed25519.pub
             readOnly: true
-      api:
-        app:
-          - path: /data/id_ed25519.pub
-            subPath: id_ed25519.pub
-            readOnly: true
 
   tun:
     type: hostPath
@@ -377,15 +267,3 @@ persistence:
           - path: /tmp
         tailscale:
           - path: /tmp
-
-  api-runtime:
-    type: emptyDir
-    advancedMounts:
-      api:
-        app:
-          - path: /app/runtime
-            subPath: runtime
-          - path: /app/data
-            subPath: data
-          - path: /tmp
-            subPath: tmp
