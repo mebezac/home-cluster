@@ -87,16 +87,36 @@ controllers:
               periodSeconds: 10
               failureThreshold: 30
 
+      speedtest-health:
+        # With OPENSPEEDTEST_HTTPS=false, Network Optimizer checks localhost:3005.
+        # Forward the check to the separate speedtest deployment without setting
+        # HOST_IP, which also identifies the app host for topology and WAN tests.
+        image: &speedtest-image
+          repository: ghcr.io/ozark-connect/speedtest
+          # Keep this image and network-optimizer on the same release.
+          tag: 2.11.6@sha256:ecb6da1107e9a7ec5ead5a48c906fb5d8c036cfe40a4db57111d0df06e89550f
+        command: [nginx]
+        args: [-c, /etc/nginx/speedtest-health.conf, -g, "daemon off;"]
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 101
+          runAsGroup: 101
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: [ALL]
+        resources:
+          requests:
+            cpu: 5m
+            memory: 16Mi
+          limits:
+            memory: 32Mi
+
   speedtest:
     annotations:
       reloader.stakater.com/auto: "true"
     containers:
       app:
-        image:
-          repository: ghcr.io/ozark-connect/speedtest
-          # changelog: see the network-optimizer image above - both images ship in lockstep from one
-          # upstream compose file and MUST be bumped together; never merge a speedtest PR alone.
-          tag: 2.11.6@sha256:ecb6da1107e9a7ec5ead5a48c906fb5d8c036cfe40a4db57111d0df06e89550f
+        image: *speedtest-image
         env:
           TZ: America/New_York
           HOST_NAME: network-optimizer.laboratory.casa
@@ -150,7 +170,43 @@ route:
           - identifier: network-optimizer
             port: http
 
+configMaps:
+  speedtest-health:
+    data:
+      speedtest-health.conf: |
+        pid /tmp/nginx.pid;
+        error_log stderr;
+        events {}
+        http {
+          access_log off;
+          client_body_temp_path /tmp/client_body;
+          proxy_temp_path /tmp/proxy;
+          fastcgi_temp_path /tmp/fastcgi;
+          uwsgi_temp_path /tmp/uwsgi;
+          scgi_temp_path /tmp/scgi;
+          server {
+            listen 127.0.0.1:3005;
+            location = / {
+              proxy_connect_timeout 1s;
+              proxy_read_timeout 1s;
+              proxy_pass http://network-optimizer-speedtest:3005;
+            }
+            location / {
+              return 404;
+            }
+          }
+        }
+
 persistence:
+  speedtest-health:
+    type: configMap
+    identifier: speedtest-health
+    advancedMounts:
+      network-optimizer:
+        speedtest-health:
+          - path: /etc/nginx/speedtest-health.conf
+            subPath: speedtest-health.conf
+            readOnly: true
   data:
     suffix: data
     type: persistentVolumeClaim
