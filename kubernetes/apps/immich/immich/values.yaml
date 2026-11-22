@@ -32,7 +32,11 @@ controllers:
           IMMICH_SERVER_URL: http://immich-server.immich.svc.cluster.local:2283
           IMMICH_MACHINE_LEARNING_URL: http://immich-machine-learning.immich.svc.cluster.local:3003
           IMMICH_WORKERS_INCLUDE: api
-          # Prometheus /metrics on :8081 (api worker)
+          # Prometheus /metrics on :8081 (api worker).
+          # Workaround for immich-app/immich#33466 (v3.4.2): unset IMMICH_HOST
+          # defaults to "::", producing an unbracketed http://:::8081/ base URL
+          # in the OTel PrometheusExporter and 400 Bad Request on /metrics.
+          IMMICH_HOST: "0.0.0.0"
           IMMICH_TELEMETRY_INCLUDE: all
         envFrom:
           - secretRef:
@@ -108,6 +112,8 @@ controllers:
           IMMICH_WORKERS_EXCLUDE: api
           # Prometheus /metrics; microservices defaults to :8082, moved to :8081
           # so the existing Service port (named metrics) did not have to change.
+          # IMMICH_HOST workaround for immich-app/immich#33466 (v3.4.2).
+          IMMICH_HOST: "0.0.0.0"
           IMMICH_TELEMETRY_INCLUDE: all
           IMMICH_MICROSERVICES_METRICS_PORT: "8081"
         resources:
