@@ -11,7 +11,7 @@ const flat=policyText.replace(/\s+/g,' ');
 const access=readFileSync(new URL('./access.yaml',import.meta.url),'utf8');
 const launch='0f6e2a52-7c1d-4e8b-9a3f-5b2c1d4e6f70';
 
-const guildhallPolicy={apiVersion:'cilium.io/v2',kind:'CiliumNetworkPolicy',metadata:{name:`guildhall-egress-${launch}`,namespace:'guildhall-workers',labels:{'app.kubernetes.io/managed-by':'guildhall','app.kubernetes.io/name':'guildhall-runner','app.kubernetes.io/instance':'tooling-runner-04','guildhall/launch-id':launch}},spec:{
+const guildhallPolicy={apiVersion:'cilium.io/v2',kind:'CiliumNetworkPolicy',metadata:{name:`guildhall-egress-${launch}`,namespace:'guildhall-workers',labels:{'app.kubernetes.io/managed-by':'guildhall','app.kubernetes.io/name':'guildhall-runner','app.kubernetes.io/instance':'worker-04','guildhall/launch-id':launch}},spec:{
  description:'Guildhall network allowlist for worker tooling-runner-04, version 3.',
  endpointSelector:{matchLabels:{'app.kubernetes.io/name':'guildhall-runner','app.kubernetes.io/instance':'tooling-runner-04'}},
  egress:[

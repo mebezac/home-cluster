@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: acceptance-runner-data
+  name: worker-01-data
   namespace: guildhall-workers
 spec:
   storageClassName: longhorn
@@ -13,32 +13,7 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: acceptance-runner-auth
-  namespace: guildhall-workers
-spec:
-  storageClassName: longhorn
-  accessModes: [ReadWriteOnce]
-  resources:
-    requests:
-      storage: 1Gi
-
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: tooling-acceptance-runner-data
-  namespace: guildhall-workers
-spec:
-  storageClassName: longhorn
-  accessModes: [ReadWriteOnce]
-  resources:
-    requests:
-      storage: 2Gi
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: tooling-acceptance-runner-auth
+  name: worker-01-auth
   namespace: guildhall-workers
 spec:
   storageClassName: longhorn
@@ -50,7 +25,7 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: tooling-runner-03-data
+  name: worker-02-data
   namespace: guildhall-workers
 spec:
   storageClassName: longhorn
@@ -62,7 +37,7 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: tooling-runner-03-auth
+  name: worker-02-auth
   namespace: guildhall-workers
 spec:
   storageClassName: longhorn
@@ -74,7 +49,7 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: tooling-runner-04-data
+  name: worker-03-data
   namespace: guildhall-workers
 spec:
   storageClassName: longhorn
@@ -86,7 +61,31 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: tooling-runner-04-auth
+  name: worker-03-auth
+  namespace: guildhall-workers
+spec:
+  storageClassName: longhorn
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: worker-04-data
+  namespace: guildhall-workers
+spec:
+  storageClassName: longhorn
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: worker-04-auth
   namespace: guildhall-workers
 spec:
   storageClassName: longhorn

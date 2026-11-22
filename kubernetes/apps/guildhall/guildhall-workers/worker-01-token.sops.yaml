@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: worker-01-token
+  namespace: guildhall-workers
+stringData:
+  token: ENC[AES256_GCM,data:Avl7A/Tevq2Mewe/PrwW6ptuTi41KoQCWSBgP0ygY48KLh+feQ+GmhUlzmhtZEBjvMavTQK/RNtgSbljiXPTZg==,iv:UyfXqNfNkm0a5BzUoxC3gxUzxQMkEKxIPs9p+gosmK4=,tag:FgloNHCt5YowtmH9QPMuPw==,type:str]
+sops:
+  age:
+    - enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSA2KzBIdUh3L2hsRHp3Z2Fr
+        TVljVHdnenhobFlMT0F1YUs1ZVlJZk1aMWdVClBEa25mM3RaKzlIVWtBK0x0bUtU
+        U28wc0ljZGgzbFBXT2RMRUhyN2xld2sKLS0tIHFxZVJFT0VnVXRUS09HVUU2aGtX
+        RmlHL2pvYzk0WGoxZHRGYmVzV0kweEkKfkVUfLyaG1i9vC3HLhv18WtW6LXl1MYn
+        kpQHp+GJDkACBV1sOBg+TsBNe1DQH3sIvRtTVZG7Az5Kf9okIFlM4g==
+        -----END AGE ENCRYPTED FILE-----
+      recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
+  encrypted_regex: ^(data|stringData)$
+  lastmodified: "2026-11-22T19:07:31Z"
+  mac: ENC[AES256_GCM,data:/kg2ErRqJSheN+F6caPMK3cuFazsNvlaFitbV2Om4j6RiJBR0Yf63byrZ6VyBW7dPyaxb4J9kQctVtIvnieGXkjCGTWVETMBS9eVW3h1vlvWaClpFkxBNweh3KOJGEwogRTPNW84W++VRK0SNE9wC0UHZRLpwAgI6fCkNzIbSoE=,iv:iCCpMAl8IM2zFtpbx85dchlQa36qkn+0Fx+Xz64HYRk=,tag:jEPY/0b403u7b55vmfcEHw==,type:str]
+  mac_only_encrypted: true
+  version: 3.13.3
