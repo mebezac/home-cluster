@@ -18,6 +18,8 @@ controllers:
     strategy: Recreate
     serviceAccount:
       identifier: rustdesk
+    pod:
+      automountServiceAccountToken: true
     annotations:
       reloader.stakater.com/auto: "true"
     containers:
