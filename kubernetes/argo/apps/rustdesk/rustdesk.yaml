@@ -39,5 +39,15 @@ spec:
       allowEmpty: true
       prune: true
       selfHeal: true
+    # In-pod kernel Tailscale sidecar needs NET_ADMIN + /dev/net/tun (same as gluetun-proxy);
+    # hbbs, hbbr, and rustdesk-api containers still run non-root UID 3000 with read-only rootfs.
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: privileged
+        pod-security.kubernetes.io/enforce-version: latest
+        pod-security.kubernetes.io/audit: privileged
+        pod-security.kubernetes.io/audit-version: latest
+        pod-security.kubernetes.io/warn: privileged
+        pod-security.kubernetes.io/warn-version: latest
     syncOptions:
       - CreateNamespace=true
