@@ -1,0 +1,97 @@
+---
+defaultPodOptions:
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
+    fsGroup: 1000
+    fsGroupChangePolicy: OnRootMismatch
+    seccompProfile: { type: RuntimeDefault }
+
+controllers:
+  influxdb:
+    strategy: Recreate
+    containers:
+      app:
+        image:
+          repository: docker.io/library/influxdb
+          # Network Optimizer queries monitoring data with Flux, which requires InfluxDB 2.x.
+          tag: 2.10.1@sha256:33f4eef7ca7859f3c24021c5fa20a4ca7d1d34f049bb011c32787a35cf096b85
+        env:
+          TZ: America/New_York
+          DOCKER_INFLUXDB_INIT_MODE: setup
+          DOCKER_INFLUXDB_INIT_USERNAME: admin
+          DOCKER_INFLUXDB_INIT_PASSWORD_FILE: /run/influxdb-bootstrap/password
+          DOCKER_INFLUXDB_INIT_ADMIN_TOKEN_FILE: /run/influxdb-bootstrap/token
+          DOCKER_INFLUXDB_INIT_ORG: network-optimizer
+          DOCKER_INFLUXDB_INIT_BUCKET: network_monitoring
+          DOCKER_INFLUXDB_INIT_RETENTION: "90d"
+          INFLUX_CONFIGS_PATH: /var/lib/influxdb2/influx-configs
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop: ["ALL"]
+        resources:
+          requests:
+            cpu: 50m
+            memory: 256Mi
+          limits:
+            memory: 1Gi
+        probes:
+          startup:
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /health
+                port: 8086
+              periodSeconds: 5
+              failureThreshold: 60
+          readiness:
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /health
+                port: 8086
+              periodSeconds: 10
+          liveness:
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /health
+                port: 8086
+              periodSeconds: 30
+
+service:
+  influxdb:
+    controller: influxdb
+    ports:
+      http:
+        port: 8086
+
+persistence:
+  data:
+    type: persistentVolumeClaim
+    suffix: data
+    storageClass: longhorn
+    accessMode: ReadWriteOnce
+    size: 20Gi
+    globalMounts:
+      - path: /var/lib/influxdb2
+  config:
+    type: emptyDir
+    globalMounts:
+      - path: /etc/influxdb2
+  tmp:
+    type: emptyDir
+    globalMounts:
+      - path: /tmp
+  bootstrap:
+    type: secret
+    name: network-optimizer-influxdb-secret
+    globalMounts:
+      - path: /run/influxdb-bootstrap
+        readOnly: true
