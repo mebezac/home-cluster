@@ -23,11 +23,15 @@ controllers:
           tag: 1.1.16@sha256:8ecdab65deb7c84652a626380e31d11a8f1fbafd97916d57f95c20628f943c00
         command: ["/usr/bin/hbbs"]
         # -k _ enforces Ed25519 key authentication using /data/id_ed25519(.pub)
-        args: ["-k", "_"]
+        # -r hands out the split-DNS relay hostname (resolves to .60 on LAN, tailnet IP on Tailscale)
+        args: ["-r", "rustdesk.laboratory.casa:21117", "-k", "_"]
         workingDir: /data
         env:
           TZ: America/New_York
           HOME: /data
+          # Required because ts-rustdesk and Cilium Cluster eTP SNAT client source IPs,
+          # so hbbs sees every peer with the proxy's pod IP and P2P hole-punching times out.
+          ALWAYS_USE_RELAY: "Y"
           RUST_LOG: info
         probes:
           startup:
