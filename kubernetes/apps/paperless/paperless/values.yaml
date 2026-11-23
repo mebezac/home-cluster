@@ -58,6 +58,8 @@ controllers:
           PAPERLESS_PROXY_SSL_HEADER: '["HTTP_X_FORWARDED_PROTO", "https"]'
           PAPERLESS_DATE_ORDER: MDY
           PAPERLESS_OCR_LANGUAGE: eng
+          # Default 12 misses sparse upside-down scans (e.g. half-blank statements); 6 catches them without false flips.
+          PAPERLESS_OCR_ROTATE_PAGES_THRESHOLD: "6"
           # --- Central PG (CNPG). v3 defaults to sqlite, so the engine must be explicit.
           # PAPERLESS_DBPASS is in paperless-secret.
           PAPERLESS_DBENGINE: postgresql
