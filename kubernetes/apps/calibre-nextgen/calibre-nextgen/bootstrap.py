@@ -42,6 +42,16 @@ with closing(sqlite3.connect(app_db)) as database, database:
         config_oauth_redirect_host = 'https://books.laboratory.casa'
     """)
 
+    # Backfill the shelf-sharing default for existing household OIDC readers.
+    database.execute("""UPDATE user SET share_shelfs = 1
+        WHERE (role & ?) = 0 AND share_shelfs = 0
+          AND EXISTS (
+            SELECT 1 FROM flask_dance_oauth AS oauth
+            JOIN oauthProvider AS provider ON oauth.provider = CAST(provider.id AS TEXT)
+            WHERE oauth.user_id = user.id AND provider.provider_name = 'generic'
+          )
+    """, (constants.ROLE_ADMIN | constants.ROLE_ANONYMOUS,))
+
     # v4.1.74 provisions OIDC users in the shared library. Give readers an empty
     # My Library at INSERT time, before the first login can see any books.
     # The seed fence prevents the app from copying the global catalog later.
@@ -53,7 +63,8 @@ with closing(sqlite3.connect(app_db)) as database, database:
         WHEN (NEW.role & {constants.ROLE_ANONYMOUS}) = 0
         BEGIN
             UPDATE user SET has_own_library = 1, user_library_seeded = 1,
-                share_shelfs = 0, kobo_only_shelves_sync = 0,
+                share_shelfs = (NEW.role & {constants.ROLE_ADMIN}) = 0,
+                kobo_only_shelves_sync = 0,
                 role = role | CASE WHEN NEW.role = {constants.ROLE_ADMIN} THEN {reader_roles} ELSE 0 END
             WHERE id = NEW.id;
         END
