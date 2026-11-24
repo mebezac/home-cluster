@@ -42,6 +42,8 @@ controllers:
           TZ: America/New_York
           CACHE_DIR: /tmp/calibre-cache
           CWA_CALIBRE_USER_PLUGINS: "true"
+          # Kubernetes provides volume access to the non-root runtime user.
+          CWA_SERVICE_USER: ""
           GENERIC_OAUTH_ENABLED: "true"
           GENERIC_OAUTH_CLIENT_ID: calibre-nextgen
           GENERIC_OAUTH_CLIENT_SECRET:
