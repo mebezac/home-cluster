@@ -38,7 +38,7 @@ with closing(sqlite3.connect(app_db)) as database, database:
         config_upload_formats_lcpl_migrated = 1, config_upload_formats_fbz_migrated = 1,
         config_anonbrowse = 0, config_public_reg = 0, config_embed_metadata = 0,
         config_enable_oauth_group_admin_management = 1, config_enable_oauth_auto_forward = 1,
-        config_oauth_redirect_host = 'https://calibre-nextgen.laboratory.casa'
+        config_oauth_redirect_host = 'https://books.laboratory.casa'
     """)
 
     # v4.1.74 provisions OIDC users in the shared library. Give readers an empty
@@ -63,6 +63,18 @@ settings.execute_write("""UPDATE cwa_settings SET
     default_settings = 0, koreader_sync_enabled = 1, archived_cleanup_enabled = 0,
     auto_backup_imports = 0, auto_backup_conversions = 0, auto_backup_epub_fixes = 0,
     auto_zip_backups = 0, duplicate_scan_frequency = 'manual', auto_convert = 0,
-    auto_metadata_enforcement = 0, kindle_epub_fixer = 0
+    auto_metadata_enforcement = 0, kindle_epub_fixer = 0,
+    auto_metadata_fetch_enabled = 1, auto_metadata_smart_application = 1,
+    auto_metadata_update_series = 1, auto_metadata_update_title = 0,
+    auto_metadata_update_authors = 0, auto_metadata_update_description = 0,
+    auto_metadata_update_publisher = 0, auto_metadata_update_tags = 0,
+    auto_metadata_update_rating = 0, auto_metadata_update_published_date = 0,
+    auto_metadata_update_identifiers = 0, auto_metadata_update_cover = 0
+""")
+# Include Wikidata for series lookup while preserving the configured provider priority.
+settings.execute_write("""UPDATE cwa_settings
+    SET metadata_provider_hierarchy = json_insert(metadata_provider_hierarchy, '$[#]', 'wikidata')
+    WHERE json_valid(metadata_provider_hierarchy)
+      AND NOT EXISTS (SELECT 1 FROM json_each(metadata_provider_hierarchy) WHERE value = 'wikidata')
 """)
 settings.con.close()

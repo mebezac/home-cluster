@@ -206,7 +206,7 @@ identity_providers:
         consent_mode: "implicit"
         require_pkce: false
         redirect_uris:
-          - "https://calibre-nextgen.laboratory.casa/login/generic/authorized"
+          - "https://books.laboratory.casa/login/generic/authorized"
         scopes: ["openid", "profile", "email", "groups"]
         grant_types: ["authorization_code"]
         response_types: ["code"]
