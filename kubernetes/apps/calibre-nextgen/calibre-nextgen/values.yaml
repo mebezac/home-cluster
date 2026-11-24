@@ -147,8 +147,11 @@ persistence:
     type: emptyDir
     advancedMounts:
       calibre-nextgen:
+        bootstrap:
+          - path: /runtime
         app:
           - path: /run
+            subPath: s6
   tmp:
     type: emptyDir
     globalMounts:

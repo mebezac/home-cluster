@@ -15,6 +15,8 @@ from auto_library import create_appdb
 app_db = "/config/app.db"
 operator = "calibre-local-admin"
 password_hash = generate_password_hash(os.environ["CALIBRE_NEXTGEN_ADMIN_PASSWORD"])
+# s6 requires /run to belong to its runtime UID. Kubernetes owns the volume root.
+os.makedirs("/runtime/s6", mode=0o755, exist_ok=True)
 create_appdb(app_db)
 ub.dispose()
 
