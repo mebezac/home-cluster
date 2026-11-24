@@ -4,6 +4,7 @@ configMapGenerator:
   - name: calibre-nextgen-bootstrap
     files:
       - bootstrap.py
+      - acsm.py
     options:
       disableNameSuffixHash: true
 generators:

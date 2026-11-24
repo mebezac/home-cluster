@@ -7,6 +7,8 @@ from cps import constants, ub
 from cps.cwa_db_loader import load_cwa_db
 from werkzeug.security import generate_password_hash
 
+from acsm import configure_acsm, prepare_upload_validator
+
 
 sys.path.insert(0, "/app/calibre-web-automated/scripts")
 from auto_library import create_appdb
@@ -17,6 +19,8 @@ operator = "calibre-local-admin"
 password_hash = generate_password_hash(os.environ["CALIBRE_NEXTGEN_ADMIN_PASSWORD"])
 # s6 requires /run to belong to its runtime UID. Kubernetes owns the volume root.
 os.makedirs("/runtime/s6", mode=0o755, exist_ok=True)
+configure_acsm()
+prepare_upload_validator()
 create_appdb(app_db)
 ub.dispose()
 
@@ -30,7 +34,7 @@ with closing(sqlite3.connect(app_db)) as database, database:
         raise RuntimeError("Expected exactly one local maintenance account")
 
     database.execute("""UPDATE settings SET
-        config_uploading = 1, config_upload_formats = 'epub',
+        config_uploading = 1, config_upload_formats = 'epub,acsm',
         config_upload_formats_lcpl_migrated = 1, config_upload_formats_fbz_migrated = 1,
         config_anonbrowse = 0, config_public_reg = 0, config_embed_metadata = 0,
         config_enable_oauth_group_admin_management = 1, config_enable_oauth_auto_forward = 1,

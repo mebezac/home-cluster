@@ -12,7 +12,7 @@ controllers:
   calibre-nextgen:
     annotations:
       configmap.reloader.stakater.com/reload: calibre-nextgen-bootstrap
-      secret.reloader.stakater.com/reload: calibre-nextgen-secret
+      secret.reloader.stakater.com/reload: calibre-nextgen-secret,calibre-nextgen-acsm-activation
     strategy: Recreate
     defaultContainerOptions:
       securityContext:
@@ -41,7 +41,7 @@ controllers:
         env:
           TZ: America/New_York
           CACHE_DIR: /tmp/calibre-cache
-          CWA_CALIBRE_USER_PLUGINS: "false"
+          CWA_CALIBRE_USER_PLUGINS: "true"
           GENERIC_OAUTH_ENABLED: "true"
           GENERIC_OAUTH_CLIENT_ID: calibre-nextgen
           GENERIC_OAUTH_CLIENT_SECRET:
@@ -138,6 +138,15 @@ persistence:
         bootstrap:
           - path: /bootstrap
             readOnly: true
+  acsm-activation:
+    type: secret
+    name: calibre-nextgen-acsm-activation
+    defaultMode: 0440
+    advancedMounts:
+      calibre-nextgen:
+        bootstrap:
+          - path: /acsm-activation
+            readOnly: true
   ingest:
     type: emptyDir
     advancedMounts:
@@ -153,6 +162,9 @@ persistence:
         app:
           - path: /run
             subPath: s6
+          - path: /app/calibre-web-automated/cps/file_helper.py
+            subPath: file_helper.py
+            readOnly: true
   tmp:
     type: emptyDir
     globalMounts:
