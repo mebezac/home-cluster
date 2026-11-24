@@ -1,0 +1,155 @@
+defaultPodOptions:
+  automountServiceAccountToken: false
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 3000
+    runAsGroup: 3000
+    fsGroup: 3000
+    fsGroupChangePolicy: OnRootMismatch
+    seccompProfile: { type: RuntimeDefault }
+
+controllers:
+  calibre-nextgen:
+    annotations:
+      configmap.reloader.stakater.com/reload: calibre-nextgen-bootstrap
+      secret.reloader.stakater.com/reload: calibre-nextgen-secret
+    strategy: Recreate
+    defaultContainerOptions:
+      securityContext:
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+        capabilities:
+          drop: [ALL]
+    initContainers:
+      bootstrap:
+        image: &image
+          repository: ghcr.io/new-usemame/calibre-web-nextgen
+          tag: v4.1.74@sha256:0c7ce08ca1c3dd4a0e80a5e4fe1d934a5e512960679bf2f8a4dfa7f0e1370695
+        command: [python3, /bootstrap/bootstrap.py]
+        env:
+          CALIBRE_NEXTGEN_ADMIN_PASSWORD:
+            valueFrom:
+              secretKeyRef:
+                name: calibre-nextgen-secret
+                key: ADMIN_PASSWORD
+        resources:
+          requests: { cpu: 10m, memory: 64Mi }
+          limits: { memory: 256Mi }
+    containers:
+      app:
+        image: *image
+        env:
+          TZ: America/New_York
+          CACHE_DIR: /tmp/calibre-cache
+          CWA_CALIBRE_USER_PLUGINS: "false"
+          GENERIC_OAUTH_ENABLED: "true"
+          GENERIC_OAUTH_CLIENT_ID: calibre-nextgen
+          GENERIC_OAUTH_CLIENT_SECRET:
+            valueFrom:
+              secretKeyRef:
+                name: calibre-nextgen-secret
+                key: GENERIC_OAUTH_CLIENT_SECRET
+          GENERIC_OAUTH_METADATA_URL: https://login.laboratory.casa/.well-known/openid-configuration
+          GENERIC_OAUTH_SCOPE: openid profile email groups
+          GENERIC_OAUTH_LOGIN_BUTTON: Sign in with Authelia
+          GENERIC_OAUTH_REQUIRE_GROUP: "true"
+          GENERIC_OAUTH_ALLOWED_GROUPS: apps_user,apps_admin
+          GENERIC_OAUTH_DEFAULT_ROLE: download,viewer,upload
+          SECRET_KEY:
+            valueFrom:
+              secretKeyRef:
+                name: calibre-nextgen-secret
+                key: SECRET_KEY
+        probes:
+          startup:
+            enabled: true
+            custom: true
+            spec:
+              httpGet: &health
+                path: /health
+                port: &port 8083
+              periodSeconds: 5
+              timeoutSeconds: 5
+              failureThreshold: 36
+          readiness:
+            enabled: true
+            custom: true
+            spec:
+              httpGet: *health
+              periodSeconds: 10
+              timeoutSeconds: 5
+          liveness:
+            enabled: true
+            custom: true
+            spec:
+              tcpSocket:
+                port: *port
+              periodSeconds: 15
+              timeoutSeconds: 5
+        resources:
+          requests: { cpu: 10m, memory: 192Mi }
+          limits: { memory: 768Mi }
+
+service:
+  app:
+    controller: calibre-nextgen
+    ports:
+      http:
+        port: *port
+
+route:
+  app:
+    hostnames:
+      - calibre-nextgen.laboratory.casa
+    parentRefs:
+      - name: envoy-internal
+        namespace: network
+        sectionName: https
+    rules:
+      - backendRefs:
+          - identifier: app
+            port: http
+
+persistence:
+  config:
+    type: persistentVolumeClaim
+    suffix: config
+    storageClass: longhorn
+    accessMode: ReadWriteOnce
+    size: 512Mi
+    globalMounts:
+      - path: /config
+  library:
+    type: persistentVolumeClaim
+    suffix: library
+    storageClass: longhorn
+    accessMode: ReadWriteOnce
+    size: 2Gi
+    advancedMounts:
+      calibre-nextgen:
+        app:
+          - path: /calibre-library
+  bootstrap:
+    type: configMap
+    name: calibre-nextgen-bootstrap
+    advancedMounts:
+      calibre-nextgen:
+        bootstrap:
+          - path: /bootstrap
+            readOnly: true
+  ingest:
+    type: emptyDir
+    advancedMounts:
+      calibre-nextgen:
+        app:
+          - path: /cwa-book-ingest
+  run:
+    type: emptyDir
+    advancedMounts:
+      calibre-nextgen:
+        app:
+          - path: /run
+  tmp:
+    type: emptyDir
+    globalMounts:
+      - path: /tmp

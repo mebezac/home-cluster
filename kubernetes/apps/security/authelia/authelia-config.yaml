@@ -155,7 +155,7 @@ identity_providers:
         rules:
           - policy: one_factor
             subject: group:apps_admin
-      # Paperless: household members (apps_user) and admins only.
+      # Paperless and Calibre-Web NextGen: household members and admins only.
       paperless_users:
         default_policy: deny
         rules:
@@ -197,6 +197,20 @@ identity_providers:
     # client_id: docker run --rm authelia/authelia:latest authelia crypto rand --length 72 --charset rfc3986
     # client_secret: docker run --rm authelia/authelia:latest authelia crypto hash generate pbkdf2 --variant sha512 --random --random.length 72 --random.charset rfc3986
     clients:
+      # Calibre-Web NextGen uses a confidential Generic OIDC client without PKCE.
+      - client_id: "calibre-nextgen"
+        client_name: "Calibre-Web NextGen"
+        client_secret: "$pbkdf2-sha512$310000$QwZZj8TcTohcmFLGimpN3Q$qAlK2mJAHioI.MFKu16Th1Os/0QQLdvMgCIz4Gxx2HnBKgG2o74vjPFgZbZqbfvjRumVewvO7vFxINOGHDdNFQ"
+        public: false
+        authorization_policy: "paperless_users"
+        consent_mode: "implicit"
+        require_pkce: false
+        redirect_uris:
+          - "https://calibre-nextgen.laboratory.casa/login/generic/authorized"
+        scopes: ["openid", "profile", "email", "groups"]
+        grant_types: ["authorization_code"]
+        response_types: ["code"]
+        token_endpoint_auth_method: "client_secret_basic"
       # Network Optimizer: token redemption uses ASP.NET Core's client_secret_post.
       - client_id: "network-optimizer"
         client_name: "Network Optimizer"
