@@ -38,6 +38,7 @@ with closing(sqlite3.connect(app_db)) as database, database:
         config_upload_formats_lcpl_migrated = 1, config_upload_formats_fbz_migrated = 1,
         config_anonbrowse = 0, config_public_reg = 0, config_embed_metadata = 0,
         config_enable_oauth_group_admin_management = 1, config_enable_oauth_auto_forward = 1,
+        config_disable_standard_login = 1,
         config_oauth_redirect_host = 'https://books.laboratory.casa'
     """)
 

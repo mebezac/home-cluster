@@ -25,12 +25,7 @@ controllers:
         image: &image
           repository: ghcr.io/new-usemame/calibre-web-nextgen
           tag: v4.1.74@sha256:0c7ce08ca1c3dd4a0e80a5e4fe1d934a5e512960679bf2f8a4dfa7f0e1370695
-        command:
-          - /bin/sh
-          - -ec
-          - |
-            python3 /bootstrap/bootstrap.py
-            python3 /series-backfill/series-backfill.py --apply
+        command: [python3, /bootstrap/bootstrap.py]
         env:
           CALIBRE_NEXTGEN_ADMIN_PASSWORD:
             valueFrom:
@@ -111,7 +106,7 @@ route:
     hostnames:
       - books.laboratory.casa
     parentRefs:
-      - name: envoy-internal
+      - name: envoy-external
         namespace: network
         sectionName: https
     rules:
@@ -136,18 +131,8 @@ persistence:
     size: 2Gi
     advancedMounts:
       calibre-nextgen:
-        bootstrap:
-          - path: /calibre-library
         app:
           - path: /calibre-library
-  series-backfill:
-    type: configMap
-    name: calibre-nextgen-series-backfill
-    advancedMounts:
-      calibre-nextgen:
-        bootstrap:
-          - path: /series-backfill
-            readOnly: true
   bootstrap:
     type: configMap
     name: calibre-nextgen-bootstrap

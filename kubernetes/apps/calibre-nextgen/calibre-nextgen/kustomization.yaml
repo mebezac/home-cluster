@@ -7,10 +7,5 @@ configMapGenerator:
       - acsm.py
     options:
       disableNameSuffixHash: true
-  - name: calibre-nextgen-series-backfill
-    files:
-      - series-backfill.py
-    options:
-      disableNameSuffixHash: true
 generators:
   - secret-generator.yaml
