@@ -54,6 +54,7 @@ controllers:
           GENERIC_OAUTH_LOGIN_BUTTON: Sign in with Authelia
           GENERIC_OAUTH_REQUIRE_GROUP: "true"
           GENERIC_OAUTH_ALLOWED_GROUPS: apps_user,apps_admin
+          GENERIC_OAUTH_ADMIN_GROUP: apps_admin
           GENERIC_OAUTH_DEFAULT_ROLE: download,viewer,upload
           SECRET_KEY:
             valueFrom:
