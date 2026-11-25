@@ -108,8 +108,8 @@ controllers:
               periodSeconds: 15
               timeoutSeconds: 5
         resources:
-          requests: { cpu: 10m, memory: 192Mi }
-          limits: { memory: 768Mi }
+          requests: { cpu: 10m, memory: 256Mi }
+          limits: { memory: 1536Mi }
 
 service:
   app:
