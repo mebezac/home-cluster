@@ -94,16 +94,18 @@ settings.execute_write("""UPDATE cwa_settings SET
     auto_zip_backups = 0, duplicate_scan_frequency = 'manual', auto_convert = 0,
     auto_metadata_enforcement = 0, kindle_epub_fixer = 0,
     auto_metadata_fetch_enabled = 1, auto_metadata_smart_application = 1,
-    auto_metadata_update_series = 1, auto_metadata_update_title = 0,
-    auto_metadata_update_authors = 0, auto_metadata_update_description = 0,
-    auto_metadata_update_publisher = 0, auto_metadata_update_tags = 0,
-    auto_metadata_update_rating = 0, auto_metadata_update_published_date = 0,
-    auto_metadata_update_identifiers = 0, auto_metadata_update_cover = 0
-""")
-# Include Wikidata for series lookup while preserving the configured provider priority.
-settings.execute_write("""UPDATE cwa_settings
-    SET metadata_provider_hierarchy = json_insert(metadata_provider_hierarchy, '$[#]', 'wikidata')
-    WHERE json_valid(metadata_provider_hierarchy)
-      AND NOT EXISTS (SELECT 1 FROM json_each(metadata_provider_hierarchy) WHERE value = 'wikidata')
+    auto_metadata_update_series = 1, auto_metadata_update_title = 1,
+    auto_metadata_update_authors = 1, auto_metadata_update_description = 1,
+    auto_metadata_update_publisher = 1, auto_metadata_update_tags = 1,
+    auto_metadata_update_rating = 0, auto_metadata_update_published_date = 1,
+    auto_metadata_update_identifiers = 1, auto_metadata_update_cover = 1,
+    metadata_provider_hierarchy = '["hardcover","amazon","goodreads","google","openlibrary","wikidata","ibdb","dnb","douban"]',
+    metadata_providers_enabled = json_set(
+        CASE WHEN json_valid(metadata_providers_enabled) THEN metadata_providers_enabled ELSE '{}' END,
+        '$.hardcover', json('true'),
+        '$.amazon', json('true'),
+        '$.goodreads', json('true'),
+        '$.wikidata', json('true')
+    )
 """)
 settings.con.close()
