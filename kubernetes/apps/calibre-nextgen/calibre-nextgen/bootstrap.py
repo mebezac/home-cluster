@@ -42,22 +42,39 @@ with closing(sqlite3.connect(app_db)) as database, database:
         config_oauth_redirect_host = 'https://books.laboratory.casa'
     """)
 
-    # Backfill the shelf-sharing default for existing household OIDC readers.
-    database.execute("""UPDATE user SET share_shelfs = 1
-        WHERE (role & ?) = 0 AND share_shelfs = 0
+    reader_roles = constants.ROLE_DOWNLOAD | constants.ROLE_UPLOAD | constants.ROLE_VIEWER
+    household_roles = (reader_roles | constants.ROLE_EDIT | constants.ROLE_DELETE_BOOKS
+                       | constants.ROLE_BROWSE_GLOBAL)
+    excluded_roles = constants.ROLE_PASSWD | constants.ROLE_EDIT_SHELFS
+    non_reader_roles = constants.ROLE_ADMIN | constants.ROLE_ANONYMOUS
+
+    # The OIDC defaults only apply at registration and cannot set Browse global library.
+    database.execute("""UPDATE user SET share_shelfs = 1, role = (role | ?) & ~?
+        WHERE (role & ?) = 0
           AND EXISTS (
             SELECT 1 FROM flask_dance_oauth AS oauth
             JOIN oauthProvider AS provider ON oauth.provider = CAST(provider.id AS TEXT)
             WHERE oauth.user_id = user.id AND provider.provider_name = 'generic'
           )
-    """, (constants.ROLE_ADMIN | constants.ROLE_ANONYMOUS,))
+    """, (household_roles, excluded_roles, non_reader_roles))
 
-    # v4.1.74 provisions OIDC users in the shared library. Give readers an empty
-    # My Library at INSERT time, before the first login can see any books.
+    database.execute("DROP TRIGGER IF EXISTS calibre_nextgen_oidc_reader")
+    database.execute(f"""CREATE TRIGGER calibre_nextgen_oidc_reader AFTER INSERT ON flask_dance_oauth
+        WHEN EXISTS (
+            SELECT 1 FROM oauthProvider AS provider
+            WHERE NEW.provider = CAST(provider.id AS TEXT) AND provider.provider_name = 'generic'
+        )
+        BEGIN
+            UPDATE user SET share_shelfs = 1, role = (role | {household_roles}) & ~{excluded_roles}
+            WHERE id = NEW.user_id AND (role & {non_reader_roles}) = 0;
+        END
+    """)
+
+    # v4.1.74 provisions OIDC users in the shared library. Start new readers
+    # in an empty My Library and let them choose when to use the global library.
     # The seed fence prevents the app from copying the global catalog later.
     # The OIDC provisioner assigns only ROLE_ADMIN to first-time administrators.
     # Keep their reader permissions even if OIDC later removes the admin role.
-    reader_roles = constants.ROLE_DOWNLOAD | constants.ROLE_UPLOAD | constants.ROLE_VIEWER
     database.execute("DROP TRIGGER IF EXISTS calibre_nextgen_private_reader")
     database.execute(f"""CREATE TRIGGER calibre_nextgen_private_reader AFTER INSERT ON user
         WHEN (NEW.role & {constants.ROLE_ANONYMOUS}) = 0
