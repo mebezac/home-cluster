@@ -25,16 +25,28 @@ controllers:
         image: &image
           repository: ghcr.io/new-usemame/calibre-web-nextgen
           tag: v4.1.74@sha256:0c7ce08ca1c3dd4a0e80a5e4fe1d934a5e512960679bf2f8a4dfa7f0e1370695
-        command: [python3, /bootstrap/bootstrap.py]
+        command:
+          - /bin/sh
+          - -ec
+          - |
+            python3 /bootstrap/bootstrap.py
+            python3 /metadata-backfill/metadata-backfill.py --apply
         env:
+          TZ: America/New_York
+          CACHE_DIR: /tmp/calibre-cache
           CALIBRE_NEXTGEN_ADMIN_PASSWORD:
             valueFrom:
               secretKeyRef:
                 name: calibre-nextgen-secret
                 key: ADMIN_PASSWORD
+          HARDCOVER_TOKEN:
+            valueFrom:
+              secretKeyRef:
+                name: calibre-nextgen-hardcover-secret
+                key: HARDCOVER_TOKEN
         resources:
           requests: { cpu: 10m, memory: 64Mi }
-          limits: { memory: 256Mi }
+          limits: { memory: 512Mi }
     containers:
       app:
         image: *image
@@ -136,8 +148,18 @@ persistence:
     size: 2Gi
     advancedMounts:
       calibre-nextgen:
+        bootstrap:
+          - path: /calibre-library
         app:
           - path: /calibre-library
+  metadata-backfill:
+    type: configMap
+    name: calibre-nextgen-metadata-backfill
+    advancedMounts:
+      calibre-nextgen:
+        bootstrap:
+          - path: /metadata-backfill
+            readOnly: true
   bootstrap:
     type: configMap
     name: calibre-nextgen-bootstrap
