@@ -33,6 +33,18 @@ spec:
             runAsUser: 3000
           restore:
             enabled: true
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/charts/kopiur-backup
+      targetRevision: main
+      helm:
+        releaseName: castopod-mariadb-lts-backup
+        valuesObject:
+          pvc: castopod-mariadb-lts
+          tier: standard
+          mover:
+            runAsUser: 3000
+          restore:
+            enabled: true
   destination:
     name: in-cluster
     namespace: castopod

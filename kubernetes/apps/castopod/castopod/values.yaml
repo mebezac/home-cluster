@@ -121,7 +121,7 @@ controllers:
     annotations:
       reloader.stakater.com/auto: "true"
     containers:
-      app:
+      app: &mariadb-container
         image:
           repository: docker.io/library/mariadb
           # Latest GA (13.0, a rolling release; the LTS line is 12.3). Major bumps
@@ -132,7 +132,7 @@ controllers:
           - --innodb-buffer-pool-size=128M
           - --character-set-server=utf8mb4
           - --collation-server=utf8mb4_unicode_ci
-        env:
+        env: &mariadb-env
           TZ: America/New_York
           MARIADB_DATABASE: castopod
           MARIADB_USER: castopod
@@ -145,7 +145,7 @@ controllers:
           startup:
             enabled: true
             custom: true
-            spec:
+            spec: &mariadb-startup
               exec: &dbcheck
                 command: ["healthcheck.sh", "--connect", "--innodb_initialized"]
               periodSeconds: 5
@@ -153,14 +153,14 @@ controllers:
           liveness:
             enabled: true
             custom: true
-            spec:
+            spec: &mariadb-liveness
               exec: *dbcheck
               periodSeconds: 30
               timeoutSeconds: 10
           readiness:
             enabled: true
             custom: true
-            spec:
+            spec: &mariadb-readiness
               exec: *dbcheck
               periodSeconds: 10
               timeoutSeconds: 10
@@ -170,6 +170,100 @@ controllers:
         resources:
           requests: { cpu: 10m, memory: 192Mi }
           limits: { memory: 768Mi }
+
+  mariadb-lts:
+    strategy: Recreate
+    annotations:
+      reloader.stakater.com/auto: "true"
+    containers:
+      app:
+        <<: *mariadb-container
+        image: &mariadb-lts-image
+          repository: docker.io/library/mariadb
+          tag: 12.3.3@sha256:4aaf88b3106382c8c18e49f0cec60267be618fc22f858c4503afb2a2555afed3
+        args:
+          - --datadir=/var/lib/mysql/data
+          - --innodb-buffer-pool-size=128M
+          - --character-set-server=utf8mb4
+          - --collation-server=utf8mb4_unicode_ci
+        env:
+          <<: *mariadb-env
+          MARIADB_ROOT_HOST: localhost
+        probes:
+          startup:
+            enabled: true
+            custom: true
+            spec:
+              <<: *mariadb-startup
+              exec: &lts-dbcheck
+                command:
+                  - healthcheck.sh
+                  - --defaults-extra-file=/var/lib/mysql/data/.my-healthcheck.cnf
+                  - --connect
+                  - --innodb_initialized
+          liveness:
+            enabled: true
+            custom: true
+            spec:
+              <<: *mariadb-liveness
+              exec: *lts-dbcheck
+          readiness:
+            enabled: true
+            custom: true
+            spec:
+              <<: *mariadb-readiness
+              exec: *lts-dbcheck
+
+  mariadb-dump:
+    type: cronjob
+    cronjob:
+      schedule: "15 0 * * *"
+      timeZone: America/New_York
+      concurrencyPolicy: Forbid
+      activeDeadlineSeconds: 180
+      backoffLimit: 1
+      suspend: true
+    pod:
+      automountServiceAccountToken: false
+      affinity:
+        podAffinity:
+          # The database and dump share one ReadWriteOnce volume.
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - topologyKey: kubernetes.io/hostname
+              labelSelector:
+                matchLabels:
+                  app.kubernetes.io/instance: castopod
+                  app.kubernetes.io/controller: mariadb-lts
+    containers:
+      dump:
+        image: *mariadb-lts-image
+        env:
+          MARIADB_PASSWORD:
+            valueFrom:
+              secretKeyRef:
+                name: castopod-secret
+                key: MARIADB_PASSWORD
+        command: ["/bin/bash", "-ec"]
+        args:
+          - |
+            set -o pipefail
+            export MYSQL_PWD="$MARIADB_PASSWORD"
+            umask 077
+            dump=/var/lib/mysql/dumps/castopod.sql.gz
+            mkdir -p "$(dirname "$dump")"
+            mariadb-dump --protocol=tcp --host=castopod-mariadb-lts --user=castopod \
+              --single-transaction --routines --triggers --events --hex-blob --databases castopod \
+              | gzip -c > "$dump.tmp"
+            gzip -t "$dump.tmp"
+            gzip -cd "$dump.tmp" | tail -1 | grep -q '^-- Dump completed on '
+            mv -f "$dump.tmp" "$dump"
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities: { drop: ["ALL"] }
+        resources:
+          requests: { cpu: 10m, memory: 32Mi }
+          limits: { memory: 128Mi }
 
 # The image's s6 bootstrap (prepare-environment.sh) prints the whole generated
 # /app/.env at every start: DB, valkey, SILO and SMTP secrets went into
@@ -197,6 +291,11 @@ service:
         port: 8080
   mariadb:
     controller: mariadb
+    ports:
+      mysql:
+        port: 3306
+  mariadb-lts:
+    controller: mariadb-lts
     ports:
       mysql:
         port: 3306
@@ -257,9 +356,30 @@ persistence:
       apiGroup: kopiur.home-operations.com
       kind: Restore
       name: castopod-mariadb
+    annotations:
+      argocd.argoproj.io/sync-options: Prune=false,Delete=false
     advancedMounts:
       mariadb:
         app:
+          - path: /var/lib/mysql
+  mariadb-lts:
+    type: persistentVolumeClaim
+    suffix: mariadb-lts
+    storageClass: longhorn
+    accessMode: ReadWriteOnce
+    size: 1Gi
+    dataSourceRef:
+      apiGroup: kopiur.home-operations.com
+      kind: Restore
+      name: castopod-mariadb-lts
+    annotations:
+      argocd.argoproj.io/sync-options: Prune=false,Delete=false
+    advancedMounts:
+      mariadb-lts:
+        app:
+          - path: /var/lib/mysql
+      mariadb-dump:
+        dump:
           - path: /var/lib/mysql
   run:
     type: emptyDir
