@@ -11,7 +11,10 @@ description: >-
   storage, database, observability, security/GitOps, media, home automation, web
   apps, platform/capacity), each reading pod logs, comparing live resource usage
   against requests/limits, and checking config against BOTH this repo's CLAUDE.md
-  rules and current upstream best practice via context7/web/git-grep. The parent
+  rules and current upstream best practice via context7/web/git-grep, and
+  flagging superseded apps, forks, settings, procedures and infrastructure with
+  evidence-backed successors (also triggers on "what's outdated", "anything
+  better than what we run"). The parent
   runs the cross-cutting sweeps subagents cannot see (image pinning, SOPS
   hygiene, deprecated APIs), sizes resources from 7 DAYS of VictoriaMetrics
   history rather than a point-in-time snapshot, starts from the previous audit's
@@ -36,7 +39,8 @@ Sister skills: `debug-alerts` (one firing alert), `dependency-pr-triage`
 
 0. Parent reads the last audit's report as a baseline
 1. Parent takes inventory (cheap, keeps context clean)
-2. Parent fans out ~9 domain subagents **in one message** so they run in parallel
+2. Parent fans out ~10 subagents (9 domain slices + 1 successor slice) **in one
+   message** so they run in parallel
 3. Parent runs the cross-cutting sweeps subagents structurally cannot do
 4. Parent publishes the report as a NEW Artifact and logs it in `audits.md`
 5. Fix loop — one item at a time, explicit permission each time; the Artifact
@@ -58,7 +62,10 @@ From it, extract:
   changed — say which.
 - items marked done: spot-check the important ones. A fix can regress
   (e.g. a scrape selector reverted by a chart bump).
-- its HTML: the new report reuses the same visual system (see §5).
+- its Successors table: carry every _watch_ item as "re-check", and every
+  _keep_ verdict with its reason, so the next run re-opens it only on a new
+  signal (§4).
+- its HTML: the new report reuses the same visual system (see §6).
 
 **The baseline is a checklist, not the scope.** Do the full deep-dive anyway.
 Every brief must say "find what the last audit missed". The 2026-10-21 run found
@@ -96,7 +103,7 @@ apps have silently stopped reconciling.
 
 ## 2. Fan out (one message, all agents)
 
-Nine slices. Adjust to what actually exists, but keep them disjoint and name the
+Nine domain slices plus one successor slice. Adjust to what actually exists, but keep them disjoint and name the
 namespaces explicitly so nothing is audited twice or missed:
 
 | Slice | Covers |
@@ -110,6 +117,7 @@ namespaces explicitly so nothing is audited twice or missed:
 | Home automation | `homeassistant`, `birdnet-go` |
 | Web apps | `n8n`, `umami`, `jotty`, `lubelog`, `changedetection`, `trek`, `reckage`, `heremag`, `owncloud`, `pcab`, `default` |
 | Platform/capacity | rest of kube-system + **cluster-wide node capacity** (per-node MemAvailable 7d minimum, not just requests) |
+| Successors (shared layer) | no namespace: the infrastructure and procedure layers of §4 — Talos/topf, Cilium, Longhorn, CNPG, Envoy Gateway, ArgoCD, VictoriaMetrics, cert-manager, external-dns, cloudflared, Kopiur, sops/ksops, Renovate, mise, plus `.claude/skills/`, `AGENTS.md` and `CLAUDE.md` procedures |
 
 The namespace list drifts. Diff `kubectl get ns` against this table at inventory
 time and put any new namespace in a slice.
@@ -130,7 +138,12 @@ Every brief must include:
   start. Read-only: look at the files with `kubectl exec … cat`, never edit
   them. Check upstream docs before you claim an option exists. Skip settings
   that the app rewrites at runtime, or that are only runtime state.
-- **return findings as text, not a file** — subagents are blocked from writing report files; ask for a ~800-word structured summary (Critical / Warning / Resources / Best practice / Healthy)
+- **successors**: paste §4's layer table, signals and verdicts into the brief.
+  For every app, chart and image source in the slice, check upstream status
+  and check the settings in its values against current docs and the release
+  notes since our version. Return one line per finding:
+  `current → candidate | signal (link, date) | gain | cost | verdict`, keeps included.
+- **return findings as text, not a file** — subagents are blocked from writing report files; ask for a ~1000-word structured summary (Critical / Warning / Resources / Best practice / Successors / Healthy)
 - "Every finding needs concrete evidence (log line, number, file:line). **Do NOT change anything.**"
 
 ### Do not trust subagent numbers blindly
@@ -171,7 +184,65 @@ invisible to it — that is how lldap sat 13 months stale while everything else
 stayed current. Prefer switching to a real version stream over adding a
 `versioning:` regex; a regex has to be maintained against upstream.
 
-## 4. Sizing resources — use 7 days, never a snapshot
+## 4. Successors — find what the world has moved past
+
+Logs and resources show what is broken now. This sweep finds what is
+_superseded_: an app, chart, setting, procedure or piece of infrastructure that
+upstream or the wider homelab ecosystem has moved past. Example: pinchflat may
+have a community fork that is more active than the original. The repo has made
+this move well before: ingress-nginx → Envoy Gateway, talhelper → topf, Longhorn
+backups → Kopiur, Garage → SILO. Each audit finds the next one before it is
+urgent.
+
+The domain slices cover the app, chart and setting layers for their own
+namespaces. The successor slice covers infrastructure and procedures.
+
+| Layer | The question |
+|---|---|
+| App | Is the project archived, in maintenance mode, relicensed, or overtaken by a fork? Did a successor take its niche? |
+| Chart / image source | Did the chart or image move, get deprecated in favour of an operator, or stop being free? Does upstream now ship an official chart or image we could use? |
+| Setting | Does our config use a flag, env var or CRD field that upstream marks deprecated or replaced? Is a value we override now upstream's default? |
+| Procedure | Does a skill, script or runbook here do by hand what a tool, controller or CRD now does? |
+| Infrastructure | Which new features of the tools we run do we not use yet? Which rivals did peers move to, and why? |
+
+### Signals: evidence, not hype
+
+A finding needs at least one hard signal, with a link and a date:
+
+- an upstream archive banner, deprecation or end-of-life notice, or migration guide
+- a deprecation warning in our own logs or in `helm template` output
+- no release or commit in 12 months, or security advisories with no fix
+- a licence change that affects us
+- a fork with clearly more recent releases, commits and maintainers than the
+  original — compare both repos with `gh api repos/<owner>/<repo>` and their
+  release lists, not the fork's README
+- peer adoption: [kubesearch.dev](https://kubesearch.dev) and
+  `mcp__git-grep__searchGitHub` over home-ops repos. Count who moved from X to Y,
+  and when. A count is evidence; one blog post is not.
+
+"New hotness" with no hard signal is a _watch_ item at most. For every finding,
+name what the switch gains for THIS cluster (a defect it removes, an alert it
+silences, a manual step it deletes, memory it frees) and what it costs (data
+migration, downtime, new failure modes, re-learning).
+
+Open the cited link yourself before a _migrate_ verdict goes into the report.
+Subagents misread release pages and fork activity the same way they misread
+rates (§2).
+
+### Verdicts
+
+- **migrate**: upstream is dead, deprecated or unsafe. It goes in Fix soon, or
+  Fix now when a security advisory or an end-of-life date is close.
+- **evaluate**: a real gain is on the table; worth a trial.
+- **watch**: promising but young (under a year, one maintainer, no peer
+  adoption). Re-check next audit.
+- **keep**: checked, and the current choice is still right. Record the reason so
+  the next audit starts from it, not from zero.
+
+A migration is a project, not a fix. In the fix loop, offer a plan built on
+`add-argo-app` and `remove-argo-app` instead of editing values in place.
+
+## 5. Sizing resources — use 7 days, never a snapshot
 
 **This is the single most important technique in this skill.** A point-in-time
 reading will make you shrink something that bursts, and miss things that are
@@ -229,7 +300,7 @@ new limit.
 requests to go up and some to go down. Under-requesting is as real a defect as
 over-provisioning.
 
-## 5. The report — Artifact, ASD-STE100 Simplified Technical English
+## 6. The report — Artifact, ASD-STE100 Simplified Technical English
 
 Load `artifact-design` first, write HTML, publish with the `Artifact` tool.
 This is the deliverable the user keeps; it is worth real care.
@@ -254,9 +325,15 @@ Keep this section order, and drop a section only when it has nothing in it:
    git could own it. Every setting the fix loop changes by hand inside an app
    (not in git) also becomes a Move-to-git row, so manual changes never go
    unrecorded.
-7. **Closed since <baseline date>**: what the last audit flagged that is now fixed
-8. **What is good**: a grid; always present
-9. Footer: method, the repo commits audited, the baseline used
+7. **Successors**: a table with one numbered row per _migrate_, _evaluate_ and
+   _watch_ finding: `# / current → candidate / signal (link, date) / gain /
+   cost / verdict chip`. Sort by verdict, then by cost. Put the _keep_ rows,
+   with their reasons, under a closed `<details>` "Checked and kept", with no
+   numbers. A _migrate_ row that is urgent also appears in Fix now or Fix soon,
+   and that entry links to the row.
+8. **Closed since <baseline date>**: what the last audit flagged that is now fixed
+9. **What is good**: a grid; always present
+10. Footer: method, the repo commits audited, the baseline used
 
 Tag carried items with a `from <baseline date>` chip, so the user sees what has
 been open for more than one cycle.
@@ -264,8 +341,8 @@ been open for more than one cycle.
 **Give every actionable item its own number, so the user can say "do #14".**
 - One sequence across the whole report: Fix now first (1–N), then Fix soon,
   then each open Resources row and each leftover resource note, then
-  Clean-up, then Hygiene, then Move to git. Not-actionable sections (incident, Closed since,
-  What is good) get no numbers.
+  Clean-up, then Hygiene, then Move to git, then Successors. Not-actionable
+  sections (incident, Closed since, What is good, the kept successors) get no numbers.
 - Show the number as a `<span class="id">#14</span>` badge, and put
   `id="i14"` on the element, so `<link>#i14` jumps to it. Fix now draws its
   number with the CSS counter and still gets the `id`.
@@ -297,9 +374,9 @@ Keep that row free of sensitive detail, because the repo is public.
 - Machine identifiers in mono; severity as a chip **and** a left stripe.
 - **Always include a "What is good" section.** Most of the cluster is fine and
   the user needs to see that, not just a wall of problems.
-- See §6 for keeping the report current during the fix loop.
+- See §7 for keeping the report current during the fix loop.
 
-## 6. Fix loop — explicit permission, one item at a time
+## 7. Fix loop — explicit permission, one item at a time
 
 Never batch-apply findings. For each item the user picks:
 
