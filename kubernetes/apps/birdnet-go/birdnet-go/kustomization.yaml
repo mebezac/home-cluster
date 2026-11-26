@@ -6,5 +6,3 @@ configMapGenerator:
       - rtsp-streams.yaml=./rtsp-streams.yaml
     options:
       disableNameSuffixHash: true
-resources:
-  - ./prometheusrule.yaml
