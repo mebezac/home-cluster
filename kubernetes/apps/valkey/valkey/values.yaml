@@ -30,7 +30,7 @@ controllers:
           # runs; only the valkey binary layer and the apk/base layer sizes matter. Either way the
           # restart is a HARD blip (single replica, StatefulSet, OrderedReady) that drops authelia
           # sessions (SSO re-login) plus grafana/romm/forgejo and prometheus-redis-exporter
-          tag: 9.1.4-alpine@sha256:56729e68bdda139cbd3f6a2538683dc3523325fc5711ea1a379938f1b37893f0
+          tag: 9.2.1-alpine@sha256:3ad5a213cb1bc2fd4a113c89b6248a88655a6bf1dda69519d04e03cd3e3d2742
         resources:
           requests:
             cpu: 5m
