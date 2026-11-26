@@ -9,6 +9,25 @@ controllers:
     annotations:
       reloader.stakater.com/auto: "true"
     initContainers:
+      # BirdNET-Go drops to BIRDNET_UID=1000 in entrypoint.sh without chowning
+      # /data/logs, so any root-owned log file (e.g. from kubectl exec) blocks startup.
+      fix-log-permissions:
+        image:
+          repository: busybox
+          tag: 1.38.0@sha256:a46257e06c82ad85242d0d38077d0a52d9896389ca60a1a59d3463db586e5fa4
+        command: ["/bin/sh", "-ec"]
+        args:
+          - |
+            if [ -d /data/logs ]; then
+              find /data/logs -user 0 -exec chown 1000:1000 {} +
+            fi
+        securityContext:
+          runAsUser: 0
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop: ["ALL"]
+            add: ["CHOWN", "DAC_OVERRIDE"]
       # BirdNET-Go has no env var for realtime.rtsp.streams and writes other
       # UI-managed settings back to /config/config.yaml, so patch only the
       # stream list from git before startup (audit 2026-11-26 #6).
