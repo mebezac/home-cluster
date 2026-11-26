@@ -16,6 +16,9 @@ spec:
         # label_mismatch below, with the reason in a comment. Current skips:
         #   database/postgres-17-cluster-N  CNPG; barman-cloud backs it up to SILO
         #   observability/*                 metrics, logs, alert state; rebuildable
+        #   network-optimizer/network-optimizer-influxdb-data, network-optimizer-logs
+        #                                   metrics history and logs
+        #   valkey/valkey-data              sessions, queues and caches; apps rebuild them
         #   */*-cache                       caches the app rebuilds
         #   guildhall/guildhall-auth,       agent sign-in tokens and worker scratch,
         #   guildhall-workers/worker-N-*    left out on purpose (2026-11-16)
@@ -35,7 +38,7 @@ spec:
                 "pvc_ref", "/", "namespace", "persistentvolumeclaim"
               ),
               "pvc_ref",
-              "database/postgres-17-cluster-[0-9]+|observability/.+|.+/.+-cache|guildhall/guildhall-auth|guildhall-workers/worker-[0-9]+-(auth|data)|downloads/.+|ps5/.+|jellyfin/pinchflat-media"
+              "database/postgres-17-cluster-[0-9]+|observability/.+|.+/.+-cache|guildhall/guildhall-auth|guildhall-workers/worker-[0-9]+-(auth|data)|downloads/.+|ps5/.+|jellyfin/pinchflat-media|network-optimizer/network-optimizer-(influxdb-data|logs)|valkey/valkey-data"
             )
           for: 24h
           labels:

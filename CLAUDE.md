@@ -130,8 +130,9 @@ snapshot (a first install comes up empty):
 - `dataSourceRef` is immutable. Add it when the PVC is **created**. For a PVC that already exists,
   add only the backup source; the populator cutover needs a PVC replacement (`task kopiur:cutover`).
 - Identity is `<pvc>@<namespace>`: never rename a PVC or move its namespace without a restore first.
-- **Skip only** for: CNPG volumes (barman backs them up), VictoriaMetrics/Logs and alert state,
-  caches the app rebuilds, scratch volumes, and bulk media that lives on the NAS. Say why in a comment
+- **Skip only** for: CNPG volumes (barman backs them up), metrics and logs (VictoriaMetrics/Logs,
+  InfluxDB, app log volumes) and alert state, valkey (sessions, queues, caches), caches the app
+  rebuilds, scratch volumes, and bulk media that lives on the NAS. Say why in a comment
   in the Argo app, and add the PVC to the skip list in
   `kubernetes/apps/kopiur-system/kopiur/backup-coverage-rule.yaml`.
 - Alert `PVCNotBackedUp` fires for any PVC that has had no Kopiur backup for 24 h and is not on that list.

@@ -181,7 +181,7 @@ pin down the repo-side choices:
    Ask only the tier: `critical` (every 6 h) for data that cannot be re-made
    (purchases, documents, photos, a database file), else `standard` (daily).
    Skip a PVC only for the special cases in CLAUDE.md (cache, scratch, CNPG,
-   bulk NAS media). Then add a comment in the Argo app that says why, and add the
+   metrics and logs, valkey, bulk NAS media). Then add a comment in the Argo app that says why, and add the
    PVC to the skip list in `kubernetes/apps/kopiur-system/kopiur/backup-coverage-rule.yaml`;
    otherwise alert `PVCNotBackedUp` fires after 24 h.
 6. **Secrets.** 0a's secret env → ksops (Phase 2); non-secret env → `env:`.
