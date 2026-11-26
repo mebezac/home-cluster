@@ -95,12 +95,6 @@ spec:
         inherit: true
         passwordSecret:
           name: pg-role-pcab
-      - name: umami
-        ensure: absent
-        login: true
-        inherit: true
-        passwordSecret:
-          name: pg-role-umami
       - name: reckage
         ensure: present
         login: true
