@@ -43,10 +43,6 @@ controllers:
           # Every other key there matched Laravel's defaults (file cache and
           # sessions, sync queue). Code default is false.
           LOG_VIEWER_ENABLED: "true"
-          SECURITY_HEADER_SCRIPT_SRC_ALLOW: https://analytics.laboratory.casa/script.js
-          # Umami's script POSTs to <origin>/api/send; allowing only /script.js blocked
-          # every event (none recorded after 2025-12-30). Allow the origin.
-          SECURITY_HEADER_CSP_CONNECT_SRC: https://analytics.laboratory.casa
         envFrom:
           - secretRef:
               name: lychee-secret
