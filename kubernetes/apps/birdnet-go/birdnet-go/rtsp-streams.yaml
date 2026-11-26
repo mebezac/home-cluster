@@ -1,0 +1,72 @@
+# Managed RTSP audio streams for BirdNET-Go, synced into /config/config.yaml
+# (.realtime.rtsp.streams) by the sync-rtsp-streams init container on startup.
+# Uses Frigate's go2rtc restream on nuc02 (10.25.30.10:8554) because cameras
+# moved to the isolated camera VLAN (10.25.50.4-7) which only Frigate can reach.
+- name: Fish Cam
+  url: rtsp://10.25.30.10:8554/fish_cam
+  enabled: true
+  type: rtsp
+  transport: tcp
+  gain: 0
+  quietHours:
+    enabled: false
+    mode: fixed
+    startTime: "22:00"
+    endTime: "06:00"
+    startEvent: sunset
+    startOffset: 0
+    endEvent: sunrise
+    endOffset: 0
+  models:
+    - birdnet
+- name: Garage
+  url: rtsp://10.25.30.10:8554/garage
+  enabled: true
+  type: rtsp
+  transport: tcp
+  gain: 0
+  quietHours:
+    enabled: false
+    mode: fixed
+    startTime: "22:00"
+    endTime: "06:00"
+    startEvent: sunset
+    startOffset: 0
+    endEvent: sunrise
+    endOffset: 0
+  models:
+    - birdnet
+- name: Side Porch
+  url: rtsp://10.25.30.10:8554/side_porch
+  enabled: true
+  type: rtsp
+  transport: tcp
+  gain: 0
+  quietHours:
+    enabled: false
+    mode: fixed
+    startTime: "22:00"
+    endTime: "06:00"
+    startEvent: sunset
+    startOffset: 0
+    endEvent: sunrise
+    endOffset: 0
+  models:
+    - birdnet
+- name: Front Porch
+  url: rtsp://10.25.30.10:8554/front_porch
+  enabled: true
+  type: rtsp
+  transport: tcp
+  gain: 0
+  quietHours:
+    enabled: false
+    mode: fixed
+    startTime: "22:00"
+    endTime: "06:00"
+    startEvent: sunset
+    startOffset: 0
+    endEvent: sunrise
+    endOffset: 0
+  models:
+    - birdnet

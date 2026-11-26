@@ -6,6 +6,31 @@ defaultPodOptions:
 
 controllers:
   birdnet-go:
+    annotations:
+      reloader.stakater.com/auto: "true"
+    initContainers:
+      # BirdNET-Go has no env var for realtime.rtsp.streams and writes other
+      # UI-managed settings back to /config/config.yaml, so patch only the
+      # stream list from git before startup (audit 2026-11-26 #6).
+      sync-rtsp-streams:
+        image:
+          repository: ghcr.io/mikefarah/yq
+          tag: 4.54.3@sha256:7834187596ad56fd5a81436114e0b0b9dd54c91bb43946d1f7145b2be5f9c3d2
+        command: ["/bin/sh", "-ec"]
+        args:
+          - |
+            if [ -f /config/config.yaml ]; then
+              yq --indent 4 '.realtime.rtsp.streams = load("/etc/birdnet-go/rtsp-streams.yaml")' /config/config.yaml > /config/.config.yaml.tmp
+              chmod 600 /config/.config.yaml.tmp
+              mv /config/.config.yaml.tmp /config/config.yaml
+            fi
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          runAsGroup: 1000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities: { drop: ["ALL"] }
     containers:
       app:
         image:
@@ -110,3 +135,12 @@ persistence:
       argocd.argoproj.io/sync-options: Prune=false,Delete=false
     globalMounts:
       - path: /data/clips
+  rtsp-streams:
+    type: configMap
+    name: birdnet-go-rtsp-streams
+    advancedMounts:
+      birdnet-go:
+        sync-rtsp-streams:
+          - path: /etc/birdnet-go/rtsp-streams.yaml
+            subPath: rtsp-streams.yaml
+            readOnly: true

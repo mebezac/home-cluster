@@ -1,0 +1,22 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/monitoring.coreos.com/prometheusrule_v1.json
+# BirdNET-Go only creates a birdnet_detections{species=...} series on the first
+# detection after startup, so after a restart with broken RTSP streams
+# sum(increase(birdnet_detections[24h])) is empty rather than 0. `or vector(0)`
+# catches both zero-rate series and missing series (audit 2026-11-26 #6 #80).
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: birdnet-go
+spec:
+  groups:
+    - name: birdnet-go
+      rules:
+        - alert: BirdNETNoDetections
+          expr: (sum(increase(birdnet_detections[24h])) or vector(0)) == 0
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: "BirdNET-Go has recorded no detections in the last 24h"
+            description: "No bird detections have been recorded for 24h (sustained for 1h). Check Frigate go2rtc RTSP streams and BirdNET-Go logs."
