@@ -4,6 +4,12 @@
 # install its own copy.
 crds:
   enabled: false
+global:
+  images:
+    envoyGateway:
+      image: docker.io/envoyproxy/gateway:v1.9.4@sha256:defcc385af0998a5e879d56c2760825cd6f107b2ddd62002166c3731f8173164
+    envoyProxy:
+      image: docker.io/envoyproxy/envoy:distroless-v1.39.6@sha256:1cac8b3a2f72d5a0918f54d7b49e68aae0b0ba325c2d50c8a9a3fff7a4d1f994
 deployment:
   replicas: 2
 podDisruptionBudget:

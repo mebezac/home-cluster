@@ -6,6 +6,8 @@ kind: EnvoyProxy
 metadata:
   name: envoy
 spec:
+  # Inherit the proxy image set by gateway-helm while keeping the settings below.
+  mergeType: StrategicMerge
   logging:
     level:
       default: warn
