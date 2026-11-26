@@ -25,6 +25,8 @@ spec:
         #   downloads/*, ps5/*              bulk download and media shares on the NAS;
         #                                   their config PVCs are backed up
         #   jellyfin/pinchflat-media        downloaded media on the NAS
+        # StorageClass longhorn-kopiur-staging: Kopiur's own temporary <policy>-<time>-src
+        # PVCs, which live only while a backup runs.
         # label_mismatch is MetricsQL (vmalert), not PromQL.
         #
         # 24h gives a new app time for its first snapshot (a critical policy runs every 6h).
@@ -32,7 +34,7 @@ spec:
           expr: |
             label_mismatch(
               label_join(
-                max by (namespace, persistentvolumeclaim) (kube_persistentvolumeclaim_info)
+                max by (namespace, persistentvolumeclaim) (kube_persistentvolumeclaim_info{storageclass!="longhorn-kopiur-staging"})
                   unless on (namespace, persistentvolumeclaim)
                     label_replace(kopiur_policy_last_backup_success_timestamp_seconds, "persistentvolumeclaim", "$1", "policy", "(.+)"),
                 "pvc_ref", "/", "namespace", "persistentvolumeclaim"
