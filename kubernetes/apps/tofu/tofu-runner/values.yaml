@@ -15,9 +15,14 @@
 # tofu-runner-secret.sops.yaml. After the silo-tofu repo exists on Forgejo:
 #   sops decrypt --extract '["stringData"]["token"]' tofu-runner-secret.sops.yaml \
 #   | kubectl -n forgejo exec -i <forgejo-pod> -c app -- \
-#       forgejo forgejo-cli actions register --secret-stdin \
+#       forgejo forgejo-cli actions register \
 #       --scope laboratory-casa/silo-tofu --name tofu-runner \
-#       --labels "tofu-silo-readonly,tofu-silo-buckets"
+#       --labels "tofu-silo-readonly,tofu-silo-buckets" --secret-stdin=stdin
+# --secret-stdin takes a VALUE (Forgejo 17): written bare before --scope, it eats
+# "--scope" as its value and the runner registers GLOBAL. That happened on
+# 2026-11-01 and was fixed on 2026-11-26 (audit #1). Check after any registration:
+#   tea api /repos/laboratory-casa/silo-tofu/actions/runners  -> must list tofu-runner
+# Registering again with the same token only updates scope/labels (same runner id).
 
 forgejo:
   url: http://forgejo-app.forgejo.svc.cluster.local:3000

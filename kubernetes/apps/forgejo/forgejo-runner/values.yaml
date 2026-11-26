@@ -16,8 +16,10 @@ forgejo:
   #   UUID from: forgejo-runner create-runner-file --secret $SECRET  (reads .runner)
   #   register on Forgejo (idempotent), secret via stdin:
   #     kubectl -n forgejo exec -i <forgejo-pod> -c app -- \
-  #       forgejo forgejo-cli actions register --secret-stdin --scope "" \
-  #       --name forgejo-runner-k8s --labels "ubuntu-latest,default"
+  #       forgejo forgejo-cli actions register \
+  #       --name forgejo-runner-k8s --labels "ubuntu-latest,default" --secret-stdin=stdin
+  #   (no --scope = a global runner. --secret-stdin takes a value, so keep it last as
+  #   --secret-stdin=stdin: written bare, it eats the next flag. See tofu-runner.)
   # The daemon then auths as: --uuid <uuid> --token-url file://<token>.
   existingSecret: forgejo-runner-secret
 
