@@ -14,7 +14,8 @@ description: >-
   directory (values.yaml + Argo Application,
   plus ksops secret files when needed), wires the house patterns (internal
   Envoy Gateway HTTPRoute on laboratory.casa, Longhorn persistence, runAs 3000 security context,
-  central Postgres (CNPG-managed role + Database), central valkey), pins images to tag@sha256,
+  central Postgres (CNPG-managed role + Database), central valkey, a Kopiur
+  backup for every stateful PVC), pins images to tag@sha256,
   commits GitOps-first, and verifies the app synced Healthy via the argocd +
   kubernetes MCP. Reach for this any time a new workload needs to exist in the
   cluster. If the user wants the app kept private (in ../home-cluster-private),
@@ -130,6 +131,7 @@ Phase 0b.
 | Central PG roles + DBs | CNPG-managed: `managed.roles` in `kubernetes/apps/database/postgres-17-cluster/postgres-17-cluster.yaml`, `Database` CRs in its `databases.yaml` (NO postgres-init, NO superuser password in app namespaces) |
 | Central valkey (redis) | `valkey.valkey.svc.cluster.local:6379` |
 | Default run-as user | `3000` |
+| Backups | Kopiur: one `kubernetes/charts/kopiur-backup` source per PVC + `dataSourceRef` to its Restore (CLAUDE.md "Backups"). Alert `PVCNotBackedUp` catches a PVC with none |
 
 The app-of-apps parent (`kubernetes/argo/apps.yaml`, app `apps`) directory-
 recurses `kubernetes/argo/apps/**` and auto-syncs — dropping a new
@@ -170,6 +172,18 @@ pin down the repo-side choices:
      Longhorn for genuinely large bulk data.
    When unsure, pick the smaller number.
    **Every chart-managed PVC gets `suffix: <key>`** (see Gotchas).
+5b. **Backups (Kopiur) — the default, not an option.** Every PVC that holds
+   state gets a `kopiur-backup` source in the Argo app AND a `dataSourceRef` to
+   its Restore in values.yaml, in the FIRST commit (templates in Phase 1, rule in
+   CLAUDE.md "Backups"). Do not ask the user whether they want backups, and do
+   not leave them out because the app is a "trial": a trial that holds data needs
+   a backup more, and `dataSourceRef` cannot be added once the PVC exists.
+   Ask only the tier: `critical` (every 6 h) for data that cannot be re-made
+   (purchases, documents, photos, a database file), else `standard` (daily).
+   Skip a PVC only for the special cases in CLAUDE.md (cache, scratch, CNPG,
+   bulk NAS media). Then add a comment in the Argo app that says why, and add the
+   PVC to the skip list in `kubernetes/apps/kopiur-system/kopiur/backup-coverage-rule.yaml`;
+   otherwise alert `PVCNotBackedUp` fires after 24 h.
 6. **Secrets.** 0a's secret env → ksops (Phase 2); non-secret env → `env:`.
 7. **Database.** 0a's Postgres dep → **CNPG-managed role + Database on the central cluster** (Phase 3), not
    a bundled DB. redis → central valkey. Any other datastore → confirm with user.
@@ -235,6 +249,13 @@ persistence:                              # omit if stateless
     storageClass: longhorn
     accessMode: ReadWriteOnce
     size: 1Gi                              # right-size DOWN; easy to expand, not shrink (128Mi is common)
+    # A new PVC fills from its latest Kopiur snapshot (Restore <app>-data from the
+    # kopiur-backup source in the Argo app); a first install comes up empty.
+    # Set it NOW: dataSourceRef is immutable once the PVC exists.
+    dataSourceRef:
+      apiGroup: kopiur.home-operations.com
+      kind: Restore
+      name: <app>-data
     globalMounts:
       - path: /data
 ```
@@ -264,6 +285,20 @@ spec:
         releaseName: <app>
         valueFiles:
           - $<app>-repo/kubernetes/apps/<namespace>/<app>/values.yaml
+    # Kopiur backups of <app>-data (kubernetes/charts/kopiur-backup). One source per
+    # PVC that holds state; leave it out only for a skip case (CLAUDE.md "Backups").
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/charts/kopiur-backup
+      targetRevision: main
+      helm:
+        releaseName: <app>-data-backup
+        valuesObject:
+          pvc: <app>-data
+          tier: standard                   # critical = every 6 h, for data that cannot be re-made
+          mover:
+            runAsUser: 3000                # the user that owns the files
+          restore:
+            enabled: true
   destination:
     name: in-cluster
     namespace: <namespace>
@@ -423,6 +458,10 @@ For redis, don't deploy one — point the app at
      confirm the role is `reconciled` and the Database `APPLIED` (Phase 3).
    - Hit the route hostname if applicable (`kubectl get httproute -n <namespace>`
      → parent `Accepted`/`ResolvedRefs` True).
+   - Backups: `kubectl get snapshotpolicy,restore -n <namespace>` → each PVC has a
+     Ready SnapshotPolicy, and each PVC is Bound (its Restore `Completed`). Take a
+     first snapshot (`task kopiur:snapshot`) and confirm it `Succeeded`, so the
+     `PVCNotBackedUp` alert never fires for the new app.
 4. If it doesn't appear at all: the parent may not have reconciled — sync `apps`
    in `argo-system`, and re-check the file path is under
    `kubernetes/argo/apps/**`.

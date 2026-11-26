@@ -145,6 +145,11 @@ public entry entirely.
    Never `external` without asking.
 5. **Persistence.** Same Longhorn right-size-down rule. For downloads/media, mount
    the shared claims with `existingClaim:` rather than creating new bulk storage.
+5b. **Backups.** Same rule as add-argo-app 5b: every new PVC that holds state
+   gets a `kopiur-backup` source (chart by URL from the public repo) and a
+   `dataSourceRef` in the first commit. The skip list for alert `PVCNotBackedUp`
+   lives in the public repo and already covers `downloads/*` and `ps5/*`, so a
+   new private namespace with a skipped PVC needs a public change: ask first.
 
 ### Phase 1 — scaffold
 

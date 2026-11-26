@@ -1,0 +1,48 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/monitoring.coreos.com/prometheusrule_v1.json
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: kopiur-backup-coverage
+spec:
+  groups:
+    - name: kopiur-backup-coverage
+      rules:
+        # House rule (CLAUDE.md "Backups"): every PVC gets a kopiur-backup source in its
+        # Argo app. This alert catches the PVCs that have no successful Kopiur backup.
+        # The chart names the SnapshotPolicy after the PVC, so `policy` = the PVC name.
+        #
+        # To skip a PVC on purpose, add `<namespace>/<pvc>` (a regex) to the list in
+        # label_mismatch below, with the reason in a comment. Current skips:
+        #   database/postgres-17-cluster-N  CNPG; barman-cloud backs it up to SILO
+        #   observability/*                 metrics, logs, alert state; rebuildable
+        #   */*-cache                       caches the app rebuilds
+        #   guildhall/guildhall-auth,       agent sign-in tokens and worker scratch,
+        #   guildhall-workers/worker-N-*    left out on purpose (2026-11-16)
+        #   downloads/*, ps5/*              bulk download and media shares on the NAS;
+        #                                   their config PVCs are backed up
+        #   jellyfin/pinchflat-media        downloaded media on the NAS
+        # label_mismatch is MetricsQL (vmalert), not PromQL.
+        #
+        # 24h gives a new app time for its first snapshot (a critical policy runs every 6h).
+        - alert: PVCNotBackedUp
+          expr: |
+            label_mismatch(
+              label_join(
+                max by (namespace, persistentvolumeclaim) (kube_persistentvolumeclaim_info)
+                  unless on (namespace, persistentvolumeclaim)
+                    label_replace(kopiur_policy_last_backup_success_timestamp_seconds, "persistentvolumeclaim", "$1", "policy", "(.+)"),
+                "pvc_ref", "/", "namespace", "persistentvolumeclaim"
+              ),
+              "pvc_ref",
+              "database/postgres-17-cluster-[0-9]+|observability/.+|.+/.+-cache|guildhall/guildhall-auth|guildhall-workers/worker-[0-9]+-(auth|data)|downloads/.+|ps5/.+|jellyfin/pinchflat-media"
+            )
+          for: 24h
+          labels:
+            severity: warning
+          annotations:
+            summary: 'PVC {{ $labels.namespace }}/{{ $labels.persistentvolumeclaim }} has no Kopiur backup'
+            description: >-
+              Add a kubernetes/charts/kopiur-backup source for this PVC to its Argo app
+              (see CLAUDE.md "Backups"). If the PVC holds nothing worth restoring, add it to the
+              skip list in kopiur-system/kopiur/backup-coverage-rule.yaml with the reason.

@@ -9,3 +9,4 @@ resources:
   - ui-route.yaml
   - authelia.yaml
   - ui-doctor-rolebinding.yaml
+  - backup-coverage-rule.yaml

@@ -62,6 +62,12 @@ Enumerate everything before deleting anything. Use the argocd + kubernetes MCP.
      `kubectl get pv <name> -o jsonpath='{.spec.persistentVolumeReclaimPolicy}'`.
    - `Delete` → volume auto-reclaims with the PVC. `Retain` → the PV + backing
      Longhorn/NFS volume will LINGER; flag it for manual cleanup.
+   - **Kopiur snapshots stay in SILO** after the app goes: the repository keeps
+     identity `<pvc>@<namespace>` and its retention never runs again. That is the
+     last copy of the data. Tell the user, and ask whether to keep it (the default:
+     a restore stays possible) or delete it (`task kopiur:list` shows them). Remove
+     the PVC from the skip list in `kopiur-system/kopiur/backup-coverage-rule.yaml`
+     if it was on it.
 4. **Central Postgres?** Roles and databases on the central cluster are
    CNPG-managed in `kubernetes/apps/database/postgres-17-cluster/`: a
    `managed.roles` entry in `postgres-17-cluster.yaml`, a `Database` in

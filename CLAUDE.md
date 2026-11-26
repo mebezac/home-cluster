@@ -92,6 +92,50 @@ generators:
 
 **<secret-file>.sops.yaml:** (write plaintext values, then `sops --encrypt --in-place` it yourself before committing)
 
+### 3b. Backups (Kopiur) — house rule
+
+**Every PVC that holds state gets a Kopiur backup, from the first commit.** Skip only for the
+special cases below, and say why. Restores come only from Kopiur (Longhorn backups were retired
+2026-11-16), so a PVC with no Kopiur source has no backup at all.
+
+Per PVC, add one source to the app's Argo Application (chart `kubernetes/charts/kopiur-backup`,
+read its `values.yaml` for tier, mover user and restore). Example: `kubernetes/argo/apps/lubelog/lubelog.yaml`.
+
+```yaml
+    # Kopiur backups of <pvc> (kubernetes/charts/kopiur-backup).
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/charts/kopiur-backup
+      targetRevision: main
+      helm:
+        releaseName: <pvc>-backup
+        valuesObject:
+          pvc: <pvc>
+          tier: standard        # critical (every 6 h) for irreplaceable data: purchases, documents, photos
+          mover:
+            runAsUser: 3000     # the user that owns the files
+          restore:
+            enabled: true
+```
+
+and give the PVC in values.yaml the matching populator, so a lost PVC refills from the latest
+snapshot (a first install comes up empty):
+
+```yaml
+    dataSourceRef:
+      apiGroup: kopiur.home-operations.com
+      kind: Restore
+      name: <pvc>
+```
+
+- `dataSourceRef` is immutable. Add it when the PVC is **created**. For a PVC that already exists,
+  add only the backup source; the populator cutover needs a PVC replacement (`task kopiur:cutover`).
+- Identity is `<pvc>@<namespace>`: never rename a PVC or move its namespace without a restore first.
+- **Skip only** for: CNPG volumes (barman backs them up), VictoriaMetrics/Logs and alert state,
+  caches the app rebuilds, scratch volumes, and bulk media that lives on the NAS. Say why in a comment
+  in the Argo app, and add the PVC to the skip list in
+  `kubernetes/apps/kopiur-system/kopiur/backup-coverage-rule.yaml`.
+- Alert `PVCNotBackedUp` fires for any PVC that has had no Kopiur backup for 24 h and is not on that list.
+
 ### 4. ArgoCD Application Definition
 Create application at `kubernetes/argo/apps/<namespace>/<app-name>.yaml`:
 

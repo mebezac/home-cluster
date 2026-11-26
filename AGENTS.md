@@ -475,9 +475,23 @@ persistence:
     accessMode: ReadWriteOnce
     size: 1Gi
     suffix: data # Required: pins the PVC name to <app>-data (see below)
+    dataSourceRef: # Kopiur populator: a new PVC fills from its latest snapshot
+      apiGroup: kopiur.home-operations.com
+      kind: Restore
+      name: <app>-data
     globalMounts:
       - path: /data
 ```
+
+### Backups (Kopiur) — every stateful PVC, from the first commit
+
+Each PVC that holds state gets a `kubernetes/charts/kopiur-backup` source in the
+app's Argo Application (one source per PVC; example `kubernetes/argo/apps/lubelog/lubelog.yaml`)
+and the `dataSourceRef` above. `dataSourceRef` is immutable, so set it when the PVC
+is created. Skip only caches, scratch, CNPG volumes, metrics/logs and bulk NAS media,
+and add a skipped PVC to `kubernetes/apps/kopiur-system/kopiur/backup-coverage-rule.yaml`.
+Alert `PVCNotBackedUp` fires for any other PVC with no Kopiur backup for 24 h.
+Full rule: CLAUDE.md "Backups".
 
 ### Always pin chart-managed PVC names
 
