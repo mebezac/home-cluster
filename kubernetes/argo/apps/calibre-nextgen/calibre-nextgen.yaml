@@ -19,6 +19,27 @@ spec:
         releaseName: calibre-nextgen
         valueFiles:
           - $calibre-nextgen-repo/kubernetes/apps/calibre-nextgen/calibre-nextgen/values.yaml
+    # Back up the existing bound PVCs in place. A populator requires a separate PVC cutover.
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/charts/kopiur-backup
+      targetRevision: main
+      helm:
+        releaseName: calibre-nextgen-library-backup
+        valuesObject:
+          pvc: calibre-nextgen-library
+          tier: critical
+          mover:
+            runAsUser: 3000
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/charts/kopiur-backup
+      targetRevision: main
+      helm:
+        releaseName: calibre-nextgen-config-backup
+        valuesObject:
+          pvc: calibre-nextgen-config
+          tier: critical
+          mover:
+            runAsUser: 3000
   destination:
     name: in-cluster
     namespace: calibre-nextgen
