@@ -110,7 +110,7 @@ read its `values.yaml` for tier, mover user and restore). Example: `kubernetes/a
         releaseName: <pvc>-backup
         valuesObject:
           pvc: <pvc>
-          tier: standard        # critical (every 6 h) for irreplaceable data: purchases, documents, photos
+          tier: standard        # the default; critical (every 6 h) only for core services, see below
           mover:
             runAsUser: 3000     # the user that owns the files
           restore:
@@ -127,6 +127,9 @@ snapshot (a first install comes up empty):
       name: <pvc>
 ```
 
+- Tier: `standard` (daily) is the default. `critical` (every 6 h) is only for core services where
+  6 h of loss hurts: Forgejo, Home Assistant, immich, oCIS, castopod. Hobby and nice-to-have apps
+  stay `standard` (calibre-nextgen, BirdNET-Go). Ask the user before you pick `critical`.
 - `dataSourceRef` is immutable. Add it when the PVC is **created**. For a PVC that already exists,
   add only the backup source; the populator cutover needs a PVC replacement (`task kopiur:cutover`).
 - Identity is `<pvc>@<namespace>`: never rename a PVC or move its namespace without a restore first.

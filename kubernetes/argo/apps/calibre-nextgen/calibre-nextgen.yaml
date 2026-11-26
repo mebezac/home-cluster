@@ -27,7 +27,7 @@ spec:
         releaseName: calibre-nextgen-library-backup
         valuesObject:
           pvc: calibre-nextgen-library
-          tier: critical
+          tier: standard
           mover:
             runAsUser: 3000
     - repoURL: https://github.com/mebezac/home-cluster.git
@@ -37,7 +37,7 @@ spec:
         releaseName: calibre-nextgen-config-backup
         valuesObject:
           pvc: calibre-nextgen-config
-          tier: critical
+          tier: standard
           mover:
             runAsUser: 3000
   destination:

@@ -178,8 +178,8 @@ pin down the repo-side choices:
    CLAUDE.md "Backups"). Do not ask the user whether they want backups, and do
    not leave them out because the app is a "trial": a trial that holds data needs
    a backup more, and `dataSourceRef` cannot be added once the PVC exists.
-   Ask only the tier: `critical` (every 6 h) for data that cannot be re-made
-   (purchases, documents, photos, a database file), else `standard` (daily).
+   Use tier `standard` (daily). `critical` (every 6 h) is only for core services
+   (see CLAUDE.md "Backups"); ask the user before you pick it.
    Skip a PVC only for the special cases in CLAUDE.md (cache, scratch, CNPG,
    metrics and logs, valkey, bulk NAS media). Then add a comment in the Argo app that says why, and add the
    PVC to the skip list in `kubernetes/apps/kopiur-system/kopiur/backup-coverage-rule.yaml`;
@@ -294,7 +294,7 @@ spec:
         releaseName: <app>-data-backup
         valuesObject:
           pvc: <app>-data
-          tier: standard                   # critical = every 6 h, for data that cannot be re-made
+          tier: standard                   # default; critical (every 6 h) only for core services
           mover:
             runAsUser: 3000                # the user that owns the files
           restore:
