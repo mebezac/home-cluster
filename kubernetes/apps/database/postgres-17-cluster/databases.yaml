@@ -39,7 +39,7 @@ spec:
     name: postgres-17-cluster
   name: umami
   owner: umami
-  ensure: present
+  ensure: absent
   databaseReclaimPolicy: retain
 ---
 apiVersion: postgresql.cnpg.io/v1

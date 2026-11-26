@@ -96,7 +96,7 @@ spec:
         passwordSecret:
           name: pg-role-pcab
       - name: umami
-        ensure: present
+        ensure: absent
         login: true
         inherit: true
         passwordSecret:
