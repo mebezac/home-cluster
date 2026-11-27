@@ -13,6 +13,10 @@ spec:
       path: kubernetes/apps/kube-system/descheduler
       targetRevision: main
       ref: descheduler-repo
+      # values.yaml has a top-level `kind: Deployment` (a chart value), so Argo would read
+      # it as a manifest with no apiVersion (ComparisonError). It is only a value file.
+      directory:
+        exclude: values.yaml
     - repoURL: https://kubernetes-sigs.github.io/descheduler/
       chart: descheduler
       # changelog: GH releases kubernetes-sigs/descheduler - app tags vX.Y.Z carry the notes; descheduler-helm-chart-X.Y.Z tags do not. Chart and image versions move together: bump image.tag in values.yaml with the chart.
