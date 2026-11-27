@@ -6,7 +6,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: oc115-migration-3
+  name: oc115-migration-4
 spec:
   backoffLimit: 2
   template:
@@ -36,9 +36,12 @@ spec:
               set -e
               cp /conf/rclone.conf /tmp/rclone.conf
               F="--exclude /Shares/**"
+              # --bwlimit: OpenCloud stages each upload on its PVC until postprocessing
+              # pushes it to SILO (~28 MiB/s, same NAS that oCIS reads from); faster
+              # ingest filled the volume.
               for u in zac marlee; do
                 echo "== copy $u"
-                rclone copy "src-$u:" "dst-$u:" $F --transfers 5 --checkers 8 \
+                rclone copy "src-$u:" "dst-$u:" $F --transfers 4 --checkers 8 --bwlimit 18M \
                   --retries 10 --low-level-retries 30 --timeout 30m \
                   --stats 5m --stats-one-line --stats-log-level NOTICE --log-level NOTICE
               done
