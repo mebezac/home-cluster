@@ -29,6 +29,12 @@ controllers:
         args:
           - --log-level=info
           - --config=/config/config.yaml
+        # /dev is the host's /dev, mounted read-only. The default termination
+        # path /dev/termination-log needs a mountpoint file there; after a node
+        # boot the fresh host /dev has none, runc cannot create it, and the first
+        # start fails (StartError). Keep the termination log out of /dev.
+        terminationMessagePath: /termination-log
+        terminationMessagePolicy: FallbackToLogsOnError
         resources:
           requests:
             cpu: 10m
