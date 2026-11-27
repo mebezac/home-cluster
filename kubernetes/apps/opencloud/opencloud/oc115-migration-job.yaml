@@ -6,7 +6,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: oc115-migration-4
+  name: oc115-migration-5
 spec:
   backoffLimit: 2
   template:
@@ -41,7 +41,7 @@ spec:
               # ingest filled the volume.
               for u in zac marlee; do
                 echo "== copy $u"
-                rclone copy "src-$u:" "dst-$u:" $F --transfers 4 --checkers 8 --bwlimit 18M \
+                rclone copy "src-$u:" "dst-$u:" $F --transfers 4 --checkers 8 --bwlimit 26M \
                   --retries 10 --low-level-retries 30 --timeout 30m \
                   --stats 5m --stats-one-line --stats-log-level NOTICE --log-level NOTICE
               done
