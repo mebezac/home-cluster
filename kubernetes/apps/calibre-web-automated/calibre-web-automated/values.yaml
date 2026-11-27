@@ -55,6 +55,9 @@ route:
 
 persistence:
   data:
+    # Retired into calibre-nextgen (audit 2026-11-26 #96): keep this PVC when the app is deleted.
+    annotations:
+      argocd.argoproj.io/sync-options: Delete=false,Prune=false
     enabled: true
     type: persistentVolumeClaim
     storageClass: longhorn
@@ -70,6 +73,9 @@ persistence:
     globalMounts:
       - path: /config
   cache:
+    # Retired into calibre-nextgen (audit 2026-11-26 #96): keep this PVC when the app is deleted.
+    annotations:
+      argocd.argoproj.io/sync-options: Delete=false,Prune=false
     enabled: true
     type: persistentVolumeClaim
     storageClass: longhorn
@@ -79,6 +85,9 @@ persistence:
     globalMounts:
       - path: /cache
   media:
+    # Retired into calibre-nextgen (audit 2026-11-26 #96): keep this PVC when the app is deleted.
+    annotations:
+      argocd.argoproj.io/sync-options: Delete=false,Prune=false
     suffix: media
     enabled: true
     type: persistentVolumeClaim
