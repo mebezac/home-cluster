@@ -207,13 +207,14 @@ identity_providers:
     # client_id: docker run --rm authelia/authelia:latest authelia crypto rand --length 72 --charset rfc3986
     # client_secret: docker run --rm authelia/authelia:latest authelia crypto hash generate pbkdf2 --variant sha512 --random --random.length 72 --random.charset rfc3986
     clients:
-      # OpenCloud (files.laboratory.casa). Four public PKCE clients with the fixed
-      # client IDs the OpenCloud web, desktop and mobile apps look up through
-      # WebFinger (OpenCloud defaults). JWT access tokens (RFC 9068, RS256): the
+      # OpenCloud (files.laboratory.casa). Four public PKCE clients (web, desktop,
+      # Android, iOS) with random client IDs. The apps learn each ID and its scopes
+      # from OpenCloud's WebFinger (?platform=..., OpenCloud ADR 0003); the IDs are
+      # set there with WEB_OIDC_CLIENT_ID / WEBFINGER_*_OIDC_CLIENT_ID. JWT access tokens (RFC 9068, RS256): the
       # OpenCloud proxy verifies them against our JWKS. offline_access gives the
       # apps refresh tokens. Based on authelia.com/integration/openid-connect/clients/opencloud
       # (tested with Authelia 4.39.28).
-      - client_id: "web"
+      - client_id: "9bTZBV7BV6YFxS-9w.tqlZhecWROkeJxOzi__ooA4mqJ.QwxoccZy63WqJw3~5TdPHiyDTf~"
         client_name: "OpenCloud Web"
         public: true
         authorization_policy: "opencloud_users"
@@ -236,7 +237,7 @@ identity_providers:
         access_token_signed_response_alg: "RS256"
         userinfo_signed_response_alg: "none"
         token_endpoint_auth_method: "none"
-      - client_id: "OpenCloudDesktop"
+      - client_id: "zktP8-ag1H2t4WJe7KacH.PJmuI.QQcQIrBi~YIbfXzclJ.bu2Gn_NpHxn-KMx4~BRHiPL45"
         client_name: "OpenCloud Desktop"
         public: true
         authorization_policy: "opencloud_users"
@@ -258,7 +259,7 @@ identity_providers:
         access_token_signed_response_alg: "RS256"
         userinfo_signed_response_alg: "none"
         token_endpoint_auth_method: "none"
-      - client_id: "OpenCloudAndroid"
+      - client_id: "bJrguGFrufmborFmoRcy2P1ct4yaAGU5fQ5NnJYgbS7YmzYUguIlJ5FZ74mZ-j-ExOdAO.KN"
         client_name: "OpenCloud Android"
         public: true
         authorization_policy: "opencloud_users"
@@ -279,7 +280,7 @@ identity_providers:
         access_token_signed_response_alg: "RS256"
         userinfo_signed_response_alg: "none"
         token_endpoint_auth_method: "none"
-      - client_id: "OpenCloudIOS"
+      - client_id: "cmGEve0agwHyhs8FLA1HcLF~b1i0sXW75VVQGsvj5dP7bjv.TnnrXjTHmdHiq5Rl.iYt7w-5"
         client_name: "OpenCloud iOS"
         public: true
         authorization_policy: "opencloud_users"

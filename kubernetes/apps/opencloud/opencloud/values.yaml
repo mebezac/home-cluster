@@ -77,11 +77,20 @@ controllers:
           # Roles come from the groups claim (apps_admin -> admin, apps_user -> user):
           # proxy.role_assignment in opencloud-config.sops.yaml (YAML-only setting).
           # "groups" must be in every client's scopes, or no role matches and login fails.
+          # Client IDs: random, as every Authelia client here; the apps read them from
+          # WebFinger (?platform=web|desktop|android|ios). Must match security/authelia.
+          WEB_OIDC_CLIENT_ID: 9bTZBV7BV6YFxS-9w.tqlZhecWROkeJxOzi__ooA4mqJ.QwxoccZy63WqJw3~5TdPHiyDTf~
+          WEBFINGER_WEB_OIDC_CLIENT_ID: 9bTZBV7BV6YFxS-9w.tqlZhecWROkeJxOzi__ooA4mqJ.QwxoccZy63WqJw3~5TdPHiyDTf~
+          WEBFINGER_DESKTOP_OIDC_CLIENT_ID: zktP8-ag1H2t4WJe7KacH.PJmuI.QQcQIrBi~YIbfXzclJ.bu2Gn_NpHxn-KMx4~BRHiPL45
+          WEBFINGER_ANDROID_OIDC_CLIENT_ID: bJrguGFrufmborFmoRcy2P1ct4yaAGU5fQ5NnJYgbS7YmzYUguIlJ5FZ74mZ-j-ExOdAO.KN
+          WEBFINGER_IOS_OIDC_CLIENT_ID: cmGEve0agwHyhs8FLA1HcLF~b1i0sXW75VVQGsvj5dP7bjv.TnnrXjTHmdHiq5Rl.iYt7w-5
+          # WEB_OIDC_SCOPE is one space-separated string; the WEBFINGER_* scopes are
+          # lists (comma-separated), served as separate scopes to the apps.
           WEB_OIDC_SCOPE: openid profile email groups offline_access
-          WEBFINGER_WEB_OIDC_CLIENT_SCOPES: openid profile email groups offline_access
-          WEBFINGER_DESKTOP_OIDC_CLIENT_SCOPES: openid profile email groups offline_access
-          WEBFINGER_ANDROID_OIDC_CLIENT_SCOPES: openid profile email groups offline_access
-          WEBFINGER_IOS_OIDC_CLIENT_SCOPES: openid profile email groups offline_access
+          WEBFINGER_WEB_OIDC_CLIENT_SCOPES: openid,profile,email,groups,offline_access
+          WEBFINGER_DESKTOP_OIDC_CLIENT_SCOPES: openid,profile,email,groups,offline_access
+          WEBFINGER_ANDROID_OIDC_CLIENT_SCOPES: openid,profile,email,groups,offline_access
+          WEBFINGER_IOS_OIDC_CLIENT_SCOPES: openid,profile,email,groups,offline_access
           # Built-in CSP plus login.laboratory.casa (csp.yaml, ConfigMap opencloud-csp).
           PROXY_CSP_CONFIG_FILE_LOCATION: /etc/opencloud/csp.yaml
           # WebDAV client auth via revocable app tokens (keeps OIDC for web/desktop).
