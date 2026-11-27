@@ -20,7 +20,8 @@ python = "3.15.2"
 # changelog: gh release view vX.Y.Z -R helmfile/helmfile (PR body is a compare link only)
 "aqua:helmfile/helmfile" = "1.8.4"
 "aqua:jqlang/jq" = "1.7.1"
-"aqua:kubernetes-sigs/kustomize" = "5.6.0"
+# Keep = the kustomize in the Argo CD repo-server (`kubectl -n argo-system exec deploy/argo-cd-argocd-repo-server -c repo-server -- kustomize version`)
+"aqua:kubernetes-sigs/kustomize" = "5.8.3"
 "aqua:kubernetes/kubectl" = "1.36.5"
 # kubectl-kopiur: the Kopiur kubectl plugin (snapshot now, list, restore, doctor). Keep = the kopiur chart
 # version in kubernetes/argo/apps/kopiur-system/kopiur.yaml. changelog: GH releases home-operations/kopiur
@@ -37,7 +38,9 @@ python = "3.15.2"
 # topf renders + applies Talos machine configs from kubernetes/bootstrap/talos/topf.yaml (replaced archived talhelper)
 "github:postfinance/topf" = "0.6.2"
 "aqua:yannh/kubeconform" = "0.8.0"
-"asdf:janpieper/asdf-ksops" = "4.3.3"
+# ksops (the kustomize exec plugin that decrypts *.sops.yaml). Keep = the ksops in the Argo CD repo-server.
+# changelog: GH releases viaduct-ai/kustomize-sops
+"aqua:viaduct-ai/kustomize-sops" = "4.5.1"
 # renovate provides `renovate-config-validator` for checking .github/renovate.json5; needs node ^24.11 or ^26.13
 node = "26.13.1"
 # changelog: GH releases renovatebot/renovate (PR body truncates on big jumps; list releases between tags). Local use is renovate-config-validator only; the Mend bot runs its own version
