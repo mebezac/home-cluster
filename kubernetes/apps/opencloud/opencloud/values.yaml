@@ -227,9 +227,10 @@ persistence:
     storageClass: longhorn
     accessMode: ReadWriteOnce
     suffix: data
-    # Metadata, IDM, NATS, search index, thumbnails and upload staging (a whole
-    # file lands here before it goes to S3; the biggest file is ~0.9 GB).
-    size: 20Gi
+    # Metadata, IDM, NATS, search index, thumbnails and upload staging: every
+    # upload waits here until postprocessing pushes it to S3 (~28 MiB/s to SILO).
+    # 20Gi filled in the bulk copy from oCIS (2026-11-27). Longhorn expands online.
+    size: 50Gi
     # A new PVC fills from the latest Kopiur snapshot (Restore opencloud-data, kopiur-backup
     # source in the Argo app), or comes up empty on a first install.
     dataSourceRef:
