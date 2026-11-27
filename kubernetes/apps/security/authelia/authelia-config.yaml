@@ -163,6 +163,16 @@ identity_providers:
             subject: group:apps_admin
           - policy: one_factor
             subject: group:apps_user
+      # OpenCloud (files.laboratory.casa): admins with 2FA, household members with
+      # one factor. Everyone else is denied. OpenCloud maps the same two groups to
+      # its admin/user roles (proxy.role_assignment in opencloud-config.sops.yaml).
+      opencloud_users:
+        default_policy: deny
+        rules:
+          - policy: two_factor
+            subject: group:apps_admin
+          - policy: one_factor
+            subject: group:apps_user
       # Paperless-AI: admins only (all accounts share full settings access).
       paperless_ai_admins:
         default_policy: deny
@@ -197,6 +207,88 @@ identity_providers:
     # client_id: docker run --rm authelia/authelia:latest authelia crypto rand --length 72 --charset rfc3986
     # client_secret: docker run --rm authelia/authelia:latest authelia crypto hash generate pbkdf2 --variant sha512 --random --random.length 72 --random.charset rfc3986
     clients:
+      # OpenCloud (files.laboratory.casa). Four public PKCE clients with the fixed
+      # client IDs the OpenCloud web, desktop and mobile apps look up through
+      # WebFinger (OpenCloud defaults). JWT access tokens (RFC 9068, RS256): the
+      # OpenCloud proxy verifies them against our JWKS. offline_access gives the
+      # apps refresh tokens. Based on authelia.com/integration/openid-connect/clients/opencloud
+      # (tested with Authelia 4.39.28).
+      - client_id: "web"
+        client_name: "OpenCloud Web"
+        public: true
+        authorization_policy: "opencloud_users"
+        # RFC 9068 tokens need aud; OpenCloud checks it (PROXY_OIDC_AUDIENCES=opencloud).
+        audience: ["opencloud"]
+        requested_audience_mode: "implicit"
+        consent_mode: "implicit"
+        require_pkce: true
+        pkce_challenge_method: "S256"
+        redirect_uris:
+          - "https://files.laboratory.casa/"
+          - "https://files.laboratory.casa/oidc-callback.html"
+          - "https://files.laboratory.casa/oidc-silent-redirect.html"
+        scopes: ["openid", "offline_access", "groups", "profile", "email"]
+        response_types: ["code"]
+        grant_types: ["authorization_code", "refresh_token"]
+        access_token_signed_response_alg: "RS256"
+        userinfo_signed_response_alg: "none"
+        token_endpoint_auth_method: "none"
+      - client_id: "OpenCloudDesktop"
+        client_name: "OpenCloud Desktop"
+        public: true
+        authorization_policy: "opencloud_users"
+        # RFC 9068 tokens need aud; OpenCloud checks it (PROXY_OIDC_AUDIENCES=opencloud).
+        audience: ["opencloud"]
+        requested_audience_mode: "implicit"
+        consent_mode: "implicit"
+        require_pkce: true
+        pkce_challenge_method: "S256"
+        redirect_uris:
+          - "http://127.0.0.1"
+          - "http://localhost"
+        scopes: ["openid", "offline_access", "groups", "profile", "email"]
+        response_types: ["code"]
+        grant_types: ["authorization_code", "refresh_token"]
+        access_token_signed_response_alg: "RS256"
+        userinfo_signed_response_alg: "none"
+        token_endpoint_auth_method: "none"
+      - client_id: "OpenCloudAndroid"
+        client_name: "OpenCloud Android"
+        public: true
+        authorization_policy: "opencloud_users"
+        # RFC 9068 tokens need aud; OpenCloud checks it (PROXY_OIDC_AUDIENCES=opencloud).
+        audience: ["opencloud"]
+        requested_audience_mode: "implicit"
+        consent_mode: "implicit"
+        require_pkce: true
+        pkce_challenge_method: "S256"
+        redirect_uris:
+          - "oc://android.opencloud.eu"
+        scopes: ["openid", "offline_access", "groups", "profile", "email"]
+        response_types: ["code"]
+        grant_types: ["authorization_code", "refresh_token"]
+        access_token_signed_response_alg: "RS256"
+        userinfo_signed_response_alg: "none"
+        token_endpoint_auth_method: "none"
+      - client_id: "OpenCloudIOS"
+        client_name: "OpenCloud iOS"
+        public: true
+        authorization_policy: "opencloud_users"
+        # RFC 9068 tokens need aud; OpenCloud checks it (PROXY_OIDC_AUDIENCES=opencloud).
+        audience: ["opencloud"]
+        requested_audience_mode: "implicit"
+        consent_mode: "implicit"
+        require_pkce: true
+        pkce_challenge_method: "S256"
+        redirect_uris:
+          - "oc://ios.opencloud.eu"
+          - "oc.ios://ios.opencloud.eu"
+        scopes: ["openid", "offline_access", "groups", "profile", "email"]
+        response_types: ["code"]
+        grant_types: ["authorization_code", "refresh_token"]
+        access_token_signed_response_alg: "RS256"
+        userinfo_signed_response_alg: "none"
+        token_endpoint_auth_method: "none"
       # Calibre-Web NextGen uses a confidential Generic OIDC client without PKCE.
       - client_id: "calibre-nextgen"
         client_name: "Calibre-Web NextGen"
