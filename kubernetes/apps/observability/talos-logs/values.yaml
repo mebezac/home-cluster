@@ -82,10 +82,20 @@ configMaps:
               del(.port)
               del(.source_type)
               del(.timestamp)
+          # auditd is mostly SELinux permissive AVC noise (+ SYSCALL/PATH/PROCTITLE records per
+          # denial): 70-800 lines/s per node on 2026-11-27 (intel_gpu_top, victoria-logs,
+          # longhorn), about 100M lines a day. Keep a sample of 2/s per node; nothing else is
+          # throttled.
+          talos_throttled:
+            type: throttle
+            inputs: [talos]
+            threshold: 120
+            window_secs: 60
+            exclude: '.service != "auditd"'
         sinks:
           victorialogs:
             type: http
-            inputs: [talos]
+            inputs: [talos_throttled]
             uri: http://victoria-logs-victoria-logs-single-server.observability.svc.cluster.local:9428/insert/jsonline?_stream_fields=source,node,service&_msg_field=_msg&_time_field=_time
             method: post
             compression: gzip
