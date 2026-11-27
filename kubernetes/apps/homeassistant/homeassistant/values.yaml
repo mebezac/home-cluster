@@ -3,31 +3,6 @@ controllers:
   main:
     annotations:
       reloader.stakater.com/auto: "true"
-    # ONE-TIME (audit 2026-11-26 #103): the official image ran as root, so the PVC
-    # holds root- and 1000-owned files. Remove this init container after the first
-    # rollout as 3000.
-    initContainers:
-      chown:
-        image:
-          repository: ghcr.io/home-operations/home-assistant
-          tag: 2026.11.2@sha256:28ae630554f1f2dd43ecbdecad9d974f09f02b17a0a769a290ceec094ec427dc
-        command:
-          - chown
-          - -R
-          - "3000:3000"
-          - /config
-        securityContext:
-          runAsUser: 0
-          runAsGroup: 0
-          runAsNonRoot: false
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-              - ALL
-            add:
-              - CHOWN
-              - FOWNER
-              - DAC_OVERRIDE
     containers:
       app:
         image:

@@ -30,7 +30,7 @@ spec:
           pvc: homeassistant-config
           tier: critical
           mover:
-            privileged: true
+            runAsUser: 3000     # the pod's user; the files are 3000-owned since #103
           # Requirements of custom integrations; the entrypoint rebuilds the venv.
           ignore:
             - /.venv
