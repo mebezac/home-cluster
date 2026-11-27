@@ -3,7 +3,6 @@ kind: Secret
 metadata:
   name: vmalertmanager-config
   namespace: observability
-type: Opaque
 stringData:
   alertmanager.yaml: |
     global:
@@ -59,25 +58,19 @@ stringData:
             priority: '{{ if eq .Status "firing" }}1{{ else }}0{{ end }}'
             title: >-
               [{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}]
-              {{ .CommonLabels.alertname }}
+              {{ .CommonLabels.alertname }}{{ with .CommonLabels.severity }} ({{ . }}){{ end }}
+            # Alert name, severity and count are in the title. The message is one
+            # summary line per alert, at most 5, so a big group stays under
+            # Pushover's 1024-character limit (it truncates longer messages).
+            # The full labels are in Alertmanager (the "View in Alertmanager" link).
             message: |-
-              {{- range .Alerts }}
-                {{- if ne .Annotations.description "" }}
-                  {{ .Annotations.description }}
-                {{- else if ne .Annotations.summary "" }}
-                  {{ .Annotations.summary }}
-                {{- else if ne .Annotations.message "" }}
-                  {{ .Annotations.message }}
-                {{- else }}
-                  Alert description not available
+              {{- range $i, $a := .Alerts }}
+                {{- if lt $i 5 }}
+              • {{ with $a.Annotations.summary }}{{ . }}{{ else }}{{ with $a.Annotations.description }}{{ . }}{{ else }}{{ $a.Labels.alertname }}{{ end }}{{ end }}
                 {{- end }}
-                {{- if gt (len .Labels.SortedPairs) 0 }}
-                  <small>
-                    {{- range .Labels.SortedPairs }}
-                      <b>{{ .Name }}:</b> {{ .Value }}
-                    {{- end }}
-                  </small>
-                {{- end }}
+              {{- end }}
+              {{- if gt (len .Alerts) 5 }}
+              <i>(showing 5 of {{ len .Alerts }})</i>
               {{- end }}
             url_title: View in Alertmanager
             expire: 86400s
@@ -91,25 +84,19 @@ stringData:
             priority: '0'
             title: >-
               [{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}]
-              {{ .CommonLabels.alertname }}
+              {{ .CommonLabels.alertname }}{{ with .CommonLabels.severity }} ({{ . }}){{ end }}
+            # Alert name, severity and count are in the title. The message is one
+            # summary line per alert, at most 5, so a big group stays under
+            # Pushover's 1024-character limit (it truncates longer messages).
+            # The full labels are in Alertmanager (the "View in Alertmanager" link).
             message: |-
-              {{- range .Alerts }}
-                {{- if ne .Annotations.description "" }}
-                  {{ .Annotations.description }}
-                {{- else if ne .Annotations.summary "" }}
-                  {{ .Annotations.summary }}
-                {{- else if ne .Annotations.message "" }}
-                  {{ .Annotations.message }}
-                {{- else }}
-                  Alert description not available
+              {{- range $i, $a := .Alerts }}
+                {{- if lt $i 5 }}
+              • {{ with $a.Annotations.summary }}{{ . }}{{ else }}{{ with $a.Annotations.description }}{{ . }}{{ else }}{{ $a.Labels.alertname }}{{ end }}{{ end }}
                 {{- end }}
-                {{- if gt (len .Labels.SortedPairs) 0 }}
-                  <small>
-                    {{- range .Labels.SortedPairs }}
-                      <b>{{ .Name }}:</b> {{ .Value }}
-                    {{- end }}
-                  </small>
-                {{- end }}
+              {{- end }}
+              {{- if gt (len .Alerts) 5 }}
+              <i>(showing 5 of {{ len .Alerts }})</i>
               {{- end }}
             url_title: View in Alertmanager
             expire: 86400s

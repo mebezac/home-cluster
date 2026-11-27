@@ -197,6 +197,13 @@ defaultRules:
     # ReplicaSets, standalone Jobs or bare pods). Keep it off.
     RecordingRulesNoData:
       enabled: false
+    # Replaced by local copies that ignore the HetrixTools heartbeat webhook
+    # (alertmanager-rules.yaml). Disabling by name drops every upstream rule
+    # with that name (the Cluster one exists twice: critical and warning).
+    AlertmanagerFailedToSendAlerts:
+      enabled: false
+    AlertmanagerClusterFailedToSendAlerts:
+      enabled: false
   groups:
     vmcluster:
       enabled: false

@@ -1,0 +1,48 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/monitoring.coreos.com/prometheusrule_v1.json
+# Local copies of the upstream (kube-prometheus) AlertmanagerFailedToSendAlerts
+# and AlertmanagerClusterFailedToSendAlerts, which defaultRules.rules in
+# values.yaml turns off. The only change: they ignore integration="webhook".
+# The one webhook is the HetrixTools heartbeat (Watchdog). A failed ping is not
+# worth a page: Hetrix itself alerts when no ping arrives for 5m, and one DNS
+# timeout during a planned network reboot (2026-11-26) paged as critical.
+# Upstream also has a warning AlertmanagerClusterFailedToSendAlerts for
+# integration!~".*", which can never match; it is not copied.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: alertmanager-local
+spec:
+  groups:
+    - name: alertmanager-local
+      rules:
+        - alert: AlertmanagerFailedToSendAlerts
+          expr: |
+            (
+              rate(alertmanager_notifications_failed_total{job=~"vmalertmanager-.*",container="alertmanager",namespace=~"observability",integration!="webhook"}[15m])
+            /
+              ignoring(reason) group_left() rate(alertmanager_notifications_total{job=~"vmalertmanager-.*",container="alertmanager",namespace=~"observability",integration!="webhook"}[15m])
+            ) > 0.01
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: An Alertmanager instance failed to send notifications.
+            description: 'Alertmanager {{ $labels.namespace }}/{{ $labels.pod }} failed to send {{ $value | humanizePercentage }} of notifications to {{ $labels.integration }}.'
+            runbook_url: https://runbooks.prometheus-operator.dev/runbooks/alertmanager/alertmanagerfailedtosendalerts
+        - alert: AlertmanagerClusterFailedToSendAlerts
+          expr: |
+            min by (namespace, service, integration) (
+              (
+                rate(alertmanager_notifications_failed_total{job=~"vmalertmanager-.*",container="alertmanager",namespace=~"observability",integration!="webhook"}[15m])
+              /
+                ignoring(reason) group_left() rate(alertmanager_notifications_total{job=~"vmalertmanager-.*",container="alertmanager",namespace=~"observability",integration!="webhook"}[15m])
+              ) > 0
+            ) > 0.01
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: All Alertmanager instances in a cluster failed to send notifications to a critical integration.
+            description: 'The minimum notification failure rate to {{ $labels.integration }} sent from any instance in the {{ $labels.job }} cluster is {{ $value | humanizePercentage }}.'
+            runbook_url: https://runbooks.prometheus-operator.dev/runbooks/alertmanager/alertmanagerclusterfailedtosendalerts
