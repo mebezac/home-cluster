@@ -6,5 +6,6 @@ resources:
   - authelia.yaml
   - rightsizing-rules.yaml
   - etcd-rules.yaml
+  - node-rules.yaml
 generators:
   - secret-generator.yaml

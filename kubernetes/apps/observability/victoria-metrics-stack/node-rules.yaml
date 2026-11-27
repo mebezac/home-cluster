@@ -1,0 +1,27 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/monitoring.coreos.com/prometheusrule_v1.json
+# Pages (critical -> Pushover priority 1) when a node is not Ready for 15 min.
+# The upstream KubeNodeNotReady is only a warning, so the 9.6 h hang of
+# wyse-02 on 2026-11-25/26 paged nobody (audit 2026-11-26 #5). Only the two
+# elitebooks have a hardware watchdog (#99); every other node needs a human.
+# A hung node stops its kubelet heartbeat, Ready goes Unknown, and status="true"
+# drops to 0, so this also covers "unreachable".
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: node-local
+spec:
+  groups:
+    - name: node-local
+      rules:
+        - alert: NodeDown
+          expr: max by (node) (kube_node_status_condition{condition="Ready",status="true"}) == 0
+          for: 15m
+          labels:
+            severity: critical
+          annotations:
+            summary: 'Node {{ $labels.node }} is not Ready for 15 min'
+            description: >-
+              Check it with talosctl -n <ip> dmesg / services. Talos host logs are in
+              VictoriaLogs (source:="talos" node:="{{ $labels.node }}"). Only the elitebooks
+              reboot themselves (watchdog); a hung wyse or talmac needs a power cycle.
