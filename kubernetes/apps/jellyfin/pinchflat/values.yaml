@@ -10,15 +10,21 @@ controllers:
         supplementalGroups: [44]
     containers:
       main:
+        # Pinchflat-NGX, the maintained fork of kieraneglin/pinchflat (idle since Dec 2025).
+        # SQLite image (the -postgres tags are the Postgres build). It upgrades the upstream
+        # SQLite DB in /config on first start. Upgrade notes per release:
+        # https://github.com/TheBadFella/Pinchflat-NGX/wiki/Upgrading-and-Rollback
         image:
-          repository: ghcr.io/kieraneglin/pinchflat
-          tag: v2025.6.6@sha256:4e975edf58f0861a5cbfe8fc6aac4851ff5a02dfc3f05ffeea4982e3084a5a4a
+          repository: ghcr.io/thebadfella/pinchflat-ngx
+          tag: 2026.11.3@sha256:1836ed78d46ea99755316e2cf9e5c401af04431e6fbbac779171ae397f5db717
         env:
           TZ: America/Detroit
-          TZ_DATA_DIR: /tmp/elixir_tz_data
           PORT: &port 80
-          PUID: 3000
-          PGID: 3000
+          # The bgutil PO-token sidecar below. NGX bundles the matching yt-dlp plugin and
+          # turns it on only when this is set (Settings > Diagnostics > Test Provider).
+          POT_PROVIDER_URL: http://127.0.0.1:4416
+          # Runs as 3000 through the pod securityContext (NGX "direct user" mode). No
+          # PUID/PGID: those are for a root start that drops privileges.
         probes:
           liveness: &probes
             enabled: true
@@ -47,6 +53,26 @@ controllers:
           capabilities:
             drop:
               - ALL
+      # bgutil PO-token provider for YouTube. Listens on localhost only, so nothing
+      # outside the pod reaches it. Keep its version in step with the plugin that the
+      # NGX image bundles (BGUTIL_PLUGIN_VERSION in NGX's docker/selfhosted.Dockerfile).
+      pot-provider:
+        image:
+          repository: docker.io/brainicism/bgutil-ytdlp-pot-provider
+          tag: 2.0.2@sha256:d7d34108b76e52c7d3b575fe9e797e4bf41c1b2a08f80c5292eff6f851ce8472
+        args: ["--host", "127.0.0.1"]
+        resources:
+          requests:
+            cpu: 10m
+            memory: 64Mi
+          limits:
+            memory: 256Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+              - ALL
 
 service:
   main:
@@ -57,8 +83,9 @@ service:
 
 route:
   main:
-    # Pinchflat has no login of its own (no BASIC_AUTH_* set). Authelia via
-    # ./authelia.yaml. Nothing subscribes to its RSS feeds.
+    # Pinchflat has no login of its own (no BASIC_AUTH_* or OIDC_* set). Authelia via
+    # ./authelia.yaml. Nothing subscribes to its RSS feeds. NGX can do OIDC itself, but
+    # that needs an Authelia client and a secret for no gain over this forward auth.
     labels:
       auth: authelia
     hostnames:
@@ -79,15 +106,19 @@ persistence:
     storageClass: longhorn
     accessMode: ReadWriteOnce
     suffix: config
-    size: 256Mi
+    # 256Mi was 79% full before NGX (DB 29M, logs 49M, metadata 93M); NGX adds 12+ SQLite
+    # migrations (table rebuilds need free space) and keeps more state here.
+    size: 1Gi
     # A new PVC fills from the latest Kopiur snapshot (Restore pinchflat-config, kopiur-backup
     # source in the Argo app), or comes up empty on a first install.
     dataSourceRef:
       apiGroup: kopiur.home-operations.com
       kind: Restore
       name: pinchflat-config
-    globalMounts:
-      - path: /config
+    advancedMounts:
+      main:
+        main:
+          - path: /config
   media:
     enabled: true
     type: persistentVolumeClaim
