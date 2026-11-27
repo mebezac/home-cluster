@@ -84,6 +84,19 @@
     },
     {
       description: [
+        "silence-operator Group",
+        "Our image tag (values.yaml, regex manager below) overrides the chart appVersion; they are the",
+        "same version, so the chart and the image land in one PR.",
+      ],
+      groupName: "silence-operator",
+      matchDatasources: ["docker", "helm"],
+      group: {
+        commitMessageTopic: "{{{groupName}}} group",
+      },
+      matchPackageNames: ["/silence-operator/"],
+    },
+    {
+      description: [
         "Kubernetes Group",
         "kubelet (topf.yaml kubernetesVersion), the kubectl client and the registry.k8s.io/kubectl image (oCIS cleanup CronJob) move together, as in commit 1ac21971.",
         "Merging does NOT upgrade the cluster - run `task talos:upgrade-k8s` (dry-run first) before any topf apply.",
@@ -480,6 +493,20 @@
         "repository: (?<depName>\\S+)\\n(?:[ \\t]*#.*\\n)*[ \\t]*tag: \"?(?<currentValue>[^\"\\s]+)\"?\\n[ \\t]*digest: \"?(?<currentDigest>sha256:[a-f0-9]{64})\"?",
       ],
       datasourceTemplate: "docker",
+    },
+    {
+      customType: "regex",
+      description: [
+        "silence-operator image: the chart splits it into registry/name/tag, and helm-values only reads `repository`.",
+        "The value is tag@sha256:digest; currentValue stops at '@' so the digest moves with the tag.",
+      ],
+      managerFilePatterns: ["/(^|/)kubernetes/apps/observability/silence-operator/values\\.yaml$/"],
+      matchStrings: [
+        "name: giantswarm/silence-operator\\n(?:[ \\t]*#.*\\n)*[ \\t]*tag: \"?(?<currentValue>[^\"\\s@]+)@(?<currentDigest>sha256:[a-f0-9]{64})\"?",
+      ],
+      depNameTemplate: "gsoci.azurecr.io/giantswarm/silence-operator",
+      datasourceTemplate: "docker",
+      versioningTemplate: "docker",
     },
     {
       customType: "regex",
