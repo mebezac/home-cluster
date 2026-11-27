@@ -220,7 +220,10 @@ identity_providers:
         # RFC 9068 tokens need aud; OpenCloud checks it (PROXY_OIDC_AUDIENCES=opencloud).
         audience: ["opencloud"]
         requested_audience_mode: "implicit"
-        consent_mode: "implicit"
+        # offline_access (refresh tokens) always asks for consent; pre-configured
+        # lets the user remember the answer for a year instead of every login.
+        consent_mode: "pre-configured"
+        pre_configured_consent_duration: "1y"
         require_pkce: true
         pkce_challenge_method: "S256"
         redirect_uris:
@@ -240,7 +243,10 @@ identity_providers:
         # RFC 9068 tokens need aud; OpenCloud checks it (PROXY_OIDC_AUDIENCES=opencloud).
         audience: ["opencloud"]
         requested_audience_mode: "implicit"
-        consent_mode: "implicit"
+        # offline_access (refresh tokens) always asks for consent; pre-configured
+        # lets the user remember the answer for a year instead of every login.
+        consent_mode: "pre-configured"
+        pre_configured_consent_duration: "1y"
         require_pkce: true
         pkce_challenge_method: "S256"
         redirect_uris:
@@ -259,7 +265,10 @@ identity_providers:
         # RFC 9068 tokens need aud; OpenCloud checks it (PROXY_OIDC_AUDIENCES=opencloud).
         audience: ["opencloud"]
         requested_audience_mode: "implicit"
-        consent_mode: "implicit"
+        # offline_access (refresh tokens) always asks for consent; pre-configured
+        # lets the user remember the answer for a year instead of every login.
+        consent_mode: "pre-configured"
+        pre_configured_consent_duration: "1y"
         require_pkce: true
         pkce_challenge_method: "S256"
         redirect_uris:
@@ -277,7 +286,10 @@ identity_providers:
         # RFC 9068 tokens need aud; OpenCloud checks it (PROXY_OIDC_AUDIENCES=opencloud).
         audience: ["opencloud"]
         requested_audience_mode: "implicit"
-        consent_mode: "implicit"
+        # offline_access (refresh tokens) always asks for consent; pre-configured
+        # lets the user remember the answer for a year instead of every login.
+        consent_mode: "pre-configured"
+        pre_configured_consent_duration: "1y"
         require_pkce: true
         pkce_challenge_method: "S256"
         redirect_uris:
