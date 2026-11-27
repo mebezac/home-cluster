@@ -11,6 +11,14 @@ configMaps:
               - count: 1000
                 paths:
                   - path: /dev/net/tun
+          # Zooz ZST39 800 LR Z-Wave stick on talmac-01, for zwave-js-ui
+          # (resource devic.es/zwave). Matched by its stable by-id path; containerd
+          # resolves the symlink. Mounted where zwave-js-ui expects it (settings.json).
+          - name: zwave
+            groups:
+              - paths:
+                  - path: /dev/serial/by-id/usb-Zooz_800_Z-Wave_Stick_533D004242-if00
+                    mountPath: /dev/ttyACM0
 controllers:
   generic-device-plugin:
     type: daemonset
