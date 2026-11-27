@@ -1,0 +1,222 @@
+# OpenCloud replaced oCIS (namespace owncloud) on 2026-11-27 (audit 2026-11-26 #115).
+# Personal-space files were copied over WebDAV with rclone (the upstream migration
+# path: docs.opencloud.eu admin/maintenance/migrate). Shares, links, versions and
+# trash did not move. Built-in IdP + IDM, as oCIS had.
+controllers:
+  opencloud:
+    annotations:
+      reloader.stakater.com/auto: "true"
+    serviceAccount:
+      identifier: opencloud
+    pod:
+      securityContext:
+        runAsUser: 3000
+        runAsGroup: 3000
+        runAsNonRoot: true
+        fsGroup: 3000
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
+
+    containers:
+      opencloud:
+        image:
+          repository: docker.io/opencloudeu/opencloud
+          # changelog: GH releases opencloud-eu/opencloud. This repo is the stable
+          # line; opencloud-rolling gets the rolling releases first.
+          tag: 9.1.1@sha256:d7d5b547f9e41db24f030d6a6857c4184752b2c875c936952ee0601b6531cd51
+        env:
+          OC_URL: https://files.laboratory.casa
+          OC_INSECURE: true
+          OC_LOG_COLOR: false
+          OC_LOG_LEVEL: warn
+          OC_LOG_PRETTY: false
+          PROXY_TLS: false
+          PROXY_ENABLE_BASIC_AUTH: false
+          IDM_CREATE_DEMO_USERS: false
+          # Blobs on SILO A, metadata on the opencloud-data PVC (as oCIS s3ng did).
+          # The bucket is oCIS's: blob keys start with the space id, so the two
+          # installs do not overlap. s3ng talks to S3 only from the server, so the
+          # in-cluster path is enough.
+          STORAGE_USERS_DRIVER: decomposeds3
+          STORAGE_USERS_DECOMPOSEDS3_ENDPOINT: http://silo.network.svc.cluster.local:9000
+          STORAGE_USERS_DECOMPOSEDS3_REGION: us-east-1
+          STORAGE_USERS_DECOMPOSEDS3_BUCKET: ocis
+          OC_SHARING_PUBLIC_SHARE_MUST_HAVE_PASSWORD: false
+          # WebDAV client auth via revocable app tokens (keeps OIDC for web/desktop).
+          # auth-app does not autostart; PROXY_ENABLE_APP_AUTH wires it into the proxy.
+          OC_ADD_RUN_SERVICES: auth-app
+          PROXY_ENABLE_APP_AUTH: true
+          # Prometheus /metrics on the proxy debug server (single binary: includes
+          # the other services' metrics). Not routed.
+          PROXY_DEBUG_ADDR: 0.0.0.0:9205
+        envFrom:
+          - secretRef:
+              name: opencloud-secret
+        probes:
+          liveness:
+            enabled: true
+          readiness:
+            enabled: true
+        resources:
+          # oCIS 7d (2026-09-08): peak 493Mi, p95 428Mi.
+          requests:
+            cpu: 50m
+            memory: 576Mi
+          limits:
+            cpu: 1000m
+            memory: 1536Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+              - ALL
+
+  # Weekly: delete abandoned partial uploads (they filled the oCIS PVC in 2026-10).
+  # The CLI needs OpenCloud's internal services on 127.0.0.1, so it runs inside the
+  # opencloud pod. Complete uploads stuck in processing are NOT cleaned
+  # (--processing=false) - decide on those by hand:
+  # `opencloud storage-users uploads sessions --processing`.
+  upload-cleanup:
+    type: cronjob
+    serviceAccount:
+      identifier: cleanup
+    cronjob:
+      schedule: "30 4 * * 0"
+      concurrencyPolicy: Forbid
+      successfulJobsHistory: 1
+      failedJobsHistory: 1
+      backoffLimit: 0
+    pod:
+      automountServiceAccountToken: true
+      securityContext:
+        runAsUser: 3000
+        runAsGroup: 3000
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+    containers:
+      clean:
+        image:
+          repository: registry.k8s.io/kubectl
+          # changelog: not in PR body - kubernetes/kubernetes CHANGELOG/CHANGELOG-1.XX.md (grep "SIG CLI"); client must stay within ±1 minor of the cluster (topf.yaml kubernetesVersion)
+          tag: v1.37.2@sha256:fe049faa65ae483ac200009a949a68fa4c9985daea12c9cb1195c9c7965301fc
+        args:
+          - exec
+          - -n
+          - opencloud
+          - deploy/opencloud
+          - -c
+          - opencloud
+          - --
+          - opencloud
+          - storage-users
+          - uploads
+          - sessions
+          - --expired
+          - --processing=false
+          - --clean
+        env:
+          HOME: /tmp
+        resources:
+          requests:
+            cpu: 10m
+            memory: 32Mi
+          limits:
+            memory: 128Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+              - ALL
+
+serviceAccount:
+  opencloud:
+    forceRename: opencloud
+  cleanup:
+    forceRename: opencloud-upload-cleanup
+
+rbac:
+  roles:
+    cleanup:
+      type: Role
+      forceRename: opencloud-upload-cleanup
+      rules:
+        - apiGroups: ["apps"]
+          resources: ["deployments"]
+          resourceNames: ["opencloud"]
+          verbs: ["get"]
+        - apiGroups: [""]
+          resources: ["pods"]
+          verbs: ["get", "list"]
+        - apiGroups: [""]
+          resources: ["pods/exec"]
+          verbs: ["create"]
+  bindings:
+    cleanup:
+      type: RoleBinding
+      forceRename: opencloud-upload-cleanup
+      roleRef:
+        identifier: cleanup
+      subjects:
+        - identifier: cleanup
+
+service:
+  app:
+    controller: opencloud
+    ports:
+      http:
+        port: 9200
+      metrics:
+        port: 9205
+
+serviceMonitor:
+  app:
+    serviceName: opencloud
+    endpoints:
+      - port: metrics
+        path: /metrics
+
+persistence:
+  # opencloud.yaml (generated secrets + stable ids) from SOPS, made once by
+  # `opencloud init`. Never regenerate it.
+  opencloud-yaml:
+    type: secret
+    name: opencloud-config
+    # advancedMounts (not globalMounts) for config and data, so the
+    # upload-cleanup CronJob pod does not try to attach the RWO volume.
+    advancedMounts:
+      opencloud:
+        opencloud:
+          - path: /etc/opencloud/opencloud.yaml
+            subPath: opencloud.yaml
+            readOnly: true
+  data:
+    enabled: true
+    type: persistentVolumeClaim
+    storageClass: longhorn
+    accessMode: ReadWriteOnce
+    suffix: data
+    # Metadata, IDM, NATS, search index, thumbnails and upload staging (a whole
+    # file lands here before it goes to S3; the biggest file is ~0.9 GB).
+    size: 20Gi
+    # A new PVC fills from the latest Kopiur snapshot (Restore opencloud-data, kopiur-backup
+    # source in the Argo app), or comes up empty on a first install.
+    dataSourceRef:
+      apiGroup: kopiur.home-operations.com
+      kind: Restore
+      name: opencloud-data
+    advancedMounts:
+      opencloud:
+        opencloud:
+          - path: /var/lib/opencloud
+            subPath: data
+          - path: /etc/opencloud
+            subPath: config
+  tmpfs:
+    type: emptyDir
+    globalMounts:
+      - path: /tmp
+        subPath: tmp
