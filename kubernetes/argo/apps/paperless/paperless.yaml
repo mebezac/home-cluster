@@ -5,8 +5,6 @@ metadata:
   namespace: argo-system
   annotations:
     argocd.argoproj.io/sync-wave: "0"
-    # Let client-side apply replace the existing liveness probe handler.
-    argocd.argoproj.io/compare-options: ServerSideDiff=false
 spec:
   project: kubernetes
   sources:
