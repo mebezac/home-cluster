@@ -42,7 +42,7 @@ ui:
 # Gatus refuses to start with zero endpoints, so this list must never be empty
 # (the sidecar file may not exist yet on the first start).
 endpoints:
-  - name: gatus
+  - name: gatus-health   # not "gatus": the status-page route has that name in group internal
     group: internal
     url: http://127.0.0.1:8080/health
     interval: 1m
