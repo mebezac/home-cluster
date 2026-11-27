@@ -79,6 +79,20 @@ vmsingle:
 vmagent:
   enabled: true
   spec:
+    # Non-root as uid 3000 (house rule). An explicit securityContext replaces the
+    # operator's strict defaults (uid 65534) and still sets the container hardening
+    # (read-only root, no privilege escalation, drop ALL) on every container.
+    securityContext:
+      runAsUser: 3000
+      runAsGroup: 3000
+      runAsNonRoot: true
+      fsGroup: 3000
+      fsGroupChangePolicy: OnRootMismatch
+      seccompProfile: { type: RuntimeDefault }
+      privileged: false
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+      capabilities: { drop: ["ALL"] }
     selectAllByDefault: true
     serviceScrapeSelector:
       matchExpressions:
@@ -111,6 +125,20 @@ vmagent:
 vmalert:
   enabled: true
   spec:
+    # Non-root as uid 3000 (house rule). An explicit securityContext replaces the
+    # operator's strict defaults (uid 65534) and still sets the container hardening
+    # (read-only root, no privilege escalation, drop ALL) on every container.
+    securityContext:
+      runAsUser: 3000
+      runAsGroup: 3000
+      runAsNonRoot: true
+      fsGroup: 3000
+      fsGroupChangePolicy: OnRootMismatch
+      seccompProfile: { type: RuntimeDefault }
+      privileged: false
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+      capabilities: { drop: ["ALL"] }
     selectAllByDefault: false
     ruleSelector:
       matchExpressions:
