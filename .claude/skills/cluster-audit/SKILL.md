@@ -13,8 +13,9 @@ description: >-
   against requests/limits, and checking config against BOTH this repo's CLAUDE.md
   rules and current upstream best practice via context7/web/git-grep, and
   flagging superseded apps, forks, settings, procedures and infrastructure with
-  evidence-backed successors (also triggers on "what's outdated", "anything
-  better than what we run"). The parent
+  evidence-backed successors, searching job-level alternatives for every app
+  (Tavily, kubesearch peer counts, a survey of popular home-ops repos) (also
+  triggers on "what's outdated", "anything better than what we run"). The parent
   runs the cross-cutting sweeps subagents cannot see (image pinning, SOPS
   hygiene, deprecated APIs), sizes resources from 7 DAYS of VictoriaMetrics
   history rather than a point-in-time snapshot, starts from the previous audit's
@@ -103,7 +104,9 @@ apps have silently stopped reconciling.
 
 ## 2. Fan out (one message, all agents)
 
-Nine domain slices plus one successor slice. Adjust to what actually exists, but keep them disjoint and name the
+Nine domain slices, one successor slice for the shared layer, and the
+alternatives wave of §4 (one researcher per job group plus one peer survey).
+Adjust to what actually exists, but keep them disjoint and name the
 namespaces explicitly so nothing is audited twice or missed:
 
 | Slice | Covers |
@@ -118,6 +121,8 @@ namespaces explicitly so nothing is audited twice or missed:
 | Web apps | `n8n`, `umami`, `jotty`, `lubelog`, `changedetection`, `trek`, `reckage`, `heremag`, `owncloud`, `pcab`, `default` |
 | Platform/capacity | rest of kube-system + **cluster-wide node capacity** (per-node MemAvailable 7d minimum, not just requests) |
 | Successors (shared layer) | no namespace: the infrastructure and procedure layers of §4 — Talos/topf, Cilium, Longhorn, CNPG, Envoy Gateway, ArgoCD, VictoriaMetrics, cert-manager, external-dns, cloudflared, Kopiur, sops/ksops, Renovate, mise, plus `.claude/skills/`, `AGENTS.md` and `CLAUDE.md` procedures |
+| Alternatives ×4–5 | §4 "Alternatives": every app, grouped by job (media and downloads; home automation and IoT; productivity and web apps; network, storage and data; observability, GitOps and node) |
+| Peer survey | §4 "Peer survey": the ~12 most-starred home-ops repos against ours, by job |
 
 The namespace list drifts. Diff `kubectl get ns` against this table at inventory
 time and put any new namespace in a slice.
@@ -141,7 +146,8 @@ Every brief must include:
 - **successors**: paste §4's layer table, signals and verdicts into the brief.
   For every app, chart and image source in the slice, check upstream status
   and check the settings in its values against current docs and the release
-  notes since our version. Return one line per finding:
+  notes since our version. The search for alternatives that do the same job
+  belongs to the alternatives researchers, not to the domain slices. Return one line per finding:
   `current → candidate | signal (link, date) | gain | cost | verdict`, keeps included.
 - **return findings as text, not a file** — subagents are blocked from writing report files; ask for a ~1000-word structured summary (Critical / Warning / Resources / Best practice / Successors / Healthy)
 - "Every finding needs concrete evidence (log line, number, file:line). **Do NOT change anything.**"
@@ -242,6 +248,50 @@ rates (§2).
 A migration is a project, not a fix. In the fix loop, offer a plan built on
 `add-argo-app` and `remove-argo-app` instead of editing values in place.
 
+### Alternatives — search by job, for every app
+
+A liveness check ("is the project archived?") is not enough. The 2026-11-26
+first pass checked every app for liveness and still missed two things the user
+knew about: `TheBadFella/Pinchflat-NGX`, a fork that may succeed pinchflat, and
+EMQX, which some peers run instead of mosquitto. A second pass with the method
+below was needed. Run it in the first fan-out, not as a repair.
+
+Give each researcher [`successor-brief.md`](successor-brief.md) (fill in
+`<scratchpad>`) and one job group of apps. Per app it must:
+
+1. **Name the job, not the product** ("MQTT broker for zigbee2mqtt and HA").
+2. **Search for alternatives that do that job** with the Tavily connector
+   (`mcp__claude_ai_Tavily__tavily_search`; Exa as the fallback): at least two
+   queries, such as `"<app> alternative self-hosted <year>"`, `"<app> fork"`,
+   `"best self-hosted <job> <year>"`, and an r/selfhosted query.
+3. **Count peer adoption on kubesearch.** The kubesearch MCP server
+   (`https://beta.kubesearch.dev/mcp`, in `.mcp.json` as `kubesearch`) indexes
+   about 305 home-ops repos. Where a session or subagent does not have its tools,
+   [`kubesearch.sh`](kubesearch.sh) calls the same server with curl:
+   `search_images` (repos per image), `search_releases` (repos per chart),
+   `repo_grep_all` (the 10 most-starred repos), `grep_values`, and
+   `repo_clone` + `repo_list_files` to read one repo. Sum `repo_count` over
+   every registry name of one product: mosquitto appears as
+   `public.ecr.aws/docker/library/eclipse-mosquitto`, `eclipse-mosquitto` and
+   `docker.io/library/eclipse-mosquitto`.
+4. **Compare with hard data**: `gh api repos/<o>/<r>` (stars, `pushed_at`,
+   archived), its releases, and commits and distinct authors in the last 90
+   days. For a fork, compare fork against original.
+
+A popular candidate is not automatically better for us. Report the count
+honestly (for example, more home-ops repos may still run mosquitto than EMQX),
+and say what the switch would gain for this cluster.
+
+### Peer survey — what the popular repos converge on
+
+One researcher picks the ~12 most-starred, active home-ops repos (kubesearch
+ranks them by stars), lists what each deploys, and builds a matrix by job. It
+reports: jobs where peers converge on a different tool from ours, with counts
+("8 of 12 run X, we run Y"); at most 10 capabilities most peers have and we
+lack, each with the gain for this household; and structural patterns (a shared
+component, a Renovate pattern, a CI check) that would remove a defect or a
+manual step here, each with a link to a peer file.
+
 ## 5. Sizing resources — use 7 days, never a snapshot
 
 **This is the single most important technique in this skill.** A point-in-time
@@ -326,8 +376,10 @@ Keep this section order, and drop a section only when it has nothing in it:
    (not in git) also becomes a Move-to-git row, so manual changes never go
    unrecorded.
 7. **Successors**: a table with one numbered row per _migrate_, _evaluate_ and
-   _watch_ finding: `# / current → candidate / signal (link, date) / gain /
-   cost / verdict chip`. Sort by verdict, then by cost. Put the _keep_ rows,
+   _watch_ finding: `# / current → candidate / signal (link, date) / peers
+   (kubesearch counts, ours vs candidate) / gain / cost / verdict chip`. Follow
+   it with the peer survey: the jobs where peers converge elsewhere, and the
+   capabilities we lack. Sort by verdict, then by cost. Put the _keep_ rows,
    with their reasons, under a closed `<details>` "Checked and kept", with no
    numbers. A _migrate_ row that is urgent also appears in Fix now or Fix soon,
    and that entry links to the row.
@@ -359,6 +411,25 @@ been open for more than one cycle.
   number in the chip (`from 2 Oct #14`), so the user can trace it.
 - Copy the `.id`, `ol.ids` and `tr.done` styles from the baseline report along
   with the rest of its `<style>`.
+
+**Tables must read on a phone.** The user reads the report on a phone, and a
+wide table that scrolls sideways is hard to read there. Below 720 px, each row
+becomes a card: the first two cells (`#` and the name) form the title, and every
+other cell shows its column name on its left.
+- Put `data-label="<column name>"` on every `<td>` and class `lead` on the
+  first two cells of each row. [`label-tables.py`](label-tables.py)
+  `<report.html>` does this from the `<th>` texts, and is safe to run again; the 2026-11-26 report's `<style>` has the card CSS
+  (`@media (max-width:720px)`, `.tablewrap td::before{content:attr(data-label)}`).
+- Lay the cell out as a block with an absolutely placed label, not as a grid: a
+  grid makes each link and text run inside a cell its own column.
+- Never give a table cell the class `wrap`: the page wrapper `.wrap` has
+  `margin-inline:auto` and `display:flex`, which centred and squeezed cells.
+  Cells that wrap use `wt`.
+- Check it before the first publish: open the file in chrome-devtools, emulate
+  `400x860x2,mobile,touch`, add a `<meta name="viewport"
+  content="width=device-width">` with a script (the publish skeleton adds it,
+  the local file does not), and confirm `scrollWidth` is 400 and a screenshot
+  reads well.
 
 **Log it right away.** As soon as the first publish succeeds, add a row at the
 top of [`audits.md`](audits.md) with the date, the link, the baseline used and
@@ -420,6 +491,16 @@ manual operation (data deleted or restarted); and a finding proved wrong.
   needed.
 - When a fix needed more than one attempt, say so in the result. That history
   is useful the next time.
+- **Sweep the whole report for the item, every time.** A fix closes more than
+  its own row. Jellyfin (#11) and Grafana (#12) were marked done in Fix soon on
+  2026-11-26, but their Successors rows (#89, #91), the Renovate blind-spot list
+  (#67), the digest-pin count (#66), the tally ("4 done" with 14 done) and the
+  footer stayed stale until the user noticed. After each item, run
+  `grep -n '#<n>\b\|<app name>' <report>` and update every hit: the Successors
+  row, Hygiene, Clean-up and Move-to-git mentions, the Resources row, counts
+  that the fix changed (re-measure them), and any "What is good" claim it changed.
+- Keep a `<p class="status">` line under the tally ("Status <date, time>: …")
+  that says what is done, on hold, and open, so the top of the report is current.
 - Update the header tally chips and the footer, and the status column of the
   row in `audits.md`.
 - Batch the update when several items land together, but do it before you

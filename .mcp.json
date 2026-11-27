@@ -23,6 +23,10 @@
         "ARGOCD_BASE_URL": "https://argo.laboratory.casa",
         "ARGOCD_API_TOKEN": "${ARGOCD_API_TOKEN}"
       }
+    },
+    "kubesearch": {
+      "type": "http",
+      "url": "https://beta.kubesearch.dev/mcp"
     }
   }
 }
