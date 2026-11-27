@@ -161,11 +161,18 @@ sidecar:
       memory: 96Mi
     limits:
       memory: 384Mi
+  # k8s-sidecar >= 2.x starts a health server, default port 8080 in both sidecars. As plain
+  # containers (not init) the chart sets no HEALTH_PORT, so the second one fails to bind
+  # (OSError: Address in use). Use the chart's own per-sidecar ports.
   datasources:
     enabled: true
     searchNamespace: ALL
+    env:
+      HEALTH_PORT: "8082"
   dashboards:
     enabled: true
+    env:
+      HEALTH_PORT: "8084"
     labelValue: ""
     label: grafana_dashboard
     folderAnnotation: grafana_folder
