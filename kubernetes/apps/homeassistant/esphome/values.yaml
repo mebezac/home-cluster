@@ -3,30 +3,6 @@ controllers:
   main:
     annotations:
       reloader.stakater.com/auto: "true"
-    # ONE-TIME (audit 2026-11-26 #132): the official image ran as root, so the PVC
-    # holds root-owned files. Remove this init container after the first rollout as 3000.
-    initContainers:
-      chown:
-        image:
-          repository: ghcr.io/home-operations/esphome
-          tag: 2026.11.0@sha256:3395b0c336cd579ac601b59c66dd385609d1efac2bf3258056e43fb9f7956988
-        command:
-          - chown
-          - -R
-          - "3000:3000"
-          - /config
-        securityContext:
-          runAsUser: 0
-          runAsGroup: 0
-          runAsNonRoot: false
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-              - ALL
-            add:
-              - CHOWN
-              - FOWNER
-              - DAC_OVERRIDE
     containers:
       app:
         image:
@@ -144,10 +120,7 @@ persistence:
   secrets:
     type: secret
     name: esphome-secret
-    # app only: the chown init container must not touch this read-only mount.
-    advancedMounts:
-      main:
-        app:
-          - path: /config/secrets.yaml
-            subPath: secrets.yaml
-            readOnly: true
+    globalMounts:
+      - path: /config/secrets.yaml
+        subPath: secrets.yaml
+        readOnly: true

@@ -29,11 +29,13 @@ spec:
         valuesObject:
           pvc: esphome-config
           mover:
-            privileged: true
+            runAsUser: 3000     # the pod's user; the files are 3000-owned since #132
           ignore:
             - /.esphome/platformio
             - /.esphome/build
             - /.esphome/idf_components
+            # Framework downloads: the home-operations image sets HOME=/config.
+            - /.cache
           restore:
             enabled: true
   destination:
