@@ -6,7 +6,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: oc115-migration-2
+  name: oc115-migration-3
 spec:
   backoffLimit: 2
   template:
@@ -38,7 +38,7 @@ spec:
               F="--exclude /Shares/**"
               for u in zac marlee; do
                 echo "== copy $u"
-                rclone copy "src-$u:" "dst-$u:" $F --transfers 2 --checkers 8 \
+                rclone copy "src-$u:" "dst-$u:" $F --transfers 5 --checkers 8 \
                   --retries 10 --low-level-retries 30 --timeout 30m \
                   --stats 5m --stats-one-line --stats-log-level NOTICE --log-level NOTICE
               done
@@ -55,7 +55,7 @@ spec:
             - name: HOME
               value: /tmp
             # rclone's WebDAV upload holds each whole file in memory (attempt 1,
-            # 3 transfers, was OOMKilled at 4Gi): 2 transfers + a GC target.
+            # 3 transfers, was OOMKilled at 4Gi) until GOMEMLIMIT made the GC keep up.
             - name: GOMEMLIMIT
               value: 3GiB
           resources:
