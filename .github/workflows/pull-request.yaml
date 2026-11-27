@@ -1,0 +1,140 @@
+---
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+# Checks for every pull request to main. No job has cluster access or the SOPS age key.
+#  - Image check: every image reference the PR adds or changes must exist in its registry
+#    as written (tag and digest), read with crane; no layers are pulled.
+#  - Render diff: argocd-diff-preview renders the changed Argo CD apps of main and of the PR
+#    with a throwaway Argo CD in kind and posts the manifest diff as a PR comment. A stub
+#    ksops masks SOPS values (.github/argocd-diff-preview/values.yaml).
+name: "Pull Request"
+
+on:
+  pull_request:
+    branches: ["main"]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  image-check:
+    name: Image check
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read # private ghcr.io/mebezac images, if any
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 2 # the merge commit and its first parent (the base branch)
+          persist-credentials: false
+
+      - name: Setup crane
+        uses: imjasonh/setup-crane@feee3b6bb0d4c68370f256a4502498c9227e5c6b # v0.7
+        with:
+          # renovate: datasource=github-releases depName=google/go-containerregistry
+          version: v0.22.1
+
+      - name: Check changed image references
+        run: python3 .github/scripts/check-images.py
+
+  render-diff:
+    name: Render diff
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      pull-requests: write # the diff comment
+    env:
+      # renovate: datasource=docker depName=dagandersen/argocd-diff-preview
+      DIFF_PREVIEW_IMAGE: dagandersen/argocd-diff-preview:v0.2.18@sha256:8121606a333bc5de9a8d981222f7035f946e970079417ea48bc304d1e94ec332
+    steps:
+      - name: Checkout pull request
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: pull-request
+          fetch-depth: 2 # the merge commit and its first parent (the base branch)
+          persist-credentials: false
+
+      # Pin both sides to commits: the merge commit and its first parent. Branch names
+      # race - main and refs/pull/N/merge move while the job runs (other pushes to main).
+      - name: Resolve revisions
+        id: rev
+        run: |
+          echo "base=$(git -C pull-request rev-parse HEAD^1)" >> "$GITHUB_OUTPUT"
+          echo "target=$(git -C pull-request rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout base
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ steps.rev.outputs.base }}
+          path: main
+          persist-credentials: false
+
+      # CI has no credentials for the private repo (private-apps), so drop every Application
+      # that reads it from both checkouts. The checkouts are throwaway.
+      - name: Drop apps that read the private repo
+        run: |
+          grep -rl --include='*.yaml' 'home-cluster-private' main pull-request | while IFS= read -r f; do
+            if yq -e 'select(.kind == "Application") | [.spec.source.repoURL, .spec.sources[].repoURL] | any_c(. != null and test("home-cluster-private"))' "$f" > /dev/null 2>&1; then
+              rm -v "$f"
+            fi
+          done
+
+      # Render with the Argo CD chart version the cluster runs (from the base).
+      - name: Read Argo CD chart version
+        id: argocd
+        run: |
+          v=$(yq '.spec.sources[] | select(.chart == "argo-cd") | .targetRevision' main/kubernetes/argo/apps/argo-system/argo-cd.yaml)
+          test -n "$v"
+          echo "chart-version=$v" >> "$GITHUB_OUTPUT"
+
+      - name: Render diff
+        env:
+          BASE_BRANCH: ${{ steps.rev.outputs.base }}
+          TARGET_BRANCH: ${{ steps.rev.outputs.target }}
+          REPO: ${{ github.repository }}
+          ARGOCD_CHART_VERSION: ${{ steps.argocd.outputs.chart-version }}
+          # argocd-diff-preview pairs resources by kind/namespace/name and ignores the API
+          # group, so talos-backup's two ServiceAccounts (v1 and talos.dev) swap places and
+          # show a false diff on every PR. Leave the talos.dev one out of the diff.
+          IGNORE_RESOURCES: "talos.dev:ServiceAccount:*"
+        run: |
+          docker run \
+            --network=host \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -v "$PWD/main:/base-branch" \
+            -v "$PWD/pull-request:/target-branch" \
+            -v "$PWD/output:/output" \
+            -v "$PWD/pull-request/.github/argocd-diff-preview:/argocd-config" \
+            -e BASE_BRANCH \
+            -e TARGET_BRANCH \
+            -e REPO \
+            -e ARGOCD_CHART_VERSION \
+            -e MAX_DIFF_LENGTH=60000 \
+            -e TIMEOUT=600 \
+            -e IGNORE_RESOURCES \
+            -e TITLE="Argo CD render diff" \
+            "$DIFF_PREVIEW_IMAGE"
+
+      # One comment per PR, updated in place on every push.
+      - name: Post diff comment
+        if: github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          marker='<!-- render-diff -->'
+          { echo "$marker"; cat output/diff.md; } > comment.md
+          id=$(gh api --paginate "repos/$REPO/issues/$PR_NUMBER/comments" \
+            --jq ".[] | select(.user.login == \"github-actions[bot]\" and (.body | startswith(\"$marker\"))) | .id" | tail -n 1)
+          if [ -n "$id" ]; then
+            gh api --method PATCH "repos/$REPO/issues/comments/$id" -F body=@comment.md > /dev/null
+          else
+            gh api --method POST "repos/$REPO/issues/$PR_NUMBER/comments" -F body=@comment.md > /dev/null
+          fi
+          cat output/diff.md >> "$GITHUB_STEP_SUMMARY"
