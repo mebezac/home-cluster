@@ -3,15 +3,51 @@ controllers:
   main:
     annotations:
       reloader.stakater.com/auto: "true"
+    # ONE-TIME (audit 2026-11-26 #132): the official image ran as root, so the PVC
+    # holds root-owned files. Remove this init container after the first rollout as 3000.
+    initContainers:
+      chown:
+        image:
+          repository: ghcr.io/home-operations/esphome
+          tag: 2026.11.0@sha256:3395b0c336cd579ac601b59c66dd385609d1efac2bf3258056e43fb9f7956988
+        command:
+          - chown
+          - -R
+          - "3000:3000"
+          - /config
+        securityContext:
+          runAsUser: 0
+          runAsGroup: 0
+          runAsNonRoot: false
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+            add:
+              - CHOWN
+              - FOWNER
+              - DAC_OVERRIDE
     containers:
       app:
         image:
-          repository: ghcr.io/esphome/esphome
+          # home-operations build: rootless (USER nobody), catatonit + entrypoint.sh that
+          # runs esphome-device-builder. Source:
+          # https://github.com/home-operations/containers/tree/main/apps/esphome
+          repository: ghcr.io/home-operations/esphome
           # changelog: esphome.io/changelog/<major.minor>.0.html ONLY - a patch page 404s, patch notes live in the GH release. Since 2026.10 that page only lists PRs; breaking changes + upgrade checklist are in the linked blog post esphome.io/blog/YYYY/MM/DD/esphome-YYYY-MM/. A bump changes the DASHBOARD only - devices keep old firmware until reflashed
-          tag: 2026.11.0@sha256:6351ae811202064bb3eb49dde982609b47acd523103a66d7b9c5c1431beea055
+          tag: 2026.11.0@sha256:3395b0c336cd579ac601b59c66dd385609d1efac2bf3258056e43fb9f7956988
         env:
           - name: TZ
             value: "America/New_York"
+          # The image defaults these to /cache/*. Keep the build cache and device
+          # storage where the official image had them, on the PVC under .esphome/
+          # (the Kopiur source ignores platformio/ and build/).
+          - name: PLATFORMIO_CORE_DIR
+            value: /config/.esphome/platformio
+          - name: ESPHOME_BUILD_PATH
+            value: /config/.esphome/build
+          - name: ESPHOME_DATA_DIR
+            value: /config/.esphome
           # Dashboard auth (also gates the /api/mcp endpoint added in 2026.10). The
           # Device Builder reads ESPHOME_*; bare USERNAME/PASSWORD is the deprecated
           # legacy pair. With a password set, HA's mcp integration cannot connect.
@@ -24,12 +60,26 @@ controllers:
                 key: password
           - name: ESPHOME_DASHBOARD_USE_PING
             value: "true"
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+              - ALL
         resources:
           requests:
             cpu: 10m
             memory: 100Mi
           limits:
             memory: 4Gi
+
+defaultPodOptions:
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 3000
+    runAsGroup: 3000
+    fsGroup: 3000
+    fsGroupChangePolicy: OnRootMismatch
 
 service:
   main:
@@ -84,10 +134,20 @@ persistence:
   #       - path: /config/<name>.yaml
   #         subPath: <name>.yaml
   #         readOnly: true
+  # The root filesystem is read-only; esphome and platformio write temp files here.
+  tmp:
+    type: emptyDir
+    advancedMounts:
+      main:
+        app:
+          - path: /tmp
   secrets:
     type: secret
     name: esphome-secret
-    globalMounts:
-      - path: /config/secrets.yaml
-        subPath: secrets.yaml
-        readOnly: true
+    # app only: the chown init container must not touch this read-only mount.
+    advancedMounts:
+      main:
+        app:
+          - path: /config/secrets.yaml
+            subPath: secrets.yaml
+            readOnly: true
