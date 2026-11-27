@@ -420,6 +420,8 @@ other cell shows its column name on its left.
   first two cells of each row. [`label-tables.py`](label-tables.py)
   `<report.html>` does this from the `<th>` texts, and is safe to run again; the 2026-11-26 report's `<style>` has the card CSS
   (`@media (max-width:720px)`, `.tablewrap td::before{content:attr(data-label)}`).
+- Text-heavy tables (Successors) get `class="tablewrap cards"`: cards at every
+  width, because a 6–7 column text table overflows the 880 px column on desktop too.
 - Lay the cell out as a block with an absolutely placed label, not as a grid: a
   grid makes each link and text run inside a cell its own column.
 - Never give a table cell the class `wrap`: the page wrapper `.wrap` has
