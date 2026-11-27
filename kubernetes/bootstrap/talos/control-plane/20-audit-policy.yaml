@@ -4,6 +4,12 @@
 # and Cilium L2 announcements. wyse-5070-03's 180 GB Intel SSD lost ~4% rated life
 # per month (2026-11-19 investigation). This keeps who-changed-what for every
 # write and who-touched Secrets/ConfigMaps/tokens, and drops the noise.
+#
+# Size, measured (audit 2026-11-26 #37): the commits that added this policy said
+# ~100 B/s-0.3 kB/s per node; the real figure was 8-15 MB/h (190-350 MB/day, a
+# 100 MB rotation every 6-14 h), and 18-29 MB/h on a busy GitOps day. Of that,
+# ~55% is Argo CD's server-side-diff dry-run patches (audit rules cannot match
+# dryRun=All, so they stay) and 16-28% was Longhorn status updates, now dropped.
 apiVersion: v1alpha1
 kind: KubeAuditPolicyConfig
 configuration:
@@ -38,6 +44,17 @@ configuration:
           resources: ["tokenreviews"]
         - group: authorization.k8s.io
           resources: ["subjectaccessreviews", "selfsubjectaccessreviews"]
+    # Longhorn manager status heartbeats: engines, volumes, instancemanagers,
+    # nodes and replicas /status, many times a minute, and a 409-conflict retry
+    # loop when a node hangs (elitebook-01 wrote 3 x 100 MB in 15 min on
+    # 2026-11-26). Only the status subresource: Longhorn's spec writes, creates,
+    # deletes and its Secret access still reach the rules below.
+    - level: None
+      users: ["system:serviceaccount:longhorn-system:longhorn-service-account"]
+      verbs: ["update", "patch"]
+      resources:
+        - group: longhorn.io
+          resources: ["*/status"]
     # The human admin (talosctl/topf kubeconfig, CN=admin): every request,
     # reads included. By user name, not the system:masters group, which
     # kube-apiserver's own loopback client also has.
