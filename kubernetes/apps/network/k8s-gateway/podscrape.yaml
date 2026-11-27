@@ -1,6 +1,7 @@
 ---
-# The chart enables CoreDNS's prometheus plugin on :9153 but ships no
-# Service port or monitor for it.
+# Scrapes CoreDNS's prometheus plugin on :9153 (chart port name tcp-9153).
+# Kept over the chart's ServiceMonitor: the job label stays
+# "network/k8s-gateway", which the Grafana dashboards use.
 apiVersion: operator.victoriametrics.com/v1beta1
 kind: VMPodScrape
 metadata:
@@ -12,5 +13,5 @@ spec:
       app.kubernetes.io/name: k8s-gateway
       app.kubernetes.io/instance: k8s-gateway
   podMetricsEndpoints:
-    - port: metrics
+    - port: tcp-9153
       path: /metrics

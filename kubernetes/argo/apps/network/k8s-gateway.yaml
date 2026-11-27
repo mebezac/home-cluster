@@ -13,9 +13,9 @@ spec:
       path: kubernetes/apps/network/k8s-gateway
       targetRevision: main
       ref: repo
-    - repoURL: ghcr.io/k8s-gateway/charts
+    - repoURL: codeberg.org/k8s-gateway/charts
       chart: k8s-gateway
-      targetRevision: 3.7.2
+      targetRevision: 4.0.1
       helm:
         releaseName: k8s-gateway
         valueFiles:

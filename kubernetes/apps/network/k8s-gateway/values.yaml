@@ -1,16 +1,19 @@
 fullnameOverride: k8s-gateway
-# The chart (3.7.2, newest on ghcr) still defaults to image 1.7.0 while its
-# labels say 1.8.0. Pin the image ourselves. 1.8.x is dependency bumps only.
-# changelog: GH releases k8s-gateway/k8s_gateway
+# Upstream moved to Codeberg (the GitHub repo is a read-only mirror).
+# changelog: codeberg.org/k8s-gateway/k8s_gateway/releases
 image:
-  registry: ghcr.io
-  repository: k8s-gateway/k8s_gateway
-  tag: 1.8.2@sha256:e7d334bc486fc78e2f2366da2029b7308240d500330e85d2367d4d9cc46a5e52
-# 2 replicas + PDB (pdb.yaml): this is the ONLY in-cluster resolver for
+  repository: codeberg.org/k8s-gateway/k8s_gateway
+  tag: 1.10.0@sha256:007636228aa5659e224f79b81e0ce6ddc64eab03c082adbb74e95361288fb7d3
+# 2 replicas + PDB: this is the ONLY in-cluster resolver for
 # laboratory.casa / heremag.free. At 1 replica a node drain took cluster
-# DNS for those zones down entirely. The chart ships no PDB, so it lives
-# alongside as a plain manifest.
+# DNS for those zones down entirely.
 replicaCount: 2
+podDisruptionBudget:
+  minAvailable: 1
+# Surge a new pod before an old one goes, so both stay serving in a rollout.
+rollingUpdate:
+  maxUnavailable: 0
+  maxSurge: 1
 priorityClassName: system-cluster-critical
 topologySpreadConstraints:
   - maxSkew: 1
@@ -20,14 +23,63 @@ topologySpreadConstraints:
       matchLabels:
         app.kubernetes.io/name: k8s-gateway
         app.kubernetes.io/instance: k8s-gateway
-domain: laboratory.casa heremag.free
-ttl: 1
+# Chart 4.x defaults to dnsPolicy Default; keep ClusterFirst so `forward`
+# goes to cluster CoreDNS, as before.
+deployment:
+  dnsPolicy: ClusterFirst
+# 7d max: 34Mi, 7m CPU. No CPU limit on a DNS server.
+resources:
+  requests:
+    cpu: 10m
+    memory: 48Mi
+  limits:
+    cpu: null
+    memory: 128Mi
+podSecurityContext:
+  runAsUser: 3000
+  runAsGroup: 3000
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop: ["ALL"]
+readinessProbe:
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  failureThreshold: 5
+serviceType: LoadBalancer
 service:
-  type: LoadBalancer
-  port: 53
   annotations:
-    io.cilium/lb-ipam-ips: 10.25.30.118
+    lbipam.cilium.io/ips: 10.25.30.118
   externalTrafficPolicy: Cluster
-watchedResources:
-  - HTTPRoute
-  - Service
+# Non-root: listen on 1053, expose 53 on the Service.
+# The chart derives RBAC from the `resources` line (HTTPRoute, Service).
+# Metrics (:9153, container port tcp-9153) are scraped by podscrape.yaml.
+servers:
+  - zones:
+      - zone: .
+    port: 1053
+    servicePort: 53
+    plugins:
+      - name: k8s_gateway
+        parameters: laboratory.casa heremag.free
+        configBlock: |-
+          apex k8s-gateway.network
+          ttl 1
+          resources HTTPRoute Service
+      - name: log
+      - name: errors
+      - name: health
+        configBlock: |-
+          lameduck 5s
+      - name: ready
+      - name: prometheus
+        parameters: 0.0.0.0:9153
+      - name: forward
+        parameters: . /etc/resolv.conf
+      - name: loop
+      - name: reload
+      - name: loadbalance
