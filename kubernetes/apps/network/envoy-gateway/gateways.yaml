@@ -9,9 +9,10 @@ metadata:
   annotations:
     # gatus default for every route on this Gateway (observability/gatus).
     # A route overrides it with its own gatus.home-operations.com/endpoint.
-    # No redirect follow, so an Authelia route passes on its 302 to the login
-    # page and fails on Authelia's fail-closed 500; any status under 400 means
-    # Envoy reached a backend that answered.
+    # No redirect follow, and any status under 500 passes: Authelia answers a
+    # non-browser request with 401 (fail-closed is 500), and some routes only
+    # serve POST or deny / (403/404). A 5xx is a real fault: Authelia down,
+    # no healthy backend (503), or a Cloudflare tunnel error (530).
     # DNS from k8s-gateway itself (not the AdGuard Pis), so a Pi outage does
     # not fail every internal check.
     gatus.home-operations.com/endpoint: |-
@@ -20,7 +21,7 @@ metadata:
         dns-resolver: udp://10.25.30.118:53
         ignore-redirect: true
       conditions:
-        - "[STATUS] < 400"
+        - "[STATUS] < 500"
 spec:
   gatewayClassName: envoy
   infrastructure:
@@ -69,9 +70,10 @@ metadata:
     external-dns.kubernetes.io/target: external.laboratory.casa
     # gatus default for every route on this Gateway (observability/gatus).
     # A route overrides it with its own gatus.home-operations.com/endpoint.
-    # No redirect follow, so an Authelia route passes on its 302 to the login
-    # page and fails on Authelia's fail-closed 500; any status under 400 means
-    # Envoy reached a backend that answered.
+    # No redirect follow, and any status under 500 passes: Authelia answers a
+    # non-browser request with 401 (fail-closed is 500), and some routes only
+    # serve POST or deny / (403/404). A 5xx is a real fault: Authelia down,
+    # no healthy backend (503), or a Cloudflare tunnel error (530).
     # DNS from 1.1.1.1, so the check goes through Cloudflare and the tunnel,
     # the path internet visitors take (LAN DNS would give 10.25.30.122).
     gatus.home-operations.com/endpoint: |-
@@ -80,7 +82,7 @@ metadata:
         dns-resolver: tcp://1.1.1.1:53
         ignore-redirect: true
       conditions:
-        - "[STATUS] < 400"
+        - "[STATUS] < 500"
 spec:
   gatewayClassName: envoy
   infrastructure:
@@ -127,9 +129,10 @@ metadata:
   annotations:
     # gatus default for every route on this Gateway (observability/gatus).
     # A route overrides it with its own gatus.home-operations.com/endpoint.
-    # No redirect follow, so an Authelia route passes on its 302 to the login
-    # page and fails on Authelia's fail-closed 500; any status under 400 means
-    # Envoy reached a backend that answered.
+    # No redirect follow, and any status under 500 passes: Authelia answers a
+    # non-browser request with 401 (fail-closed is 500), and some routes only
+    # serve POST or deny / (403/404). A 5xx is a real fault: Authelia down,
+    # no healthy backend (503), or a Cloudflare tunnel error (530).
     # k8s-gateway also answers the guest hostnames (10.25.30.119).
     gatus.home-operations.com/endpoint: |-
       group: guest
@@ -137,7 +140,7 @@ metadata:
         dns-resolver: udp://10.25.30.118:53
         ignore-redirect: true
       conditions:
-        - "[STATUS] < 400"
+        - "[STATUS] < 500"
 spec:
   gatewayClassName: envoy
   infrastructure:

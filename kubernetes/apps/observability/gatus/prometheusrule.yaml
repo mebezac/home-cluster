@@ -6,7 +6,7 @@ spec:
   groups:
     - name: gatus
       rules:
-        # One alert per failing check. Group `hobby` (BirdNET-Go, calibre-nextgen:
+        # One alert per failing check. Group `hobby` (BirdNET-Go, calibre-nextgen;
         # set by the route's gatus annotation) stays on the status page only.
         - alert: GatusEndpointDown
           expr: gatus_results_endpoint_success{group!="hobby"} == 0
