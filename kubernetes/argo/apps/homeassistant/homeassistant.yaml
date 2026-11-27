@@ -31,6 +31,9 @@ spec:
           tier: critical
           mover:
             privileged: true
+          # Requirements of custom integrations; the entrypoint rebuilds the venv.
+          ignore:
+            - /.venv
           restore:
             enabled: true
   destination:

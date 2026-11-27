@@ -3,10 +3,39 @@ controllers:
   main:
     annotations:
       reloader.stakater.com/auto: "true"
+    # ONE-TIME (audit 2026-11-26 #103): the official image ran as root, so the PVC
+    # holds root- and 1000-owned files. Remove this init container after the first
+    # rollout as 3000.
+    initContainers:
+      chown:
+        image:
+          repository: ghcr.io/home-operations/home-assistant
+          tag: 2026.11.2@sha256:28ae630554f1f2dd43ecbdecad9d974f09f02b17a0a769a290ceec094ec427dc
+        command:
+          - chown
+          - -R
+          - "3000:3000"
+          - /config
+        securityContext:
+          runAsUser: 0
+          runAsGroup: 0
+          runAsNonRoot: false
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+            add:
+              - CHOWN
+              - FOWNER
+              - DAC_OVERRIDE
     containers:
       app:
         image:
-          repository: ghcr.io/home-assistant/home-assistant
+          # home-operations build: rootless (USER nobody, no s6), catatonit + entrypoint.sh.
+          # Requirements of custom integrations (HACS) install at start into /config/.venv,
+          # which the entrypoint rebuilds when the image changes. Source:
+          # https://github.com/home-operations/containers/tree/main/apps/home-assistant
+          repository: ghcr.io/home-operations/home-assistant
           # changelog: monthly release blog home-assistant.io/blog/YYYY/MM/DD/release-YYYYMM/ - the
           # day is unreliable, find the post via home-assistant.io/blog/categories/release-notes/.
           # The section is titled "Backward-incompatible changes" and lives ONLY there; machine-
@@ -18,12 +47,19 @@ controllers:
           # for a one-way recorder migration on the SQLite DB on this PVC. Also unverifiable from
           # git: the auth_oidc HACS component lives on the PVC and patches HA auth internals - a
           # break locks you out of the login page, so confirm you can still log in after the roll.
-          tag: 2026.11.2@sha256:493a07e8f6530fc640223f4a0a5248f20a61ca2f718bb1d31efbf08a2c5ea28f
+          tag: 2026.11.2@sha256:28ae630554f1f2dd43ecbdecad9d974f09f02b17a0a769a290ceec094ec427dc
         env:
           - name: TZ
             value: "America/New_York"
-        # Not privileged: HA mounts no device (Z-Wave/Zigbee run in their own
-        # pods), and containerd's default caps still include NET_RAW for ping.
+        # No device and no capability: Z-Wave/Zigbee run in their own pods, and the
+        # ping integration uses unprivileged ICMP (Talos net.ipv4.ping_group_range
+        # is "0 2147483647"). HA writes only to /config and /tmp.
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+              - ALL
         resources:
           # non-file memory (working_set - active_file), 14d to 2026-10-21: p99 752Mi, max 767Mi.
           requests:
@@ -31,6 +67,14 @@ controllers:
             memory: 800Mi
           limits:
             memory: 2Gi
+
+defaultPodOptions:
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 3000
+    runAsGroup: 3000
+    fsGroup: 3000
+    fsGroupChangePolicy: OnRootMismatch
 
 service:
   main:
@@ -95,6 +139,14 @@ persistence:
         app:
           - path: /config/configuration.yaml
             subPath: configuration.yaml
+
+  # The root filesystem is read-only; go2rtc and allowlist_external_dirs use /tmp.
+  tmp:
+    type: emptyDir
+    advancedMounts:
+      main:
+        app:
+          - path: /tmp
 
   secrets:
     type: secret
