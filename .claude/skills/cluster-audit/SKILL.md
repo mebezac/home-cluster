@@ -116,7 +116,7 @@ namespaces explicitly so nothing is audited twice or missed:
 | Database | `database`, `valkey` |
 | Observability | `observability` + metrics-server — **and list every firing/pending alert** (vmalert `/api/v1/alerts`) |
 | Security/GitOps | `security`, `cert-manager`, `argo-system`, `forgejo` |
-| Media | `jellyfin`, `immich`, `audiobookshelf`, `calibre-web-automated`, `romm`, `music-assistant`, `lychee`, `downloads`, `gluetun-proxy`, `ps5` (private) |
+| Media | `jellyfin`, `immich`, `audiobookshelf`, `calibre-nextgen`, `romm`, `music-assistant`, `lychee`, `downloads`, `gluetun-proxy`, `ps5` (private) |
 | Home automation | `homeassistant`, `birdnet-go` |
 | Web apps | `n8n`, `umami`, `jotty`, `lubelog`, `changedetection`, `trek`, `reckage`, `heremag`, `owncloud`, `pcab`, `default` |
 | Platform/capacity | rest of kube-system + **cluster-wide node capacity** (per-node MemAvailable 7d minimum, not just requests) |

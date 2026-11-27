@@ -378,12 +378,6 @@
       addLabels: ["renovate/github-action"],
     },
     {
-      description: ["Override versioning for calibre-web-automated"],
-      matchDatasources: ["docker"],
-      matchPackageNames: ["crocodilestick/calibre-web-automated"],
-      versioning: "regex:^V(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$",
-    },
-    {
       description: [
         "Override versioning for Jellyfin: since 12.0 the release tags have two parts (12.4), and docker",
         "versioning does not compare them with the old three-part tags (10.11.11), so no PR opened for 12.x.",
