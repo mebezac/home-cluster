@@ -1,0 +1,33 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: descheduler
+  namespace: argo-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: kubernetes
+  sources:
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/apps/kube-system/descheduler
+      targetRevision: main
+      ref: descheduler-repo
+    - repoURL: https://kubernetes-sigs.github.io/descheduler/
+      chart: descheduler
+      # changelog: GH releases kubernetes-sigs/descheduler - app tags vX.Y.Z carry the notes; descheduler-helm-chart-X.Y.Z tags do not. Chart and image versions move together: bump image.tag in values.yaml with the chart.
+      targetRevision: 0.37.0
+      helm:
+        releaseName: descheduler
+        valueFiles:
+          - $descheduler-repo/kubernetes/apps/kube-system/descheduler/values.yaml
+  destination:
+    name: in-cluster
+    namespace: kube-system
+  syncPolicy:
+    automated:
+      allowEmpty: true
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

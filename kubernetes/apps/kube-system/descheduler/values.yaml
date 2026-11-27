@@ -1,0 +1,120 @@
+---
+# Kubernetes descheduler (kubernetes-sigs) - audit 2026-11-26 #102.
+# Purpose: refill a node after it comes back from a failure or an upgrade. Narrow on purpose:
+# LowNodeUtilization only, on real usage from metrics-server, 2 evictions per node per run.
+# With today's load no node is under 20 % on cpu AND memory AND pods, so it evicts nothing;
+# it acts only when a node returns nearly empty.
+fullnameOverride: descheduler
+
+# Deployment, not the chart's default CronJob: one long-running pod that wakes every
+# deschedulingInterval. It keeps its informer cache and the metrics-server samples between
+# runs, exposes /metrics for the ServiceMonitor all the time (a CronJob pod lives seconds),
+# and leaves no Job/pod history behind every 15 min.
+kind: Deployment
+deschedulingInterval: 15m
+replicas: 1
+# Leader election, so a rolling update (old and new pod both up for a moment) never runs
+# two descheduling loops at once.
+leaderElection:
+  enabled: true
+  resourceNamespace: kube-system
+
+image:
+  repository: registry.k8s.io/descheduler/descheduler
+  tag: v0.37.0@sha256:88deef34ff5c85cb69676d7073dd641bd5c35b156bc1ef4a35ca8fbf9644da98
+
+resources:
+  requests:
+    cpu: 10m
+    memory: 64Mi
+  limits:
+    memory: 256Mi
+
+# Chart default already: non-root (uid 1000), read-only root FS, no privilege escalation,
+# all capabilities dropped. Restated so a chart change cannot drop it silently.
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  privileged: false
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1000
+podSecurityContext:
+  seccompProfile:
+    type: RuntimeDefault
+
+cmdOptions:
+  v: 3
+
+deschedulerPolicy:
+  # Only the worker-capable nodes. The control-plane nodes (taint
+  # node-role.kubernetes.io/control-plane) run DaemonSets and kube-system only.
+  nodeSelector: "!node-role.kubernetes.io/control-plane"
+  maxNoOfPodsToEvictPerNode: 2
+  metricsProviders:
+    - source: KubernetesMetrics
+  # profiles is a list, so this replaces the chart's default profile (which enables
+  # RemovePodsViolatingNodeTaints, RemoveDuplicates, RemovePodsHavingTooManyRestarts,
+  # RemovePodsViolatingNodeAffinity, InterPodAntiAffinity and TopologySpreadConstraint).
+  profiles:
+    - name: default
+      pluginConfig:
+        - name: DefaultEvictor
+          args:
+            # Default protections stay on: pods with local storage (emptyDir/hostPath),
+            # system-critical pods, DaemonSet pods, failed bare pods. The chart default
+            # turned PodsWithLocalStorage off; this list puts it back.
+            podProtections:
+              defaultDisabled: []
+              extraEnabled: []
+            # Evict a pod only when another schedulable node can take it (requests,
+            # taints, affinity, cordons).
+            nodeFit: true
+            # Never evict a Job pod (Kopiur movers, CNPG backups, copy jobs): an eviction
+            # restarts the Job from zero and counts against its backoffLimit.
+            labelSelector:
+              matchExpressions:
+                - key: batch.kubernetes.io/job-name
+                  operator: DoesNotExist
+            # A pod that was just (re)scheduled is left alone.
+            minPodAge: 1h
+        - name: LowNodeUtilization
+          args:
+            # Under-utilized: below ALL of these. Over-utilized: above ANY target.
+            thresholds:
+              cpu: 20
+              memory: 20
+              pods: 20
+            targetThresholds:
+              cpu: 50
+              memory: 50
+              pods: 50
+            evictionLimits:
+              node: 2
+            # Real usage from metrics-server, not requests: the wyses are busier than the
+            # talmacs in real CPU, which requests do not show.
+            metricsUtilization:
+              source: KubernetesMetrics
+            evictableNamespaces:
+              exclude:
+                - kube-system
+                - longhorn-system
+                # CNPG manages its own primary and failover.
+                - database
+      plugins:
+        balance:
+          enabled:
+            - LowNodeUtilization
+        # Left off on purpose (the deschedule list is empty):
+        # - RemovePodsViolatingNodeTaints: the talos-upgrade skill cordons nodes on purpose.
+        # - RemovePodsViolatingNodeAffinity: evicts when a node label changes (NFD, GPU
+        #   labels after a Talos or hardware change); GPU pods should move only by hand.
+        # - RemovePodsHavingTooManyRestarts: moving a crash-looping pod hides the alert.
+        # - RemoveDuplicates, InterPodAntiAffinity, TopologySpreadConstraint: not needed.
+
+service:
+  enabled: true
+serviceMonitor:
+  enabled: true
