@@ -29,7 +29,6 @@ configs:
           - 'profile'
     statusbadge.enabled: true
     kustomize.buildOptions: --enable-alpha-plugins --enable-exec
-    helm.valuesFileSchemes: secrets+gpg-import, secrets+gpg-import-kubernetes, secrets+age-import, secrets+age-import-kubernetes, secrets, secrets+literal, https
     resource.exclusions: |
       - apiGroups:
           - cilium.io
@@ -167,74 +166,48 @@ repoServer:
   serviceAccount:
     create: true
     name: argocd-repo-server
-  rbac:
-    - apiGroups:
-        - ""
-      resources:
-        - secrets
-      verbs:
-        - get
+  # ksops (kustomize exec plugin, kustomize.buildOptions above) decrypts the
+  # *.sops.yaml Secrets with this age key. Kustomize and Helm are the ones bundled
+  # in the Argo CD image. The Secret name is historical (helm-secrets is gone); it
+  # holds the age private key and is created by `task bootstrap:apps`, not by git.
   env:
-    - name: HELM_PLUGINS
-      value: /custom-tools/helm-plugins/
-    - name: HELM_SECRETS_SOPS_PATH
-      value: /custom-tools/sops
-    - name: HELM_SECRETS_VALS_PATH
-      value: /custom-tools/vals
-    - name: HELM_SECRETS_KUBECTL_PATH
-      value: /custom-tools/kubectl
-    - name: HELM_SECRETS_BACKEND
-      value: sops
-    # https://github.com/jkroepke/helm-secrets/wiki/Security-in-shared-environments
-    - name: HELM_SECRETS_VALUES_ALLOW_SYMLINKS
-      value: "false"
-    - name: HELM_SECRETS_VALUES_ALLOW_ABSOLUTE_PATH
-      value: "true"
-    - name: HELM_SECRETS_VALUES_ALLOW_PATH_TRAVERSAL
-      value: "false"
-    - name: HELM_SECRETS_WRAPPER_ENABLED
-      value: "true"
-    - name: HELM_SECRETS_DECRYPT_SECRETS_IN_TMP_DIR
-      value: "true"
-    - name: HELM_SECRETS_HELM_PATH
-      value: /usr/local/bin/helm
-    # For age
     - name: SOPS_AGE_KEY_FILE
-      value: /helm-secrets-private-keys/key.txt
+      value: /sops-age/key.txt
   volumes:
     - name: custom-tools
       emptyDir: {}
-    # kubectl create secret generic helm-secrets-private-keys --from-file=key.asc=assets/gpg/private2.gpg
-    - name: helm-secrets-private-keys
+    - name: sops-age
       secret:
         secretName: helm-secrets-private-keys
   volumeMounts:
-    - mountPath: /custom-tools
-      name: custom-tools
-    - mountPath: /usr/local/sbin/helm
-      subPath: helm
-      name: custom-tools
-    - mountPath: /usr/local/bin/kustomize
-      name: custom-tools
-      subPath: kustomize
     - mountPath: /usr/local/bin/ksops
       name: custom-tools
       subPath: ksops
-    - mountPath: /helm-secrets-private-keys/
-      name: helm-secrets-private-keys
+    - mountPath: /sops-age
+      name: sops-age
+      readOnly: true
   initContainers:
-    - name: gitops-tools
-      # changelog: GH release bodies are empty stubs - diff the Dockerfile between tags (gh api "repos/ajaykumar4/gitops-tools/contents/Dockerfile?ref=<tag>"); an identical Dockerfile means a pure monthly rebuild, since every tool AND the alpine base are pinned there. Since 2026.9.2 the image ships helm-secrets as three Helm-4-native plugins (secrets, secrets-getter, secrets-post-renderer) under helm-plugins/ - the old helm-secrets/ dir and our sed hack are gone. Always check HELM_SECRETS_VERSION + the plugin dir layout; the /gitops-tools/helm wrapper must come from secrets/scripts/wrapper/helm.sh (2026.9.1 shipped the wrong one)
-      image: ajaykumar4/gitops-tools:2026.11.0@sha256:73ed26bf142cba33d2959e51b23521108db97bbeb5819593564bfe0a571698f4
-      imagePullPolicy: Always
+    - name: install-ksops
+      # changelog: github.com/viaduct-ai/kustomize-sops/releases. Distroless image (no shell):
+      # `ksops install` copies only the ksops binary. Do not add --with-kustomize: the image
+      # builds an old kustomize (v5.3.0 in v4.5.1); Argo CD bundles a current one.
+      image: docker.io/viaductoss/ksops:v4.5.1@sha256:4def9fdd4e2f850265740ebe9592c5455d19b76891e88e602df8b52d74b95334
       command:
-        - sh
-        - -ec
-      args:
-        - |
-          mkdir -p /custom-tools/
-          cp -rf /gitops-tools/* /custom-tools
-          chmod +x /custom-tools/*
+        - /usr/local/bin/ksops
+        - install
+        - /custom-tools
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+            - ALL
+        readOnlyRootFilesystem: true
+        # numeric, because the image sets USER by name (nonroot) and runAsNonRoot needs a UID
+        runAsUser: 65532
+        runAsGroup: 65532
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
       volumeMounts:
         - mountPath: /custom-tools
           name: custom-tools
