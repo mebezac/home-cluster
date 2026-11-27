@@ -20,7 +20,7 @@ controllers:
           # changelog: GH releases hargata/lubelog - notes understate the diff; check the tag-to-tag
           # compare for controller/routing changes (v1.7.1 moved /images,/documents,/translations,/temp
           # from static middleware to an [Authorize] FilesController route).
-          tag: v1.7.5@sha256:cdfd841eea84b652cca5401dc7edfca9f400970ab472025246f92323b2ce36e2
+          tag: v1.7.5@sha256:cdfd841eea84b652cca5401dc7edfca9f400970ab472025246f92323b2ce36e1
         env:
           TZ: America/New_York
           LC_ALL: en_US.UTF-8
