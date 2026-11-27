@@ -5,4 +5,5 @@ namespace: homeassistant
 generators:
   - secret-generator.yaml
 resources:
+  - authelia.yaml
   - configmap.yaml

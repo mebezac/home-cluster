@@ -5,6 +5,9 @@
 # A SecurityPolicy only selects routes in its own namespace, so other namespaces
 # need their own copy (plus an entry in the Authelia ReferenceGrant,
 # kubernetes/apps/security/authelia/referencegrant.yaml).
+# It lives in the homeassistant app, not in an app that uses it (zigbee2mqtt,
+# zwave-js-ui): if a using app is removed, Argo prunes its resources, and a
+# missing SecurityPolicy does NOT fail closed - the routes open with no login.
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: SecurityPolicy
 metadata:
