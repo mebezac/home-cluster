@@ -42,8 +42,10 @@ controllers:
       app:
         image:
           repository: ghcr.io/siderolabs/talos-backup
-          # Upstream publishes git-describe tags from main; this build adds USE_PATH_STYLE.
-          tag: v0.1.0-beta.3-10-gb9fd478@sha256:7fc186ff37a3137f470082cb609bf1dc3bcece13dd9a6421ec09cfdf4f33ae6c
+          # v0.1.0 (4 Nov 2026) is the first release; it contains the USE_PATH_STYLE commit (b9fd478).
+          # It moves the S3 client from minio-go to aws-sdk-go-v2; path-style is now the default
+          # with CUSTOM_S3_ENDPOINT. changelog: gh release view vX.Y.Z -R siderolabs/talos-backup
+          tag: v0.1.0@sha256:3635df0be0862d71bba7a34dca3e7f7c790887f5c5d0129002191c4c2d92dd15
         command:
           - /talos-backup
         workingDir: /tmp
