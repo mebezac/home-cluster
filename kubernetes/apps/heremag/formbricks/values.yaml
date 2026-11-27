@@ -32,8 +32,8 @@ controllers:
           requests:
             cpu: 25m
             memory: 384Mi
+          # No CPU limit (house rule, audit 2026-11-26 #54): a limit only throttles.
           limits:
-            cpu: 2000m
             memory: 768Mi
 service:
   app:
