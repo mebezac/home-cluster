@@ -1,5 +1,18 @@
 annotations:
   secret.reloader.stakater.com/reload: grafana-secret
+# Chart: grafana-community/helm-charts (the grafana org's chart is deprecated since 2026-01-30).
+# Chart 13.0 made the distroless image the default, with readOnlyRootFilesystem and an emptyDir
+# on /tmp; distroless has no /run.sh, so no GF_*__FILE env and no GF_INSTALL_PLUGINS.
+image:
+  registry: docker.io
+  repository: grafana/grafana
+  # changelog: GH releases grafana/grafana
+  tag: 13.3.2-distroless@sha256:d9425e704fa9dff189966b827fbc9b63befc5b443999c7b82193f1b1a73c74f7
+# Init container that downloads the gnetId/url dashboards below.
+downloadDashboardsImage:
+  registry: docker.io
+  repository: curlimages/curl
+  tag: 8.23.0@sha256:3fb7e13e5d179a845c97d78204f3f1064d1907037f26a3ebf91710571151fd93
 # The grafana database and role are CNPG-managed (database/postgres-17-cluster), so there
 # is no postgres-init container and no superuser password in grafana-secret.
 rbac:
@@ -21,6 +34,11 @@ imageRenderer:
     tag: v5.12.11
     sha: cfa6c8f63e6d626f90208f2880f15bd5facc279daec1b9bb642af07aa850d95e
     pullPolicy: IfNotPresent
+  # Grafana 13 needs a shared renderer token (JWT render auth). The chart would generate one
+  # with helm lookup, which Argo cannot do, so the token would change on every render; it
+  # lives in grafana-image-renderer-token (sops) instead. The chart passes it to Grafana
+  # (GF_RENDERING_RENDERER_TOKEN) and to the renderer (AUTH_TOKEN).
+  existingSecret: grafana-image-renderer-token
   securityContext:
     runAsNonRoot: true
     runAsUser: 3000
@@ -29,6 +47,9 @@ imageRenderer:
     seccompProfile: { type: RuntimeDefault }
   serviceMonitor:
     enabled: true
+    # The old chart's defaults; the community chart leaves them to vmagent.
+    interval: 1m
+    scrapeTimeout: 30s
   networkPolicy:
     limitIngress: true
     # The chart's policy admits only the Grafana pods; vmagent must reach /metrics
@@ -49,6 +70,9 @@ imageRenderer:
       memory: 1Gi
 serviceMonitor:
   enabled: true
+  # The old chart's defaults; the community chart leaves them to vmagent.
+  interval: 30s
+  scrapeTimeout: 30s
 serviceAccount:
   autoMount: true
 route:
@@ -70,7 +94,6 @@ grafana.ini:
     check_for_plugin_updates: false
     reporting_enabled: false
   auth:
-    oauth_auto_login: true
     # Authelia's logout (the old value was an Authentik end-session path).
     signout_redirect_url: https://login.laboratory.casa/logout
     oauth_allow_insecure_email_lookup: true
@@ -82,6 +105,8 @@ grafana.ini:
     enabled: true
     name: Authelia
     icon: signin
+    # Replaces the deprecated [auth] oauth_auto_login.
+    auto_login: true
     scopes: openid profile email groups
     empty_scopes: false
     auth_url: https://login.laboratory.casa/api/oidc/authorization
@@ -125,6 +150,11 @@ resources:
     memory: 1Gi
 
 sidecar:
+  image:
+    registry: quay.io
+    repository: kiwigrid/k8s-sidecar
+    # changelog: GH releases kiwigrid/k8s-sidecar
+    tag: 2.14.3@sha256:52d311dcedd587421a236c4d6c621f05614c40a51386e955e0699dca97ec0880
   resources:
     requests:
       cpu: 5m

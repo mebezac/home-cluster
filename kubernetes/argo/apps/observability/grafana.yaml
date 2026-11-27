@@ -12,9 +12,9 @@ spec:
       path: kubernetes/apps/observability/grafana
       targetRevision: main
       ref: grafana-repo
-    - repoURL: ghcr.io/grafana/helm-charts
+    - repoURL: ghcr.io/grafana-community/helm-charts
       chart: grafana
-      targetRevision: 10.5.15
+      targetRevision: 14.6.1
       helm:
         releaseName: grafana
         valueFiles:
