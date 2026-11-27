@@ -51,7 +51,14 @@ controllers:
           # takes the v3 default (false) now: no community package is installed, and
           # setting it stops the startup deprecation warning.
           N8N_UNVERIFIED_PACKAGES_ENABLED: false
-          N8N_RUNNERS_TASK_TIMEOUT: 300
+          N8N_RUNNERS_TASK_TIMEOUT: &taskTimeout 300
+          # Code nodes run in the `runners` sidecar (n8nio/runners), not in a child
+          # process of n8n: internal mode is deprecated (audit 2026-11-26 #31). The
+          # broker stays on the default 127.0.0.1:5679, which the sidecar reaches
+          # through the shared pod network. N8N_RUNNERS_AUTH_TOKEN is in n8n-secret.
+          N8N_RUNNERS_MODE: external
+          N8N_RUNNERS_BROKER_LISTEN_ADDRESS: 127.0.0.1
+          N8N_RUNNERS_BROKER_PORT: 5679
           N8N_COMPRESSION_NODE_MAX_DECOMPRESSED_SIZE_BYTES: 2147483648
           N8N_COMPRESSION_NODE_MAX_ZIP_ENTRIES: 5000
           # Community nodes from git (audit 2026-10-22): n8n installs, updates and
@@ -109,6 +116,44 @@ controllers:
             memory: 400Mi
           limits:
             memory: 1536Mi
+      # Task runner launcher. Its tag MUST equal the n8n tag above (same digest
+      # release); Renovate groups the two (n8n group in .github/renovate.json5).
+      runners:
+        image:
+          repository: n8nio/runners
+          tag: 2.48.5@sha256:3d502b6dcb975958df66f80ceb59d30584e86d7339a4659730d3ecfb74c91fc0
+        env:
+          N8N_RUNNERS_TASK_BROKER_URI: http://127.0.0.1:5679
+          N8N_RUNNERS_TASK_TIMEOUT: *taskTimeout
+          GENERIC_TIMEZONE: America/New_York
+          # Only the shared token: the runner never gets the encryption key or DB password.
+          N8N_RUNNERS_AUTH_TOKEN:
+            valueFrom:
+              secretKeyRef:
+                name: n8n-secret
+                key: N8N_RUNNERS_AUTH_TOKEN
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
+        probes:
+          liveness:
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /healthz
+                port: 5680
+              initialDelaySeconds: 10
+              periodSeconds: 30
+              timeoutSeconds: 5
+              failureThreshold: 3
+        resources:
+          requests:
+            cpu: 5m
+            memory: 64Mi
+          limits:
+            memory: 512Mi
 
 service:
   app:
@@ -168,5 +213,8 @@ persistence:
       apiGroup: kopiur.home-operations.com
       kind: Restore
       name: n8n
-    globalMounts:
-      - path: /home/node/.n8n
+    # app container only: the runners sidecar gets no access to n8n's data.
+    advancedMounts:
+      n8n:
+        app:
+          - path: /home/node/.n8n
