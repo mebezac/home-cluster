@@ -1254,13 +1254,13 @@ dashboards:
       datasource:
         - { name: DS_PROMETHEUS, value: Prometheus }
     envoy-proxy-global:
-      url: https://raw.githubusercontent.com/envoyproxy/gateway/v1.9.2/charts/gateway-addons-helm/dashboards/envoy-proxy-global.json
+      url: https://raw.githubusercontent.com/envoyproxy/gateway/v1.10.0/charts/gateway-addons-helm/dashboards/envoy-proxy-global.json
       datasource: Prometheus
     envoy-clusters:
-      url: https://raw.githubusercontent.com/envoyproxy/gateway/v1.9.2/charts/gateway-addons-helm/dashboards/envoy-clusters.json
+      url: https://raw.githubusercontent.com/envoyproxy/gateway/v1.10.0/charts/gateway-addons-helm/dashboards/envoy-clusters.json
       datasource: Prometheus
     envoy-gateway-global:
-      url: https://raw.githubusercontent.com/envoyproxy/gateway/v1.9.2/charts/gateway-addons-helm/dashboards/envoy-gateway-global.json
+      url: https://raw.githubusercontent.com/envoyproxy/gateway/v1.10.0/charts/gateway-addons-helm/dashboards/envoy-gateway-global.json
       datasource: Prometheus
     external-dns:
       # renovate: depName="External-DNS"
