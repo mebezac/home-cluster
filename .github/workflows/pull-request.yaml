@@ -65,6 +65,16 @@ jobs:
           path: main
           persist-credentials: false
 
+      # CI has no credentials for the private repo (private-apps), so drop every Application
+      # that reads it from both checkouts. The checkouts are throwaway.
+      - name: Drop apps that read the private repo
+        run: |
+          grep -rl --include='*.yaml' 'home-cluster-private' main pull-request | while IFS= read -r f; do
+            if yq -e 'select(.kind == "Application") | [.spec.source.repoURL, .spec.sources[].repoURL] | any_c(. != null and test("home-cluster-private"))' "$f" > /dev/null 2>&1; then
+              rm -v "$f"
+            fi
+          done
+
       # Render with the Argo CD chart version the cluster runs (from main).
       - name: Read Argo CD chart version
         id: argocd
