@@ -1,0 +1,55 @@
+---
+# Argo CD Helm values for the throwaway Argo CD that argocd-diff-preview runs in a kind
+# cluster in the "Pull Request" workflow (.github/workflows/pull-request.yaml).
+# CI has no age key, so a stub ksops replaces the real one: it emits each SOPS file with
+# its values masked (key names and Secret names stay visible in the diff).
+# https://dag-andersen.github.io/argocd-diff-preview/getting-started/custom-argo-cd-installation/
+configs:
+  cm:
+    # Same as kubernetes/apps/argo-system/argo-cd/values.yaml, so ksops generators run.
+    kustomize.buildOptions: --enable-alpha-plugins --enable-exec
+
+repoServer:
+  volumes:
+    - name: custom-tools
+      emptyDir: {}
+  volumeMounts:
+    - mountPath: /usr/local/bin/ksops
+      name: custom-tools
+      subPath: ksops
+    - mountPath: /usr/local/bin/yq
+      name: custom-tools
+      subPath: yq
+  initContainers:
+    - name: install-stub-ksops
+      image: docker.io/mikefarah/yq:4.54.3@sha256:7834187596ad56fd5a81436114e0b0b9dd54c91bb43946d1f7145b2be5f9c3d2
+      command: ["/bin/sh", "-c"]
+      args:
+        - |
+          set -e
+          cp "$(command -v yq)" /custom-tools/yq
+          cat > /custom-tools/ksops << 'SCRIPT'
+          #!/bin/sh
+          # Stub ksops: no age key in CI. Emit every SOPS file of the generator without its
+          # .sops block and with each value masked. A file it cannot read is left out.
+          set -u
+          tmp=$(mktemp -d)
+          cat > "$tmp/in.yaml"
+          : > "$tmp/out.yaml"
+          yq '.functionConfig.files[]' "$tmp/in.yaml" | while IFS= read -r f; do
+            [ -f "$f" ] || continue
+            yq ea 'del(.sops)
+              | with(select(.stringData != null); .stringData[] = "MASKED-SOPS-VALUE")
+              | with(select(.data != null); .data[] = "TUFTS0VELVNPUFMtVkFMVUU=")
+              | (.. | select(tag == "!!str" and test("^ENC\[AES256_GCM,"))) = "MASKED-SOPS-VALUE"' \
+              "$f" > "$tmp/one.yaml" 2>/dev/null || continue
+            { echo '---'; cat "$tmp/one.yaml"; } >> "$tmp/out.yaml"
+          done
+          yq ea -o=json -I=0 '[.] | map(select(. != null)) | {"apiVersion": "config.kubernetes.io/v1", "kind": "ResourceList", "items": .}' "$tmp/out.yaml" 2>/dev/null \
+            || echo '{"apiVersion":"config.kubernetes.io/v1","kind":"ResourceList","items":[]}'
+          rm -rf "$tmp"
+          SCRIPT
+          chmod +x /custom-tools/ksops /custom-tools/yq
+      volumeMounts:
+        - mountPath: /custom-tools
+          name: custom-tools

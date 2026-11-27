@@ -4,6 +4,9 @@ kind: Application
 metadata:
   name: private-apps
   namespace: argo-system
+  annotations:
+    # The PR render diff (.github/workflows/pull-request.yaml) cannot read the private repo.
+    argocd-diff-preview/render: "never"
 spec:
   project: kubernetes
   source:

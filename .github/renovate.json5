@@ -443,6 +443,17 @@
   customManagers: [
     {
       customType: "regex",
+      description: [
+        "Versions and images in GitHub workflows, marked with a '# renovate: datasource=... depName=...' comment on the line above.",
+        "An image value is name:tag@sha256:digest - currentValue stops at '@' so the digest moves with the tag.",
+      ],
+      managerFilePatterns: ["/(^|/)\\.github/workflows/.+\\.ya?ml$/"],
+      matchStrings: [
+        "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)\\n\\s+[\\w-]+: (?:[^\\s:@]+:)?(?<currentValue>[^\\s@]+)(?:@(?<currentDigest>sha256:[a-f0-9]+))?",
+      ],
+    },
+    {
+      customType: "regex",
       description: ["Process custom dependencies"],
       managerFilePatterns: ["/(^|/)kubernetes/.+\\.ya?ml(?:\\.j2)?$/"],
       matchStrings: [
