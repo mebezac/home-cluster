@@ -1,0 +1,192 @@
+---
+# Talos host logs -> VictoriaLogs (audit 2026-11-26 #100).
+#
+# Talos ships machined/kubelet/etcd/containerd/... service logs (machine.logging) and the kernel
+# ring buffer (KmsgLogConfig) as raw JSON lines over TCP. VictoriaLogs only takes JSON lines
+# over HTTP, so one Vector per node receives them on loopback and posts them on. Talos config:
+# kubernetes/bootstrap/talos/all/80-logging.yaml.
+#
+# Why a hostNetwork DaemonSet on 127.0.0.1 and not one LoadBalancer IP:
+# - no L2-announcement lease: an LB IP held by a hung node stays dead for up to an hour
+#   (the 2026-11-26 wyse-5070-02 hang), and every node's logs would go with it;
+# - the node name comes from the pod (NODE_NAME), not from a source IP that Cilium may rewrite;
+# - machined keeps unsent lines in its buffer and retries, so boot logs arrive once this pod runs.
+# Query: source:="talos" node:="<host>" service:="kubelet" (service:="kernel" for dmesg).
+defaultPodOptions:
+  hostNetwork: true
+  dnsPolicy: ClusterFirstWithHostNet
+  priorityClassName: system-node-critical
+  # Every node, control plane included.
+  tolerations:
+    - operator: Exists
+  securityContext:
+    runAsUser: 3000
+    runAsGroup: 3000
+    runAsNonRoot: true
+    fsGroup: 3000
+    seccompProfile:
+      type: RuntimeDefault
+
+configMaps:
+  config:
+    data:
+      vector.yaml: |-
+        data_dir: /vector-data
+        api:
+          enabled: true
+          address: 127.0.0.1:8686
+        sources:
+          # machine.logging.destinations: one JSON object per line with msg, talos-level,
+          # talos-service, talos-time (+ any structured fields of the service).
+          talos_service:
+            type: socket
+            mode: tcp
+            address: 127.0.0.1:6050
+            decoding:
+              codec: json
+            framing:
+              method: newline_delimited
+          # KmsgLogConfig: msg, facility, priority, seq, clock, talos-level, talos-time.
+          talos_kernel:
+            type: socket
+            mode: tcp
+            address: 127.0.0.1:6051
+            decoding:
+              codec: json
+            framing:
+              method: newline_delimited
+          vector_metrics:
+            type: internal_metrics
+        transforms:
+          talos_service_fields:
+            type: remap
+            inputs: [talos_service]
+            source: |-
+              .service = string(del(."talos-service")) ?? "unknown"
+          talos_kernel_fields:
+            type: remap
+            inputs: [talos_kernel]
+            source: |-
+              .service = "kernel"
+          talos:
+            type: remap
+            inputs: [talos_service_fields, talos_kernel_fields]
+            source: |-
+              .source = "talos"
+              .node = get_env_var("NODE_NAME") ?? "unknown"
+              ._msg = strip_whitespace(string(del(.msg)) ?? "")
+              ._time = string(del(."talos-time")) ?? .timestamp
+              .level = del(."talos-level")
+              # added by the socket source: peer address/port and our own receive time
+              del(.host)
+              del(.port)
+              del(.source_type)
+              del(.timestamp)
+        sinks:
+          victorialogs:
+            type: http
+            inputs: [talos]
+            uri: http://victoria-logs-victoria-logs-single-server.observability.svc.cluster.local:9428/insert/jsonline?_stream_fields=source,node,service&_msg_field=_msg&_time_field=_time
+            method: post
+            compression: gzip
+            encoding:
+              codec: json
+            framing:
+              method: newline_delimited
+            request:
+              headers:
+                VL-Extra-Fields: cluster=home-cluster
+            batch:
+              timeout_secs: 1
+            buffer:
+              type: memory
+              max_events: 10000
+            healthcheck:
+              enabled: false
+          prometheus:
+            type: prometheus_exporter
+            inputs: [vector_metrics]
+            # Vector >= 0.5x no longer expands ${ENV} in config files, so no POD_IP here.
+            address: 0.0.0.0:9598
+
+controllers:
+  talos-logs:
+    type: daemonset
+    strategy: RollingUpdate
+    containers:
+      app:
+        image:
+          repository: timberio/vector
+          # changelog: GH releases vectordotdev/vector (upgrade guides: website/content/en/highlights)
+          tag: 0.62.0-distroless-libc@sha256:22100806cedabab3768edd6ac919be1a3a026b1020c5b280174a54573572db9d
+        args:
+          - --config
+          - /etc/vector/vector.yaml
+        env:
+          NODE_NAME:
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+          VECTOR_LOG_FORMAT: json
+        probes:
+          liveness:
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                host: 127.0.0.1
+                path: /health
+                port: 8686
+              periodSeconds: 30
+          readiness:
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                host: 127.0.0.1
+                path: /health
+                port: 8686
+              periodSeconds: 10
+        resources:
+          requests:
+            cpu: 10m
+            memory: 48Mi
+          limits:
+            memory: 192Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+              - ALL
+
+service:
+  app:
+    controller: talos-logs
+    clusterIP: None
+    ports:
+      metrics:
+        port: 9598
+
+serviceMonitor:
+  app:
+    serviceName: talos-logs
+    endpoints:
+      - port: metrics
+        path: /metrics
+        relabelings:
+          - sourceLabels: [__meta_kubernetes_pod_node_name]
+            targetLabel: node
+
+persistence:
+  config:
+    type: configMap
+    identifier: config
+    globalMounts:
+      - path: /etc/vector/vector.yaml
+        subPath: vector.yaml
+        readOnly: true
+  data:
+    type: emptyDir
+    globalMounts:
+      - path: /vector-data

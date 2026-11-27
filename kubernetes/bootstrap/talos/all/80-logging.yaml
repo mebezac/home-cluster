@@ -1,0 +1,18 @@
+# Host logs to VictoriaLogs (audit 2026-11-26 #100): the 9.6 h wyse-5070-02 hang left no trace,
+# because Talos kept service and kernel logs only in RAM. Each node sends them as JSON lines to
+# its own Vector on loopback (DaemonSet kubernetes/apps/observability/talos-logs, hostNetwork),
+# which adds the node name and posts them to VictoriaLogs. Machined buffers and retries, so lines
+# from boot reach VictoriaLogs once that pod is up.
+#
+# machine.logging is legacy v1alpha1 on purpose: Talos 1.14 has no multi-doc kind for service log
+# destinations (KmsgLogConfig covers only the kernel log). Both apply without a reboot.
+machine:
+  logging:
+    destinations:
+      - endpoint: tcp://127.0.0.1:6050/
+        format: json_lines
+---
+apiVersion: v1alpha1
+kind: KmsgLogConfig
+name: victorialogs
+url: tcp://127.0.0.1:6051/
