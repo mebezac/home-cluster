@@ -460,9 +460,8 @@ manual operation (data deleted or restarted); and a finding proved wrong.
 - **gluetun's firewall blocks all traffic outside the tunnel**, its own server-list
   updater included. Fetch the list in an init container, before the firewall
   starts.
-- Commits are signed via Secretive (Touch ID). A `git commit` may hang waiting
-  for approval — retry once, then hand the command to the user rather than
-  reaching for `--no-gpg-sign`.
+- Commits are not signed in this repo (`commit.gpgsign false`), so `git commit` does not wait for
+  a key prompt. Do not add signing steps.
 
 ## Scope
 
