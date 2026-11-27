@@ -1,0 +1,47 @@
+# Alertmanager silences, kept in git (audit 2026-11-26 #128).
+#
+# silence-operator (Argo app silence-operator, ../silence-operator/) turns each Silence
+# below into an Alertmanager silence. Do not make silences in the Alertmanager UI: they
+# live only on the vmalertmanager PVC, which has no backup, and nobody reviews them.
+#
+# Add a silence:
+#   1. Make one file per silence here, named for what it mutes, e.g. nas-scrub-weekly.yaml.
+#   2. List the file under `resources:` below, then commit and push. Argo applies it and
+#      the operator creates the silence within seconds.
+#   3. Put WHO and WHY in comments at the top of the file (and a link to the issue).
+#      Alertmanager shows only the comment "silence-operator-observability-<name>"
+#      and createdBy "silence-operator", so the file is the record.
+#
+#   apiVersion: observability.giantswarm.io/v1alpha2
+#   kind: Silence
+#   metadata:
+#     name: nas-scrub-weekly          # becomes the Alertmanager comment; keep it stable
+#     namespace: observability        # keep every Silence here; Alertmanager is global
+#   spec:
+#     matchers:                       # ALL must match; matchType "=" (default), "!=", "=~", "!~"
+#       - name: alertname
+#         value: NodeDiskIOSaturation
+#       - name: instance
+#         value: truenas.*
+#         matchType: "=~"
+#     duration: 7d                    # or endsAt: "2026-12-01T13:00:00Z"; with neither,
+#                                     # the silence lasts 100 years
+#     # startsAt: "2026-11-30T03:00:00Z"   # optional; defaults to when the CR was created
+#
+# End a silence: delete its file and its line here, and push. Argo prunes the CR, and the
+# operator expires the Alertmanager silence before it lets the CR go (finalizer
+# observability.giantswarm.io/silence-protection). A silence with duration/endsAt expires
+# in Alertmanager by itself; delete the file then too, so git matches.
+#
+# Change a silence: edit the file. The operator updates the Alertmanager silence in place.
+# Renaming the file is fine; renaming metadata.name expires the old silence and makes a new one.
+#
+# Check: kubectl -n observability get silences.observability.giantswarm.io, and the
+# Alertmanager UI (https://alertmanager.laboratory.casa/#/silences).
+#
+# Caution: the operator must run when a Silence is deleted, or the CR hangs on its
+# finalizer. Delete every Silence before you remove the operator.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: observability
+resources: []

@@ -1,0 +1,30 @@
+# giantswarm silence-operator: turns Silence CRs (observability.giantswarm.io/v1alpha2)
+# into Alertmanager silences. The CRs live in git in ../silences/ (read the how-to at the
+# top of ../silences/kustomization.yaml). Chart defaults: helm show values
+# oci://gsoci.azurecr.io/charts/giantswarm/silence-operator --version <x>
+image:
+  registry: gsoci.azurecr.io
+  name: giantswarm/silence-operator
+  # Must match the chart's appVersion: bump it with the chart in the Argo app.
+  # Renovate does NOT see this tag (the chart key is `name`; helm-values reads only
+  # `repository`), so a chart bump PR leaves it behind.
+  tag: 0.22.0@sha256:1163dbc9885e51aaa28a12b6f0b23f634c652c90b3d94bec0d45a7533a589fab
+
+# vmalertmanager (VictoriaMetrics operator, chart victoria-metrics-stack). routePrefix
+# is "/", so the API is at /api/v2/silences. No auth inside the cluster.
+alertmanagerAddress: http://vmalertmanager-victoria-metrics-stack.observability.svc.cluster.local:9093
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 3000
+  runAsGroup: 3000
+  seccompProfile:
+    type: RuntimeDefault
+
+resources:
+  requests:
+    cpu: 5m
+    memory: 32Mi
+  limits:
+    cpu: null
+    memory: 128Mi
