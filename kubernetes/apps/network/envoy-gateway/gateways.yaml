@@ -6,6 +6,21 @@ apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
   name: envoy-internal
+  annotations:
+    # gatus default for every route on this Gateway (observability/gatus).
+    # A route overrides it with its own gatus.home-operations.com/endpoint.
+    # No redirect follow, so an Authelia route passes on its 302 to the login
+    # page and fails on Authelia's fail-closed 500; any status under 400 means
+    # Envoy reached a backend that answered.
+    # DNS from k8s-gateway itself (not the AdGuard Pis), so a Pi outage does
+    # not fail every internal check.
+    gatus.home-operations.com/endpoint: |-
+      group: internal
+      client:
+        dns-resolver: udp://10.25.30.118:53
+        ignore-redirect: true
+      conditions:
+        - "[STATUS] < 400"
 spec:
   gatewayClassName: envoy
   infrastructure:
@@ -52,6 +67,20 @@ metadata:
     # share this target, so their CNAMEs are DNSEndpoints in the matching
     # cloudflared-* app instead.
     external-dns.kubernetes.io/target: external.laboratory.casa
+    # gatus default for every route on this Gateway (observability/gatus).
+    # A route overrides it with its own gatus.home-operations.com/endpoint.
+    # No redirect follow, so an Authelia route passes on its 302 to the login
+    # page and fails on Authelia's fail-closed 500; any status under 400 means
+    # Envoy reached a backend that answered.
+    # DNS from 1.1.1.1, so the check goes through Cloudflare and the tunnel,
+    # the path internet visitors take (LAN DNS would give 10.25.30.122).
+    gatus.home-operations.com/endpoint: |-
+      group: external
+      client:
+        dns-resolver: tcp://1.1.1.1:53
+        ignore-redirect: true
+      conditions:
+        - "[STATUS] < 400"
 spec:
   gatewayClassName: envoy
   infrastructure:
@@ -95,6 +124,20 @@ apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
   name: envoy-guest
+  annotations:
+    # gatus default for every route on this Gateway (observability/gatus).
+    # A route overrides it with its own gatus.home-operations.com/endpoint.
+    # No redirect follow, so an Authelia route passes on its 302 to the login
+    # page and fails on Authelia's fail-closed 500; any status under 400 means
+    # Envoy reached a backend that answered.
+    # k8s-gateway also answers the guest hostnames (10.25.30.119).
+    gatus.home-operations.com/endpoint: |-
+      group: guest
+      client:
+        dns-resolver: udp://10.25.30.118:53
+        ignore-redirect: true
+      conditions:
+        - "[STATUS] < 400"
 spec:
   gatewayClassName: envoy
   infrastructure:

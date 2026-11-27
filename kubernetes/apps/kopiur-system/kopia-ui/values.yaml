@@ -100,6 +100,12 @@ route:
   app:
     labels:
       auth: authelia
+    annotations:
+      # gatus (observability/gatus): a unique name (kopia/kopia also has a route
+      # called kopia-ui), and probe / instead of the first rule's /metrics.
+      gatus.home-operations.com/endpoint: |-
+        name: kopia-ui-kopiur
+        path: /
     hostnames:
       - kopia.laboratory.casa
     parentRefs:

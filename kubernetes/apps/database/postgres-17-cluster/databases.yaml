@@ -202,3 +202,15 @@ spec:
   owner: paperless
   ensure: present
   databaseReclaimPolicy: retain
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: gatus
+spec:
+  cluster:
+    name: postgres-17-cluster
+  name: gatus
+  owner: gatus
+  ensure: present
+  databaseReclaimPolicy: retain

@@ -83,6 +83,12 @@ spec:
         inherit: true
         passwordSecret:
           name: pg-role-freshrss
+      - name: gatus
+        ensure: present
+        login: true
+        inherit: true
+        passwordSecret:
+          name: pg-role-gatus
       - name: lubelog
         ensure: present
         login: true

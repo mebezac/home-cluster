@@ -1,0 +1,50 @@
+# Main gatus config. GATUS_CONFIG_PATH=/config is a directory: gatus merges this
+# file with /config/gatus-sidecar.yaml, which the gatus-sidecar writes from every
+# HTTPRoute in the cluster (lists are appended, maps deep-merged). Gatus re-reads
+# the directory every 30 s.
+#
+# Per-route checks come from the Gateway annotations in
+# network/envoy-gateway/gateways.yaml (group, DNS resolver, conditions). A route
+# overrides them with its own `gatus.home-operations.com/endpoint` annotation,
+# or leaves gatus with `gatus.home-operations.com/enabled: "false"`.
+#
+# Alerts are NOT sent by gatus: vmalert reads gatus_results_endpoint_success
+# (prometheusrule.yaml) and Alertmanager sends them to Pushover.
+metrics: true
+
+storage:
+  # Central CNPG database (role + Database in database/postgres-17-cluster).
+  # Not memory: the sidecar rewrites its file on every route change, and a
+  # reload with memory storage drops the whole history.
+  type: postgres
+  path: ${GATUS_POSTGRES_URL}
+  caching: true
+
+# A bad file from the sidecar (e.g. two routes with one name in one group)
+# keeps the running config instead of crashing gatus.
+skip-invalid-config-update: true
+
+web:
+  port: 8080
+
+ui:
+  title: Status | laboratory.casa
+  header: laboratory.casa
+  description: Route checks for the home cluster
+  default-sort-by: health
+  buttons:
+    - name: Grafana
+      link: https://graf.laboratory.casa
+    - name: Alertmanager
+      link: https://alertmanager.laboratory.casa
+
+# Static checks: things no HTTPRoute describes. Add more here.
+# Gatus refuses to start with zero endpoints, so this list must never be empty
+# (the sidecar file may not exist yet on the first start).
+endpoints:
+  - name: gatus
+    group: internal
+    url: http://127.0.0.1:8080/health
+    interval: 1m
+    conditions:
+      - "[STATUS] == 200"

@@ -1273,6 +1273,12 @@ dashboards:
       revision: 4
       datasource:
         - { name: DS_PROMETHEUS, value: Prometheus }
+    gatus:
+      # renovate: depName="Gatus / Overview"
+      gnetId: 25874
+      revision: 3
+      datasource:
+        - { name: DS_PROMETHEUS, value: Prometheus }
     adguard:
       # renovate: depName="AdGuard Home Exporter"
       gnetId: 20799

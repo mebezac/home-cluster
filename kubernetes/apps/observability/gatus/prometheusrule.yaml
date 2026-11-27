@@ -1,0 +1,21 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: gatus
+spec:
+  groups:
+    - name: gatus
+      rules:
+        # One alert per failing check. Group `hobby` (BirdNET-Go, calibre-nextgen:
+        # set by the route's gatus annotation) stays on the status page only.
+        - alert: GatusEndpointDown
+          expr: gatus_results_endpoint_success{group!="hobby"} == 0
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: '{{ $labels.name }} ({{ $labels.group }}) fails its gatus check'
+            description: >-
+              https://status.laboratory.casa shows the failing condition. "internal" checks
+              resolve through k8s-gateway, "external" through 1.1.1.1 (the Cloudflare tunnel
+              path), "guest" through k8s-gateway.

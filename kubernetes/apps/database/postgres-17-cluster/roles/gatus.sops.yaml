@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: pg-role-gatus
+  labels:
+    cnpg.io/reload: "true"
+stringData:
+  username: ENC[AES256_GCM,data:osJKUAo=,iv:iYG/5Mn97Nlab3ZP7abb11TPv736Z4BzC/R8RZVaL7k=,tag:I9OIeOCi0dnbVLPtI7IjWA==,type:str]
+  password: ENC[AES256_GCM,data:KaXzOXFgV5KKmkLr8pp+nNP4E/IFF6G6ZQBp6VWyKRUos3RFpqAJGm+kxGqKSfJp,iv:MljB5tmuSdVd/MY6XbIt68x/2skRoHTj8evNq/RNVAs=,tag:uMO3sogdTQqB+xH7YBOOeQ==,type:str]
+sops:
+  age:
+    - enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBpZjBIdnc4cjJyc1ZFSXRE
+        MVNMeFJUalhVZGdRbW9tUHFmbkx0a1k0OERZCnVPQUNMWTh0MUw0eFVDbnF5eUxB
+        RGtPN1g5Vm43T252MTQrZGt0QzZRWlkKLS0tIEx1ZWU5cEpHdHk4WHdUV3EwS25O
+        MlVrQzFPalFHM1RZT015WWxrVGR1UHMK+80VdOCMoY41fHLW7YugL2tLC8KYEvSl
+        orB/4Zc5TUYcS0Zu7e/+7ob3YxHm9RmhrXVIa1WH3IlXVRALvNbaXQ==
+        -----END AGE ENCRYPTED FILE-----
+      recipient: age1j7x3jkw82w02taqj8dmqplae07fxcrup2enejnta9z2v82fzsakqd4ka6p
+  encrypted_regex: ^(data|stringData)$
+  lastmodified: "2026-11-27T17:13:52Z"
+  mac: ENC[AES256_GCM,data:V5p6f2+zLbN0caf6kJ+gMEilKmqOXmI1aWcC6dgj/7NYZ/fc7kvSIC3vrSUVlngt9CAx3+6/Wq3UEoLa1MNuIyvnqcrAznbSI8Zf6LEhzW2asiKuJEo3sitqqrKrBA06uENLhw422k1/zkFyRcTF4YOPTC9X39iI0xsX0o27RnI=,iv:wQe+U0qm/YzRe7CYuUO0RDf2Mf/wMMXa+Bss8KZ0TJY=,tag:QfGySkizSzNrIM+DJPR0EQ==,type:str]
+  mac_only_encrypted: true
+  version: 3.13.3

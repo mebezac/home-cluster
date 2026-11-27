@@ -120,6 +120,10 @@ service:
 
 route:
   app:
+    annotations:
+      # Hobby app: on the gatus page, but no alert (GatusEndpointDown skips group hobby).
+      gatus.home-operations.com/endpoint: |-
+        group: hobby
     hostnames:
       - books.laboratory.casa
     parentRefs:
