@@ -1,0 +1,45 @@
+# OpenCloud's built-in CSP (services/proxy/pkg/config/csp.yaml at v9.1.1) plus
+# Authelia, the external OIDC issuer. A file replaces the whole default policy, so
+# re-copy upstream's file on a major OpenCloud bump.
+directives:
+  child-src:
+    - '''self'''
+  connect-src:
+    - '''self'''
+    - 'blob:'
+    - 'https://raw.githubusercontent.com/opencloud-eu/awesome-apps/'
+    - 'https://update.opencloud.eu/'
+    # Authelia (OC_OIDC_ISSUER): the web app calls its token and userinfo endpoints.
+    - 'https://login.laboratory.casa/'
+  default-src:
+    - '''none'''
+  font-src:
+    - '''self'''
+  frame-ancestors:
+    - '''self'''
+  frame-src:
+    - '''self'''
+    - 'blob:'
+    - 'https://embed.diagrams.net/'
+    # Authelia, for the silent token renewal iframe.
+    - 'https://login.laboratory.casa/'
+  img-src:
+    - '''self'''
+    - 'data:'
+    - 'blob:'
+    - 'https://raw.githubusercontent.com/opencloud-eu/awesome-apps/'
+  manifest-src:
+    - '''self'''
+  media-src:
+    - '''self'''
+    - 'blob:'
+  object-src:
+    - '''self'''
+    - 'blob:'
+  script-src:
+    - '''self'''
+    - '''unsafe-inline'''
+  style-src:
+    - '''self'''
+    - '''unsafe-inline'''
+    - 'blob:'

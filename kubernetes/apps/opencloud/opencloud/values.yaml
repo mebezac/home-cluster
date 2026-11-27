@@ -1,7 +1,8 @@
 # OpenCloud replaced oCIS (namespace owncloud) on 2026-11-27 (audit 2026-11-26 #115).
 # Personal-space files were copied over WebDAV with rclone (the upstream migration
 # path: docs.opencloud.eu admin/maintenance/migrate). Shares, links, versions and
-# trash did not move. Built-in IdP + IDM, as oCIS had.
+# trash did not move. Login is Authelia OIDC (built-in IdP off); users and their
+# files live in the built-in IDM, matched by username.
 controllers:
   opencloud:
     annotations:
@@ -55,6 +56,34 @@ controllers:
           STORAGE_USERS_DECOMPOSEDS3_REGION: us-east-1
           STORAGE_USERS_DECOMPOSEDS3_BUCKET: ocis
           OC_SHARING_PUBLIC_SHARE_MUST_HAVE_PASSWORD: false
+          # --- Login: Authelia OIDC (clients web/OpenCloudDesktop/OpenCloudAndroid/
+          # OpenCloudIOS and policy opencloud_users in security/authelia). Based on
+          # authelia.com/integration/openid-connect/clients/opencloud. The built-in
+          # IdP no longer runs; IDM keeps the users. Rollback: drop this block.
+          OC_OIDC_ISSUER: https://login.laboratory.casa
+          OC_EXCLUDE_RUN_SERVICES: idp
+          PROXY_OIDC_REWRITE_WELLKNOWN: true
+          # Authelia issues RFC 9068 JWT access tokens with aud "opencloud".
+          PROXY_OIDC_ACCESS_TOKEN_VERIFY_METHOD: jwt
+          PROXY_OIDC_AUDIENCES: opencloud
+          # Authelia username = OpenCloud username (zac, marlee keep their files).
+          PROXY_USER_OIDC_CLAIM: preferred_username
+          PROXY_USER_CS3_CLAIM: username
+          # First login of a new user creates the account in IDM.
+          PROXY_AUTOPROVISION_ACCOUNTS: true
+          PROXY_AUTOPROVISION_CLAIM_USERNAME: preferred_username
+          PROXY_AUTOPROVISION_CLAIM_EMAIL: email
+          PROXY_AUTOPROVISION_CLAIM_DISPLAYNAME: name
+          # Roles come from the groups claim (apps_admin -> admin, apps_user -> user):
+          # proxy.role_assignment in opencloud-config.sops.yaml (YAML-only setting).
+          # "groups" must be in every client's scopes, or no role matches and login fails.
+          WEB_OIDC_SCOPE: openid profile email groups offline_access
+          WEBFINGER_WEB_OIDC_CLIENT_SCOPES: openid profile email groups offline_access
+          WEBFINGER_DESKTOP_OIDC_CLIENT_SCOPES: openid profile email groups offline_access
+          WEBFINGER_ANDROID_OIDC_CLIENT_SCOPES: openid profile email groups offline_access
+          WEBFINGER_IOS_OIDC_CLIENT_SCOPES: openid profile email groups offline_access
+          # Built-in CSP plus login.laboratory.casa (csp.yaml, ConfigMap opencloud-csp).
+          PROXY_CSP_CONFIG_FILE_LOCATION: /etc/opencloud/csp.yaml
           # WebDAV client auth via revocable app tokens (keeps OIDC for web/desktop).
           # auth-app does not autostart; PROXY_ENABLE_APP_AUTH wires it into the proxy.
           OC_ADD_RUN_SERVICES: auth-app
@@ -218,6 +247,15 @@ persistence:
         opencloud:
           - path: /etc/opencloud/opencloud.yaml
             subPath: opencloud.yaml
+            readOnly: true
+  csp:
+    type: configMap
+    name: opencloud-csp
+    advancedMounts:
+      opencloud:
+        opencloud:
+          - path: /etc/opencloud/csp.yaml
+            subPath: csp.yaml
             readOnly: true
   data:
     enabled: true
