@@ -47,7 +47,12 @@ releases:
     # changelog: see kubernetes/argo/apps/argo-system/argo-cd.yaml - same chart, and this version
     # must be bumped in lockstep with the targetRevision there.
     version: 10.18.2
-    secrets:
-      - ../apps/argo-system/argo-cd/values.sops.yaml
+    # Same values as the Argo app, so the first repo-server already has ksops (the argo app
+    # renders its own argocd-secret with ksops). The Gateway API CRDs do not exist yet here.
+    values:
+      - ../apps/argo-system/argo-cd/values.yaml
+    set:
+      - name: server.httproute.enabled
+        value: false
     needs:
       - kube-system/coredns

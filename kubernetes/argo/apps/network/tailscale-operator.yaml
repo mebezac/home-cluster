@@ -20,7 +20,7 @@ spec:
       helm:
         releaseName: tailscale-operator
         valueFiles:
-          - $repo/kubernetes/apps/network/tailscale-operator/values.sops.yaml
+          - $repo/kubernetes/apps/network/tailscale-operator/values.yaml
   destination:
     name: in-cluster
     namespace: network

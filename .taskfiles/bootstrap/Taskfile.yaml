@@ -22,22 +22,12 @@ tasks:
       - test -f {{.TOPFCONFIG}}
       - which topf sops
 
-  install-helm-secrets:
-    cmds:
-      - |
-        if ! helm plugin list | grep -q secrets; then
-        echo "Helm Secrets plugin not found, installing..."
-        helm plugin install https://github.com/jkroepke/helm-secrets
-        else
-        echo "Helm Secrets plugin is already installed, skipping..."
-        fi
-
   apps:
     desc: Bootstrap apps into the Talos cluster
-    deps: [install-helm-secrets]
     cmds:
       - until kubectl wait --for=condition=Ready=False nodes --all --timeout=600s; do sleep 10; done
       - kubectl create namespace argo-system --dry-run=client -o yaml | kubectl apply --server-side --filename -
+      # The age key for ksops in the argo repo-server. The Secret name is historical (helm-secrets is gone).
       - '{{if eq .SOPS_SECRET_EXISTS "false"}}cat {{.SOPS_AGE_KEY_FILE}} | kubectl --namespace argo-system create secret generic helm-secrets-private-keys --from-file=key.txt=/dev/stdin{{end}}'
       - helmfile --file {{.KUBERNETES_DIR}}/bootstrap/helmfile.yaml apply --skip-diff-on-install --suppress-diff
       - kubectl apply --server-side --filename {{.KUBERNETES_DIR}}/argo

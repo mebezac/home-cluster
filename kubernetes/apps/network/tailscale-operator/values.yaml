@@ -1,0 +1,17 @@
+# Tailscale Kubernetes Operator values
+# https://github.com/tailscale/tailscale/tree/main/cmd/k8s-operator/deploy/chart
+# OAuth credentials: no `oauth:` block here. The chart then mounts the Secret
+# `operator-oauth` (keys client_id, client_secret), which ksops renders from
+# ./operator-oauth.sops.yaml in the repo source of this app.
+# NOTE: must be nested under operatorConfig — the chart has no top-level `resources` key,
+# and Helm silently ignores unknown top-level values (operator ran BestEffort until 2026-08-24).
+operatorConfig:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+proxyConfig:
+  defaultProxyClass: metrics
