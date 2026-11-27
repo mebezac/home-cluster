@@ -17,6 +17,18 @@ controllers:
         fsGroupChangePolicy: OnRootMismatch
         seccompProfile:
           type: RuntimeDefault
+      # Uploads hash every file (sha1/md5/adler32) before the blob goes to S3, so
+      # throughput follows CPU. On a busy wyse (2026-11-27: wyse-02 at 98%) a
+      # 200 MB upload ran at ~7 MB/s; prefer the 12-core talmacs.
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              preference:
+                matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: In
+                    values: ["talmac-01", "talmac-02", "talmac-03"]
 
     containers:
       opencloud:
@@ -64,7 +76,8 @@ controllers:
             cpu: 50m
             memory: 576Mi
           limits:
-            cpu: 1000m
+            # 1000m throttled the upload hashing in the migration copy.
+            cpu: 2000m
             memory: 1536Mi
         securityContext:
           allowPrivilegeEscalation: false
