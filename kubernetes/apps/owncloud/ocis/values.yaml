@@ -177,12 +177,8 @@ service:
       metrics:
         port: 9205
 
-serviceMonitor:
-  app:
-    serviceName: ocis
-    endpoints:
-      - port: metrics
-        path: /metrics
+# No serviceMonitor: oCIS is scaled to 0 since the OpenCloud cutover (audit #115),
+# and a scrape job with no target fires ScrapePoolHasNoTargets.
 
 persistence:
   config:
