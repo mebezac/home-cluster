@@ -56,10 +56,6 @@ spec:
     - group: gateway.envoyproxy.io
       kind: SecurityPolicy
       namespace: castopod
-    # policy lives in kubernetes/apps/paperless/paperless-gpt/authelia.yaml (trial, #120)
-    - group: gateway.envoyproxy.io
-      kind: SecurityPolicy
-      namespace: paperless-gpt
   to:
     - group: ""
       kind: Service
