@@ -24,17 +24,18 @@ data:
 
 # data.installDisk: install target. data.macAddr: NIC matched by LinkAliasConfig.
 # data.vip: candidate for the control-plane VIP (Talos elects one holder among them).
+# data.watchdog: hardware watchdog device, only on nodes that have one (all/60-watchdog.yaml.tpl).
 nodes:
   - host: elitebook-01-talos-k3s-main-01
     ip: 10.25.30.45
     role: control-plane
     schematicId: "@schematics/elitebook.yaml"
-    data: { installDisk: /dev/sdb, macAddr: "30:e1:71:85:dd:5b", vip: true }
+    data: { installDisk: /dev/sdb, macAddr: "30:e1:71:85:dd:5b", vip: true, watchdog: /dev/watchdog0 }
   - host: elitebook-02-talos-k3s-main-02
     ip: 10.25.30.46
     role: control-plane
     schematicId: "@schematics/elitebook.yaml"
-    data: { installDisk: /dev/sdb, macAddr: "3c:52:82:3f:1c:98", vip: true }
+    data: { installDisk: /dev/sdb, macAddr: "3c:52:82:3f:1c:98", vip: true, watchdog: /dev/watchdog0 }
   - host: wyse-5070-03-talos-k3s-main-03
     ip: 10.25.30.35
     role: control-plane

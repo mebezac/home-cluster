@@ -24,9 +24,16 @@ Files ending in `.yaml.tpl` are Go-templated per node (`.Node.Host`, `.Node.IP`,
 `.Node.Data.*`, `.Data.*`, `.KubernetesVersion`); see the
 [topf configuration model](https://postfinance.github.io/topf/main/configuration-model/).
 
-Everything uses the Talos 1.14 multi-document kinds except `all/30-kubelet.yaml.tpl`, which
-has to stay on legacy `.machine.kubelet` because 1.14 has no multi-doc equivalent for kubelet
-`extraMounts` (see the note in that file).
+Everything uses the Talos 1.14 multi-document kinds except two legacy v1alpha1 blocks that 1.14
+has no multi-doc equivalent for: `all/30-kubelet.yaml.tpl` (`.machine.kubelet` extraMounts) and
+`all/80-logging.yaml` (`.machine.logging` service log destinations). See the notes in those files.
+
+- `all/60-watchdog.yaml.tpl`: hardware watchdog, rendered only for nodes with `data.watchdog`
+  in `topf.yaml` (today the elitebooks; wyse and talmac have no usable device, see the file).
+- `all/80-logging.yaml`: service and kernel logs to VictoriaLogs via the `talos-logs` DaemonSet.
+
+`TOPFCONFIG` (from `.mise.human.toml`) points at the main checkout. In a git worktree, pass
+`--topfconfig $PWD/topf.yaml`, or topf renders the main checkout's patches.
 
 ## Upgrades
 
