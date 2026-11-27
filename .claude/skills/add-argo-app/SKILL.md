@@ -83,8 +83,12 @@ style" means:
    config-file keys, CLI flags). For each: name, purpose, default, required vs
    optional, and secret vs non-secret. Chase the dedicated config/reference doc,
    not just the quickstart.
-3. **Optional configs / add-ons that fit THIS repo** — features worth enabling
-   given our conventions: Authelia/OIDC SSO, Prometheus metrics + ServiceMonitor,
+3. **Optional configs / add-ons that fit THIS repo** — first, a yes/no with
+   evidence: **does the app support OIDC / OAuth2 login?** If yes, Authelia OIDC is
+   MANDATORY, not an option (CLAUDE.md "Login: OIDC first"): the brief must give the
+   exact OIDC settings, the redirect URIs, how to turn the built-in login off, and
+   whether the app can take a custom client_id (we always use a random 72-char ID).
+   Then the real options that fit our conventions: Prometheus metrics + ServiceMonitor,
    external-vs-internal Gateway, central Postgres/valkey instead of bundled,
    extra persistence, sidecars, cron/maintenance jobs, backups. The subagent
    should return each as a concrete "we could also enable X (needs Y)" option
@@ -104,8 +108,11 @@ optional add-ons.
 
 Do NOT silently pick the fleshed-out config — surface the choices. Use the
 **AskUserQuestion** tool to let the user opt into the add-ons track #3 surfaced
-(and any genuine forks: which optional datastore, SSO or not, expose externally
-or keep internal, which optional volumes). Group related toggles; offer a
+(and any genuine forks: which optional datastore, expose externally or keep
+internal, which optional volumes). **OIDC is not one of the questions**: if the
+app supports it, wire Authelia OIDC (random client_id, built-in login off); ask
+only which lldap groups may log in. Forward auth is the fallback for apps with no
+OIDC. Group related toggles; offer a
 sensible default per the Repo-facts patterns. Anything the docs left ambiguous
 that research couldn't settle goes here too.
 
