@@ -13,7 +13,10 @@ controllers:
       main:
         image:
           repository: ghcr.io/jellyfin/jellyfin
-          tag: 10.11.11@sha256:45f648c382a0c8b552582fcea40e95cb17c5d475473a891cba0eb7523fb92112
+          # 12.x tags have two parts (12.4); a Renovate rule in .github/renovate.json5
+          # compares them. 12.0 has one-way database migrations: back up jellyfin-data
+          # (Kopiur) before any upgrade, and run a full library scan after a major one.
+          tag: 12.4@sha256:fea863d0cd9ec445985d9c75fc6ed64e38a1d2766cf0c250a33d553f4fc1b771
         resources:
           # 7d metrics (2026-09-08): peak 1.1Gi during transcoding, p95 770Mi.
           # The peak came from an OLDER pod generation - the running pod was

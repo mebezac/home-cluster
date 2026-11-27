@@ -382,6 +382,17 @@
     },
     {
       description: [
+        "Override versioning for Jellyfin: since 12.0 the release tags have two parts (12.4), and docker",
+        "versioning does not compare them with the old three-part tags (10.11.11), so no PR opened for 12.x.",
+        "The regex takes MAJOR.MINOR with an optional .PATCH. It skips the date builds (2024030404), the",
+        "-rc tags, the per-arch tags (-amd64) and the four-part packaging tags (10.11.11.0-1).",
+      ],
+      matchDatasources: ["docker"],
+      matchPackageNames: ["ghcr.io/jellyfin/jellyfin", "jellyfin/jellyfin", "docker.io/jellyfin/jellyfin"],
+      versioning: "regex:^(?<major>\\d+)\\.(?<minor>\\d+)(\\.(?<patch>\\d+))?$",
+    },
+    {
+      description: [
         "Override versioning for the immich postgres compound tag",
         "Tag shape: <pgmajor>-vectorchord<x.y.z>-pgvector<a.b.c>, e.g. 18-vectorchord0.5.3-pgvector0.8.1.",
         "Default docker versioning cannot parse this, so Renovate silently offered nothing at all.",
