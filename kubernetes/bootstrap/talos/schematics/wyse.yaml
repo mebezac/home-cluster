@@ -1,4 +1,10 @@
+# SELinux off (-selinux selinux=0, docs.siderolabs.com/talos/v1.14/security/selinux): Talos ran it
+# permissive, so it enforced nothing and only logged ~30k AVC denials an hour (argocd-repo-server,
+# containerd, longhorn). Takes effect on the next talosctl upgrade to this schematic.
 customization:
+  extraKernelArgs:
+    - -selinux
+    - selinux=0
   systemExtensions:
     officialExtensions:
       - siderolabs/i915

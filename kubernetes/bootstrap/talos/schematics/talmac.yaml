@@ -2,11 +2,16 @@
 # are the usual i915 args. Stock factory images boot these Macs only on Talos >= v1.14.2
 # (Apple EFI-stub fix, siderolabs/pkgs@6c312e4, talos#13579) - never run a talmac on
 # v1.13.0-v1.14.1. The old custom GCC installer (mebezac/talos-mac-installer) is archived.
+# SELinux off (-selinux selinux=0, docs.siderolabs.com/talos/v1.14/security/selinux): Talos ran it
+# permissive, so it enforced nothing and only logged ~30k AVC denials an hour (argocd-repo-server,
+# containerd, longhorn). Takes effect on the next talosctl upgrade to this schematic.
 customization:
   extraKernelArgs:
     - intel_iommu=on
     - iommu=pt
     - pcie_ports=compat
+    - -selinux
+    - selinux=0
   systemExtensions:
     officialExtensions:
       - siderolabs/i915
