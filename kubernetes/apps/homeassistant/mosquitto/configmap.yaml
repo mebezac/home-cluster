@@ -5,11 +5,35 @@ metadata:
   name: mosquitto-configmap
   namespace: homeassistant
 data:
+  # Mosquitto 2.1 (man mosquitto.conf, v2.1.x). Clients, all as mqtt-user:
+  # zigbee2mqtt, Home Assistant, and Frigate on nuc02 (through the Tailscale proxy).
   mosquitto.conf: |
-    listener 1883
-    allow_anonymous false
+    # Logging: stdout, ISO timestamps. "information" is off: it logged every autosave.
+    # Connects, disconnects and auth failures are "notice".
+    log_dest stdout
+    log_type error
+    log_type warning
+    log_type notice
+    log_timestamp_format %Y-%m-%dT%H:%M:%S
+    connection_messages true
+
+    # Built-in persistence: retained messages and sessions in /mosquitto/data/mosquitto.db.
+    # (The persist-sqlite plugin is the 2.1 recommendation, but the move needs
+    # mosquitto_db_dump, which the image does not ship.)
     persistence true
     persistence_location /mosquitto/data/
-    connection_messages false
     autosave_interval 60
-    password_file /mosquitto/external_config/mosquitto_pwd
+
+    # Auth: the password-file plugin replaces the password_file option (deprecated in
+    # 2.1, removed in 3.0). Same file format; init-config hashes the sops secret into it.
+    global_plugin /usr/lib/mosquitto_password_file.so
+    plugin_opt_password_file /mosquitto/external_config/mosquitto_pwd
+    allow_anonymous false
+
+    # max_packet_size keeps the 2.1 default of 2,000,000 bytes. The largest retained
+    # message is zigbee2mqtt/bridge/definitions at about 250 kB (Nov 2026).
+
+    listener 1883
+    listener_allow_anonymous false
+    # MQTT 3.1.1 (4) and 5 only; no client uses 3.1.
+    accept_protocol_versions 4, 5

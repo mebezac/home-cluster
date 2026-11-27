@@ -8,7 +8,8 @@ controllers:
         image:
           repository: public.ecr.aws/docker/library/eclipse-mosquitto
           # changelog: raw.githubusercontent.com/eclipse-mosquitto/mosquitto/v<ver>/ChangeLog.txt + mosquitto.org/blog/ (Renovate PR body misses Security section; keep init-config and app tags equal)
-          tag: 2.0.23@sha256:6a332cc7a8dbe011cbc076180cbb76b37c6f0f55809682ea08e7980ef0112ad9
+          # 2.1 is published only as <ver>-alpine; Renovate's docker versioning keeps the -alpine suffix.
+          tag: 2.1.4-alpine@sha256:fa12172a051310efe5bcb7a6a11b77bd5faacb82cbacd7742aa758bf024fd8e4
           pullPolicy: IfNotPresent
         command: ["/bin/sh", "-c"]
         args:
@@ -20,7 +21,8 @@ controllers:
         image:
           repository: public.ecr.aws/docker/library/eclipse-mosquitto
           # changelog: raw.githubusercontent.com/eclipse-mosquitto/mosquitto/v<ver>/ChangeLog.txt + mosquitto.org/blog/ (Renovate PR body misses Security section; keep init-config and app tags equal)
-          tag: 2.0.23@sha256:6a332cc7a8dbe011cbc076180cbb76b37c6f0f55809682ea08e7980ef0112ad9
+          # 2.1 is published only as <ver>-alpine; Renovate's docker versioning keeps the -alpine suffix.
+          tag: 2.1.4-alpine@sha256:fa12172a051310efe5bcb7a6a11b77bd5faacb82cbacd7742aa758bf024fd8e4
         resources:
           requests:
             cpu: 5m
