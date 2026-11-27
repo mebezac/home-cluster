@@ -4,7 +4,7 @@
 # user confirms the deletion (remove-argo-app skill).
 controllers:
   ocis:
-    replicas: 1
+    replicas: 0
     annotations:
       reloader.stakater.com/auto: "true"
     serviceAccount:
@@ -87,7 +87,8 @@ controllers:
       identifier: cleanup
     cronjob:
       schedule: "30 4 * * 0"
-      suspend: false
+      # oCIS is scaled to 0: the exec would fail.
+      suspend: true
       concurrencyPolicy: Forbid
       successfulJobsHistory: 1
       failedJobsHistory: 1
