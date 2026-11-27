@@ -29,7 +29,7 @@ defaultPodOptions:
 
 controllers:
   castopod:
-    replicas: 0
+    replicas: 1
     strategy: Recreate
     annotations:
       reloader.stakater.com/auto: "true"
@@ -55,7 +55,7 @@ controllers:
           S6_YES_I_WANT_A_WORLD_WRITABLE_RUN_BECAUSE_KUBERNETES: "1"
           CP_BASEURL: https://pod.laboratory.casa
           CP_MEDIA_BASEURL: https://pod.laboratory.casa/media/
-          CP_DATABASE_HOSTNAME: castopod-mariadb
+          CP_DATABASE_HOSTNAME: castopod-mariadb-lts
           CP_DATABASE_NAME: castopod
           CP_DATABASE_USERNAME: castopod
           CP_REDIS_HOST: valkey.valkey.svc.cluster.local
@@ -117,6 +117,8 @@ controllers:
           limits: { memory: 1536Mi }
 
   mariadb:
+    # Keep this controller and its original claim for rollback.
+    replicas: 0
     strategy: Recreate
     annotations:
       reloader.stakater.com/auto: "true"
@@ -124,9 +126,7 @@ controllers:
       app: &mariadb-container
         image:
           repository: docker.io/library/mariadb
-          # Latest GA (13.0, a rolling release; the LTS line is 12.3). Major bumps
-          # are in-place: MARIADB_AUTO_UPGRADE runs mariadb-upgrade at start.
-          # Take a Kopiur snapshot first (task kopiur:snapshot NS=castopod PVC=castopod-mariadb).
+          # Keep MariaDB 13 paired with the original data directory.
           tag: 13.0.2@sha256:54f493ea0d60b621a5bff84e5b20100f8b86b6efa6b79158e04756c5194a5e4d
         args:
           - --innodb-buffer-pool-size=128M
@@ -222,7 +222,7 @@ controllers:
       concurrencyPolicy: Forbid
       activeDeadlineSeconds: 180
       backoffLimit: 1
-      suspend: true
+      suspend: false
     pod:
       automountServiceAccountToken: false
       affinity:
