@@ -6,7 +6,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: oc115-migration-5
+  name: oc115-migration-final
 spec:
   backoffLimit: 2
   template:
@@ -35,6 +35,8 @@ spec:
             - |
               set -e
               cp /conf/rclone.conf /tmp/rclone.conf
+              # final pass after the cutover: let the route move settle first
+              sleep 120
               F="--exclude /Shares/**"
               # --bwlimit: OpenCloud stages each upload on its PVC until postprocessing
               # pushes it to SILO (~28 MiB/s, same NAS that oCIS reads from); faster

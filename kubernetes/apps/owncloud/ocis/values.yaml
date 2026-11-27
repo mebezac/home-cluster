@@ -1,5 +1,10 @@
+# RETIRED 2026-11-27 (audit 2026-11-26 #115): OpenCloud (kubernetes/apps/opencloud)
+# serves files.laboratory.casa now. oCIS stays scaled to 0 with ocis-data and its
+# blobs in SILO bucket ocis (prefixes e949a387-.../ and 927dd808-.../) until the
+# user confirms the deletion (remove-argo-app skill).
 controllers:
   ocis:
+    replicas: 1
     annotations:
       reloader.stakater.com/auto: "true"
     serviceAccount:
@@ -82,6 +87,7 @@ controllers:
       identifier: cleanup
     cronjob:
       schedule: "30 4 * * 0"
+      suspend: false
       concurrencyPolicy: Forbid
       successfulJobsHistory: 1
       failedJobsHistory: 1
@@ -176,19 +182,6 @@ serviceMonitor:
     endpoints:
       - port: metrics
         path: /metrics
-
-route:
-  app:
-    hostnames:
-      - files.laboratory.casa
-    parentRefs:
-      - name: envoy-external
-        namespace: network
-        sectionName: https
-    rules:
-      - backendRefs:
-          - identifier: app
-            port: http
 
 persistence:
   config:

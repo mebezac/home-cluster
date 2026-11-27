@@ -186,13 +186,11 @@ service:
         port: 9205
 
 route:
-  # TEMPORARY, LAN only: the rclone copy from oCIS (audit #115) uploads through
-  # this host. Removed at the cutover, when files.laboratory.casa moves here.
-  migrate:
+  app:
     hostnames:
-      - opencloud-migrate.laboratory.casa
+      - files.laboratory.casa
     parentRefs:
-      - name: envoy-internal
+      - name: envoy-external
         namespace: network
         sectionName: https
     rules:
