@@ -1,0 +1,122 @@
+defaultPodOptions:
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 3000
+    runAsGroup: 3000
+    fsGroup: 3000
+    fsGroupChangePolicy: OnRootMismatch
+    seccompProfile: { type: RuntimeDefault }
+
+controllers:
+  paperless-gpt:
+    annotations:
+      reloader.stakater.com/auto: "true"
+    # TRIAL (audit 2026-11-26 #120): paperless-gpt next to paperless-ai, to compare its
+    # suggestions on existing documents. paperless-ai stays the live metadata writer.
+    # It can NOT change Paperless: the Paperless user "paperless-gpt" is view-only
+    # (view_document/tag/correspondent/documenttype/customfield, no add/change/delete) and
+    # has no object permission on any document, so it lists 0 documents and every write
+    # (Apply, trigger-tag removal, its startup marker tags) gets a 403. Suggestions come
+    # from POST /api/generate-suggestions with the document content in the request.
+    # No auth of its own: Authelia (apps_admin) on the route, and the NetworkPolicy lets
+    # only envoy-internal reach the pod.
+    # To retire: remove-argo-app, then delete the Paperless user "paperless-gpt".
+    containers:
+      app:
+        image:
+          repository: ghcr.io/icereed/paperless-gpt
+          # changelog: GH releases icereed/paperless-gpt
+          tag: v0.31.0@sha256:d668941a829552cc0eddbc7c22506b3480dfbf61bd0d6eae881ad9fcfe2de70c
+        env:
+          TZ: America/New_York
+          # 3.5.0+ Paperless allows only the hosts in PAPERLESS_ALLOWED_HOSTS: use the Service name.
+          PAPERLESS_BASE_URL: http://paperless.paperless.svc.cluster.local:8000
+          PAPERLESS_PUBLIC_URL: https://paperless.laboratory.casa
+          # Same backend and model as paperless-ai, for a fair comparison.
+          LLM_PROVIDER: anthropic
+          LLM_MODEL: claude-sonnet-5-5
+          LLM_LANGUAGE: English
+          # LLM OCR only runs on an explicit OCR job (no auto-OCR tag exists in Paperless).
+          OCR_PROVIDER: llm
+          VISION_LLM_PROVIDER: anthropic
+          VISION_LLM_MODEL: claude-sonnet-5-5
+          PDF_UPLOAD: "false"
+          PDF_OCR_TAGGING: "false"
+          # No completion tag; the trigger tags stay the defaults (paperless-gpt,
+          # paperless-gpt-auto), which do not exist in Paperless.
+          AUTO_TAG_COMPLETE: ""
+          CREATE_NEW_TAGS: "false"
+          LOG_LEVEL: info
+        envFrom:
+          # PAPERLESS_API_TOKEN, ANTHROPIC_API_KEY
+          - secretRef:
+              name: paperless-gpt-secret
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities: { drop: ["ALL"] }
+        probes:
+          liveness: &probe
+            enabled: true
+            custom: true
+            spec:
+              httpGet: { path: /api/version, port: 8080 }
+              periodSeconds: 30
+              timeoutSeconds: 5
+          readiness: *probe
+        resources:
+          # README reserves 20M. Page rendering for LLM OCR needs more.
+          requests:
+            cpu: 10m
+            memory: 64Mi
+          limits:
+            memory: 1Gi
+
+service:
+  app:
+    controller: paperless-gpt
+    ports:
+      http:
+        port: 8080
+
+route:
+  app:
+    labels:
+      auth: authelia
+    hostnames:
+      - paperless-gpt.laboratory.casa
+    parentRefs:
+      - name: envoy-internal
+        namespace: network
+        sectionName: https
+    rules:
+      - backendRefs:
+          - identifier: app
+            port: http
+
+persistence:
+  # config/settings.json (custom-field selection, workflows), prompts/ (edited prompt
+  # templates), db/ (SQLite: modification history, OCR runs).
+  data:
+    type: persistentVolumeClaim
+    storageClass: longhorn
+    accessMode: ReadWriteOnce
+    suffix: data
+    size: 1Gi
+    # A new PVC fills from the latest Kopiur snapshot (Restore paperless-gpt-data,
+    # kopiur-backup source in the Argo app), or comes up empty on a first install.
+    dataSourceRef:
+      apiGroup: kopiur.home-operations.com
+      kind: Restore
+      name: paperless-gpt-data
+    globalMounts:
+      - path: /app/config
+        subPath: config
+      - path: /app/prompts
+        subPath: prompts
+      - path: /app/db
+        subPath: db
+  tmp:
+    type: emptyDir
+    globalMounts:
+      - path: /tmp
