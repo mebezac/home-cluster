@@ -140,14 +140,10 @@ server:
       enabled: true
       additionalLabels:
         release: victoria-metrics-stack
+# Off (audit #108, 2026-11-27): it delivered 0 notifications in 7 days, and the
+# ArgoAppUnhealthy / ArgoAppOutOfSync rules (prometheusrule.yaml) already page.
 notifications:
-  replicas: 1
-  metrics:
-    enabled: true
-    serviceMonitor:
-      enabled: true
-      additionalLabels:
-        release: victoria-metrics-stack
+  enabled: false
 repoServer:
   replicas: 1
   # non-file memory (working_set - active_file), 14d to 2026-10-21: p99 71Mi, max 314Mi (helm/ksops renders spike). CPU p95 168m.
