@@ -1,8 +1,15 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
+generators:
+  - secret-generator.yaml
 configMapGenerator:
   - name: birdnet-go-rtsp-streams
     files:
       - rtsp-streams.yaml=./rtsp-streams.yaml
+    options:
+      disableNameSuffixHash: true
+  - name: birdnet-go-settings
+    files:
+      - settings.yaml=./settings.yaml
     options:
       disableNameSuffixHash: true

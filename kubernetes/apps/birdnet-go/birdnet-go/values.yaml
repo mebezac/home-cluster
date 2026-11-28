@@ -9,18 +9,37 @@ controllers:
     annotations:
       reloader.stakater.com/auto: "true"
     initContainers:
-      # BirdNET-Go has no env var for realtime.rtsp.streams and writes other
-      # UI-managed settings back to /config/config.yaml, so patch only the
-      # stream list from git before startup (audit 2026-11-26 #6).
-      sync-rtsp-streams:
+      # BirdNET-Go has env overrides only for a few fixed keys (no stream list,
+      # OIDC, trusted proxies or clip format) and writes UI-managed settings back
+      # to /config/config.yaml, so patch only the git-managed keys before
+      # startup: the stream list (audit 2026-11-26 #6) and settings.yaml, plus
+      # the OIDC secrets from birdnet-go-oidc-secret.
+      sync-git-config:
         image:
           repository: ghcr.io/mikefarah/yq
           tag: 4.54.3@sha256:7834187596ad56fd5a81436114e0b0b9dd54c91bb43946d1f7145b2be5f9c3d2
+        env:
+          OIDC_CLIENT_SECRET:
+            valueFrom:
+              secretKeyRef:
+                name: birdnet-go-oidc-secret
+                key: OIDC_CLIENT_SECRET
+          OIDC_ALLOWED_USERS:
+            valueFrom:
+              secretKeyRef:
+                name: birdnet-go-oidc-secret
+                key: OIDC_ALLOWED_USERS
         command: ["/bin/sh", "-ec"]
         args:
           - |
+            : "${OIDC_CLIENT_SECRET:?}" "${OIDC_ALLOWED_USERS:?}"
             if [ -f /config/config.yaml ]; then
-              yq --indent 4 '.realtime.rtsp.streams = load("/etc/birdnet-go/rtsp-streams.yaml")' /config/config.yaml > /config/.config.yaml.tmp
+              yq --indent 4 '
+                . *= (load("/etc/birdnet-go/settings.yaml") | ... comments = "") |
+                .security.oauthProviders[0].clientSecret = strenv(OIDC_CLIENT_SECRET) |
+                .security.oauthProviders[0].userId = strenv(OIDC_ALLOWED_USERS) |
+                .realtime.rtsp.streams = (load("/etc/birdnet-go/rtsp-streams.yaml") | ... comments = "")
+              ' /config/config.yaml > /config/.config.yaml.tmp
               chmod 600 /config/.config.yaml.tmp
               mv /config/.config.yaml.tmp /config/config.yaml
             fi
@@ -144,7 +163,16 @@ persistence:
     name: birdnet-go-rtsp-streams
     advancedMounts:
       birdnet-go:
-        sync-rtsp-streams:
+        sync-git-config:
           - path: /etc/birdnet-go/rtsp-streams.yaml
             subPath: rtsp-streams.yaml
+            readOnly: true
+  settings:
+    type: configMap
+    name: birdnet-go-settings
+    advancedMounts:
+      birdnet-go:
+        sync-git-config:
+          - path: /etc/birdnet-go/settings.yaml
+            subPath: settings.yaml
             readOnly: true

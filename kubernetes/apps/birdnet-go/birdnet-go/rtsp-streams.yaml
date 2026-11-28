@@ -1,5 +1,5 @@
 # Managed RTSP audio streams for BirdNET-Go, synced into /config/config.yaml
-# (.realtime.rtsp.streams) by the sync-rtsp-streams init container on startup.
+# (.realtime.rtsp.streams) by the sync-git-config init container on startup.
 # Uses Frigate's go2rtc restream on nuc02 (10.25.30.10:8554) because cameras
 # moved to the isolated camera VLAN (10.25.50.4-7) which only Frigate can reach.
 - name: Fish Cam

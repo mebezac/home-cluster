@@ -1,0 +1,30 @@
+# BirdNET-Go settings kept in git. BirdNET-Go has env overrides only for a few
+# fixed keys (internal/conf/env.go), so the sync-git-config init container
+# deep-merges this file into /config/config.yaml before every start (lists are
+# replaced, not appended). A change made in the web UI to one of these keys
+# lasts only until the next restart. Secrets come from birdnet-go-oidc-secret.
+security:
+  baseurl: https://bird.laboratory.casa
+  # Envoy Gateway proxies (namespace network) connect from the pod CIDR. Listed
+  # so their X-Forwarded-For is trusted and the login rate limit counts each
+  # client, not the Envoy pod.
+  trustedproxies:
+    - 10.69.0.0/16
+  # Login through Authelia OIDC only (client "BirdNET-Go" in
+  # security/authelia/authelia-config.yaml, policy birdnet_go_admins).
+  basicauth:
+    enabled: false
+  oauthProviders:
+    - provider: oidc
+      enabled: true
+      clientId: "sZFNEeDf46NVNe0~48~kDisvVI49z3qUA5GN8FNx62~33bStK6ESrtpJ-_ynOL5Ho.LapLD9"
+      # clientSecret and userId (the allowed email list): set by the init
+      # container from birdnet-go-oidc-secret.
+      issuerUrl: https://login.laboratory.casa
+      scopes: ["openid", "profile", "email"]
+      # Redirect URI: <baseurl>/auth/openid-connect/callback (built by BirdNET-Go).
+realtime:
+  audio:
+    export:
+      # MP3 is discouraged upstream (lower quality, System > Health warns on it).
+      type: opus
