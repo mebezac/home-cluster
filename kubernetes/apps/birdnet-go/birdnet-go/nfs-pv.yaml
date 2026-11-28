@@ -1,0 +1,37 @@
+---
+# NAS volume birdnet-go/birdnet-go-clips: dataset data/k8s/pv/birdnet-go/birdnet-go-clips and its NFS share live in truenas-terraform
+# (k8s-volumes.tf). Static PV, reclaim Retain: nothing in the cluster can delete the data.
+# Restore in place with Kopiur (task kopiur:restore-path); there is no dataSourceRef.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: birdnet-go-birdnet-go-clips
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false,Delete=false
+spec:
+  capacity:
+    storage: 50Gi  # the dataset refquota
+  accessModes: ["ReadWriteMany"]
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  mountOptions: ["noatime", "nfsvers=4.2"]
+  nfs:
+    server: 10.25.30.36
+    path: /mnt/data/k8s/pv/birdnet-go/birdnet-go-clips
+  claimRef:
+    namespace: birdnet-go
+    name: birdnet-go-clips
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: birdnet-go-clips
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false,Delete=false
+spec:
+  accessModes: ["ReadWriteMany"]
+  storageClassName: ""
+  volumeName: birdnet-go-birdnet-go-clips
+  resources:
+    requests:
+      storage: 50Gi

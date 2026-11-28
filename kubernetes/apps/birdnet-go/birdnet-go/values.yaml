@@ -152,21 +152,9 @@ persistence:
     globalMounts:
       - path: /data
   clips:
-    # audio recordings — bulk, non-critical data on TrueNAS NFS (no replication needed)
-    forceRename: birdnet-go-clips
-    type: persistentVolumeClaim
-    storageClass: freenas-api-nfs
-    accessMode: ReadWriteOnce
-    size: 50Gi
-    # No Kopiur backup (2026-11-28, see the Argo app), so the Restore this names is gone.
-    # dataSourceRef is immutable, so it stays on the bound PVC; it does nothing there.
-    # Remove it when the PVC is replaced: a NEW PVC with it waits for the Restore forever.
-    dataSourceRef:
-      apiGroup: kopiur.home-operations.com
-      kind: Restore
-      name: birdnet-go-clips
-    annotations:
-      argocd.argoproj.io/sync-options: Prune=false,Delete=false
+    # Audio recordings on the NAS (no Kopiur backup, a hobby app). Static PV and PVC in
+    # nfs-pv.yaml; the dataset is in truenas-terraform (k8s-volumes.tf).
+    existingClaim: birdnet-go-clips
     globalMounts:
       - path: /data/clips
   rtsp-streams:
