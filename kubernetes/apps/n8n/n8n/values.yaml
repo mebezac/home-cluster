@@ -17,7 +17,7 @@ controllers:
           # 10-day minimumReleaseAge in .github/renovate.json5 needs (same digests on both).
           repository: n8nio/n8n
           # changelog: GH releases n8n-io/n8n tag "n8n@<version>" (PR body is a stub; upstream skips some patch numbers - check git refs). Check the target is NOT a GH Pre-release: the age gate can land on an aged beta patch (e.g. x.y.1) while the stable x.y.N is still too young - hand-bump to the newest non-pre-release patch of that minor. For a major, read n8n-io/n8n-docs docs/changelog/v<NN>-breaking-changes.md + Settings > Migration Report, and check startup deprecation warnings in the pod log
-          tag: 2.48.5@sha256:c0ea1246a81a34ce8e2b3cfb1f718b97de64b0a1b3747ad24d6d431826bb71ad
+          tag: 2.49.0@sha256:684eb4c4f695cc6ca2a29c28ff880e17248189b4b56ed5b473153a5e6b19e4c8
         env:
           DB_TYPE: postgresdb
           DB_POSTGRESDB_SCHEMA: public
