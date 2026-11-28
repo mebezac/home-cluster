@@ -44,7 +44,7 @@ jobs:
   render-diff:
     name: Render diff
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45 # up to 3 attempts of the Argo CD install (Render diff step)
     permissions:
       contents: read
       pull-requests: write # the diff comment
@@ -102,23 +102,40 @@ jobs:
           # group, so talos-backup's two ServiceAccounts (v1 and talos.dev) swap places and
           # show a false diff on every PR. Leave the talos.dev one out of the diff.
           IGNORE_RESOURCES: "talos.dev:ServiceAccount:*"
+        # The Argo CD install in kind waits a hardcoded 300 s per deployment (v0.2.18,
+        # pkg/argocd/argocd.go EnsureArgoCdIsReady; no option), and argocd-redis sometimes
+        # misses it on a slow runner (3 false failures on 2026-11-27). Retry only that
+        # install failure, up to 3 attempts; any other failure fails at once.
+        shell: bash
         run: |
-          docker run \
-            --network=host \
-            -v /var/run/docker.sock:/var/run/docker.sock \
-            -v "$PWD/main:/base-branch" \
-            -v "$PWD/pull-request:/target-branch" \
-            -v "$PWD/output:/output" \
-            -v "$PWD/pull-request/.github/argocd-diff-preview:/argocd-config" \
-            -e BASE_BRANCH \
-            -e TARGET_BRANCH \
-            -e REPO \
-            -e ARGOCD_CHART_VERSION \
-            -e MAX_DIFF_LENGTH=60000 \
-            -e TIMEOUT=600 \
-            -e IGNORE_RESOURCES \
-            -e TITLE="Argo CD render diff" \
-            "$DIFF_PREVIEW_IMAGE"
+          run_diff() {
+            docker run \
+              --network=host \
+              -v /var/run/docker.sock:/var/run/docker.sock \
+              -v "$PWD/main:/base-branch" \
+              -v "$PWD/pull-request:/target-branch" \
+              -v "$PWD/output:/output" \
+              -v "$PWD/pull-request/.github/argocd-diff-preview:/argocd-config" \
+              -e BASE_BRANCH \
+              -e TARGET_BRANCH \
+              -e REPO \
+              -e ARGOCD_CHART_VERSION \
+              -e MAX_DIFF_LENGTH=60000 \
+              -e TIMEOUT=600 \
+              -e IGNORE_RESOURCES \
+              -e TITLE="Argo CD render diff" \
+              "$DIFF_PREVIEW_IMAGE"
+          }
+          for attempt in 1 2 3; do
+            set +e
+            run_diff 2>&1 | tee diff-preview.log
+            rc=${PIPESTATUS[0]}
+            set -e
+            [ "$rc" -eq 0 ] && exit 0
+            grep -qE 'Failed to install Argo CD|failed to wait for argocd-' diff-preview.log || exit "$rc"
+            echo "::warning::Argo CD install in kind timed out (attempt $attempt of 3)"
+          done
+          exit 1
 
       # One comment per PR, updated in place on every push.
       - name: Post diff comment
