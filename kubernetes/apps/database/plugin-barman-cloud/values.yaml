@@ -23,3 +23,10 @@ affinity:
               operator: Exists
 tolerations:
   - key: node-role.kubernetes.io/control-plane
+# 2m CPU / 23Mi used (2026-11-27). Requests so it is not BestEffort on a control plane.
+resources:
+  requests:
+    cpu: 10m
+    memory: 64Mi
+  limits:
+    memory: 256Mi
