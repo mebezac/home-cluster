@@ -38,6 +38,37 @@ in 8010c9cc). There is no `talconfig.yaml`, `talsecret.sops.yaml`, `patches/` or
 repo (mise shims fail outside it) or prefix with `mise exec --`. `task --list` shows the
 `talos:*` wrappers (`render`, `diff`, `apply-node`, `nodes`, `upgrade-node`, `talosconfig`).
 
+## A version rollout runs with tuppr (since 2026-11-28)
+
+For a plain Talos version bump on all nodes, use tuppr, not the manual loop below. The manual
+loop stays for one node, a reinstall, a schematic move, or when tuppr is down.
+
+- Argo app `tuppr` (ns `system-upgrade`); plans in `kubernetes/apps/system-upgrade/tuppr/`:
+  `wyse-workers` (never suspended, so a merged Renovate Talos PR starts it at once),
+  `talmacs` and `control-planes` (suspended in git between rollouts). Each plan's header
+  comment holds its own pre-checks. The CEL health checks (Longhorn, CNPG, Kopiur, every
+  Deployment/StatefulSet ready) run before EACH node; a failing check waits, it never fails.
+- Order: wyse-workers → talmacs → control-planes. Before the control planes, forfeit the etcd
+  leader so it lands on wyse-03 (the last node by name; command in that plan's header).
+- Un-suspend and re-suspend with a git commit (remove/add the `tuppr.home-operations.com/suspend`
+  annotation), never kubectl: Argo selfHeal reverts it.
+- Watch with `kubectl get talosupgrades` and the plan's `.status.message`. A plan that sits in
+  HealthChecking is tuppr working as designed: find the check that fails and fix the cause.
+- Afterwards: re-suspend plans 2 and 3, run `task talos:diff` (expect "no changes" on all 8).
+
+**First run, 2026-11-28 (v1.14.6 → v1.14.7):** about 9 h wall time, but under 1 h of actual
+upgrades (talmacs 20 min, control planes 10 min, powercycle, no BootFFFF). Two waits at the gate:
+1. **jellyfin Pending, every node 0 `gpu.intel.com/i915`** (2 h). Not tuppr: intel device
+   plugins 0.37.2 moved the plugin's device mount, but the operator only rewrites the args of an
+   existing DaemonSet. Fixed by a rename of the GpuDevicePlugin CR (`intel-gpu/values.yaml`).
+   After any intel operator bump, check node capacity before a rollout.
+2. **A Longhorn rebuild stuck in WO mode** (homeassistant-config, 6 h). The rebuild's source was
+   the replica address on the node that had just rebooted; it failed 3 times and Longhorn never
+   retried (`engine.status.rebuildStatus` state `error`). Fix: delete the WO replica
+   (`kubectl -n longhorn-system delete replicas.longhorn.io <name>`); Longhorn makes a new one
+   and rebuilt it in 1 min. Find them with
+   `kubectl -n longhorn-system get engines.longhorn.io -o json | jq -r '.items[].status.replicaModeMap // {} | to_entries[] | select(.value=="WO") | .key'`.
+
 ## Setup (run first, every session)
 
 ```bash
