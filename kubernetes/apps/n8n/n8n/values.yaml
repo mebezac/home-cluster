@@ -17,7 +17,7 @@ controllers:
           # 10-day minimumReleaseAge in .github/renovate.json5 needs (same digests on both).
           repository: n8nio/n8n
           # changelog: GH releases n8n-io/n8n tag "n8n@<version>" (PR body is a stub; upstream skips some patch numbers - check git refs). Check the target is NOT a GH Pre-release: the age gate can land on an aged beta patch (e.g. x.y.1) while the stable x.y.N is still too young - hand-bump to the newest non-pre-release patch of that minor. For a major, read n8n-io/n8n-docs docs/changelog/v<NN>-breaking-changes.md + Settings > Migration Report, and check startup deprecation warnings in the pod log
-          tag: 2.48.5@sha256:c0ea1246a81a34ce8e2b3cfb1f718b97de64b0a1b3747ad24d6d431826bb71ad
+          tag: 2.49.8@sha256:9a83f64039070a846723cdf7d95b85db9ad1e6fadb38cad1ca12eceb04e04f33
         env:
           DB_TYPE: postgresdb
           DB_POSTGRESDB_SCHEMA: public
@@ -121,7 +121,7 @@ controllers:
       runners:
         image:
           repository: n8nio/runners
-          tag: 2.48.5@sha256:3d502b6dcb975958df66f80ceb59d30584e86d7339a4659730d3ecfb74c91fc0
+          tag: 2.49.8@sha256:8139b6e36b45c93d4300f3c3742648a81b0e96fd7f4f56a10a25823d009c13eb
         env:
           N8N_RUNNERS_TASK_BROKER_URI: http://127.0.0.1:5679
           N8N_RUNNERS_TASK_TIMEOUT: *taskTimeout
