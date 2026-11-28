@@ -1,0 +1,133 @@
+---
+# The tuppr chart's alert rules (chart 0.5.14, monitoring.prometheusRule) copied here so one rule
+# can change: the chart has no per-rule override. Only change: TupprUpgradeBlocked no longer
+# matches reason "Suspended". Plans 2 and 3 stay suspended in git between rollouts by design, so
+# the chart rule fired forever 30 min after each rollout. On a chart bump, diff the chart's
+# templates/prometheusrule.tpl against this file.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: tuppr-alerts
+  namespace: system-upgrade
+  labels:
+    app.kubernetes.io/name: tuppr
+    app.kubernetes.io/instance: tuppr
+spec:
+  groups:
+    - name: tuppr.talosupgrade
+      rules:
+        # Fires as soon as at least one node has permanently failed. The upgrade
+        # has stopped and will not proceed without manual intervention.
+        - alert: TalosUpgradeNodeFailed
+          expr: tuppr_talos_upgrade_nodes_failed > 0
+          for: 1m
+          labels:
+            severity: critical
+          annotations:
+            summary: >-
+              Talos upgrade {{ $labels.name }} has {{ $value }} failed node(s)
+            description: >-
+              Talos upgrade {{ $labels.name }} has {{ $value }} node(s) that failed to upgrade. The upgrade has stopped and requires manual intervention (e.g. remove the failed nodes from status or fix the underlying issue and reset with the reset annotation).
+        # Fires when the upgrade object itself is in Failed phase.
+        - alert: TalosUpgradeFailed
+          expr: tuppr_talos_upgrade_phase{phase="Failed"} == 1
+          for: 1m
+          labels:
+            severity: critical
+          annotations:
+            summary: >-
+              Talos upgrade {{ $labels.name }} is in Failed phase
+            description: >-
+              Talos upgrade {{ $labels.name }} has entered the Failed phase. Check controller logs and node conditions for details.
+        # Fires when an upgrade stays in an active phase longer than expected.
+        # Typical node upgrade (talosctl + reboot) takes 5–15 min; 1 h means
+        # something is genuinely stuck (crashed pod, unresponsive node, etc.).
+        - alert: TalosUpgradeStuck
+          expr: >-
+            tuppr_talos_upgrade_phase{phase=~"Upgrading|Rebooting|Draining|HealthChecking"} == 1
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: >-
+              Talos upgrade {{ $labels.name }} stuck in {{ $labels.phase }} phase
+            description: >-
+              Talos upgrade {{ $labels.name }} has been in the {{ $labels.phase }} phase for more than 1h. Check the upgrade job and target node for errors.
+    - name: tuppr.kubernetesupgrade
+      rules:
+        # Fires when the Kubernetes upgrade object itself is in Failed phase.
+        - alert: KubernetesUpgradeFailed
+          expr: tuppr_kubernetes_upgrade_phase{phase="Failed"} == 1
+          for: 1m
+          labels:
+            severity: critical
+          annotations:
+            summary: >-
+              Kubernetes upgrade {{ $labels.name }} is in Failed phase
+            description: >-
+              Kubernetes upgrade {{ $labels.name }} has entered the Failed phase. Check controller logs and the upgrade job for details.
+        # Fires when the Kubernetes upgrade stays in an active phase too long.
+        # A full control-plane upgrade typically completes in under 30 min.
+        - alert: KubernetesUpgradeStuck
+          expr: >-
+            tuppr_kubernetes_upgrade_phase{phase=~"Upgrading|HealthChecking"} == 1
+          for: 45m
+          labels:
+            severity: warning
+          annotations:
+            summary: >-
+              Kubernetes upgrade {{ $labels.name }} stuck in {{ $labels.phase }} phase
+            description: >-
+              Kubernetes upgrade {{ $labels.name }} has been in the {{ $labels.phase }} phase for more than 45 minutes. Check the upgrade job and control-plane nodes for errors.
+    - name: tuppr.blocked
+      rules:
+        # Fires when an upgrade has been blocked on an external dependency
+        # (image registry, another active upgrade; not the suspend annotation) long
+        # enough to suggest the dependency itself is broken, not just slow.
+        - alert: TupprUpgradeBlocked
+          expr: tuppr_upgrade_progressing{reason=~"Waiting.*"} == 0
+          for: 30m
+          labels:
+            severity: warning
+          annotations:
+            summary: >-
+              {{ $labels.upgrade_type | title }} upgrade {{ $labels.name }} blocked ({{ $labels.reason }})
+            description: >-
+              {{ $labels.upgrade_type }} upgrade {{ $labels.name }} has been blocked with reason {{ $labels.reason }} for more than 30m. Check the upgrade's status conditions and message.
+    - name: tuppr.jobs
+      rules:
+        # Fires when an upgrade job has been running longer than the configured
+        # active deadline (talos: ~100 min worst-case, kubernetes: 60 min).
+        # 1 h is a safe threshold that catches truly stuck jobs without false
+        # positives on slow-but-healthy upgrades.
+        - alert: UpgradeJobRunningTooLong
+          expr: tuppr_upgrade_jobs_active > 0
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: >-
+              {{ $labels.upgrade_type | title }} upgrade job running for over 1 hour
+            description: >-
+              A {{ $labels.upgrade_type }} upgrade job has been active for more than 1 hour, which exceeds the expected duration. The job may be stuck. Check the job logs in the controller namespace.
+    - name: tuppr.operator
+      rules:
+        - alert: TupprOperatorAbsent
+          expr: absent(tuppr_build_info)
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: tuppr operator is not reporting metrics
+            description: >-
+              No tuppr operator instance has reported metrics for 5 minutes. Upgrade alerts in this group will not fire while the operator is down. Check the controller deployment and ServiceMonitor.
+        - alert: TupprUpgradeFailureRate
+          expr: >-
+            sum(increase(tuppr_upgrades_completed_total{result="failure"}[1h])) > 2
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: tuppr has recorded multiple upgrade failures
+            description: >-
+              tuppr recorded more than 2 failed upgrade completions in the last hour. Inspect recent TalosUpgrade/KubernetesUpgrade objects and the controller logs.

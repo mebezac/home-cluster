@@ -49,8 +49,9 @@ rbac:
 monitoring:
   serviceMonitor:
     enabled: true
+  # The chart's rules live in prometheusrule.yaml (one rule changed; the chart has no per-rule override).
   prometheusRule:
-    enabled: true
+    enabled: false
 
 # Optional, not enabled in the draft (open question): hold a vmalertmanager silence for the run.
 # silences:

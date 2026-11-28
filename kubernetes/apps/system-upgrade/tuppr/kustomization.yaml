@@ -4,3 +4,4 @@ resources:
   - talosupgrade-1-wyse-workers.yaml
   - talosupgrade-2-talmacs.yaml
   - talosupgrade-3-control-planes.yaml
+  - prometheusrule.yaml
