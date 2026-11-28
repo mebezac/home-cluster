@@ -209,7 +209,7 @@ alertmanager:
     # parse and the flag would drop, so extraArgs sets it (extraArgs override operator defaults).
     image:
       repository: prom/alertmanager
-      tag: v0.35.0@sha256:e638797febd034838eca8b98cdbd46f951e9bf7f178777aa8669167406a9946c
+      tag: v0.35.1@sha256:4e3d029e69c7f61dd53a2b31a3dc427a2b81736cffca185c0854075e07969e36
     extraArgs:
       enable-feature: utf8-strict-mode
     # Non-root as uid 3000 (house rule). An explicit securityContext replaces the
