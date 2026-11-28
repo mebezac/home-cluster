@@ -1,10 +1,18 @@
-# Lets pods in kube-system get a Talos API client (a talos.dev ServiceAccount) limited to
-# os:etcd:backup, so the talos-backup CronJob (kubernetes/apps/kube-system/talos-backup)
-# can take etcd snapshots. Control plane only: the job runs on these nodes.
+# Lets pods get a Talos API client (a talos.dev ServiceAccount):
+# - kube-system: os:etcd:backup, for the talos-backup CronJob (kubernetes/apps/kube-system/talos-backup).
+# - system-upgrade: os:admin, for tuppr (kubernetes/apps/system-upgrade/tuppr), which upgrades
+#   Talos on every node through the control-plane apid.
+# The two lists are independent: a ServiceAccount may ask for any allowed role from any allowed
+# namespace, so os:admin is reachable from kube-system too. Anyone who can create a talos.dev
+# ServiceAccount (or read its Secret) in these namespaces is a Talos admin.
+# Control plane only: Talos supports the feature only there
+# (https://docs.siderolabs.com/kubernetes-guides/advanced-guides/talos-api-access-from-k8s).
 # The multi-doc form replaces the deprecated .machine.features.kubernetesTalosAPIAccess.
 apiVersion: v1alpha1
 kind: KubeTalosAPIAccessConfig
 allowedRoles:
   - os:etcd:backup
+  - os:admin
 allowedKubernetesNamespaces:
   - kube-system
+  - system-upgrade
