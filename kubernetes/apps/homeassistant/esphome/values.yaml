@@ -11,7 +11,7 @@ controllers:
           # https://github.com/home-operations/containers/tree/main/apps/esphome
           repository: ghcr.io/home-operations/esphome
           # changelog: esphome.io/changelog/<major.minor>.0.html ONLY - a patch page 404s, patch notes live in the GH release. Since 2026.10 that page only lists PRs; breaking changes + upgrade checklist are in the linked blog post esphome.io/blog/YYYY/MM/DD/esphome-YYYY-MM/. A bump changes the DASHBOARD only - devices keep old firmware until reflashed
-          tag: 2026.11.0@sha256:3395b0c336cd579ac601b59c66dd385609d1efac2bf3258056e43fb9f7956988
+          tag: 2026.11.1@sha256:405cc7437cddd2cfbf41cbfc22edd48a0ee3e34bc4055bb31e1ce2a9576f38c3
         env:
           - name: TZ
             value: "America/New_York"
