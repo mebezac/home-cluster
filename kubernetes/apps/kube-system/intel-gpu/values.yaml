@@ -1,4 +1,11 @@
 ---
+# The GpuDevicePlugin CR name (chart default gpudeviceplugin-sample). Renamed 2026-11-28 to make
+# the operator recreate its DaemonSet: operator 0.37.2 adds -prefix=/host to the plugin args and
+# moves the device mount to /host/dev, but UpdateDaemonSet rewrites only the args of an existing
+# DaemonSet, so the old /dev/dri mount stayed, the plugin found no GPU and every node reported
+# gpu.intel.com/i915 = 0 (jellyfin Pending). After an operator bump that changes the pod template,
+# check the node capacity; if it drops to 0, rename the CR again (or delete the DaemonSet).
+name: intel-gpu
 nodeFeatureRule: true
 resourceManager: false
 sharedDevNum: 4
