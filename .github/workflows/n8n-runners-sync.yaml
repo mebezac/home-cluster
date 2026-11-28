@@ -1,0 +1,66 @@
+---
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+# n8nio/runners (the task-runner sidecar) must carry exactly the n8n version. Renovate cannot
+# keep the two in step: on the Mend-hosted app the runners image gets no Docker Hub release
+# timestamps, so the 10-day minimumReleaseAge marks every runners version pending and the n8n
+# group PR leaves runners behind (#2935, 2026-11-27). Renovate therefore no longer updates
+# runners itself (.github/renovate.json5); this job sets the runners tag to the n8n version of
+# a Renovate PR, with the runners image's own digest, and pushes it to the PR branch.
+# A push made with GITHUB_TOKEN starts no other workflow, so the Image check of the PR covers
+# Renovate's commit only: this job checks the runners reference itself with crane.
+name: "n8n runners sync"
+
+on:
+  pull_request:
+    branches: ["main"]
+    paths: ["kubernetes/apps/n8n/n8n/values.yaml"]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  sync:
+    name: Sync runners to n8n
+    if: startsWith(github.head_ref, 'renovate/') && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # push the runners bump to the Renovate branch
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Setup crane
+        uses: imjasonh/setup-crane@feee3b6bb0d4c68370f256a4502498c9227e5c6b # v0.7
+        with:
+          # renovate: datasource=github-releases depName=google/go-containerregistry
+          version: v0.22.1
+
+      - name: Set the runners tag to the n8n version
+        env:
+          FILE: kubernetes/apps/n8n/n8n/values.yaml
+        run: |
+          n8n_tag=$(yq '.controllers.n8n.containers.app.image.tag' "$FILE")
+          runners_tag=$(yq '.controllers.n8n.containers.runners.image.tag' "$FILE")
+          want=${n8n_tag%%@*}
+          have=${runners_tag%%@*}
+          echo "n8n=$want runners=$have"
+          if [ "$want" = "$have" ]; then
+            echo "runners already match n8n"
+            exit 0
+          fi
+          digest=$(crane digest "docker.io/n8nio/runners:$want")
+          test -n "$digest"
+          # Replace only the runners tag line (the tag is unique in the file).
+          grep -c -F "tag: $runners_tag" "$FILE" | grep -qx 1
+          sed -i "s|tag: $runners_tag|tag: $want@$digest|" "$FILE"
+          test "$(yq '.controllers.n8n.containers.runners.image.tag' "$FILE")" = "$want@$digest"
+          crane manifest "docker.io/n8nio/runners:$want@$digest" > /dev/null
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "fix(container): n8nio/runners $have -> $want (match n8n)" -- "$FILE"
+          git push origin "HEAD:$GITHUB_HEAD_REF"

@@ -14,6 +14,9 @@
     title: "Renovate Dashboard 🤖",
   },
   suppressNotifications: ["prEditedNotification", "prIgnoreNotification"],
+  // Commits the workflows push to Renovate branches (n8n-runners-sync): Renovate keeps
+  // rebasing such a branch instead of treating it as edited by hand.
+  gitIgnoredAuthors: ["41898282+github-actions[bot]@users.noreply.github.com"],
   schedule: ["every weekend"],
   ignorePaths: ["**/*.sops.*"],
   argocd: {
@@ -123,14 +126,23 @@
         "cannot tell beta from stable. A new minor goes GH 'Latest' 3-8 days after its .0 (2.36-2.44),",
         "so hold every n8n version for 10 days. Needs Docker Hub (n8nio/n8n): ghcr has no publish dates.",
         "Caveat: the newest aged version can be an old beta patch of a now-stable minor - check in triage.",
-        "n8nio/runners (the task runner sidecar) must carry the same version as n8nio/n8n, so both",
-        "images move in one PR.",
       ],
       groupName: "n8n",
       matchDatasources: ["docker"],
-      matchPackageNames: ["n8nio/n8n", "docker.io/n8nio/n8n", "n8nio/runners", "docker.io/n8nio/runners"],
+      matchPackageNames: ["n8nio/n8n", "docker.io/n8nio/n8n"],
       minimumReleaseAge: "10 days",
       internalChecksFilter: "strict",
+    },
+    {
+      description: [
+        "n8nio/runners must carry exactly the n8n version, but on the Mend app it gets no Docker Hub",
+        "release timestamps, so the age gate held every runners version and the n8n PR left it behind",
+        "(#2935). Renovate does not update runners; .github/workflows/n8n-runners-sync.yaml sets it to",
+        "the n8n version on each Renovate n8n PR (gitIgnoredAuthors keeps Renovate rebasing that branch).",
+      ],
+      matchDatasources: ["docker"],
+      matchPackageNames: ["n8nio/runners", "docker.io/n8nio/runners"],
+      enabled: false,
     },
     {
       description: [
