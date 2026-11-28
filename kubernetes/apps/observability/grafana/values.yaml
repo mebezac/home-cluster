@@ -41,7 +41,7 @@ imageRenderer:
     registry: docker.io
     repository: grafana/grafana-image-renderer
     # changelog: GH releases grafana/grafana-image-renderer
-    tag: v5.12.11
+    tag: v5.12.12
     sha: cfa6c8f63e6d626f90208f2880f15bd5facc279daec1b9bb642af07aa850d95e
     pullPolicy: IfNotPresent
   # Grafana 13 needs a shared renderer token (JWT render auth). The chart would generate one
