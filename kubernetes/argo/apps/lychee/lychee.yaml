@@ -45,8 +45,10 @@ spec:
           copyMethod: Direct
           mover:
             runAsUser: 33
+          # A static NFS PV (nfs-pv.yaml) has no populator: restore in place with
+          # task kopiur:restore-path.
           restore:
-            enabled: true
+            enabled: false
   destination:
     name: in-cluster
     namespace: lychee

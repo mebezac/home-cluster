@@ -115,19 +115,10 @@ persistence:
       - path: /app/storage/logs
         subPath: logs
   uploads:
-    suffix: uploads
-    enabled: true
-    type: persistentVolumeClaim
-    storageClass: freenas-api-nfs
-    accessMode: ReadWriteOnce
-    size: 50Gi
-    # A new PVC fills from the latest Kopiur snapshot (Restore lychee-uploads, kopiur-backup
-    # source in the Argo app), or comes up empty on a first install. The fill takes
-    # about 17 minutes on an idle NAS (25.7 GB, 2026-11-02); hours while a big backup runs.
-    dataSourceRef:
-      apiGroup: kopiur.home-operations.com
-      kind: Restore
-      name: lychee-uploads
+    # Photos on the NAS. Static PV and PVC in nfs-pv.yaml; the dataset is in truenas-terraform
+    # (k8s-volumes.tf). Kopiur backs it up (Argo app); restore in place with
+    # task kopiur:restore-path, as a static PV has no dataSourceRef.
+    existingClaim: lychee-uploads
     globalMounts:
       - path: /app/public/uploads
   tmp:
