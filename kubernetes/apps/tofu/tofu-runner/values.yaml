@@ -93,7 +93,7 @@ podSpecs:
         type: RuntimeDefault
     containers:
       - name: main
-        image: ghcr.io/mebezac/tofu-runner:1.13.9@sha256:2aeae2d0c70471b1b8051a9f64fd4639751140c7e91a210b47abd0b1f2a8568b
+        image: ghcr.io/mebezac/tofu-runner:1.13.10@sha256:44ec6aa13e52a6d134cf8157f503fab81806c903abe1f33a7c3af6d175147f4a
         imagePullPolicy: IfNotPresent
         envFrom:
           - secretRef:
@@ -137,7 +137,7 @@ podSpecs:
         type: RuntimeDefault
     containers:
       - name: main
-        image: ghcr.io/mebezac/tofu-runner:1.13.9@sha256:2aeae2d0c70471b1b8051a9f64fd4639751140c7e91a210b47abd0b1f2a8568b
+        image: ghcr.io/mebezac/tofu-runner:1.13.10@sha256:44ec6aa13e52a6d134cf8157f503fab81806c903abe1f33a7c3af6d175147f4a
         imagePullPolicy: IfNotPresent
         envFrom:
           - secretRef:
