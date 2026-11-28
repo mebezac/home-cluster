@@ -119,7 +119,7 @@ controllers:
       runners:
         image:
           repository: n8nio/runners
-          tag: 2.49.8@sha256:8139b6e36b45c93d4300f3c3742648a81b0e96fd7f4f56a10a25823d009c13eb
+          tag: 3.3.0@sha256:7d6bf76088a08962b812a39dcb8c5ef7b038253a21f69fc4a2bfc1b6e9e486b9
         env:
           N8N_RUNNERS_TASK_BROKER_URI: http://127.0.0.1:5679
           N8N_RUNNERS_TASK_TIMEOUT: *taskTimeout
