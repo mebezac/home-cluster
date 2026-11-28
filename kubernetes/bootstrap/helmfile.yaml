@@ -46,7 +46,7 @@ releases:
     chart: oci://ghcr.io/argoproj/argo-helm/argo-cd
     # changelog: see kubernetes/argo/apps/argo-system/argo-cd.yaml - same chart, and this version
     # must be bumped in lockstep with the targetRevision there.
-    version: 10.18.2
+    version: 10.18.4
     # Same values as the Argo app, so the first repo-server already has ksops (the argo app
     # renders its own argocd-secret with ksops). The Gateway API CRDs do not exist yet here.
     values:
