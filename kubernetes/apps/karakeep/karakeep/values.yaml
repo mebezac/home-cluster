@@ -140,9 +140,11 @@ controllers:
           # Do NOT auto-merge bumps: a newer Meilisearch refuses an older data.ms. Set
           # MEILI_UPGRADE_DB=true for one start (one-way; back up first), or wipe data.ms
           # and run Admin > Background Jobs > "Reindex All Bookmarks". Upstream pins v1.41.0.
-          # Removing the flag later is a removal-only commit: Argo reads Synced, but the live env keeps it until the next real change to this Deployment (harmless once data.ms matches).
-          tag: v1.57.0@sha256:91bf09897482c17205c8faeca8daa8d57999fb9de20d862763cdfa92ba4ec790
+          # MEILI_UPGRADE_DB stays on for good (below): it is a no-op when data.ms already matches,
+          # and removing it once made the next bump (#2932) drop the flag in the same rollout.
+          tag: v1.58.0@sha256:cee0d2e31191594ff8e1651eb144aabd95b389a0bc3532327ecfb9ed91dffe7e
         env:
+          MEILI_UPGRADE_DB: "true"
           MEILI_NO_ANALYTICS: "true"
           MEILI_ENV: production
           MEILI_MASTER_KEY:
