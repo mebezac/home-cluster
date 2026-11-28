@@ -6,6 +6,12 @@
 # gpu.intel.com/i915 = 0 (jellyfin Pending). After an operator bump that changes the pod template,
 # check the node capacity; if it drops to 0, rename the CR again (or delete the DaemonSet).
 name: intel-gpu
+# Chart-default plugin image, pinned with a digest; moves with the chart version (Renovate group).
+# The chart builds <hub>/intel-gpu-plugin:<tag>. The operator webhook (>= 0.37.2) accepts tag@digest
+# and still checks the tag against ImageMinVersion, so keep the tag >= the operator version.
+image:
+  hub: intel
+  tag: "0.37.2@sha256:d8c5d202e53a5ca4ea4105f0b2729b3108ac4304aba948e956f80f5f38ae119b"
 nodeFeatureRule: true
 resourceManager: false
 sharedDevNum: 4

@@ -1,5 +1,9 @@
 ---
 fullnameOverride: reloader
+# Chart-default image, pinned with a digest; moves with the chart version (Renovate group).
+image:
+  repository: ghcr.io/stakater/reloader
+  tag: "v1.4.25@sha256:db8b1818f5da373ab85c05b30220fcae80a9ac0532052e6d68a6a5999111f18f"
 reloader:
   readOnlyRootFileSystem: true
   podMonitor:

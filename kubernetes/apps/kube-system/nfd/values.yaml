@@ -1,4 +1,9 @@
 ---
+# Chart-default image (master, worker, gc), pinned with a digest; moves with the chart version
+# (Renovate group).
+image:
+  repository: registry.k8s.io/nfd/node-feature-discovery
+  tag: "v0.20.1@sha256:6fc5c9af9176e1acb5ce57a4a1d0c0d3eb25cd34f5bdd0efefebf0efe45a8379"
 master:
   replicaCount: 1
   # chart default limit is 4Gi against ~14Mi real usage; on the small

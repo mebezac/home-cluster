@@ -1,6 +1,10 @@
 ---
 controller:
   externalAttacher:
+    # Chart-default image, pinned with a digest; moves with the chart version (Renovate group).
+    image:
+      registry: registry.k8s.io/sig-storage/csi-attacher
+      tag: "v4.4.0@sha256:dbded4ebe299973e31d0ef55815eb07a990fc67872b14900a8e69232acae4f2d"
     resources:
       requests:
         cpu: 10m
@@ -11,6 +15,10 @@ controller:
         ephemeral-storage: 5Gi
     verbosityLevel: 0
   externalProvisioner:
+    # Chart-default image, pinned with a digest; moves with the chart version (Renovate group).
+    image:
+      registry: registry.k8s.io/sig-storage/csi-provisioner
+      tag: "v3.6.0@sha256:6de50bacfd72627ffe4209e3db8ad7391d04ea6fb741bf51feab6c5dcfd80002"
     resources:
       requests:
         cpu: 10m
@@ -21,6 +29,10 @@ controller:
         ephemeral-storage: 5Gi
     verbosityLevel: 0
   externalResizer:
+    # Chart-default image, pinned with a digest; moves with the chart version (Renovate group).
+    image:
+      registry: registry.k8s.io/sig-storage/csi-resizer
+      tag: "v1.9.0@sha256:f1f352df97874442624fcef23eab04aa038f66cb0e361212f6ec09e92998184d"
     resources:
       requests:
         cpu: 10m
@@ -31,6 +43,10 @@ controller:
         ephemeral-storage: 5Gi
     verbosityLevel: 0
   externalSnapshotter:
+    # Chart-default image, pinned with a digest; moves with the chart version (Renovate group).
+    image:
+      registry: registry.k8s.io/sig-storage/csi-snapshotter
+      tag: "v8.2.1@sha256:5f4bb469fec51147ce157329dab598c758da1b018bad6dad26f0ff469326d769"
     resources:
       requests:
         cpu: 10m
@@ -54,6 +70,10 @@ controller:
         memory: 200Mi
         ephemeral-storage: 2Gi
 csiProxy:
+  # Chart-default image, pinned with a digest; moves with the chart version (Renovate group).
+  image:
+    registry: docker.io/democraticcsi/csi-grpc-proxy
+    tag: "v0.5.6@sha256:fc5fc1fe9c682463fe8b219db070930e77067d76449749ef5ba99cedd30fa437"
   resources:
     requests:
       cpu: 40m
@@ -101,6 +121,10 @@ node:
         memory: 200Mi
         ephemeral-storage: 5Gi
   driverRegistrar:
+    # Chart-default image, pinned with a digest; moves with the chart version (Renovate group).
+    image:
+      registry: registry.k8s.io/sig-storage/csi-node-driver-registrar
+      tag: "v2.9.0@sha256:cd21e19cd8bbd5bc56f1b4f1398a436e7897da2995d6d036c9729be3f4e456e6"
     resources:
       requests:
         cpu: 30m
@@ -111,6 +135,10 @@ node:
         ephemeral-storage: 5Gi
     verbosityLevel: 0
   cleanup:
+    # Chart-default image, pinned with a digest; moves with the chart version (Renovate group).
+    image:
+      registry: docker.io/busybox
+      tag: "1.37.0@sha256:a7dbc319b1438115a207e11930dc4bb3e643dcb3ec0bdd694bb36cd8fad289ec"
     resources:
       requests:
         cpu: 50m

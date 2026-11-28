@@ -35,6 +35,17 @@ defaultDashboards:
 
 # Enable Prometheus CRD conversion for smooth migration
 victoria-metrics-operator:
+  # Pinned to the chart default (appVersion); must move with the chart (Renovate group).
+  image:
+    repository: victoriametrics/operator
+    tag: v0.75.2@sha256:237fac68b608c7ed7bc4c47ad25ebcb1cbe973c9a789661d2b6cfaa83093f87a
+  # Sets VM_CONFIG_RELOADER_IMAGE: the sidecar the operator injects into
+  # vmagent/vmalert/vmalertmanager. Pinned to the operator's own default
+  # (config-reloader-<operator version>); must move with the chart (Renovate group).
+  configReloader:
+    image:
+      repository: victoriametrics/operator
+      tag: config-reloader-v0.75.2@sha256:6a997c5fe38692bff0384c0f113f8ab560f429d215649b16afc102ff81c80299
   operator:
     disable_prometheus_converter: false
     enable_converter_ownership: true
@@ -45,6 +56,10 @@ victoria-metrics-operator:
 vmsingle:
   enabled: true
   spec:
+    # Pinned to the chart default (appVersion); must move with the chart (Renovate group).
+    image:
+      repository: victoriametrics/victoria-metrics
+      tag: v1.157.0@sha256:322a7a92fdcc269280e9c38af94c83bc76827a31b792acbc60e44394e7f29c20
     # Non-root as uid 3000 (house rule). An explicit securityContext replaces the
     # operator's strict defaults (uid 65534) and still sets the container hardening
     # (read-only root, no privilege escalation, drop ALL) on every container.
@@ -93,6 +108,10 @@ vmsingle:
 vmagent:
   enabled: true
   spec:
+    # Pinned to the chart default (appVersion); must move with the chart (Renovate group).
+    image:
+      repository: victoriametrics/vmagent
+      tag: v1.157.0@sha256:cd0b125ac86821cbd6a020fc048908b2fc138d2ac121485c621a40ee63c93070
     # Non-root as uid 3000 (house rule). An explicit securityContext replaces the
     # operator's strict defaults (uid 65534) and still sets the container hardening
     # (read-only root, no privilege escalation, drop ALL) on every container.
@@ -139,6 +158,10 @@ vmagent:
 vmalert:
   enabled: true
   spec:
+    # Pinned to the chart default (appVersion); must move with the chart (Renovate group).
+    image:
+      repository: victoriametrics/vmalert
+      tag: v1.157.0@sha256:c550cfc345a1f3e130a3c78b3f5a910122448c66b3008d9a29eaa0559e9a23dd
     # Non-root as uid 3000 (house rule). An explicit securityContext replaces the
     # operator's strict defaults (uid 65534) and still sets the container hardening
     # (read-only root, no privilege escalation, drop ALL) on every container.
@@ -180,6 +203,15 @@ vmalert:
 alertmanager:
   enabled: true
   spec:
+    # Pinned to the chart default with a digest; must move with the chart (Renovate group).
+    # The operator reads this tag as semver to add --enable-feature=utf8-strict-mode
+    # (factory/vmalertmanager addFeatureFlags, alertmanager >= 0.28). A tag@digest fails that
+    # parse and the flag would drop, so extraArgs sets it (extraArgs override operator defaults).
+    image:
+      repository: prom/alertmanager
+      tag: v0.35.0@sha256:e638797febd034838eca8b98cdbd46f951e9bf7f178777aa8669167406a9946c
+    extraArgs:
+      enable-feature: utf8-strict-mode
     # Non-root as uid 3000 (house rule). An explicit securityContext replaces the
     # operator's strict defaults (uid 65534) and still sets the container hardening
     # (read-only root, no privilege escalation, drop ALL) on every container.
@@ -228,13 +260,32 @@ alertmanager:
 # Exporters - enabled after kube-prometheus-stack removal
 prometheus-node-exporter:
   enabled: true
+  # Pinned to the subchart default; must move with the chart (Renovate group).
+  # registry is explicit so Renovate looks the image up on quay.io, not Docker Hub.
+  image:
+    registry: quay.io
+    repository: prometheus/node-exporter
+    tag: v1.12.1@sha256:1b4e4438faca4dd7e001dd445d161a4a2091b0fededa84093b3a8dfeae1f1be0
 
 kube-state-metrics:
   enabled: true
+  # Pinned to the subchart default; must move with the chart (Renovate group).
+  # registry is explicit so Renovate looks the image up on registry.k8s.io, not Docker Hub.
+  image:
+    registry: registry.k8s.io
+    repository: kube-state-metrics/kube-state-metrics
+    tag: v2.20.0@sha256:42cfe3723a5f058171c627537fb57a3ea0f26e4380fa18555a95cb1a1b4cfc5b
 
 # Disable built-in Grafana, use existing
 grafana:
   enabled: false
+
+# Deploy-time job (Argo PostSync hook) that renders defaultRules/dashboards.
+syncJob:
+  # Pinned to the chart default; must move with the chart (Renovate group).
+  image:
+    repository: ghcr.io/victoriametrics/sync-job
+    tag: v0.0.18@sha256:1fdd38d82e100429b138d8500425773d6d319a35a53478a66ee20dff392e6117
 
 # Default scrape configs for K8s components
 defaultRules:

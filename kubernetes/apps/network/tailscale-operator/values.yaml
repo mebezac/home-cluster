@@ -6,6 +6,10 @@
 # NOTE: must be nested under operatorConfig — the chart has no top-level `resources` key,
 # and Helm silently ignores unknown top-level values (operator ran BestEffort until 2026-08-24).
 operatorConfig:
+  # Chart-default image, pinned with a digest; moves with the chart version (Renovate group).
+  image:
+    repository: tailscale/k8s-operator
+    tag: "v1.104.7@sha256:51ba104ff02afcc39f93189415c8b2f44fb6037e8592d626bfa52c3c8afc02f6"
   resources:
     requests:
       cpu: 100m
@@ -15,3 +19,9 @@ operatorConfig:
       memory: 256Mi
 proxyConfig:
   defaultProxyClass: metrics
+  # Chart-default proxy image (PROXY_IMAGE: every ts-* proxy StatefulSet, incl. the sysctler init
+  # container), pinned with a digest; moves with the chart version (Renovate group).
+  # Changing it restarts every tailscale proxy pod.
+  image:
+    repository: tailscale/tailscale
+    tag: "v1.104.7@sha256:72c1e19e0aedca96b8533bbb0b4368564410ff20b17e53b804eb6c1f04a31be4"

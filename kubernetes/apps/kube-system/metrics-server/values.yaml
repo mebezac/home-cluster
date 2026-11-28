@@ -2,6 +2,10 @@
 # The chart's defaultArgs already set --kubelet-preferred-address-types, --kubelet-use-node-status-port
 # and --metric-resolution=15s (the upstream minimum). Kubelet serving certs are signed by the cluster CA
 # (Talos kubelet serverTLSBootstrap + kubelet-csr-approver), so kubelet TLS is verified (audit 2026-10-21 #45).
+# Chart-default image, pinned with a digest; moves with the chart version (Renovate group).
+image:
+  repository: registry.k8s.io/metrics-server/metrics-server
+  tag: "v0.9.0@sha256:d9862115e7c7881280d3d75ca26bda8ffc0fc213315979575bf23ce9826205c0"
 args:
   - --kubelet-request-timeout=2s
 metrics:

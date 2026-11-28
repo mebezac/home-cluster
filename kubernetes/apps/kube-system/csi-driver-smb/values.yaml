@@ -9,3 +9,22 @@
 # (Talos has no request-key for the dns_resolver upcall).
 windows:
   enabled: false
+# Chart-default images, pinned with a digest; they move with the chart version
+# (Renovate group). Full repository paths: the chart prepends image.baseRepo
+# only to a repository that starts with "/".
+image:
+  smb:
+    repository: registry.k8s.io/sig-storage/smbplugin
+    tag: "v1.20.4@sha256:74e049de9d3203b4a968f26c8b73d4b3b15b9c4705688330cfa7281ae5f7b727"
+  csiProvisioner:
+    repository: registry.k8s.io/sig-storage/csi-provisioner
+    tag: "v6.3.0@sha256:a4b0b1a37605b7b04a293e136edf7006ec1786a8eb3f4e5a945f81d667dcc371"
+  csiResizer:
+    repository: registry.k8s.io/sig-storage/csi-resizer
+    tag: "v2.2.1@sha256:ea1d25e23479000c7e8eeb92d827df66258df4e482ca054c5e7ce3fc0f5c41a5"
+  livenessProbe:
+    repository: registry.k8s.io/sig-storage/livenessprobe
+    tag: "v2.19.0@sha256:06da0d5b8908072f2e4522692aee8dc119fba7247a9658497e1153992cd777e9"
+  nodeDriverRegistrar:
+    repository: registry.k8s.io/sig-storage/csi-node-driver-registrar
+    tag: "v2.17.0@sha256:f9de845b170155199f2a2a3f9531cf13d78e31235e9db6b6582a8b0db0a50dad"

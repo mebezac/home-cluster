@@ -1,6 +1,10 @@
 controller:
   enabled: true
   replicaCount: 1
+  # Chart-default image (tag = chart appVersion), pinned with a digest; moves with the chart version (Renovate group).
+  image:
+    repository: registry.k8s.io/sig-storage/snapshot-controller
+    tag: "v8.7.1@sha256:d3c3893704c86f0fe428a6429c705b7103a653bea151db0fc5ab0fdb25bb2290"
   resources:
     requests:
       cpu: 10m

@@ -1,0 +1,12 @@
+---
+namespaceOverride: database
+image:
+  registry: ghcr.io
+  repository: cloudnative-pg/plugin-barman-cloud
+  # changelog: GH releases cloudnative-pg/plugin-barman-cloud (not in PR body)
+  tag: v0.16.0@sha256:6404a416718bd7aad943c67a25a7bb20d0558b43edfeab0bf167f013ca435882
+sidecarImage:
+  registry: ghcr.io
+  repository: cloudnative-pg/plugin-barman-cloud-sidecar
+  # changelog: GH releases cloudnative-pg/plugin-barman-cloud (not in PR body)
+  tag: v0.16.0@sha256:c669259e20ed1e11fad821f735c396c19d929985aa05b9544b13ecc8b5a386d0

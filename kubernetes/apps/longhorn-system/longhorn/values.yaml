@@ -73,6 +73,47 @@ httproute:
       sectionName: https
   hostnames:
     - longhorn.laboratory.casa
+# Chart-default images, pinned with a digest; they move with the chart version
+# (Renovate group). engine and instanceManager stay unpinned on purpose: a new
+# string there makes Longhorn create a new EngineImage / instance managers and
+# upgrade every volume engine. A new string here only restarts pods (the manager
+# DaemonSet all at once, as on any chart bump; running share managers keep theirs).
+image:
+  longhorn:
+    manager:
+      repository: longhornio/longhorn-manager
+      tag: "v1.13.0@sha256:7372f3c59239e9a67c0017b3af32fabdf08c4dcc0631140161da9a47e3b142f0"
+    ui:
+      repository: longhornio/longhorn-ui
+      tag: "v1.13.0@sha256:f22fb0254ae50195c1635ce428dfae26375956b3d7bd39640fae8fe33a236023"
+    shareManager:
+      repository: longhornio/longhorn-share-manager
+      tag: "v1.13.0@sha256:53950f78b7af38b8a943c298cd3020622191a4661a13036f69d83c154cc8690d"
+    backingImageManager:
+      repository: longhornio/backing-image-manager
+      tag: "v1.13.0@sha256:49779b9a8ab535f1e86d224f8e2eb5c2c3713b8f1783403fe00612a75de2b3b8"
+    supportBundleKit:
+      repository: longhornio/support-bundle-kit
+      tag: "v0.0.98@sha256:e64a01db35396f967175adcfd0177d2a50e75765c51efe86e55f13f49095d1ae"
+  csi:
+    attacher:
+      repository: longhornio/csi-attacher
+      tag: "v4.13.0@sha256:fef34c2d823b78da7d6c29fdf0f80d236293b0ac06944d14e8c366add880a4c8"
+    provisioner:
+      repository: longhornio/csi-provisioner
+      tag: "v6.3.0@sha256:2d2694540109d2e8887f62a0bc711aca8d3033e52dddf1c39bb5c65600d9c5af"
+    resizer:
+      repository: longhornio/csi-resizer
+      tag: "v2.2.1@sha256:63d0aef25114d4a682b25afa6d9623a3cfcc19aca910269124408476bbe2c6fd"
+    snapshotter:
+      repository: longhornio/csi-snapshotter
+      tag: "v8.6.0@sha256:2bca9ac55170efa61dc50e5cc8d9550373db2e3e5161d82d3fdaac5c25150360"
+    nodeDriverRegistrar:
+      repository: longhornio/csi-node-driver-registrar
+      tag: "v2.18.0@sha256:085f63e62fea391734f5668d9cbb20ac8788a8e7faea83ce2c994f0cc1834fce"
+    livenessProbe:
+      repository: longhornio/livenessprobe
+      tag: "v2.20.0@sha256:d1199b77452bfc11cfc62feb8a266758fe8d72953e97faac8065941e3767f1a3"
 persistence:
   defaultClassReplicaCount: 2
   defaultDataLocality: best-effort

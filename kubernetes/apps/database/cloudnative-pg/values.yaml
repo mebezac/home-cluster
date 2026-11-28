@@ -2,6 +2,12 @@
 crds:
   create: true
 replicaCount: 2
+# Chart-default image, pinned with a digest; moves with the chart version (Renovate group).
+# Also sets OPERATOR_IMAGE_NAME, the bootstrap-controller image of every Postgres pod; with the
+# in-place updates below, a changed string does not roll the instances.
+image:
+  repository: ghcr.io/cloudnative-pg/cloudnative-pg
+  tag: "1.30.2@sha256:f96f6be3d81ec93819b443c665c575c609342fca840df90d4d87dae314a5b913"
 config:
   data:
     # Operator upgrades swap the instance manager binary in place instead of a rolling
