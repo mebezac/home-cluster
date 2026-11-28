@@ -6,6 +6,8 @@
 # doing so would break the entrypoint's privilege-drop and chown of the volumes.
 controllers:
   trek:
+    # TEMPORARY: stopped for the SQLite -> Postgres move (db:move-to-postgres needs TREK stopped).
+    replicas: 0
     annotations:
       reloader.stakater.com/auto: "true"
     containers:
