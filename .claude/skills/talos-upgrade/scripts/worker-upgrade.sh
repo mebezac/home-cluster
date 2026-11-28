@@ -10,22 +10,8 @@ render_target
 log "target $TARGET image $IMG"
 
 log "== 0. last-replica check"
-# A volume whose only healthy replica is here goes offline during the reboot. Detached volumes
-# have no running replica anywhere, so they always list here (often Released/Retain PVs nobody
-# uses); only ATTACHED ones matter.
-ATT=$(kubectl -n longhorn-system get replicas.longhorn.io,volumes.longhorn.io -o json | python3 -c "
-import sys,json
-from collections import defaultdict
-it=json.load(sys.stdin)['items']; NODE='$H'; by=defaultdict(list)
-state={v['metadata']['name']:v['status'].get('state') for v in it if v['kind']=='Volume'}
-for r in it:
-    if r['kind']=='Replica': by[r['spec']['volumeName']].append(r)
-out=[]
-for vn,reps in by.items():
-    if not any(r['spec'].get('nodeID')==NODE for r in reps): continue
-    he=sum(1 for r in reps if r['spec'].get('nodeID')!=NODE and r['spec'].get('healthyAt') and r.get('status',{}).get('currentState')=='running')
-    if he==0 and state.get(vn)=='attached': out.append(vn)
-print(' '.join(out))")
+# A volume whose only healthy replica is here goes offline during the reboot (lib.sh).
+ATT=$(attached_last_replica)
 [ -z "$ATT" ] || abort "attached volumes whose last healthy replica is here: $ATT (evict first, SKILL.md step 2)"
 log "no attached volume depends on this node alone"
 

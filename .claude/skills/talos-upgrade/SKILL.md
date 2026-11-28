@@ -64,7 +64,10 @@ alongside `aqua:siderolabs/talos` in `.mise.toml`; keep talosctl on the same ver
 upgrade the whole cluster to a new patch, bump `talosVersion` first (and
 `kubernetesVersion` if desired — that's `task talos:upgrade-k8s`, separate from this
 skill), re-render, then loop. For a same-version rollout (nodes lagging the pinned
-version) no edit is needed — just loop.
+version) no edit is needed — just loop. A schematic-only change at the same version (a
+`schematics/<hw>.yaml` edit, e.g. extraKernelArgs: SELinux off, 2026-11-27) also just loops:
+`tver` in `scripts/lib.sh` reports `<version>-schematic-<id>` until the node runs the
+schematic in the rendered installer image, so `wait_version` does not pass before the reboot.
 
 **When both pins moved, run `task talos:upgrade-k8s` FIRST, before any node.** The topf
 render carries the kubelet image from `kubernetesVersion`, and every config apply in the

@@ -13,7 +13,20 @@ cd "$REPO/kubernetes/bootstrap/talos" || exit 1
 log() { echo "[$(TZ=America/New_York date +%H:%M:%S)] $H: $*"; }
 abort() { log "ABORT: $*"; exit 1; }
 # `timeout N talosctl`, never `talosctl --timeout` (no such flag on version: it prints nothing).
-tver() { timeout 10 talosctl -e "$EP" -n "$N" version 2>/dev/null | grep -A2 Server | grep Tag | awk '{print $2}'; }
+# Prints the running version, or "<version>-schematic-<first 8>" while the node still runs a
+# schematic other than WANT_SCHEMATIC (set by render_target). So a same-version schematic change
+# (2026-11-27: SELinux off via extraKernelArgs) does not read as "already on TARGET" before the
+# reboot. Empty when the node is unreachable.
+tver() {
+  local v s
+  v=$(timeout 10 talosctl -e "$EP" -n "$N" version 2>/dev/null | grep -A2 Server | grep Tag | awk '{print $2}')
+  [ -n "$v" ] || return 0
+  if [ -n "${WANT_SCHEMATIC:-}" ]; then
+    s=$(timeout 10 talosctl -e "$EP" -n "$N" get extensions 2>/dev/null | awk '$6=="schematic"{print $7}')
+    [ "$s" = "$WANT_SCHEMATIC" ] || { echo "$v-schematic-${s:0:8}"; return 0; }
+  fi
+  echo "$v"
+}
 kubelet_state() { timeout 10 talosctl -e "$EP" -n "$N" service kubelet 2>/dev/null | awk '/^STATE/{print $2}'; }
 wait_machine_ready() {
   for _ in $(seq 1 30); do
@@ -29,6 +42,9 @@ render_target() {
   TARGET=$(yq '.talosVersion' topf.yaml)
   IMG=$(yq 'select(.kind=="UnattendedInstallConfig") | .installer.image' "rendered/$H.yaml")
   [ -n "$IMG" ] && [ -n "$TARGET" ] || abort "could not resolve image/version"
+  WANT_SCHEMATIC=$(echo "$IMG" | sed -nE 's#.*/metal-installer/([0-9a-f]+):.*#\1#p')
+  [ -n "$WANT_SCHEMATIC" ] || abort "no schematic ID in $IMG"
+  log "want $TARGET schematic ${WANT_SCHEMATIC:0:8}, running $(tver)"
 }
 
 # Poll for the target version: bounded, one line per pass. Never gate on "node unreachable".
@@ -74,6 +90,34 @@ done={(j['metadata']['namespace'],j['metadata']['name']) for j in it if j['kind'
 old=lambda p: p['status']['phase']=='Failed' and any(o['kind']=='Job' and (p['metadata']['namespace'],o['name']) in done for o in p['metadata'].get('ownerReferences',[]))
 bad=[p['metadata']['namespace']+'/'+p['metadata']['name'] for p in it if p['kind']=='Pod' and not old(p) and (p['status']['phase'] not in ('Running','Succeeded') or (p['status']['phase']=='Running' and not any(c['type']=='Ready' and c['status']=='True' for c in p['status'].get('conditions',[]))))]
 print(len(bad), ' '.join(bad[:5]))"
+}
+# Attached volumes whose last healthy running replica is on $H: they go offline in the reboot.
+# Detached volumes have no running replica anywhere, so they always match; only ATTACHED count.
+attached_last_replica() {
+  kubectl -n longhorn-system get replicas.longhorn.io,volumes.longhorn.io -o json | python3 -c "
+import sys,json
+from collections import defaultdict
+it=json.load(sys.stdin)['items']; NODE='$H'; by=defaultdict(list)
+state={v['metadata']['name']:v['status'].get('state') for v in it if v['kind']=='Volume'}
+for r in it:
+    if r['kind']=='Replica': by[r['spec']['volumeName']].append(r)
+out=[]
+for vn,reps in by.items():
+    if not any(r['spec'].get('nodeID')==NODE for r in reps): continue
+    he=sum(1 for r in reps if r['spec'].get('nodeID')!=NODE and r['spec'].get('healthyAt') and r.get('status',{}).get('currentState')=='running')
+    if he==0 and state.get(vn)=='attached': out.append(vn)
+print(' '.join(out))"
+}
+# After the drain: wait until no attached volume needs this node (single-replica volumes follow
+# their pod to its new node by best-effort locality). 30 min bound, one line per pass.
+wait_no_last_replica() {
+  local a
+  for i in $(seq 1 90); do
+    a=$(attached_last_replica); log "  t=$((i*20))s attached-last-replica-here: ${a:-none}"
+    [ -z "$a" ] && return 0
+    sleep 20
+  done
+  abort "attached volumes still have their last healthy replica here: $a"
 }
 longhorn_summary() {
   kubectl -n longhorn-system get volumes.longhorn.io -o json | python3 -c "

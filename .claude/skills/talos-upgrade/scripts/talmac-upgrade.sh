@@ -27,6 +27,8 @@ powercycle_wait() {
 log "target $TARGET image $IMG"
 log "== 1. cordon + drain"
 cordon_drain
+# SKILL.md step 2: no attached volume may keep its last healthy replica on this talmac.
+wait_no_last_replica
 
 log "== 2. upgrade (exit 0 = Talos powercycled itself; BootFFFF exit = we powercycle)"
 UL=$(mktemp); talosctl -e $EP -n "$N" upgrade --image "$IMG" --drain=false --reboot-mode powercycle --progress plain --timeout 20m >"$UL" 2>&1; rc=$?
