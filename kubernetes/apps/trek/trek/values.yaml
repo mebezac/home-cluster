@@ -1,13 +1,19 @@
-# TREK — self-hosted collaborative travel planner (SQLite, self-contained)
+# TREK — self-hosted collaborative travel planner
 # Upstream image (mauriceboe/trek); OIDC support is now merged upstream, so we
 # no longer need the mebezac fork build.
-# Image entrypoint starts as root and drops to the `node` user (UID 1000) via
-# `gosu`, so we intentionally do NOT force a non-root securityContext here —
-# doing so would break the entrypoint's privilege-drop and chown of the volumes.
+# Database: central CNPG postgres-17-cluster (role + Database `trek`), via TREK_DB_URL in
+# trek-secret (sslmode=disable: TREK treats require as verify, and CNPG's CA is private).
+# Moved off SQLite 2026-11-27 with the image's db:move-to-postgres (one-off Job, every table
+# verified by row count + checksum). The trek-data PVC still holds uploads, the key files
+# (.encryption_key, .jwt_secret), plugin data dirs, logs and the pre-migrate-*.pgdump copies
+# TREK writes before a migration, so it keeps its Kopiur backup. The old travel.db stays on
+# it untouched as the rollback: drop TREK_DB_URL from trek-secret and TREK starts on it again
+# (without anything written since the move).
+# Image entrypoint starts as root, fixes ownership of /app/data and /app/uploads, and drops
+# to the `node` user (UID 1000) via `setpriv`. Run as root on purpose: forcing a non-root
+# securityContext skips that ownership fix (the entrypoint then just runs node as-is).
 controllers:
   trek:
-    # TEMPORARY: stopped for the SQLite -> Postgres move (db:move-to-postgres needs TREK stopped).
-    replicas: 0
     annotations:
       reloader.stakater.com/auto: "true"
     containers:
@@ -20,10 +26,11 @@ controllers:
           # compare API truncates at 300 files). Operator-relevant content is under
           # "Upgrading" OR "Read this first" + "Schema" OR (5.x) "Changed > Database / Sign-in and
           # keys / Defaults that changed" - the heading is not consistent, read all; also
-          # wiki/Updating.md "Upgrading to X". SQLite on our PVC - migrations run at boot and are
-          # one-way. 5.x writes /app/data/pre-migrate-*.db itself before migrating, but 4.3.x starts
-          # on a migrated DB with no check, so a tag revert alone is unsafe. Snapshot trek-data
-          # (1Gi, longhorn) on any minor/major
+          # wiki/Updating.md "Upgrading to X" (Postgres rollback: "Rolling back a Postgres
+          # update"). Migrations run at boot on Postgres and are one-way; TREK writes
+          # /app/data/pre-migrate-*.pgdump itself before migrating, so a tag revert alone is
+          # unsafe. Keep one replica (in-memory state). barman covers the database; snapshot
+          # trek-data (uploads, keys) on any minor/major
           tag: 5.2.1@sha256:7935eeb96db3202b5af896951fd96379d6eb4d3608ce93a1f2e8f850e10a2257
         env:
           TZ: America/New_York
