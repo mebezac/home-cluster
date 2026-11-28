@@ -15,7 +15,7 @@ spec:
     - repoURL: https://victoriametrics.github.io/helm-charts
       chart: victoria-logs-single
       # changelog: chart CHANGELOG.md in VictoriaMetrics/helm-charts charts/victoria-logs-single (helm-pull RELEASE_NOTES shows only the newest); the image is pinned separately in kubernetes/apps/observability/victoria-logs/values.yaml - move it only if appVersion changes
-      targetRevision: 0.13.13
+      targetRevision: 0.13.14
       helm:
         releaseName: victoria-logs
         valueFiles:
