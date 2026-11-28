@@ -1,4 +1,16 @@
 ---
+# The Immich database always runs on a talmac (12 cores, 32 GB; the user wants Immich fast).
+# Required, not preferred: with all three talmacs down the database stays Pending.
+# Its Longhorn volume (2 replicas, best-effort data locality) keeps a replica on the node it runs on.
+defaultPodOptions:
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values: [talmac-01, talmac-02, talmac-03]
 controllers:
   main:
     replicas: 1
