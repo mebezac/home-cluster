@@ -128,7 +128,7 @@ snapshot (a first install comes up empty):
 ```
 
 - Tier: `standard` (daily) is the default. `critical` (every 6 h) is only for core services where
-  6 h of loss hurts: Forgejo, Home Assistant, immich, oCIS, castopod. Hobby and nice-to-have apps
+  6 h of loss hurts: Forgejo, Home Assistant, immich, oCIS. Hobby and nice-to-have apps
   stay `standard` (calibre-nextgen, BirdNET-Go). Ask the user before you pick `critical`.
 - `dataSourceRef` is immutable. Add it when the PVC is **created**. For a PVC that already exists,
   add only the backup source; the populator cutover needs a PVC replacement (`task kopiur:cutover`).

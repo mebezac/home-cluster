@@ -28,7 +28,7 @@ spec:
         releaseName: castopod-mariadb-backup
         valuesObject:
           pvc: castopod-mariadb
-          tier: critical
+          tier: standard   # castopod is not a critical service (user, 2026-11-27)
           mover:
             runAsUser: 3000
           restore:
