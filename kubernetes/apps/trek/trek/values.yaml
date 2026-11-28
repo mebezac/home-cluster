@@ -31,7 +31,7 @@ controllers:
           # /app/data/pre-migrate-*.pgdump itself before migrating, so a tag revert alone is
           # unsafe. Keep one replica (in-memory state). barman covers the database; snapshot
           # trek-data (uploads, keys) on any minor/major
-          tag: 5.2.1@sha256:7935eeb96db3202b5af896951fd96379d6eb4d3608ce93a1f2e8f850e10a2257
+          tag: 5.2.2@sha256:593377c1aa873fca6d5b513b00abde369fbcfae22ec57754bf1a287e2682d1ee
         env:
           TZ: America/New_York
           NODE_ENV: production
