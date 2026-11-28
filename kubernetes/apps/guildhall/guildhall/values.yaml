@@ -15,7 +15,8 @@ defaultPodOptions:
 
 controllers:
   guildhall:
-    # Paused 2026-11-27 (the user put guildhall on hold). Set back to 1 to resume;
+    # Paused 2026-11-27 (the user put guildhall on hold). Set back to 1 to resume, and remove
+    # the gatus opt-out annotations on the routes below;
     # the PVCs, secrets and worker policies stay in place.
     replicas: 0
     strategy: Recreate
@@ -204,6 +205,9 @@ service:
 
 route:
   app:
+    # Paused (replicas: 0): no gatus check. Remove with the pause.
+    annotations:
+      gatus.home-operations.com/enabled: "false"
     hostnames: [guildhall.laboratory.casa]
     parentRefs:
       - name: envoy-internal
@@ -214,6 +218,9 @@ route:
           - identifier: app
             port: http
   views:
+    # Paused (replicas: 0): no gatus check. Remove with the pause.
+    annotations:
+      gatus.home-operations.com/enabled: "false"
     hostnames: [guildhall-views.laboratory.casa]
     parentRefs:
       - name: envoy-internal
