@@ -4,7 +4,7 @@ controller:
     # Chart-default image, pinned with a digest; moves with the chart version (Renovate group).
     image:
       registry: registry.k8s.io/sig-storage/csi-attacher
-      tag: "v4.4.0@sha256:dbded4ebe299973e31d0ef55815eb07a990fc67872b14900a8e69232acae4f2d"
+      tag: "v4.13.1@sha256:b398d0f5a30202b5261412023b24057bc5a493d8b2b5dad25ebf5c89966e1559"
     resources:
       requests:
         cpu: 10m
@@ -32,7 +32,7 @@ controller:
     # Chart-default image, pinned with a digest; moves with the chart version (Renovate group).
     image:
       registry: registry.k8s.io/sig-storage/csi-resizer
-      tag: "v1.9.0@sha256:f1f352df97874442624fcef23eab04aa038f66cb0e361212f6ec09e92998184d"
+      tag: "v1.14.0@sha256:5e7cbb63fd497fa913caa21fee1a69f727c220c6fa83c5f8bb0995e2ad73a474"
     resources:
       requests:
         cpu: 10m
@@ -46,7 +46,7 @@ controller:
     # Chart-default image, pinned with a digest; moves with the chart version (Renovate group).
     image:
       registry: registry.k8s.io/sig-storage/csi-snapshotter
-      tag: "v8.2.1@sha256:5f4bb469fec51147ce157329dab598c758da1b018bad6dad26f0ff469326d769"
+      tag: "v8.7.1@sha256:b534b99edb61a5f95e297da8e2a133d36e27ad098e2f643393986e86f093d425"
     resources:
       requests:
         cpu: 10m
@@ -124,7 +124,7 @@ node:
     # Chart-default image, pinned with a digest; moves with the chart version (Renovate group).
     image:
       registry: registry.k8s.io/sig-storage/csi-node-driver-registrar
-      tag: "v2.9.0@sha256:cd21e19cd8bbd5bc56f1b4f1398a436e7897da2995d6d036c9729be3f4e456e6"
+      tag: "v2.18.1@sha256:f847fb218cdf1d0f0fa79772ca6f46e11d25635eb49c06efb5dccd00b5245ef5"
     resources:
       requests:
         cpu: 30m
@@ -138,7 +138,7 @@ node:
     # Chart-default image, pinned with a digest; moves with the chart version (Renovate group).
     image:
       registry: docker.io/busybox
-      tag: "1.37.0@sha256:a7dbc319b1438115a207e11930dc4bb3e643dcb3ec0bdd694bb36cd8fad289ec"
+      tag: "1.38.0@sha256:a46257e06c82ad85242d0d38077d0a52d9896389ca60a1a59d3463db586e5fa4"
     resources:
       requests:
         cpu: 50m
