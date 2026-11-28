@@ -179,6 +179,13 @@ identity_providers:
         rules:
           - policy: one_factor
             subject: group:apps_admin
+      # BirdNET-Go: admins only, with 2FA. BirdNET-Go also checks the email
+      # against its own allowed list (security.oauthProviders[].userId).
+      birdnet_go_admins:
+        default_policy: deny
+        rules:
+          - policy: two_factor
+            subject: group:apps_admin
     claims_policies:
       all:
         id_token:
@@ -704,6 +711,27 @@ identity_providers:
         redirect_uris:
           - "https://paperless-ai.laboratory.casa/api/auth/oidc/callback"
         scopes: ["openid", "profile", "email", "groups"]
+        response_types: ["code"]
+        grant_types: ["authorization_code"]
+        userinfo_signed_response_alg: "none"
+        token_endpoint_auth_method: "client_secret_basic"
+      # BirdNET-Go (birdnet-go namespace). Plaintext secret in birdnet-go-oidc-secret
+      # (OIDC_CLIENT_SECRET), written into /config/config.yaml by the sync-git-config
+      # init container. goth sends PKCE S256 and tries client_secret_basic first.
+      # The redirect path is /auth/<goth provider name>/callback. claims_policy "all"
+      # puts email in the id_token: BirdNET-Go matches it against its userId list.
+      - client_id: "sZFNEeDf46NVNe0~48~kDisvVI49z3qUA5GN8FNx62~33bStK6ESrtpJ-_ynOL5Ho.LapLD9"
+        client_name: "BirdNET-Go"
+        client_secret: "$pbkdf2-sha512$310000$3TyDfVaauphNYs25FOHJjw$03ebYnp4FHW.magv57KWznXrXyJFOkD3krbmGb.KeK0kL4xixNE4SZWSPCkpNsBeUvoWcJev37MoZTD.EWuSew"
+        claims_policy: "all"
+        public: false
+        authorization_policy: "birdnet_go_admins"
+        consent_mode: "implicit"
+        require_pkce: true
+        pkce_challenge_method: "S256"
+        redirect_uris:
+          - "https://bird.laboratory.casa/auth/openid-connect/callback"
+        scopes: ["openid", "profile", "email"]
         response_types: ["code"]
         grant_types: ["authorization_code"]
         userinfo_signed_response_alg: "none"
