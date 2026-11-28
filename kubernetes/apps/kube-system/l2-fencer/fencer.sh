@@ -8,6 +8,30 @@ UNFENCE_AFTER=${UNFENCE_AFTER:-300}  # seconds Ready before unfencing
 INTERVAL=${INTERVAL:-15}
 DRY_RUN=${DRY_RUN:-false}
 ONCE=${ONCE:-false}
+# In a pod, kubectl here does not fall back to the in-cluster config (it calls
+# localhost:8080), so write a kubeconfig that reads the service account token file
+# (tokenFile follows the token rotation).
+SA=/var/run/secrets/kubernetes.io/serviceaccount
+if [ -z "${KUBECONFIG:-}" ] && [ -n "${KUBERNETES_SERVICE_HOST:-}" ] && [ -r "$SA/token" ]; then
+  export KUBECONFIG=/tmp/kubeconfig
+  cat > "$KUBECONFIG" <<KC
+apiVersion: v1
+kind: Config
+clusters:
+  - name: in-cluster
+    cluster:
+      server: https://${KUBERNETES_SERVICE_HOST}:${KUBERNETES_SERVICE_PORT}
+      certificate-authority: $SA/ca.crt
+users:
+  - name: sa
+    user:
+      tokenFile: $SA/token
+contexts:
+  - name: in-cluster
+    context: { cluster: in-cluster, user: sa }
+current-context: in-cluster
+KC
+fi
 K="kubectl --request-timeout=10s"
 TPL='{{range .items}}{{.metadata.name}} {{range .status.conditions}}{{if eq .type "Ready"}}{{.status}} {{.lastTransitionTime}}{{end}}{{end}} {{with index .metadata.labels "l2.laboratory.casa/fenced"}}{{.}}{{else}}-{{end}}{{"\n"}}{{end}}'
 log() { echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) $*"; }

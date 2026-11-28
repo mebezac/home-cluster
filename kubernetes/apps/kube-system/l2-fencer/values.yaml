@@ -75,6 +75,13 @@ rbac:
         - identifier: l2-fencer
 
 persistence:
+  # The script writes its kubeconfig here (read-only root filesystem).
+  tmp:
+    type: emptyDir
+    medium: Memory
+    sizeLimit: 1Mi
+    globalMounts:
+      - path: /tmp
   script:
     type: configMap
     name: l2-fencer-script
