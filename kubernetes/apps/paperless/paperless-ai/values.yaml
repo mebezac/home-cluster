@@ -45,6 +45,10 @@ controllers:
           OIDC_BUTTON_LABEL: "Authelia"
           # Extract appointments, due dates and deadlines for the Calendar page + iCal feed.
           ACTIVATE_CALENDAR: "true"
+          # 4.7+: when the OCR text is used, lay it into the PDF as an invisible text layer and upload
+          # it to Paperless as a new document version (the original stays version 1). Needs
+          # PAPERLESS_OCR_MODE=skip in paperless (unset = skip), or Paperless replaces the layer.
+          OCR_SEARCHABLE_PDF: "true"
           # --- Paperless. PAPERLESS_API_TOKEN is in paperless-ai-secret.
           PAPERLESS_API_URL: http://paperless.paperless.svc.cluster.local:8000
           PAPERLESS_PUBLIC_URL: https://paperless.laboratory.casa
