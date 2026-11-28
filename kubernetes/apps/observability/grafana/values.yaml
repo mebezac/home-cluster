@@ -8,6 +8,16 @@ image:
   repository: grafana/grafana
   # changelog: GH releases grafana/grafana
   tag: 13.3.2-distroless@sha256:d9425e704fa9dff189966b827fbc9b63befc5b443999c7b82193f1b1a73c74f7
+# Startup can take ~2.5 min on a busy node (145 s on 2026-11-27, after the SELinux reboots);
+# the chart's liveness probe (60 s delay + 10 x 10 s) killed it 3 times. The startup probe
+# holds off liveness and readiness for up to 10 min; after that the chart's probes apply.
+startupProbe:
+  httpGet:
+    path: /healthz
+    port: grafana
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 60
 # Init container that downloads the gnetId/url dashboards below.
 downloadDashboardsImage:
   registry: docker.io
