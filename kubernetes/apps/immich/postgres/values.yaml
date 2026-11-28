@@ -37,11 +37,13 @@ controllers:
         resources:
           # non-file memory (working_set - active_file), 14d to 2026-10-21: p99 901Mi, max 992Mi. Mostly shared_buffers (shared memory), which
           # RSS does not show (RSS max 343Mi). CPU p95 4m.
+          # Reads: the DB is 1.7 GB (2026-11-27) and the limit also caps the page cache, so 4Gi keeps the
+          # whole database in RAM next to shared_buffers (512MB, image config). Talmac-only (affinity above).
           requests:
             cpu: 100m
-            memory: 960Mi
-          limits:
             memory: 2Gi
+          limits:
+            memory: 4Gi
 
       metrics:
         image:
