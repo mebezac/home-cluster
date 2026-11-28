@@ -25,6 +25,8 @@ spec:
         #   downloads/*, ps5/*              bulk download and media shares on the NAS;
         #                                   their config PVCs are backed up
         #   jellyfin/pinchflat-media        downloaded media on the NAS
+        #   birdnet-go/birdnet-go-clips     BirdNET-Go audio clips on the NAS; a hobby app,
+        #                                   not worth a restore (2026-11-28)
         # StorageClass longhorn-kopiur-staging: Kopiur's own temporary <policy>-<time>-src
         # PVCs, which live only while a backup runs.
         # label_mismatch is MetricsQL (vmalert), not PromQL.
@@ -40,7 +42,7 @@ spec:
                 "pvc_ref", "/", "namespace", "persistentvolumeclaim"
               ),
               "pvc_ref",
-              "database/postgres-17-cluster-[0-9]+|observability/.+|.+/.+-cache|guildhall/guildhall-auth|guildhall-workers/worker-[0-9]+-(auth|data)|downloads/.+|ps5/.+|jellyfin/pinchflat-media|network-optimizer/network-optimizer-(influxdb-data|logs)|valkey/valkey-data"
+              "database/postgres-17-cluster-[0-9]+|observability/.+|.+/.+-cache|guildhall/guildhall-auth|guildhall-workers/worker-[0-9]+-(auth|data)|downloads/.+|ps5/.+|jellyfin/pinchflat-media|birdnet-go/birdnet-go-clips|network-optimizer/network-optimizer-(influxdb-data|logs)|valkey/valkey-data"
             )
           for: 24h
           labels:

@@ -43,19 +43,9 @@ spec:
             runAsUser: 1000
           restore:
             enabled: true
-    # Kopiur backups of birdnet-go-clips (kubernetes/charts/kopiur-backup).
-    - repoURL: https://github.com/mebezac/home-cluster.git
-      path: kubernetes/charts/kopiur-backup
-      targetRevision: main
-      helm:
-        releaseName: birdnet-go-clips-backup
-        valuesObject:
-          pvc: birdnet-go-clips
-          copyMethod: Direct
-          mover:
-            runAsUser: 1000
-          restore:
-            enabled: true
+    # birdnet-go-clips has no Kopiur backup on purpose (2026-11-28): the clips are
+    # audio recordings of a hobby app on the NAS, not worth a restore. It is on the
+    # skip list in kopiur-system/kopiur/backup-coverage-rule.yaml.
   destination:
     name: in-cluster
     namespace: birdnet-go

@@ -158,8 +158,9 @@ persistence:
     storageClass: freenas-api-nfs
     accessMode: ReadWriteOnce
     size: 50Gi
-    # A new PVC fills from the latest Kopiur snapshot (Restore birdnet-go-clips, kopiur-backup
-    # source in the Argo app), or comes up empty on a first install.
+    # No Kopiur backup (2026-11-28, see the Argo app), so the Restore this names is gone.
+    # dataSourceRef is immutable, so it stays on the bound PVC; it does nothing there.
+    # Remove it when the PVC is replaced: a NEW PVC with it waits for the Restore forever.
     dataSourceRef:
       apiGroup: kopiur.home-operations.com
       kind: Restore
