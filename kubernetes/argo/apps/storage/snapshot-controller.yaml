@@ -15,7 +15,7 @@ spec:
     - repoURL: https://piraeus.io/helm-charts/
       chart: snapshot-controller
       # changelog: chart release notes are stubs - helm pull both versions and diff; image version = chart appVersion; real notes at kubernetes-csi/external-snapshotter CHANGELOG/CHANGELOG-8.x.md (GH release body is a stub too)
-      targetRevision: 5.4.0
+      targetRevision: 5.4.1
       helm:
         releaseName: snapshot-controller
         valueFiles:
