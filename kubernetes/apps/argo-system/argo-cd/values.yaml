@@ -121,7 +121,7 @@ redis:
   # Chart-default image, pinned with a digest; moves with the chart version (Renovate group).
   image:
     repository: ecr-public.aws.com/docker/library/redis
-    tag: "8.6.4-alpine@sha256:2cc044fc5a07c9b701f8f1255a309ae9ad7856e694ac03513bf3648c01e40763"
+    tag: "8.6.8-alpine@sha256:91c71f9ea78fa3fe268ff832a985c48e592244f707993773f8b3e1b244ac1137"
   exporter:
     enabled: true
     # Chart-default image, pinned with a digest; moves with the chart version (Renovate group).
