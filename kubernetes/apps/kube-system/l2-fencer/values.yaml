@@ -1,0 +1,83 @@
+# l2-fencer (audit #142): a node that is NotReady for 120 s gets the label
+# l2.laboratory.casa/fenced=true (Node and CiliumNode). The Cilium L2 policy
+# (cilium/config/l2.yaml) leaves fenced nodes out, so a half-alive cilium-agent
+# gives up its LoadBalancer IP leases in about 1 s and another node takes them
+# (failover ~3-4.5 min instead of ~64 min). Guards: at most one fenced node,
+# nothing when 2+ nodes are NotReady, unfence only after 300 s Ready.
+# DRY_RUN=true: it only logs what it would do. Test plan (#142): a week of
+# dry-run logs, then a node with no lease, then wyse-01, then a kubelet stop.
+defaultPodOptions:
+  automountServiceAccountToken: true   # it reads and labels nodes
+  priorityClassName: system-cluster-critical
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 3000
+    runAsGroup: 3000
+    seccompProfile: { type: RuntimeDefault }
+  # Leave a dead node fast: the default 300 s toleration would keep the fencer
+  # on the very node that failed.
+  tolerations:
+    - key: node.kubernetes.io/not-ready
+      operator: Exists
+      effect: NoExecute
+      tolerationSeconds: 30
+    - key: node.kubernetes.io/unreachable
+      operator: Exists
+      effect: NoExecute
+      tolerationSeconds: 30
+
+controllers:
+  l2-fencer:
+    annotations:
+      reloader.stakater.com/auto: "true"
+    serviceAccount:
+      identifier: l2-fencer
+    containers:
+      app:
+        image:
+          repository: docker.io/alpine/kubectl
+          # changelog: kubernetes/kubernetes CHANGELOG/CHANGELOG-1.XX.md (SIG CLI); keep within ±1 minor of topf.yaml kubernetesVersion
+          tag: 1.37.3@sha256:266a17d072fcee990846c7058d5c4857c73c3f6aec1f33a12036aea2b597e0df
+        command: ["/bin/sh", "/scripts/fencer.sh"]
+        env:
+          DRY_RUN: "true"
+          FENCE_AFTER: "120"
+          UNFENCE_AFTER: "300"
+          INTERVAL: "15"
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities: { drop: ["ALL"] }
+        resources:
+          requests: { cpu: 5m, memory: 32Mi }
+          limits: { memory: 128Mi }
+
+serviceAccount:
+  l2-fencer: {}
+
+rbac:
+  roles:
+    l2-fencer:
+      type: ClusterRole
+      rules:
+        - apiGroups: [""]
+          resources: ["nodes"]
+          verbs: ["get", "list", "patch"]
+        - apiGroups: ["cilium.io"]
+          resources: ["ciliumnodes"]
+          verbs: ["get", "patch"]
+  bindings:
+    l2-fencer:
+      type: ClusterRoleBinding
+      roleRef:
+        identifier: l2-fencer
+      subjects:
+        - identifier: l2-fencer
+
+persistence:
+  script:
+    type: configMap
+    name: l2-fencer-script
+    globalMounts:
+      - path: /scripts
+        readOnly: true
