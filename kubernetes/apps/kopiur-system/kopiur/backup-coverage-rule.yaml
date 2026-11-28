@@ -25,9 +25,6 @@ spec:
         #   downloads/*, ps5/*              bulk download and media shares on the NAS;
         #                                   their config PVCs are backed up
         #   jellyfin/pinchflat-media        downloaded media on the NAS
-        #   calibre-web-automated/*         app retired 2026-11-27 (books moved to calibre-nextgen);
-        #                                   PVCs kept until the user confirms deletion, final
-        #                                   snapshots of -data and -media stay in SILO
         # StorageClass longhorn-kopiur-staging: Kopiur's own temporary <policy>-<time>-src
         # PVCs, which live only while a backup runs.
         # label_mismatch is MetricsQL (vmalert), not PromQL.
@@ -43,7 +40,7 @@ spec:
                 "pvc_ref", "/", "namespace", "persistentvolumeclaim"
               ),
               "pvc_ref",
-              "database/postgres-17-cluster-[0-9]+|observability/.+|.+/.+-cache|guildhall/guildhall-auth|guildhall-workers/worker-[0-9]+-(auth|data)|downloads/.+|ps5/.+|jellyfin/pinchflat-media|network-optimizer/network-optimizer-(influxdb-data|logs)|valkey/valkey-data|calibre-web-automated/.+"
+              "database/postgres-17-cluster-[0-9]+|observability/.+|.+/.+-cache|guildhall/guildhall-auth|guildhall-workers/worker-[0-9]+-(auth|data)|downloads/.+|ps5/.+|jellyfin/pinchflat-media|network-optimizer/network-optimizer-(influxdb-data|logs)|valkey/valkey-data"
             )
           for: 24h
           labels:
