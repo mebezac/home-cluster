@@ -15,7 +15,9 @@ defaultPodOptions:
 
 controllers:
   guildhall:
-    replicas: 1
+    # Paused 2026-11-27 (the user put guildhall on hold). Set back to 1 to resume;
+    # the PVCs, secrets and worker policies stay in place.
+    replicas: 0
     strategy: Recreate
     annotations:
       reloader.stakater.com/auto: "true"
