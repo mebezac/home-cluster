@@ -214,3 +214,15 @@ spec:
   owner: gatus
   ensure: present
   databaseReclaimPolicy: retain
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: trek
+spec:
+  cluster:
+    name: postgres-17-cluster
+  name: trek
+  owner: trek
+  ensure: present
+  databaseReclaimPolicy: retain
