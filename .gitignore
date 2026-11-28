@@ -35,5 +35,7 @@ wiki
 !.planning/**
 !.claude/
 !.claude/**
-# ...but keep personal machine-local settings out
+# ...but keep personal machine-local settings and runtime state out
 .claude/settings.local.json
+.claude/worktrees/
+.claude/scheduled_tasks.lock
