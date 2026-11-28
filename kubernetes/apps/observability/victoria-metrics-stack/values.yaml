@@ -38,14 +38,14 @@ victoria-metrics-operator:
   # Pinned to the chart default (appVersion); must move with the chart (Renovate group).
   image:
     repository: victoriametrics/operator
-    tag: v0.75.2@sha256:237fac68b608c7ed7bc4c47ad25ebcb1cbe973c9a789661d2b6cfaa83093f87a
+    tag: v0.76.0@sha256:c0655485e33b4bcac00839f4842778fa807a9344d33729684a14f26e5a1e2755
   # Sets VM_CONFIG_RELOADER_IMAGE: the sidecar the operator injects into
   # vmagent/vmalert/vmalertmanager. Pinned to the operator's own default
   # (config-reloader-<operator version>); must move with the chart (Renovate group).
   configReloader:
     image:
       repository: victoriametrics/operator
-      tag: config-reloader-v0.75.2@sha256:6a997c5fe38692bff0384c0f113f8ab560f429d215649b16afc102ff81c80299
+      tag: config-reloader-v0.76.0@sha256:9cd445beaa43c3e6481918562c0aaa4e81c0afc9e10e2895f120b553b3079381
   operator:
     disable_prometheus_converter: false
     enable_converter_ownership: true
@@ -265,7 +265,7 @@ prometheus-node-exporter:
   image:
     registry: quay.io
     repository: prometheus/node-exporter
-    tag: v1.12.1@sha256:1b4e4438faca4dd7e001dd445d161a4a2091b0fededa84093b3a8dfeae1f1be0
+    tag: v1.13.1@sha256:011e2d12c5bff759b90804bda642664775d7b4b127bf5148539bb82d3f590bb7
 
 kube-state-metrics:
   enabled: true
