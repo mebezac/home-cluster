@@ -109,7 +109,7 @@
     },
     {
       description: [
-        "Hold the local mise node on an LTS that npm:renovate (renovate-config-validator) supports: engines ^24.11.0 || ^26.13.0 since 44.219.0.",
+        "Hold the local mise node on an LTS that npm:renovate (renovate-config-validator) supports: engines ^24.22.3 || ^26.13.1 since 45.0.0.",
         "The same node runs npx for the MCP servers (.mcp.json): handshake-test them on the node major PR. Neither declares engines.",
         "Container base images (containers/*/Dockerfile) still get node majors. Raise this when renovate's engines include the next LTS (28).",
       ],
@@ -416,6 +416,27 @@
       matchDatasources: ["docker"],
       matchPackageNames: ["ghcr.io/immich-app/postgres"],
       versioning: "regex:^(?<compatibility>\\d+)-vectorchord(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-pgvector\\d+\\.(?<build>\\d+)\\.(?<revision>\\d+)$",
+    },
+    {
+      description: [
+        "CNPG Postgres majors (postgres-17-cluster) run an offline, one-way pg_upgrade of the shared cluster:",
+        "every app's database is down, and plugins[0].parameters.serverName must go up in the same commit.",
+        "Approve on the Dependency Dashboard only after the cloudnative-pg/cloudnative-pg release notes",
+        "for the operator version we run list support for that Postgres major (#2905: PG 19 vs operator 1.30.2).",
+      ],
+      matchDatasources: ["docker"],
+      matchPackageNames: ["ghcr.io/cloudnative-pg/postgresql"],
+      matchUpdateTypes: ["major"],
+      dependencyDashboardApproval: true,
+    },
+    {
+      description: [
+        "castopod MariaDB stays on the LTS line (12.3, since 986c9079). 13.x is the rolling line (#2939).",
+        "Raise the cap when the next LTS ships (supportType in MariaDB/mariadb-docker versions.json).",
+      ],
+      matchDatasources: ["docker"],
+      matchPackageNames: ["docker.io/library/mariadb"],
+      allowedVersions: "<13",
     },
     {
       description: [
