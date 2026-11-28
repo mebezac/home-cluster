@@ -58,7 +58,7 @@
       group: {
         commitMessageTopic: "{{{groupName}}} group",
       },
-      matchPackageNames: ["/argo-cd/"],
+      matchPackageNames: ["/argo-cd/", "quay.io/argoproj/argocd"],
     },
     {
       description: [
@@ -186,7 +186,203 @@
       group: {
         commitMessageTopic: "{{{groupName}}} group",
       },
-      matchPackageNames: ["intel-device-plugins-operator", "intel-device-plugins-gpu"],
+      matchPackageNames: [
+        "intel-device-plugins-operator",
+        "intel-device-plugins-gpu",
+        "intel/intel-deviceplugin-operator",
+        "intel/intel-gpu-plugin",
+      ],
+    },
+    {
+      description: [
+        "cert-manager Group",
+        "Chart-default images pinned with a digest in our values (2026-11-28): the chart and its images must move in one PR, or the chart bump keeps the old image.",
+      ],
+      groupName: "cert-manager",
+      group: {
+        commitMessageTopic: "{{{groupName}}} group",
+      },
+      matchPackageNames: [
+        "cert-manager",
+        "/^quay\\.io/jetstack/cert-manager-/",
+      ],
+    },
+    {
+      description: [
+        "CloudNativePG Operator Group",
+        "Chart-default images pinned with a digest in our values (2026-11-28): the chart and its images must move in one PR, or the chart bump keeps the old image. Exact names: /cloudnative-pg/ would also catch the postgresql images and the barman plugin.",
+      ],
+      groupName: "CloudNativePG Operator",
+      group: {
+        commitMessageTopic: "{{{groupName}}} group",
+      },
+      matchPackageNames: [
+        "cloudnative-pg",
+        "ghcr.io/cloudnative-pg/cloudnative-pg",
+      ],
+    },
+    {
+      description: [
+        "Longhorn Group",
+        "Chart-default images pinned with a digest in our values (2026-11-28): the chart and its images must move in one PR, or the chart bump keeps the old image. The engine and instance-manager images stay chart defaults on purpose (a changed string forces volume engine upgrades).",
+      ],
+      groupName: "Longhorn",
+      group: {
+        commitMessageTopic: "{{{groupName}}} group",
+      },
+      matchPackageNames: [
+        "longhorn",
+        "/^longhornio//",
+      ],
+    },
+    {
+      description: [
+        "VictoriaMetrics Stack Group",
+        "Chart-default images pinned with a digest in our values (2026-11-28): the chart and its images must move in one PR, or the chart bump keeps the old image.",
+      ],
+      groupName: "VictoriaMetrics Stack",
+      group: {
+        commitMessageTopic: "{{{groupName}}} group",
+      },
+      matchFileNames: ["kubernetes/argo/apps/observability/victoria-metrics-stack.yaml", "kubernetes/apps/observability/victoria-metrics-stack/values.yaml"],
+      matchPackageNames: [
+        "victoria-metrics-k8s-stack",
+        "victoriametrics/operator",
+        "victoriametrics/vmagent",
+        "victoriametrics/vmalert",
+        "victoriametrics/victoria-metrics",
+        "prom/alertmanager",
+        "quay.io/prometheus/node-exporter",
+        "registry.k8s.io/kube-state-metrics/kube-state-metrics",
+        "ghcr.io/victoriametrics/sync-job",
+      ],
+    },
+    {
+      description: [
+        "Tailscale Operator Group",
+        "Chart-default images pinned with a digest in our values (2026-11-28): the chart and its images must move in one PR, or the chart bump keeps the old image. Exact names: ghcr.io/tailscale/tailscale (rustdesk, tofu-tailscale) is not part of it.",
+      ],
+      groupName: "Tailscale Operator",
+      group: {
+        commitMessageTopic: "{{{groupName}}} group",
+      },
+      matchPackageNames: [
+        "tailscale-operator",
+        "tailscale/k8s-operator",
+        "tailscale/tailscale",
+      ],
+    },
+    {
+      description: [
+        "Node Feature Discovery Group",
+        "Chart-default images pinned with a digest in our values (2026-11-28): the chart and its images must move in one PR, or the chart bump keeps the old image.",
+      ],
+      groupName: "Node Feature Discovery",
+      group: {
+        commitMessageTopic: "{{{groupName}}} group",
+      },
+      matchPackageNames: [
+        "node-feature-discovery",
+        "registry.k8s.io/nfd/node-feature-discovery",
+      ],
+    },
+    {
+      description: [
+        "CoreDNS Group",
+        "Chart-default images pinned with a digest in our values (2026-11-28): the chart and its images must move in one PR, or the chart bump keeps the old image.",
+      ],
+      groupName: "CoreDNS",
+      group: {
+        commitMessageTopic: "{{{groupName}}} group",
+      },
+      matchPackageNames: [
+        "coredns",
+        "coredns/coredns",
+      ],
+    },
+    {
+      description: [
+        "metrics-server Group",
+        "Chart-default images pinned with a digest in our values (2026-11-28): the chart and its images must move in one PR, or the chart bump keeps the old image.",
+      ],
+      groupName: "metrics-server",
+      group: {
+        commitMessageTopic: "{{{groupName}}} group",
+      },
+      matchPackageNames: [
+        "metrics-server",
+        "registry.k8s.io/metrics-server/metrics-server",
+      ],
+    },
+    {
+      description: [
+        "Reloader Group",
+        "Chart-default images pinned with a digest in our values (2026-11-28): the chart and its images must move in one PR, or the chart bump keeps the old image.",
+      ],
+      groupName: "Reloader",
+      group: {
+        commitMessageTopic: "{{{groupName}}} group",
+      },
+      matchPackageNames: [
+        "reloader",
+        "ghcr.io/stakater/reloader",
+      ],
+    },
+    {
+      description: [
+        "snapshot-controller Group",
+        "Chart-default images pinned with a digest in our values (2026-11-28): the chart and its images must move in one PR, or the chart bump keeps the old image.",
+      ],
+      groupName: "snapshot-controller",
+      group: {
+        commitMessageTopic: "{{{groupName}}} group",
+      },
+      matchPackageNames: [
+        "snapshot-controller",
+        "registry.k8s.io/sig-storage/snapshot-controller",
+      ],
+    },
+    {
+      description: [
+        "csi-driver-smb Group",
+        "Chart-default images pinned with a digest in our values (2026-11-28): the chart and its images must move in one PR, or the chart bump keeps the old image. Scoped by file: democratic-csi uses the same sig-storage sidecars at other versions.",
+      ],
+      groupName: "csi-driver-smb",
+      group: {
+        commitMessageTopic: "{{{groupName}}} group",
+      },
+      matchFileNames: ["kubernetes/argo/apps/kube-system/csi-driver-smb.yaml", "kubernetes/apps/kube-system/csi-driver-smb/values.yaml"],
+      matchPackageNames: [
+        "csi-driver-smb",
+        "/^registry\\.k8s\\.io/sig-storage//",
+      ],
+    },
+    {
+      description: [
+        "democratic-csi Group",
+        "Chart-default images pinned with a digest in our values (2026-11-28): the chart and its images must move in one PR, or the chart bump keeps the old image. Scoped by file: csi-driver-smb uses the same sig-storage sidecars at other versions.",
+      ],
+      groupName: "democratic-csi",
+      group: {
+        commitMessageTopic: "{{{groupName}}} group",
+      },
+      matchFileNames: ["kubernetes/argo/apps/storage/democratic-csi-nfs.yaml", "kubernetes/argo/apps/storage/democratic-csi-nfs-fast.yaml", "kubernetes/apps/storage/democratic-csi-nfs/values.yaml", "kubernetes/apps/storage/democratic-csi-nfs-fast/values.yaml"],
+      matchPackageNames: [
+        "democratic-csi",
+        "/^registry\\.k8s\\.io/sig-storage//",
+        "docker.io/democraticcsi/csi-grpc-proxy",
+        "docker.io/democraticcsi/democratic-csi",
+        "docker.io/busybox",
+      ],
+    },
+    {
+      description: [
+        "VictoriaMetrics operator config-reloader image: same repository as the operator, tags config-reloader-vX.Y.Z.",
+        "Docker versioning cannot read that prefix, so it would never update.",
+      ],
+      matchPackageNames: ["victoriametrics/operator"],
+      matchCurrentValue: "/^config-reloader-v/",
+      versioning: "regex:^config-reloader-v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$",
     },
     {
       description: ["Network Optimizer Group", "network-optimizer and speedtest ship in lockstep from one compose file."],
@@ -551,6 +747,57 @@
       managerFilePatterns: ["/(^|/)kubernetes/apps/tofu/tofu-runner/values\\.yaml$/"],
       matchStrings: [
         "image: (?<depName>ghcr\\.io/mebezac/tofu-runner):(?<currentValue>[^\\s@]+)@(?<currentDigest>sha256:[a-f0-9]{64})",
+      ],
+      datasourceTemplate: "docker",
+      versioningTemplate: "docker",
+    },
+    {
+      customType: "regex",
+      description: [
+        "Intel device plugin images: the charts build <hub>/<name>:<tag>, and helm-values only reads `repository`.",
+        "The value is tag@sha256:digest; currentValue stops at '@' so the digest moves with the tag.",
+      ],
+      managerFilePatterns: ["/(^|/)kubernetes/apps/kube-system/intel-gpu/values\\.yaml$/"],
+      matchStrings: [
+        "hub: intel\\n(?:[ \\t]*#.*\\n)*[ \\t]*tag: \"?(?<currentValue>[^\"\\s@]+)@(?<currentDigest>sha256:[a-f0-9]{64})\"?",
+      ],
+      depNameTemplate: "intel/intel-gpu-plugin",
+      datasourceTemplate: "docker",
+      versioningTemplate: "docker",
+    },
+    {
+      customType: "regex",
+      description: ["Intel device plugin operator image in the intel-gpu Argo app valuesObject (hub + tag, see above)."],
+      managerFilePatterns: ["/(^|/)kubernetes/argo/apps/kube-system/intel-gpu\\.yaml$/"],
+      matchStrings: [
+        "hub: intel\\n(?:[ \\t]*#.*\\n)*[ \\t]*tag: \"?(?<currentValue>[^\"\\s@]+)@(?<currentDigest>sha256:[a-f0-9]{64})\"?",
+      ],
+      depNameTemplate: "intel/intel-deviceplugin-operator",
+      datasourceTemplate: "docker",
+      versioningTemplate: "docker",
+    },
+    {
+      customType: "regex",
+      description: [
+        "democratic-csi images: the chart takes registry (the full image name) + tag, and helm-values only reads `repository`.",
+        "The value is tag@sha256:digest; currentValue stops at '@' so the digest moves with the tag.",
+      ],
+      managerFilePatterns: ["/(^|/)kubernetes/apps/storage/democratic-csi-[\\w-]+/values\\.yaml$/"],
+      matchStrings: [
+        "registry: (?<depName>\\S+)\\n(?:[ \\t]*#.*\\n)*[ \\t]*tag: \"?(?<currentValue>[^\"\\s@]+)@(?<currentDigest>sha256:[a-f0-9]{64})\"?",
+      ],
+      datasourceTemplate: "docker",
+      versioningTemplate: "docker",
+    },
+    {
+      customType: "regex",
+      description: [
+        "longhorn and csi-driver-smb images: their value keys (image.longhorn.manager, image.csi.attacher, image.smb, ...) do not end in 'image',",
+        "so the helm-values heuristic skips them. The value is tag@sha256:digest; currentValue stops at '@' so the digest moves with the tag.",
+      ],
+      managerFilePatterns: ["/(^|/)kubernetes/apps/(longhorn-system/longhorn|kube-system/csi-driver-smb)/values\\.yaml$/"],
+      matchStrings: [
+        "repository: (?<depName>\\S+)\\n(?:[ \\t]*#.*\\n)*[ \\t]*tag: \"?(?<currentValue>[^\"\\s@]+)@(?<currentDigest>sha256:[a-f0-9]{64})\"?",
       ],
       datasourceTemplate: "docker",
       versioningTemplate: "docker",
