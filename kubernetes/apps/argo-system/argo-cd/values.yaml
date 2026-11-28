@@ -146,6 +146,16 @@ notifications:
   enabled: false
 repoServer:
   replicas: 1
+  affinity:
+    # Prefer the talmacs (12 cores, 32 GB each); still schedules elsewhere when they are full or down.
+    nodeAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          preference:
+            matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values: [talmac-01, talmac-02, talmac-03]
   # non-file memory (working_set - active_file), 14d to 2026-10-21: p99 71Mi, max 314Mi (helm/ksops renders spike). CPU p95 168m.
   resources:
     requests:

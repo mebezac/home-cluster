@@ -86,6 +86,16 @@ runnerConfig: |
 # docker-in-docker). Job pods run bjw-s's runner image, pinned by digest.
 podSpecs:
   podspec-default.yaml: |
+    affinity:
+      # Prefer the talmacs (12 cores, 32 GB each); still schedules elsewhere when they are full or down.
+      nodeAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+                - key: kubernetes.io/hostname
+                  operator: In
+                  values: [talmac-01, talmac-02, talmac-03]
     containers:
       - name: main
         image: ghcr.io/bjw-s-labs/forgejo-runner:ubuntu-24.04@sha256:fce99eeccdfec1780643510c72d8fcbb8ef5fa82a54066ed4aaab3d03a3eb830
@@ -107,6 +117,16 @@ podSpecs:
   # NOTE: binary tools (node/go/deno/python/terraform) install fast; compile-from-source
   # langs (erlang/elixir, ruby) build each run (minutes) since job pods are ephemeral.
   podspec-mise.yaml: |
+    affinity:
+      # Prefer the talmacs (12 cores, 32 GB each); still schedules elsewhere when they are full or down.
+      nodeAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+                - key: kubernetes.io/hostname
+                  operator: In
+                  values: [talmac-01, talmac-02, talmac-03]
     containers:
       - name: main
         image: ghcr.io/jdx/mise:2026.7.5@sha256:3511d21606638b7285e545f83756e993bfaa67cbe7d9b4eeeec8ad87230a0eff

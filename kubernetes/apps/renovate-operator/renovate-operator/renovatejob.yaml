@@ -20,6 +20,16 @@ spec:
   # changelog: GH releases renovatebot/renovate (list releases between tags; same source as npm:renovate in .mise.toml)
   image: ghcr.io/renovatebot/renovate:45.3.2@sha256:d0358088501c7665688673c8932474b02517941703a16e970e8b4fcf235299cb
   parallelism: 1
+  affinity:
+    # Prefer the talmacs (12 cores, 32 GB each); still schedules elsewhere when they are full or down.
+    nodeAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          preference:
+            matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values: [talmac-01, talmac-02, talmac-03]
   provider:
     name: forgejo
     endpoint: https://git.laboratory.casa

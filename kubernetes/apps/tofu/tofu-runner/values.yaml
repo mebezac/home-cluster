@@ -83,6 +83,16 @@ runnerConfig: |
 # bumps both image lines (tag + digest) after each image build.
 podSpecs:
   podspec-readonly.yaml: |
+    affinity:
+      # Prefer the talmacs (12 cores, 32 GB each); still schedules elsewhere when they are full or down.
+      nodeAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+                - key: kubernetes.io/hostname
+                  operator: In
+                  values: [talmac-01, talmac-02, talmac-03]
     automountServiceAccountToken: false
     securityContext:
       runAsUser: 3000
@@ -127,6 +137,16 @@ podSpecs:
         emptyDir: {}
     restartPolicy: Never
   podspec-buckets.yaml: |
+    affinity:
+      # Prefer the talmacs (12 cores, 32 GB each); still schedules elsewhere when they are full or down.
+      nodeAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+                - key: kubernetes.io/hostname
+                  operator: In
+                  values: [talmac-01, talmac-02, talmac-03]
     automountServiceAccountToken: false
     securityContext:
       runAsUser: 3000
