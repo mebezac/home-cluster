@@ -39,8 +39,8 @@ image:
 plugin:
   image:
     repository: git.erwanleboucher.dev/eleboucher/runner-k8s-plugin
-    tag: "13.2.2"
-    digest: "sha256:403b5348a38934eae4b06011a457fcdeae3d16df1074eb758b8b31c10f837d76"
+    tag: "13.3.1"
+    digest: "sha256:efb3dedcdd60ce99243dd3d560bf1fad2a06bb1f27a689feb9a220b84e3497e2"
 
 # The namespace enforces Pod Security "restricted" (Argo CD managedNamespaceMetadata).
 podSecurityContext:
