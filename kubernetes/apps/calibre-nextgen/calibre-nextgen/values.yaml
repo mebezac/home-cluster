@@ -24,6 +24,7 @@ controllers:
       bootstrap:
         image: &image
           repository: ghcr.io/new-usemame/calibre-web-nextgen
+          # changelog: PR body (CHANGELOG.md). bootstrap.py/metadata-backfill.py import cps internals (ub, constants, cwa_db_loader, auto_library, config_sql, db, calibre_init, metadata_helper): check those in github.com/new-usemame/Calibre-Web-NextGen/compare
           tag: v4.1.75@sha256:f38e5fc9ee6d29f803dc062c06d00c52f6e600327d50aba3dada0aba49fe6d4d
         command:
           - /bin/sh

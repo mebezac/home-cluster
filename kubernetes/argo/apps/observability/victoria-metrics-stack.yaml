@@ -14,7 +14,7 @@ spec:
       ref: victoria-metrics-repo
     - repoURL: https://victoriametrics.github.io/helm-charts
       chart: victoria-metrics-k8s-stack
-      # changelog: >=0.85 renders defaultRules/dashboards via a deploy-time sync-job (VMRules labelled managed-by=sync-job); verify bumps with helm template -f our values.yaml and diff; component notes: GH releases VictoriaMetrics/VictoriaMetrics v<appVersion> (chart notes only say "bump")
+      # changelog: >=0.85 renders defaultRules/dashboards via a deploy-time sync-job (VMRules labelled managed-by=sync-job); verify bumps with helm template -f our values.yaml and diff; component notes: GH releases VictoriaMetrics/VictoriaMetrics v<appVersion> (read the chart CHANGELOG.md in VictoriaMetrics/helm-charts charts/victoria-metrics-k8s-stack: it lists every intermediate version and the subchart majors; helm-pull RELEASE_NOTES show only the newest)
       targetRevision: 0.99.1
       helm:
         releaseName: victoria-metrics-stack

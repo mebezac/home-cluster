@@ -180,6 +180,7 @@ controllers:
         <<: *mariadb-container
         image: &mariadb-lts-image
           repository: docker.io/library/mariadb
+          # changelog: mariadb.com release notes. Stay on the LTS line: supportType in MariaDB/mariadb-docker versions.json (Renovate caps mariadb below 13)
           tag: 12.3.3@sha256:4aaf88b3106382c8c18e49f0cec60267be618fc22f858c4503afb2a2555afed3
         args:
           - --datadir=/var/lib/mysql/data
