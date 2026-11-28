@@ -63,6 +63,9 @@ runnerConfig: |
       options:
         namespace: forgejo
         poll_timeout: 10m
+        # Set explicitly: the default moved sidecar -> pod (13.2.2) -> sidecar (13.3.1).
+        # sidecar = workflow services share the job pod (localhost, shared volume, no two on one port).
+        services_mode: sidecar
         labels: "app.kubernetes.io/name=forgejo-runner-instance"
         resources: |
           requests:

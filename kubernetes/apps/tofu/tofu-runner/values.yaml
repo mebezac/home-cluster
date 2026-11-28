@@ -67,6 +67,8 @@ runnerConfig: |
       options:
         namespace: tofu
         poll_timeout: 10m
+        # Set explicitly: the default moved sidecar -> pod (13.2.2) -> sidecar (13.3.1).
+        services_mode: sidecar
         labels: "app.kubernetes.io/name=tofu-runner-job"
   runner:
     capacity: 1
