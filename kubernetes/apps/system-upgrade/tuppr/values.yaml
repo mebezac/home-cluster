@@ -1,0 +1,59 @@
+---
+# tuppr: Talos upgrade controller (https://tuppr.home-operations.com/).
+# The chart pins the image by digest already (values.yaml image.digest in the 0.5.14 chart);
+# we repeat it so the house rule (tag@sha256) holds and Renovate tracks it.
+image:
+  repository: ghcr.io/home-operations/tuppr
+  # changelog: GH releases home-operations/tuppr. Keep = targetRevision of the chart in
+  # kubernetes/argo/apps/system-upgrade/tuppr.yaml
+  tag: 0.5.14
+  digest: sha256:b0c169806d82b2185a31e78df6f792634d8996a1d261396967f8ba8efd7dd691
+
+# Keep the controller OFF the control planes. tuppr upgrades the node the controller runs on
+# FIRST within a plan (internal/controller/talosupgrade/upgrade.go getSortedNodes), so a
+# controller on a control plane would break the "etcd leader last" order of the CP plan.
+# The chart's default tolerations (control-plane, unschedulable) are kept: they only allow,
+# the affinity below forbids.
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: node-role.kubernetes.io/control-plane
+              operator: DoesNotExist
+
+resources:
+  requests:
+    cpu: 10m
+    memory: 64Mi
+  limits:
+    memory: 256Mi
+
+# Read-only access for healthChecks: only the kinds our plans read (default is */* incl. Secrets).
+rbac:
+  healthCheckRules:
+    - apiGroups: ["longhorn.io"]
+      resources: ["volumes", "nodes"]
+      verbs: ["get", "list", "watch"]
+    - apiGroups: ["postgresql.cnpg.io"]
+      resources: ["clusters"]
+      verbs: ["get", "list", "watch"]
+    - apiGroups: ["kopiur.home-operations.com"]
+      resources: ["snapshots", "restores"]
+      verbs: ["get", "list", "watch"]
+    - apiGroups: ["apps"]
+      resources: ["deployments", "statefulsets"]
+      verbs: ["get", "list", "watch"]
+
+# VictoriaMetrics operator converts ServiceMonitor/PrometheusRule (both CRDs exist in-cluster).
+monitoring:
+  serviceMonitor:
+    enabled: true
+  prometheusRule:
+    enabled: true
+
+# Optional, not enabled in the draft (open question): hold a vmalertmanager silence for the run.
+# silences:
+#   enabled: true
+#   alertmanager:
+#     address: http://vmalertmanager-victoria-metrics-stack.observability.svc:9093

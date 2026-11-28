@@ -1,0 +1,78 @@
+---
+# Plan 2 of 3: talmac-01/02/03 (2018 T2 Macs), one at a time, firmware power-cycle reboot.
+# SUSPENDED in git: remove the annotation (a commit, never kubectl: Argo selfHeal would re-add it
+# mid-run) once plan 1 is Completed and checked; put it back after the rollout.
+# Before un-suspending: kubectl -n database get pod -o wide | grep -E 'postgres-17|barman' - the CNPG
+# primary must not share a node with the single barman plugin pod (SKILL.md 2026-10-01 incident),
+# unless the plugin is pinned to the control planes (patches/plugin-barman-cloud-values.diff).
+apiVersion: tuppr.home-operations.com/v1alpha1
+kind: TalosUpgrade
+metadata:
+  name: talmacs
+  annotations:
+    # After the controller and webhook (wave 0); CRD may not exist on the first dry-run.
+    argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+    tuppr.home-operations.com/suspend: "true"
+spec:
+  talos:
+    # Same comment + depName as topf.yaml talosVersion, so the Renovate "Talos" group bumps
+    # topf.yaml, .mise.toml talosctl and all three plans in one PR.
+    # renovate: datasource=github-releases depName=siderolabs/talos
+    version: v1.14.6
+  nodeSelector:
+    matchExpressions:
+      - key: kubernetes.io/hostname
+        operator: In
+        values: [talmac-01, talmac-02, talmac-03]
+  policy:
+    # talosctl upgrade --reboot-mode=powercycle (jobs.go). Proven 1.14.4 -> 1.14.6: Talos power-cycled
+    # the node itself, exit 0. If the old BootFFFF error returns (installer exit 7, no reboot), the Job
+    # retries twice, then tuppr marks the node failed and the plan Failed (terminal): power-cycle the
+    # node by hand (SKILL.md "Mac notes"), uncordon if needed, then
+    # kubectl annotate talosupgrade talmacs tuppr.home-operations.com/reset="$(date)".
+    rebootMode: powercycle
+    drainTimeout: 20m
+    timeout: 30m
+  # CEL checks, all must pass before EACH node (re-tried every 30 s, backing off to 5 min; a failing
+  # check never fails the run, it waits). `status` is {} when absent, so guard optional fields with has().
+  # The built-in gate also runs before each node: k8s node Ready, Talos MachineStatus ready, and etcd
+  # with one healthy voting member per control plane (docs talos-upgrades "Built-in cluster health gate").
+  healthChecks:
+    - description: Longhorn volumes healthy (detached = unknown is fine, degraded/faulted waits)
+      apiVersion: longhorn.io/v1beta2
+      kind: Volume
+      namespace: longhorn-system
+      expr: has(status.robustness) && status.robustness in ["healthy", "unknown"]
+    - description: Longhorn nodes and their disks Ready (talmac USB disk sabrent-usb-ssd included)
+      apiVersion: longhorn.io/v1beta2
+      kind: Node
+      namespace: longhorn-system
+      expr: >-
+        has(status.conditions) && status.conditions.exists(c, c.type == "Ready" && c.status == "True") &&
+        has(status.diskStatus) && status.diskStatus.all(d, has(status.diskStatus[d].conditions) &&
+        status.diskStatus[d].conditions.exists(c, c.type == "Ready" && c.status == "True"))
+    - description: postgres-17-cluster has all instances ready and is healthy
+      apiVersion: postgresql.cnpg.io/v1
+      kind: Cluster
+      name: postgres-17-cluster
+      namespace: database
+      expr: >-
+        has(status.readyInstances) && status.readyInstances == object.spec.instances &&
+        has(status.phase) && status.phase == "Cluster in healthy state"
+    - description: no Kopiur snapshot pending or running
+      apiVersion: kopiur.home-operations.com/v1alpha1
+      kind: Snapshot
+      expr: has(status.phase) && !(status.phase in ["Pending", "Running"])
+    - description: no Kopiur restore in progress
+      apiVersion: kopiur.home-operations.com/v1alpha1
+      kind: Restore
+      expr: '!has(status.phase) || !(status.phase in ["Resolving", "Restoring"])'
+    - description: every Deployment fully ready (stands in for the skill gate "0 non-ready pods")
+      apiVersion: apps/v1
+      kind: Deployment
+      expr: object.spec.replicas == 0 || (has(status.readyReplicas) && status.readyReplicas >= object.spec.replicas)
+    - description: every StatefulSet fully ready
+      apiVersion: apps/v1
+      kind: StatefulSet
+      expr: object.spec.replicas == 0 || (has(status.readyReplicas) && status.readyReplicas >= object.spec.replicas)

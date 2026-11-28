@@ -1,0 +1,74 @@
+---
+# Plan 3 of 3: control planes. tuppr runs them one at a time (always) in NAME order:
+# elitebook-01, elitebook-02, wyse-5070-03 (the controller is kept off the CPs, values.yaml affinity).
+# SUSPENDED in git. Before un-suspending, put the etcd leader on the LAST node, wyse-5070-03:
+#   talosctl -e <other-cp> -n <leader-ip> etcd forfeit-leadership
+# Talos moves leadership to the first other member of the member list (internal/pkg/etcd/etcd.go
+# ForfeitLeadership); the list is ordered by member ID and wyse-03 (28947fb95f797fbf) is first,
+# so one forfeit from either elitebook lands on wyse-03. Check with talosctl etcd status.
+apiVersion: tuppr.home-operations.com/v1alpha1
+kind: TalosUpgrade
+metadata:
+  name: control-planes
+  annotations:
+    # After the controller and webhook (wave 0); CRD may not exist on the first dry-run.
+    argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+    tuppr.home-operations.com/suspend: "true"
+spec:
+  talos:
+    # Same comment + depName as topf.yaml talosVersion, so the Renovate "Talos" group bumps
+    # topf.yaml, .mise.toml talosctl and all three plans in one PR.
+    # renovate: datasource=github-releases depName=siderolabs/talos
+    version: v1.14.6
+  nodeSelector:
+    matchExpressions:
+      - key: node-role.kubernetes.io/control-plane
+        operator: Exists
+  policy:
+    # Elitebooks: never kexec (2026-09-30 hang, SKILL.md). cp-upgrade.sh power-cycles all three CPs.
+    rebootMode: powercycle
+    drainTimeout: 20m
+    timeout: 30m
+  # CEL checks, all must pass before EACH node (re-tried every 30 s, backing off to 5 min; a failing
+  # check never fails the run, it waits). `status` is {} when absent, so guard optional fields with has().
+  # The built-in gate also runs before each node: k8s node Ready, Talos MachineStatus ready, and etcd
+  # with one healthy voting member per control plane (docs talos-upgrades "Built-in cluster health gate").
+  healthChecks:
+    - description: Longhorn volumes healthy (detached = unknown is fine, degraded/faulted waits)
+      apiVersion: longhorn.io/v1beta2
+      kind: Volume
+      namespace: longhorn-system
+      expr: has(status.robustness) && status.robustness in ["healthy", "unknown"]
+    - description: Longhorn nodes and their disks Ready (talmac USB disk sabrent-usb-ssd included)
+      apiVersion: longhorn.io/v1beta2
+      kind: Node
+      namespace: longhorn-system
+      expr: >-
+        has(status.conditions) && status.conditions.exists(c, c.type == "Ready" && c.status == "True") &&
+        has(status.diskStatus) && status.diskStatus.all(d, has(status.diskStatus[d].conditions) &&
+        status.diskStatus[d].conditions.exists(c, c.type == "Ready" && c.status == "True"))
+    - description: postgres-17-cluster has all instances ready and is healthy
+      apiVersion: postgresql.cnpg.io/v1
+      kind: Cluster
+      name: postgres-17-cluster
+      namespace: database
+      expr: >-
+        has(status.readyInstances) && status.readyInstances == object.spec.instances &&
+        has(status.phase) && status.phase == "Cluster in healthy state"
+    - description: no Kopiur snapshot pending or running
+      apiVersion: kopiur.home-operations.com/v1alpha1
+      kind: Snapshot
+      expr: has(status.phase) && !(status.phase in ["Pending", "Running"])
+    - description: no Kopiur restore in progress
+      apiVersion: kopiur.home-operations.com/v1alpha1
+      kind: Restore
+      expr: '!has(status.phase) || !(status.phase in ["Resolving", "Restoring"])'
+    - description: every Deployment fully ready (stands in for the skill gate "0 non-ready pods")
+      apiVersion: apps/v1
+      kind: Deployment
+      expr: object.spec.replicas == 0 || (has(status.readyReplicas) && status.readyReplicas >= object.spec.replicas)
+    - description: every StatefulSet fully ready
+      apiVersion: apps/v1
+      kind: StatefulSet
+      expr: object.spec.replicas == 0 || (has(status.readyReplicas) && status.readyReplicas >= object.spec.replicas)

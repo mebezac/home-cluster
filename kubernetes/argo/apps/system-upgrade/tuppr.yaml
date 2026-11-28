@@ -1,0 +1,39 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: tuppr
+  namespace: argo-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: kubernetes
+  sources:
+    # TalosUpgrade plans (kustomization.yaml). They sync in wave 1, after the controller and its
+    # validating webhook (failurePolicy: Fail) are up.
+    - repoURL: https://github.com/mebezac/home-cluster.git
+      path: kubernetes/apps/system-upgrade/tuppr
+      targetRevision: main
+      ref: tuppr-repo
+    - repoURL: ghcr.io/home-operations/charts
+      chart: tuppr
+      # changelog: GH releases home-operations/tuppr (v1alpha1: read every release for CRD and policy changes)
+      targetRevision: 0.5.14
+      helm:
+        releaseName: tuppr
+        valueFiles:
+          - $tuppr-repo/kubernetes/apps/system-upgrade/tuppr/values.yaml
+  destination:
+    name: in-cluster
+    # Must match KubeTalosAPIAccessConfig.allowedKubernetesNamespaces
+    # (kubernetes/bootstrap/talos/control-plane/10-talos-api-access.yaml).
+    namespace: system-upgrade
+  syncPolicy:
+    automated:
+      allowEmpty: true
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      # The TalosUpgrade CRD is ~384 KB, bigger than the 256 KB last-applied annotation,
+      # so client-side apply fails on it (same reason as kopiur).
+      - ServerSideApply=true
