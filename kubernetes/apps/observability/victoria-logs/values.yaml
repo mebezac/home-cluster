@@ -6,7 +6,7 @@ server:
     # appVersion (kubernetes/argo/apps/observability/victoria-logs.yaml) and the vlagent tag in
     # ../victoria-logs-collector/values.yaml - chart bumps no longer move this image. The VM chart
     # strips "@sha256..." from the version label, so the digest is safe here.
-    tag: v1.54.0@sha256:ee4e820cac3721f5f5d91641b950c22439593adc4224f9655e5333d5a84c1dfe
+    tag: v1.55.0@sha256:7bec543b83cbff641e4b568c6f28d8e9cd779e4eab3add9f8806c32af23ea1e1
 
   # Data retention period (14 days same as Loki)
   retentionPeriod: 14d
