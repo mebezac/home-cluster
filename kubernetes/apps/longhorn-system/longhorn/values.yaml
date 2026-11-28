@@ -94,7 +94,7 @@ image:
       tag: "v1.13.0@sha256:49779b9a8ab535f1e86d224f8e2eb5c2c3713b8f1783403fe00612a75de2b3b8"
     supportBundleKit:
       repository: longhornio/support-bundle-kit
-      tag: "v0.0.98@sha256:e64a01db35396f967175adcfd0177d2a50e75765c51efe86e55f13f49095d1ae"
+      tag: "v1.1.2@sha256:296351b064625fa0a86333cd4e3d394d4363ada9aa51317f6740c06ea26411e5"
   csi:
     attacher:
       repository: longhornio/csi-attacher
