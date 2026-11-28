@@ -10,3 +10,16 @@ sidecarImage:
   repository: cloudnative-pg/plugin-barman-cloud-sidecar
   # changelog: GH releases cloudnative-pg/plugin-barman-cloud (not in PR body)
   tag: v0.16.0@sha256:c669259e20ed1e11fad821f735c396c19d929985aa05b9544b13ecc8b5a386d0
+# Keep the single plugin pod on the control planes, where no CNPG instance can run (NoSchedule
+# taint). A worker drain then never evicts the plugin together with the Postgres primary: on
+# 2026-10-01 that left the operator unable to fail over for ~2 min (talos-upgrade SKILL.md).
+# tuppr has no per-node hook to promote the primary away first, so this replaces that step.
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: node-role.kubernetes.io/control-plane
+              operator: Exists
+tolerations:
+  - key: node-role.kubernetes.io/control-plane
